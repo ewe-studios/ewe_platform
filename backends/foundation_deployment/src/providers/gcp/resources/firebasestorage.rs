@@ -10,14 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A storage bucket and its relation to a parent Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bucket {
-    /// Output only. Resource name of the bucket.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Spark tier-eligible Cloud Storage bucket. One per project. This resource exists if the underlying Cloud Storage bucket exists and it is linked to your Firebase project. See https://firebase.google.com/pricing for pricing details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DefaultBucket {
@@ -44,4 +36,12 @@ pub struct ListBucketsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A storage bucket and its relation to a parent Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bucket {
+    /// Output only. Resource name of the bucket.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }

@@ -10,70 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Arg matchers for the mock function.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Arg {
-    /// Argument matches any value provided.
-    #[serde(default, rename = "anyValue")]
-    pub any_value: ::core::option::Option<serde_json::Value>,
-    /// Argument exactly matches value provided.
-    #[serde(default, rename = "exactValue")]
-    pub exact_value: ::core::option::Option<serde_json::Value>,
-}
-
-/// Describes where in a file an expression is found and what it was evaluated to over the course of its use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExpressionReport {
-    /// Subexpressions
-    #[serde(default)]
-    pub children: ::core::option::Option<::std::vec::Vec<ExpressionReport>>,
-    /// Position of expression in original rules source.
-    #[serde(default, rename = "sourcePosition")]
-    pub source_position: ::core::option::Option<SourcePosition>,
-    /// Values that this expression evaluated to when encountered.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<ValueCount>>,
-}
-
-/// File containing source content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct File {
-    /// Required. Textual Content.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Fingerprint (e.g. github sha) associated with the File.
-    #[serde(default)]
-    pub fingerprint: ::core::option::Option<String>,
-    /// Required. File name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents a service-defined function call that was invoked during test execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionCall {
-    /// The arguments that were provided to the function.
-    #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Name of the function invoked.
-    #[serde(default)]
-    pub function: ::core::option::Option<String>,
-}
-
-/// Mock function definition. Mocks must refer to a function declared by the target service. The type of the function args and result will be inferred at test time. If either the arg or result values are not compatible with function type declaration, the request will be considered invalid. More than one FunctionMock may be provided for a given function name so long as the Arg matchers are distinct. There may be only one function for a given overload where all Arg values are Arg.any_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionMock {
-    /// The list of Arg values to match. The order in which the arguments are provided is the order in which they must appear in the function invocation.
-    #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<Arg>>,
-    /// The name of the function. The function name must match one provided by a service declaration.
-    #[serde(default)]
-    pub function: ::core::option::Option<String>,
-    /// The mock result of the function call.
-    #[serde(default)]
-    pub result: ::core::option::Option<ApiResult>,
-}
-
 /// The response for FirebaseRulesService.GetReleaseExecutable
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetReleaseExecutableResponse {
@@ -95,20 +31,6 @@ pub struct GetReleaseExecutableResponse {
     /// Timestamp for the most recent Release.update_time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Issues include warnings, errors, and deprecation notices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Issue {
-    /// Short error description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "DEPRECATION", "WARNING", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Position of the issue in the Source.
-    #[serde(default, rename = "sourcePosition")]
-    pub source_position: ::core::option::Option<SourcePosition>,
 }
 
 /// The response for FirebaseRulesService.ListReleases.
@@ -133,40 +55,37 @@ pub struct ListRulesetsResponse {
     pub rulesets: ::core::option::Option<::std::vec::Vec<Ruleset>>,
 }
 
-/// Metadata for a Ruleset.
+/// The request for FirebaseRulesService.TestRuleset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Metadata {
-    /// Services that this ruleset has declarations for (e.g., "cloud.firestore"). There may be 0+ of these.
+pub struct TestRulesetRequest {
+    /// Optional. Optional Source to be checked for correctness. This field must not be set when the resource name refers to a Ruleset.
     #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<String>>,
+    pub source: ::core::option::Option<Source>,
+    /// Required. The tests to execute against the Source. When Source is provided inline, the test cases will only be run if the Source is syntactically and semantically valid. Inline TestSuite to run.
+    #[serde(default, rename = "testSuite")]
+    pub test_suite: ::core::option::Option<TestSuite>,
 }
 
-/// Release is a named reference to a Ruleset. Once a Release refers to a Ruleset, rules-enabled services will be able to enforce the Ruleset.
+/// The response for FirebaseRulesService.TestRuleset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Release {
-    /// Output only. Time the release was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Format: projects/{project_id}/releases/{release_id}
+pub struct TestRulesetResponse {
+    /// Syntactic and semantic Source issues of varying severity. Issues of ERROR severity will prevent tests from executing.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Name of the Ruleset referred to by this Release. The Ruleset must exist for the Release to be created.
-    #[serde(default, rename = "rulesetName")]
-    pub ruleset_name: ::core::option::Option<String>,
-    /// Output only. Time the release was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
+    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
+    /// The set of test results given the test cases in the TestSuite. The results will appear in the same order as the test cases appear in the TestSuite.
+    #[serde(default, rename = "testResults")]
+    pub test_results: ::core::option::Option<::std::vec::Vec<TestResult>>,
 }
 
-/// Possible result values from the function mock invocation.
+/// The request for FirebaseRulesService.UpdateRelease.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiResult {
-    /// The result is undefined, meaning the result could not be computed.
+pub struct UpdateReleaseRequest {
+    /// Required. Release to update.
     #[serde(default)]
-    pub undefined: ::core::option::Option<serde_json::Value>,
-    /// The result is an actual value. The type of the value must match that of the type declared by the service.
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
+    pub release: ::core::option::Option<Release>,
+    /// Optional. Specifies which fields to update.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Ruleset is an immutable copy of Source with a globally unique identifier and a creation time.
@@ -189,55 +108,26 @@ pub struct Ruleset {
     pub source: ::core::option::Option<Source>,
 }
 
-/// Source is one or more File messages comprising a logical set of rules.
+/// TestSuite is a collection of TestCase instances that validate the logical correctness of a Ruleset. The TestSuite may be referenced in-line within a TestRuleset invocation or as part of a Release object as a pre-release check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source {
-    /// Required. File set constituting the Source bundle.
-    #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<File>>,
+pub struct TestSuite {
+    /// Collection of test cases associated with the TestSuite.
+    #[serde(default, rename = "testCases")]
+    pub test_cases: ::core::option::Option<::std::vec::Vec<TestCase>>,
 }
 
-/// Position in the Source content including its line, column number, and an index of the File in the Source message. Used for debug purposes.
+/// Issues include warnings, errors, and deprecation notices.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourcePosition {
-    /// First column on the source line associated with the source fragment.
+pub struct Issue {
+    /// Short error description.
     #[serde(default)]
-    pub column: ::core::option::Option<i32>,
-    /// Start position relative to the beginning of the file.
-    #[serde(default, rename = "currentOffset")]
-    pub current_offset: ::core::option::Option<i32>,
-    /// End position relative to the beginning of the file.
-    #[serde(default, rename = "endOffset")]
-    pub end_offset: ::core::option::Option<i32>,
-    /// Name of the File.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Line number of the source fragment. 1-based.
+    pub description: ::core::option::Option<String>,
+    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "DEPRECATION", "WARNING", "ERROR"]
     #[serde(default)]
-    pub line: ::core::option::Option<i32>,
-}
-
-/// TestCase messages provide the request context and an expectation as to whether the given context will be allowed or denied. Test cases may specify the request, resource, and function_mocks to mock a function call to a service-provided function. The request object represents context present at request-time. The resource is the value of the target resource as it appears in persistent storage before the request is executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestCase {
-    /// Test expectation. // TODO: enum values: ["EXPECTATION_UNSPECIFIED", "ALLOW", "DENY"]
-    #[serde(default)]
-    pub expectation: ::core::option::Option<String>,
-    /// Specifies what should be included in the response. // TODO: enum values: ["LEVEL_UNSPECIFIED", "NONE", "FULL", "VISITED"]
-    #[serde(default, rename = "expressionReportLevel")]
-    pub expression_report_level: ::core::option::Option<String>,
-    /// Optional function mocks for service-defined functions. If not set, any service defined function is expected to return an error, which may or may not influence the test outcome.
-    #[serde(default, rename = "functionMocks")]
-    pub function_mocks: ::core::option::Option<::std::vec::Vec<FunctionMock>>,
-    /// Specifies whether paths (such as request.path) are encoded and how. // TODO: enum values: ["ENCODING_UNSPECIFIED", "URL_ENCODED", "PLAIN"]
-    #[serde(default, rename = "pathEncoding")]
-    pub path_encoding: ::core::option::Option<String>,
-    /// Request context. The exact format of the request context is service-dependent. See the appropriate service documentation for information about the supported fields and types on the request. Minimally, all services support the following fields and types: Request field | Type ---------------|----------------- auth.uid | string auth.token | map headers | map method | string params | map path | string time | google.protobuf.Timestamp If the request value is not well-formed for the service, the request will be rejected as an invalid argument.
-    #[serde(default)]
-    pub request: ::core::option::Option<serde_json::Value>,
-    /// Optional resource value as it appears in persistent storage before the request is fulfilled. The resource type depends on the request.path value.
-    #[serde(default)]
-    pub resource: ::core::option::Option<serde_json::Value>,
+    pub severity: ::core::option::Option<String>,
+    /// Position of the issue in the Source.
+    #[serde(default, rename = "sourcePosition")]
+    pub source_position: ::core::option::Option<SourcePosition>,
 }
 
 /// Test result message containing the state of the test as well as a description and source position for test failures.
@@ -263,45 +153,124 @@ pub struct TestResult {
     pub visited_expressions: ::core::option::Option<::std::vec::Vec<VisitedExpression>>,
 }
 
-/// The request for FirebaseRulesService.TestRuleset.
+/// Release is a named reference to a Ruleset. Once a Release refers to a Ruleset, rules-enabled services will be able to enforce the Ruleset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestRulesetRequest {
-    /// Optional. Optional Source to be checked for correctness. This field must not be set when the resource name refers to a Ruleset.
+pub struct Release {
+    /// Output only. Time the release was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Format: projects/{project_id}/releases/{release_id}
     #[serde(default)]
-    pub source: ::core::option::Option<Source>,
-    /// Required. The tests to execute against the Source. When Source is provided inline, the test cases will only be run if the Source is syntactically and semantically valid. Inline TestSuite to run.
-    #[serde(default, rename = "testSuite")]
-    pub test_suite: ::core::option::Option<TestSuite>,
+    pub name: ::core::option::Option<String>,
+    /// Required. Name of the Ruleset referred to by this Release. The Ruleset must exist for the Release to be created.
+    #[serde(default, rename = "rulesetName")]
+    pub ruleset_name: ::core::option::Option<String>,
+    /// Output only. Time the release was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
-/// The response for FirebaseRulesService.TestRuleset.
+/// Metadata for a Ruleset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestRulesetResponse {
-    /// Syntactic and semantic Source issues of varying severity. Issues of ERROR severity will prevent tests from executing.
+pub struct Metadata {
+    /// Services that this ruleset has declarations for (e.g., "cloud.firestore"). There may be 0+ of these.
     #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
-    /// The set of test results given the test cases in the TestSuite. The results will appear in the same order as the test cases appear in the TestSuite.
-    #[serde(default, rename = "testResults")]
-    pub test_results: ::core::option::Option<::std::vec::Vec<TestResult>>,
+    pub services: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// TestSuite is a collection of TestCase instances that validate the logical correctness of a Ruleset. The TestSuite may be referenced in-line within a TestRuleset invocation or as part of a Release object as a pre-release check.
+/// Source is one or more File messages comprising a logical set of rules.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestSuite {
-    /// Collection of test cases associated with the TestSuite.
-    #[serde(default, rename = "testCases")]
-    pub test_cases: ::core::option::Option<::std::vec::Vec<TestCase>>,
+pub struct Source {
+    /// Required. File set constituting the Source bundle.
+    #[serde(default)]
+    pub files: ::core::option::Option<::std::vec::Vec<File>>,
 }
 
-/// The request for FirebaseRulesService.UpdateRelease.
+/// TestCase messages provide the request context and an expectation as to whether the given context will be allowed or denied. Test cases may specify the request, resource, and function_mocks to mock a function call to a service-provided function. The request object represents context present at request-time. The resource is the value of the target resource as it appears in persistent storage before the request is executed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateReleaseRequest {
-    /// Required. Release to update.
+pub struct TestCase {
+    /// Test expectation. // TODO: enum values: ["EXPECTATION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
-    pub release: ::core::option::Option<Release>,
-    /// Optional. Specifies which fields to update.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub expectation: ::core::option::Option<String>,
+    /// Specifies what should be included in the response. // TODO: enum values: ["LEVEL_UNSPECIFIED", "NONE", "FULL", "VISITED"]
+    #[serde(default, rename = "expressionReportLevel")]
+    pub expression_report_level: ::core::option::Option<String>,
+    /// Optional function mocks for service-defined functions. If not set, any service defined function is expected to return an error, which may or may not influence the test outcome.
+    #[serde(default, rename = "functionMocks")]
+    pub function_mocks: ::core::option::Option<::std::vec::Vec<FunctionMock>>,
+    /// Specifies whether paths (such as request.path) are encoded and how. // TODO: enum values: ["ENCODING_UNSPECIFIED", "URL_ENCODED", "PLAIN"]
+    #[serde(default, rename = "pathEncoding")]
+    pub path_encoding: ::core::option::Option<String>,
+    /// Request context. The exact format of the request context is service-dependent. See the appropriate service documentation for information about the supported fields and types on the request. Minimally, all services support the following fields and types: Request field | Type ---------------|----------------- auth.uid | string auth.token | map headers | map method | string params | map path | string time | google.protobuf.Timestamp If the request value is not well-formed for the service, the request will be rejected as an invalid argument.
+    #[serde(default)]
+    pub request: ::core::option::Option<serde_json::Value>,
+    /// Optional resource value as it appears in persistent storage before the request is fulfilled. The resource type depends on the request.path value.
+    #[serde(default)]
+    pub resource: ::core::option::Option<serde_json::Value>,
+}
+
+/// Describes where in a file an expression is found and what it was evaluated to over the course of its use.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpressionReport {
+    /// Subexpressions
+    #[serde(default)]
+    pub children: ::core::option::Option<::std::vec::Vec<ExpressionReport>>,
+    /// Position of expression in original rules source.
+    #[serde(default, rename = "sourcePosition")]
+    pub source_position: ::core::option::Option<SourcePosition>,
+    /// Values that this expression evaluated to when encountered.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<ValueCount>>,
+}
+
+/// Represents a service-defined function call that was invoked during test execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCall {
+    /// The arguments that were provided to the function.
+    #[serde(default)]
+    pub args: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Name of the function invoked.
+    #[serde(default)]
+    pub function: ::core::option::Option<String>,
+}
+
+/// Store the position and access outcome for an expression visited in rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VisitedExpression {
+    /// Position in the Source or Ruleset where an expression was visited.
+    #[serde(default, rename = "sourcePosition")]
+    pub source_position: ::core::option::Option<SourcePosition>,
+    /// The evaluated value for the visited expression, e.g. true/false
+    #[serde(default)]
+    pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// File containing source content.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {
+    /// Required. Textual Content.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Fingerprint (e.g. github sha) associated with the File.
+    #[serde(default)]
+    pub fingerprint: ::core::option::Option<String>,
+    /// Required. File name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Mock function definition. Mocks must refer to a function declared by the target service. The type of the function args and result will be inferred at test time. If either the arg or result values are not compatible with function type declaration, the request will be considered invalid. More than one FunctionMock may be provided for a given function name so long as the Arg matchers are distinct. There may be only one function for a given overload where all Arg values are Arg.any_value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionMock {
+    /// The list of Arg values to match. The order in which the arguments are provided is the order in which they must appear in the function invocation.
+    #[serde(default)]
+    pub args: ::core::option::Option<::std::vec::Vec<Arg>>,
+    /// The name of the function. The function name must match one provided by a service declaration.
+    #[serde(default)]
+    pub function: ::core::option::Option<String>,
+    /// The mock result of the function call.
+    #[serde(default)]
+    pub result: ::core::option::Option<ApiResult>,
 }
 
 /// Tuple for how many times an Expression was evaluated to a particular ExpressionValue.
@@ -315,13 +284,44 @@ pub struct ValueCount {
     pub value: ::core::option::Option<serde_json::Value>,
 }
 
-/// Store the position and access outcome for an expression visited in rules.
+/// Position in the Source content including its line, column number, and an index of the File in the Source message. Used for debug purposes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VisitedExpression {
-    /// Position in the Source or Ruleset where an expression was visited.
-    #[serde(default, rename = "sourcePosition")]
-    pub source_position: ::core::option::Option<SourcePosition>,
-    /// The evaluated value for the visited expression, e.g. true/false
+pub struct SourcePosition {
+    /// First column on the source line associated with the source fragment.
+    #[serde(default)]
+    pub column: ::core::option::Option<i32>,
+    /// Start position relative to the beginning of the file.
+    #[serde(default, rename = "currentOffset")]
+    pub current_offset: ::core::option::Option<i32>,
+    /// End position relative to the beginning of the file.
+    #[serde(default, rename = "endOffset")]
+    pub end_offset: ::core::option::Option<i32>,
+    /// Name of the File.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Line number of the source fragment. 1-based.
+    #[serde(default)]
+    pub line: ::core::option::Option<i32>,
+}
+
+/// Arg matchers for the mock function.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Arg {
+    /// Argument matches any value provided.
+    #[serde(default, rename = "anyValue")]
+    pub any_value: ::core::option::Option<serde_json::Value>,
+    /// Argument exactly matches value provided.
+    #[serde(default, rename = "exactValue")]
+    pub exact_value: ::core::option::Option<serde_json::Value>,
+}
+
+/// Possible result values from the function mock invocation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiResult {
+    /// The result is undefined, meaning the result could not be computed.
+    #[serde(default)]
+    pub undefined: ::core::option::Option<serde_json::Value>,
+    /// The result is an actual value. The type of the value must match that of the type declared by the service.
     #[serde(default)]
     pub value: ::core::option::Option<serde_json::Value>,
 }

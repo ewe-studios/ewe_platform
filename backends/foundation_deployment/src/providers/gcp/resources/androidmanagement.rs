@@ -10,209 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A shell command was issued over ADB via “adb shell command”.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdbShellCommandEvent {
-    /// Shell command that was issued over ADB via "adb shell command". Redacted to empty string on organization-owned managed profile devices.
-    #[serde(default, rename = "shellCmd")]
-    pub shell_cmd: ::core::option::Option<String>,
-}
-
-/// Parameters associated with the ADD_ESIM command to add an eSIM profile to the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddEsimParams {
-    /// Required. The activation code for the eSIM profile.
-    #[serde(default, rename = "activationCode")]
-    pub activation_code: ::core::option::Option<String>,
-    /// Required. The activation state of the eSIM profile once it is downloaded. // TODO: enum values: ["ACTIVATION_STATE_UNSPECIFIED", "ACTIVATED", "NOT_ACTIVATED"]
-    #[serde(default, rename = "activationState")]
-    pub activation_state: ::core::option::Option<String>,
-}
-
-/// Advanced security settings. In most cases, setting these is not needed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdvancedSecurityOverrides {
-    /// Controls Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC). Enabling Common Criteria Mode increases certain security components on a device, see CommonCriteriaMode for details.Warning: Common Criteria Mode enforces a strict security model typically only required for IT products used in national security systems and other highly sensitive organizations. Standard device use may be affected. Only enabled if required. If Common Criteria Mode is turned off after being enabled previously, all user-configured Wi-Fi networks may be lost and any enterprise-configured Wi-Fi networks that require user input may need to be reconfigured. // TODO: enum values: ["COMMON_CRITERIA_MODE_UNSPECIFIED", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
-    #[serde(default, rename = "commonCriteriaMode")]
-    pub common_criteria_mode: ::core::option::Option<String>,
-    /// Optional. Controls whether content protection, which scans for deceptive apps, is enabled. This is supported on Android 15 and above. // TODO: enum values: ["CONTENT_PROTECTION_POLICY_UNSPECIFIED", "CONTENT_PROTECTION_DISABLED", "CONTENT_PROTECTION_ENFORCED", "CONTENT_PROTECTION_USER_CHOICE"]
-    #[serde(default, rename = "contentProtectionPolicy")]
-    pub content_protection_policy: ::core::option::Option<String>,
-    /// Controls access to developer settings: developer options and safe boot. Replaces safeBootDisabled (deprecated) and debuggingFeaturesAllowed (deprecated). On personally-owned devices with a work profile, setting this policy will not disable safe boot. In this case, a NonComplianceDetail with MANAGEMENT_MODE is reported. // TODO: enum values: ["DEVELOPER_SETTINGS_UNSPECIFIED", "DEVELOPER_SETTINGS_DISABLED", "DEVELOPER_SETTINGS_ALLOWED"]
-    #[serde(default, rename = "developerSettings")]
-    pub developer_settings: ::core::option::Option<String>,
-    /// Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced. Replaces ensureVerifyAppsEnabled (deprecated). // TODO: enum values: ["GOOGLE_PLAY_PROTECT_VERIFY_APPS_UNSPECIFIED", "VERIFY_APPS_ENFORCED", "VERIFY_APPS_USER_CHOICE"]
-    #[serde(default, rename = "googlePlayProtectVerifyApps")]
-    pub google_play_protect_verify_apps: ::core::option::Option<String>,
-    /// Optional. Controls Memory Tagging Extension (MTE) (https://source.android.com/docs/security/test/memory-safety/arm-mte) on the device. The device needs to be rebooted to apply changes to the MTE policy. On Android 15 and above, a NonComplianceDetail with PENDING is reported if the policy change is pending a device reboot. // TODO: enum values: ["MTE_POLICY_UNSPECIFIED", "MTE_USER_CHOICE", "MTE_ENFORCED", "MTE_DISABLED"]
-    #[serde(default, rename = "mtePolicy")]
-    pub mte_policy: ::core::option::Option<String>,
-    /// Personal apps that can read work profile notifications using a NotificationListenerService (https://developer.android.com/reference/android/service/notification/NotificationListenerService). By default, no personal apps (aside from system apps) can read work notifications. Each value in the list must be a package name.
-    #[serde(default, rename = "personalAppsThatCanReadWorkNotifications")]
-    pub personal_apps_that_can_read_work_notifications:
-        ::core::option::Option<::std::vec::Vec<String>>,
-    /// The policy for untrusted apps (apps from unknown sources) enforced on the device. Replaces install_unknown_sources_allowed (deprecated). // TODO: enum values: ["UNTRUSTED_APPS_POLICY_UNSPECIFIED", "DISALLOW_INSTALL", "ALLOW_INSTALL_IN_PERSONAL_PROFILE_ONLY", "ALLOW_INSTALL_DEVICE_WIDE"]
-    #[serde(default, rename = "untrustedAppsPolicy")]
-    pub untrusted_apps_policy: ::core::option::Option<String>,
-}
-
-/// Configuration for an always-on VPN connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlwaysOnVpnPackage {
-    /// Disallows networking when the VPN is not connected.
-    #[serde(default, rename = "lockdownEnabled")]
-    pub lockdown_enabled: ::core::option::Option<bool>,
-    /// The package name of the VPN app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// A compliance rule condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement. There can only be one rule with this type of condition per policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiLevelCondition {
-    /// The minimum desired Android Framework API level. If the device doesn''t meet the minimum requirement, this condition is satisfied. Must be greater than zero.
-    #[serde(default, rename = "minApiLevel")]
-    pub min_api_level: ::core::option::Option<i32>,
-}
-
-/// Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApnPolicy {
-    /// Optional. APN settings for override APNs. There must not be any conflict between any of APN settings provided, otherwise the policy will be rejected. Two ApnSettings are considered to conflict when all of the following fields match on both: numericOperatorId, apn, proxyAddress, proxyPort, mmsProxyAddress, mmsProxyPort, mmsc, mvnoType, protocol, roamingProtocol. If some of the APN settings result in non-compliance of INVALID_VALUE , they will be ignored. This can be set on fully managed devices on Android 10 and above. This can also be set on work profiles on Android 13 and above and only with ApnSetting''s with ENTERPRISE APN type. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with MANAGEMENT_MODE is reported for work profiles on Android versions less than 13.
-    #[serde(default, rename = "apnSettings")]
-    pub apn_settings: ::core::option::Option<::std::vec::Vec<ApnSetting>>,
-    /// Optional. Whether override APNs are disabled or enabled. See DevicePolicyManager.setOverrideApnsEnabled (https://developer.android.com/reference/android/app/admin/DevicePolicyManager#setOverrideApnsEnabled) for more details. // TODO: enum values: ["OVERRIDE_APNS_UNSPECIFIED", "OVERRIDE_APNS_DISABLED", "OVERRIDE_APNS_ENABLED"]
-    #[serde(default, rename = "overrideApns")]
-    pub override_apns: ::core::option::Option<String>,
-}
-
-/// An Access Point Name (APN) configuration for a carrier data connection. The APN provides configuration to connect a cellular network device to an IP data network. A carrier uses this setting to decide which IP address to assign, any security methods to apply, and how the device might be connected to private networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApnSetting {
-    /// Optional. Whether User Plane resources have to be activated during every transition from CM-IDLE mode to CM-CONNECTED state for this APN. See 3GPP TS 23.501 section 5.6.13. // TODO: enum values: ["ALWAYS_ON_SETTING_UNSPECIFIED", "NOT_ALWAYS_ON", "ALWAYS_ON"]
-    #[serde(default, rename = "alwaysOnSetting")]
-    pub always_on_setting: ::core::option::Option<String>,
-    /// Required. Name of the APN. Policy will be rejected if this field is empty.
-    #[serde(default)]
-    pub apn: ::core::option::Option<String>,
-    /// Required. Usage categories for the APN. Policy will be rejected if this field is empty or contains APN_TYPE_UNSPECIFIED or duplicates. Multiple APN types can be set on fully managed devices. ENTERPRISE is the only allowed APN type on work profiles. A NonComplianceDetail with MANAGEMENT_MODE is reported for any other value on work profiles. APN types that are not supported on the device or management mode will be ignored. If this results in the empty list, the APN setting will be ignored, because apnTypes is a required field. A NonComplianceDetail with INVALID_VALUE is reported if none of the APN types are supported on the device or management mode.
-    #[serde(default, rename = "apnTypes")]
-    pub apn_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Authentication type of the APN. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "NONE", "PAP", "CHAP", "PAP_OR_CHAP"]
-    #[serde(default, rename = "authType")]
-    pub auth_type: ::core::option::Option<String>,
-    /// Optional. Carrier ID for the APN. A value of 0 (default) means not set and negative values are rejected.
-    #[serde(default, rename = "carrierId")]
-    pub carrier_id: ::core::option::Option<i32>,
-    /// Required. Human-readable name that describes the APN. Policy will be rejected if this field is empty.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. MMS (Multimedia Messaging Service) proxy address of the APN which can be an IP address or hostname (not a URL).
-    #[serde(default, rename = "mmsProxyAddress")]
-    pub mms_proxy_address: ::core::option::Option<String>,
-    /// Optional. MMS (Multimedia Messaging Service) proxy port of the APN. A value of 0 (default) means not set and negative values are rejected.
-    #[serde(default, rename = "mmsProxyPort")]
-    pub mms_proxy_port: ::core::option::Option<i32>,
-    /// Optional. MMSC (Multimedia Messaging Service Center) URI of the APN.
-    #[serde(default)]
-    pub mmsc: ::core::option::Option<String>,
-    /// Optional. The default MTU (Maximum Transmission Unit) size in bytes of the IPv4 routes brought up by this APN setting. A value of 0 (default) means not set and negative values are rejected. Supported on Android 13 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 13.
-    #[serde(default, rename = "mtuV4")]
-    pub mtu_v4: ::core::option::Option<i32>,
-    /// Optional. The MTU (Maximum Transmission Unit) size of the IPv6 mobile interface to which the APN connected. A value of 0 (default) means not set and negative values are rejected. Supported on Android 13 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 13.
-    #[serde(default, rename = "mtuV6")]
-    pub mtu_v6: ::core::option::Option<i32>,
-    /// Optional. MVNO match type for the APN. // TODO: enum values: ["MVNO_TYPE_UNSPECIFIED", "GID", "ICCID", "IMSI", "SPN"]
-    #[serde(default, rename = "mvnoType")]
-    pub mvno_type: ::core::option::Option<String>,
-    /// Optional. Radio technologies (network types) the APN may use. Policy will be rejected if this field contains NETWORK_TYPE_UNSPECIFIED or duplicates.
-    #[serde(default, rename = "networkTypes")]
-    pub network_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The numeric operator ID of the APN. Numeric operator ID is defined as MCC (Mobile Country Code) + MNC (Mobile Network Code).
-    #[serde(default, rename = "numericOperatorId")]
-    pub numeric_operator_id: ::core::option::Option<String>,
-    /// Optional. APN password of the APN.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Optional. The protocol to use to connect to this APN. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "IP", "IPV4V6", "IPV6", "NON_IP", "PPP", "UNSTRUCTURED"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// Optional. The proxy address of the APN.
-    #[serde(default, rename = "proxyAddress")]
-    pub proxy_address: ::core::option::Option<String>,
-    /// Optional. The proxy port of the APN. A value of 0 (default) means not set and negative values are rejected.
-    #[serde(default, rename = "proxyPort")]
-    pub proxy_port: ::core::option::Option<i32>,
-    /// Optional. The protocol to use to connect to this APN while the device is roaming. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "IP", "IPV4V6", "IPV6", "NON_IP", "PPP", "UNSTRUCTURED"]
-    #[serde(default, rename = "roamingProtocol")]
-    pub roaming_protocol: ::core::option::Option<String>,
-    /// Optional. APN username of the APN.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Information about a process. It contains process name, start time, app Uid, app Pid, seinfo tag, hash of the base APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppProcessInfo {
-    /// SHA-256 hash of the base APK, in hexadecimal format.
-    #[serde(default, rename = "apkSha256Hash")]
-    pub apk_sha256_hash: ::core::option::Option<String>,
-    /// Package names of all packages that are associated with the particular user ID. In most cases, this will be a single package name, the package that has been assigned that user ID. If multiple application share a UID then all packages sharing UID will be included.
-    #[serde(default, rename = "packageNames")]
-    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Process ID.
-    #[serde(default)]
-    pub pid: ::core::option::Option<i32>,
-    /// Process name.
-    #[serde(default, rename = "processName")]
-    pub process_name: ::core::option::Option<String>,
-    /// SELinux policy info.
-    #[serde(default)]
-    pub seinfo: ::core::option::Option<String>,
-    /// Process start time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// UID of the package.
-    #[serde(default)]
-    pub uid: ::core::option::Option<i32>,
-}
-
-/// An app process was started. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppProcessStartEvent {
-    /// Information about a process.
-    #[serde(default, rename = "processInfo")]
-    pub process_info: ::core::option::Option<AppProcessInfo>,
-}
-
-/// Id to name association of a app track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppTrackInfo {
-    /// The track name associated with the trackId, set in the Play Console. The name is modifiable from Play Console.
-    #[serde(default, rename = "trackAlias")]
-    pub track_alias: ::core::option::Option<String>,
-    /// The unmodifiable unique track identifier, taken from the releaseTrackId in the URL of the Play Console page that displays the app’s track information.
-    #[serde(default, rename = "trackId")]
-    pub track_id: ::core::option::Option<String>,
-}
-
-/// This represents a single version of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppVersion {
-    /// If the value is True, it indicates that this version is a production track.
-    #[serde(default)]
-    pub production: ::core::option::Option<bool>,
-    /// Track identifiers that the app version is published in. This does not include the production track (see production instead).
-    #[serde(default, rename = "trackIds")]
-    pub track_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Unique increasing identifier for the app version.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-    /// The string used in the Play store by the app developer to identify the version. The string is not necessarily unique or localized (for example, the string could be "1.4").
-    #[serde(default, rename = "versionString")]
-    pub version_string: ::core::option::Option<String>,
-}
-
 /// Information about an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
@@ -284,190 +81,6 @@ pub struct Application {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// An app-related event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationEvent {
-    /// The creation time of the event.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// App event type. // TODO: enum values: ["APPLICATION_EVENT_TYPE_UNSPECIFIED", "INSTALLED", "CHANGED", "DATA_CLEARED", "REMOVED", "REPLACED", "RESTARTED", "PINNED", "UNPINNED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// A permission required by the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationPermission {
-    /// A longer description of the permission, providing more detail on what it affects. Localized.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The name of the permission. Localized.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// An opaque string uniquely identifying the permission. Not localized.
-    #[serde(default, rename = "permissionId")]
-    pub permission_id: ::core::option::Option<String>,
-}
-
-/// Policy for an individual app. Note: Application availability on a given device cannot be changed using this policy if installAppsDisabled is enabled. The maximum number of applications that you can specify per policy is 3,000.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationPolicy {
-    /// List of the app’s track IDs that a device belonging to the enterprise can access. If the list contains multiple track IDs, devices receive the latest version among all accessible tracks. If the list contains no track IDs, devices only have access to the app’s production track. More details about each track are available in AppTrackInfo.
-    #[serde(default, rename = "accessibleTrackIds")]
-    pub accessible_track_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies whether the app is allowed networking when the VPN is not connected and alwaysOnVpnPackage.lockdownEnabled is enabled. If set to VPN_LOCKDOWN_ENFORCED, the app is not allowed networking, and if set to VPN_LOCKDOWN_EXEMPTION, the app is allowed networking. Only supported on devices running Android 10 and above. If this is not supported by the device, the device will contain a NonComplianceDetail with non_compliance_reason set to API_LEVEL and a fieldPath. If this is not applicable to the app, the device will contain a NonComplianceDetail with non_compliance_reason set to UNSUPPORTED and a fieldPath. The fieldPath is set to applications[i].alwaysOnVpnLockdownExemption, where i is the index of the package in the applications policy. // TODO: enum values: ["ALWAYS_ON_VPN_LOCKDOWN_EXEMPTION_UNSPECIFIED", "VPN_LOCKDOWN_ENFORCED", "VPN_LOCKDOWN_EXEMPTION"]
-    #[serde(default, rename = "alwaysOnVpnLockdownExemption")]
-    pub always_on_vpn_lockdown_exemption: ::core::option::Option<String>,
-    /// Controls the auto-update mode for the app. // TODO: enum values: ["AUTO_UPDATE_MODE_UNSPECIFIED", "AUTO_UPDATE_DEFAULT", "AUTO_UPDATE_POSTPONED", "AUTO_UPDATE_HIGH_PRIORITY"]
-    #[serde(default, rename = "autoUpdateMode")]
-    pub auto_update_mode: ::core::option::Option<String>,
-    /// Controls whether the app can communicate with itself across a device’s work and personal profiles, subject to user consent. // TODO: enum values: ["CONNECTED_WORK_AND_PERSONAL_APP_UNSPECIFIED", "CONNECTED_WORK_AND_PERSONAL_APP_DISALLOWED", "CONNECTED_WORK_AND_PERSONAL_APP_ALLOWED"]
-    #[serde(default, rename = "connectedWorkAndPersonalApp")]
-    pub connected_work_and_personal_app: ::core::option::Option<String>,
-    /// Optional. Whether the app is allowed to act as a credential provider on Android 14 and above. // TODO: enum values: ["CREDENTIAL_PROVIDER_POLICY_UNSPECIFIED", "CREDENTIAL_PROVIDER_ALLOWED"]
-    #[serde(default, rename = "credentialProviderPolicy")]
-    pub credential_provider_policy: ::core::option::Option<String>,
-    /// Optional. Configuration for this custom app.install_type must be set to CUSTOM for this to be set.
-    #[serde(default, rename = "customAppConfig")]
-    pub custom_app_config: ::core::option::Option<CustomAppConfig>,
-    /// The default policy for all permissions requested by the app. If specified, this overrides the policy-level default_permission_policy which applies to all apps. It does not override the permission_grants which applies to all apps. // TODO: enum values: ["PERMISSION_POLICY_UNSPECIFIED", "PROMPT", "GRANT", "DENY"]
-    #[serde(default, rename = "defaultPermissionPolicy")]
-    pub default_permission_policy: ::core::option::Option<String>,
-    /// The scopes delegated to the app from Android Device Policy. These provide additional privileges for the applications they are applied to.
-    #[serde(default, rename = "delegatedScopes")]
-    pub delegated_scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether the app is disabled. When disabled, the app data is still preserved.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Configuration to enable this app as an extension app, with the capability of interacting with Android Device Policy offline.This field can be set for at most one app. If there is any app with COMPANION_APP role, this field cannot be set.The signing key certificate fingerprint of the app on the device must match one of the entries in ApplicationPolicy.signingKeyCerts or ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) or the signing key certificate fingerprints obtained from Play Store for the app to be able to communicate with Android Device Policy. If the app is not on Play Store and if ApplicationPolicy.signingKeyCerts and ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) are not set, a NonComplianceDetail with INVALID_VALUE is reported.
-    #[serde(default, rename = "extensionConfig")]
-    pub extension_config: ::core::option::Option<ExtensionConfig>,
-    /// Optional. The constraints for installing the app. You can specify a maximum of one InstallConstraint. Multiple constraints are rejected.
-    #[serde(default, rename = "installConstraint")]
-    pub install_constraint: ::core::option::Option<::std::vec::Vec<InstallConstraint>>,
-    /// Optional. Amongst apps with installType set to: FORCE_INSTALLED PREINSTALLEDthis controls the relative priority of installation. A value of 0 (default) means this app has no priority over other apps. For values between 1 and 10,000, a lower value means a higher priority. Values outside of the range 0 to 10,000 inclusive are rejected.
-    #[serde(default, rename = "installPriority")]
-    pub install_priority: ::core::option::Option<i32>,
-    /// The type of installation to perform. // TODO: enum values: ["INSTALL_TYPE_UNSPECIFIED", "PREINSTALLED", "FORCE_INSTALLED", "BLOCKED", "AVAILABLE", "REQUIRED_FOR_SETUP", "KIOSK", "CUSTOM"]
-    #[serde(default, rename = "installType")]
-    pub install_type: ::core::option::Option<String>,
-    /// Whether the app is allowed to lock itself in full-screen mode. DEPRECATED. Use InstallType KIOSK or kioskCustomLauncherEnabled to configure a dedicated device.
-    #[serde(default, rename = "lockTaskAllowed")]
-    pub lock_task_allowed: ::core::option::Option<bool>,
-    /// Managed configuration applied to the app. The format for the configuration is dictated by the ManagedProperty values supported by the app. Each field name in the managed configuration must match the key field of the ManagedProperty. The field value must be compatible with the type of the ManagedProperty: *type* *JSON value* BOOL true or false STRING string INTEGER number CHOICE string MULTISELECT array of strings HIDDEN string BUNDLE_ARRAY array of objects Note: string values cannot be longer than 65535 characters.
-    #[serde(default, rename = "managedConfiguration")]
-    pub managed_configuration: ::core::option::Option<serde_json::Value>,
-    /// The managed configurations template for the app, saved from the managed configurations iframe. This field is ignored if managed_configuration is set.
-    #[serde(default, rename = "managedConfigurationTemplate")]
-    pub managed_configuration_template: ::core::option::Option<ManagedConfigurationTemplate>,
-    /// The minimum version of the app that runs on the device. If set, the device attempts to update the app to at least this version code. If the app is not up-to-date, the device will contain a NonComplianceDetail with non_compliance_reason set to APP_NOT_UPDATED. The app must already be published to Google Play with a version code greater than or equal to this value. At most 20 apps may specify a minimum version code per policy.
-    #[serde(default, rename = "minimumVersionCode")]
-    pub minimum_version_code: ::core::option::Option<i32>,
-    /// The package name of the app. For example, com.google.android.youtube for the YouTube app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Explicit permission grants or denials for the app. These values override the default_permission_policy and permission_grants which apply to all apps.
-    #[serde(default, rename = "permissionGrants")]
-    pub permission_grants: ::core::option::Option<::std::vec::Vec<PermissionGrant>>,
-    /// Optional. ID of the preferential network the application uses. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED, the application will use the default network ID specified in defaultPreferentialNetworkId. See the documentation of defaultPreferentialNetworkId for the list of apps excluded from this defaulting. This applies on both work profiles and fully managed devices on Android 13 and above. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
-    #[serde(default, rename = "preferentialNetworkId")]
-    pub preferential_network_id: ::core::option::Option<String>,
-    /// Optional. Roles the app has.Apps having certain roles can be exempted from power and background execution restrictions, suspension and hibernation on Android 14 and above. The user control can also be disallowed for apps with certain roles on Android 11 and above. Refer to the documentation of each RoleType for more details.The app is notified about the roles that are set for it if the app has a notification receiver service with . The app is notified whenever its roles are updated or after the app is installed when it has nonempty list of roles. The app can use this notification to bootstrap itself after the installation. See Integrate with the AMAPI SDK (https://developers.google.com/android/management/sdk-integration) and Manage app roles (https://developers.google.com/android/management/app-roles) guides for more details on the requirements for the service.For the exemptions to be applied and the app to be notified about the roles, the signing key certificate fingerprint of the app on the device must match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts. Otherwise, a NonComplianceDetail with APP_SIGNING_CERT_MISMATCH is reported.There must not be duplicate roles with the same roleType. Multiple apps cannot hold a role with the same roleType. A role with type ROLE_TYPE_UNSPECIFIED is not allowed.
-    #[serde(default)]
-    pub roles: ::core::option::Option<::std::vec::Vec<Role>>,
-    /// Optional. Signing key certificates of the app.This field is required in the following cases: The app has installType set to CUSTOM (i.e. a custom app). The app has roles set to a nonempty list and the app does not exist on the Play Store. The app has extensionConfig set (i.e. an extension app) but ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) is not set and the app does not exist on the Play Store.If this field is not set for a custom app, the policy is rejected. If it is not set when required for a non-custom app, a NonComplianceDetail with INVALID_VALUE is reported.For other cases, this field is optional and the signing key certificates obtained from Play Store are used.See following policy settings to see how this field is used: choosePrivateKeyRules ApplicationPolicy.InstallType.CUSTOM ApplicationPolicy.extensionConfig ApplicationPolicy.roles
-    #[serde(default, rename = "signingKeyCerts")]
-    pub signing_key_certs: ::core::option::Option<::std::vec::Vec<ApplicationSigningKeyCert>>,
-    /// Optional. Specifies whether user control is permitted for the app. User control includes user actions like force-stopping and clearing app data. Certain types of apps have special treatment, see USER_CONTROL_SETTINGS_UNSPECIFIED and USER_CONTROL_ALLOWED for more details. // TODO: enum values: ["USER_CONTROL_SETTINGS_UNSPECIFIED", "USER_CONTROL_ALLOWED", "USER_CONTROL_DISALLOWED"]
-    #[serde(default, rename = "userControlSettings")]
-    pub user_control_settings: ::core::option::Option<String>,
-    /// Specifies whether the app installed in the work profile is allowed to add widgets to the home screen. // TODO: enum values: ["WORK_PROFILE_WIDGETS_UNSPECIFIED", "WORK_PROFILE_WIDGETS_ALLOWED", "WORK_PROFILE_WIDGETS_DISALLOWED"]
-    #[serde(default, rename = "workProfileWidgets")]
-    pub work_profile_widgets: ::core::option::Option<String>,
-}
-
-/// A change to be made to a single ApplicationPolicy object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationPolicyChange {
-    /// If ApplicationPolicy.packageName matches an existing ApplicationPolicy object within the Policy being modified, then that object will be updated. Otherwise, it will be added to the end of the Policy.applications.
-    #[serde(default)]
-    pub application: ::core::option::Option<ApplicationPolicy>,
-    /// The field mask indicating the fields to update. If omitted, all modifiable fields are updated.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Information reported about an installed app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationReport {
-    /// The source of the package. // TODO: enum values: ["APPLICATION_SOURCE_UNSPECIFIED", "SYSTEM_APP_FACTORY_VERSION", "SYSTEM_APP_UPDATED_VERSION", "INSTALLED_FROM_PLAY_STORE", "CUSTOM"]
-    #[serde(default, rename = "applicationSource")]
-    pub application_source: ::core::option::Option<String>,
-    /// The display name of the app.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The list of app events which have occurred in the last 30 hours.
-    #[serde(default)]
-    pub events: ::core::option::Option<::std::vec::Vec<ApplicationEvent>>,
-    /// The package name of the app that installed this app.
-    #[serde(default, rename = "installerPackageName")]
-    pub installer_package_name: ::core::option::Option<String>,
-    /// List of keyed app states reported by the app.
-    #[serde(default, rename = "keyedAppStates")]
-    pub keyed_app_states: ::core::option::Option<::std::vec::Vec<KeyedAppState>>,
-    /// Package name of the app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The SHA-256 hash of the app''s APK file, which can be used to verify the app hasn''t been modified. Each byte of the hash value is represented as a two-digit hexadecimal number.
-    #[serde(default, rename = "packageSha256Hash")]
-    pub package_sha256_hash: ::core::option::Option<String>,
-    /// The SHA-1 hash of each android.content.pm.Signature (https://developer.android.com/reference/android/content/pm/Signature.html) associated with the app package. Each byte of each hash value is represented as a two-digit hexadecimal number.
-    #[serde(default, rename = "signingKeyCertFingerprints")]
-    pub signing_key_cert_fingerprints: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Application state. // TODO: enum values: ["APPLICATION_STATE_UNSPECIFIED", "REMOVED", "INSTALLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Whether the app is user facing. // TODO: enum values: ["USER_FACING_TYPE_UNSPECIFIED", "NOT_USER_FACING", "USER_FACING"]
-    #[serde(default, rename = "userFacingType")]
-    pub user_facing_type: ::core::option::Option<String>,
-    /// The app version code, which can be used to determine whether one version is more recent than another.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-    /// The app version as displayed to the user.
-    #[serde(default, rename = "versionName")]
-    pub version_name: ::core::option::Option<String>,
-}
-
-/// Settings controlling the behavior of application reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationReportingSettings {
-    /// Whether removed apps are included in application reports.
-    #[serde(default, rename = "includeRemovedApps")]
-    pub include_removed_apps: ::core::option::Option<bool>,
-}
-
-/// The application signing key certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationSigningKeyCert {
-    /// Required. The SHA-256 hash value of the signing key certificate of the app. This must be a valid SHA-256 hash value, i.e. 32 bytes.
-    #[serde(default, rename = "signingKeyCertFingerprintSha256")]
-    pub signing_key_cert_fingerprint_sha256: ::core::option::Option<String>,
-}
-
-/// An admin has enabled or disabled backup service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupServiceToggledEvent {
-    /// Package name of the admin app requesting the change.
-    #[serde(default, rename = "adminPackageName")]
-    pub admin_package_name: ::core::option::Option<String>,
-    /// User ID of the admin app from the which the change was requested.
-    #[serde(default, rename = "adminUserId")]
-    pub admin_user_id: ::core::option::Option<i32>,
-    /// Whether the backup service is enabled // TODO: enum values: ["BACKUP_SERVICE_STATE_UNSPECIFIED", "BACKUP_SERVICE_DISABLED", "BACKUP_SERVICE_ENABLED"]
-    #[serde(default, rename = "backupServiceState")]
-    pub backup_service_state: ::core::option::Option<String>,
-}
-
 /// Batched event logs of events from the device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchUsageLogEvents {
@@ -483,75 +96,6 @@ pub struct BatchUsageLogEvents {
     /// If present, the resource name of the user that owns this device in the form ‘enterprises/{enterpriseId}/users/{userId}’.
     #[serde(default)]
     pub user: ::core::option::Option<String>,
-}
-
-/// An action to block access to apps and data on a fully managed device or in a work profile. This action also triggers a device or work profile to displays a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockAction {
-    /// Number of days the policy is non-compliant before the device or work profile is blocked. To block access immediately, set to 0. blockAfterDays must be less than wipeAfterDays.
-    #[serde(default, rename = "blockAfterDays")]
-    pub block_after_days: ::core::option::Option<i32>,
-    /// Specifies the scope of this BlockAction. Only applicable to devices that are company-owned. // TODO: enum values: ["BLOCK_SCOPE_UNSPECIFIED", "BLOCK_SCOPE_WORK_PROFILE", "BLOCK_SCOPE_DEVICE"]
-    #[serde(default, rename = "blockScope")]
-    pub block_scope: ::core::option::Option<String>,
-}
-
-/// A new root certificate was installed into the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertAuthorityInstalledEvent {
-    /// Subject of the certificate.
-    #[serde(default)]
-    pub certificate: ::core::option::Option<String>,
-    /// Whether the installation event succeeded.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-    /// The user in which the certificate install event happened. Only available for devices running Android 11 and above.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<i32>,
-}
-
-/// A root certificate was removed from the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertAuthorityRemovedEvent {
-    /// Subject of the certificate.
-    #[serde(default)]
-    pub certificate: ::core::option::Option<String>,
-    /// Whether the removal succeeded.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-    /// The user in which the certificate removal event occurred. Only available for devices running Android 11 and above.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<i32>,
-}
-
-/// An X.509v3 certificate failed to validate, currently this validation is performed on the Wi-FI access point and failure may be due to a mismatch upon server certificate validation. However it may in the future include other validation events of an X.509v3 certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertValidationFailureEvent {
-    /// The reason why certification validation failed.
-    #[serde(default, rename = "failureReason")]
-    pub failure_reason: ::core::option::Option<String>,
-}
-
-/// Controls apps'' access to private keys. The rule determines which private key, if any, Android Device Policy grants to the specified app. Access is granted either when the app calls KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) (or any overloads) to request a private key alias for a given URL, or for rules that are not URL-specific (that is, if urlPattern is not set, or set to the empty string or .*) on Android 11 and above, directly so that the app can call KeyChain.getPrivateKey (https://developer.android.com/reference/android/security/KeyChain#getPrivateKey%28android.content.Context,%20java.lang.String%29), without first having to call KeyChain.choosePrivateKeyAlias.When an app calls KeyChain.choosePrivateKeyAlias if more than one choosePrivateKeyRules matches, the last matching rule defines which key alias to return.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChoosePrivateKeyRule {
-    /// The package names to which this rule applies. The signing key certificate fingerprint of the app is verified against the signing key certificate fingerprints provided by Play Store and ApplicationPolicy.signingKeyCerts . If no package names are specified, then the alias is provided to all apps that call KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) or any overloads (but not without calling KeyChain.choosePrivateKeyAlias, even on Android 11 and above). Any app with the same Android UID as a package specified here will have access when they call KeyChain.choosePrivateKeyAlias.
-    #[serde(default, rename = "packageNames")]
-    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The alias of the private key to be used.
-    #[serde(default, rename = "privateKeyAlias")]
-    pub private_key_alias: ::core::option::Option<String>,
-    /// The URL pattern to match against the URL of the request. If not set or empty, it matches all URLs. This uses the regular expression syntax of java.util.regex.Pattern.
-    #[serde(default, rename = "urlPattern")]
-    pub url_pattern: ::core::option::Option<String>,
-}
-
-/// Parameters associated with the CLEAR_APP_DATA command to clear the data of specified apps from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClearAppsDataParams {
-    /// The package names of the apps whose data will be cleared when the command is executed.
-    #[serde(default, rename = "packageNames")]
-    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A command.
@@ -616,196 +160,509 @@ pub struct Command {
     pub wipe_params: ::core::option::Option<WipeParams>,
 }
 
-/// Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device''s policy.
+/// An event sent for an enterprise upgrade. An enterprise upgrade is a process that upgrades a managed Google Play Accounts enterprise to a managed Google domain.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommonCriteriaModeInfo {
-    /// Whether Common Criteria Mode is enabled. // TODO: enum values: ["COMMON_CRITERIA_MODE_STATUS_UNKNOWN", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
-    #[serde(default, rename = "commonCriteriaModeStatus")]
-    pub common_criteria_mode_status: ::core::option::Option<String>,
-    /// Output only. The status of policy signature verification. // TODO: enum values: ["POLICY_SIGNATURE_VERIFICATION_STATUS_UNSPECIFIED", "POLICY_SIGNATURE_VERIFICATION_DISABLED", "POLICY_SIGNATURE_VERIFICATION_SUCCEEDED", "POLICY_SIGNATURE_VERIFICATION_NOT_SUPPORTED", "POLICY_SIGNATURE_VERIFICATION_FAILED"]
-    #[serde(default, rename = "policySignatureVerificationStatus")]
-    pub policy_signature_verification_status: ::core::option::Option<String>,
-}
-
-/// A rule declaring which mitigating actions to take when a device is not compliant with its policy. For every rule, there is always an implicit mitigating action to set policy_compliant to false for the Device resource, and display a message on the device indicating that the device is not compliant with its policy. Other mitigating actions may optionally be taken as well, depending on the field values in the rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplianceRule {
-    /// A condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement.
-    #[serde(default, rename = "apiLevelCondition")]
-    pub api_level_condition: ::core::option::Option<ApiLevelCondition>,
-    /// If set to true, the rule includes a mitigating action to disable apps so that the device is effectively disabled, but app data is preserved. If the device is running an app in locked task mode, the app will be closed and a UI showing the reason for non-compliance will be displayed.
-    #[serde(default, rename = "disableApps")]
-    pub disable_apps: ::core::option::Option<bool>,
-    /// A condition which is satisfied if there exists any matching NonComplianceDetail for the device.
-    #[serde(default, rename = "nonComplianceDetailCondition")]
-    pub non_compliance_detail_condition: ::core::option::Option<NonComplianceDetailCondition>,
-    /// If set, the rule includes a mitigating action to disable apps specified in the list, but app data is preserved.
-    #[serde(default, rename = "packageNamesToDisable")]
-    pub package_names_to_disable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A TCP connect event was initiated through the standard network stack.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectEvent {
-    /// The destination IP address of the connect call.
-    #[serde(default, rename = "destinationIpAddress")]
-    pub destination_ip_address: ::core::option::Option<String>,
-    /// The destination port of the connect call.
-    #[serde(default, rename = "destinationPort")]
-    pub destination_port: ::core::option::Option<i32>,
-    /// The package name of the UID that performed the connect call.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Contact details for managed Google Play enterprises.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactInfo {
-    /// Email address for a point of contact, which will be used to send important announcements related to managed Google Play.
-    #[serde(default, rename = "contactEmail")]
-    pub contact_email: ::core::option::Option<String>,
-    /// The email of the data protection officer. The email is validated but not verified.
-    #[serde(default, rename = "dataProtectionOfficerEmail")]
-    pub data_protection_officer_email: ::core::option::Option<String>,
-    /// The name of the data protection officer.
-    #[serde(default, rename = "dataProtectionOfficerName")]
-    pub data_protection_officer_name: ::core::option::Option<String>,
-    /// The phone number of the data protection officer The phone number is validated but not verified.
-    #[serde(default, rename = "dataProtectionOfficerPhone")]
-    pub data_protection_officer_phone: ::core::option::Option<String>,
-    /// The email of the EU representative. The email is validated but not verified.
-    #[serde(default, rename = "euRepresentativeEmail")]
-    pub eu_representative_email: ::core::option::Option<String>,
-    /// The name of the EU representative.
-    #[serde(default, rename = "euRepresentativeName")]
-    pub eu_representative_name: ::core::option::Option<String>,
-    /// The phone number of the EU representative. The phone number is validated but not verified.
-    #[serde(default, rename = "euRepresentativePhone")]
-    pub eu_representative_phone: ::core::option::Option<String>,
-}
-
-/// This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContentProviderEndpoint {
-    /// This feature is not generally available.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. This feature is not generally available.
-    #[serde(default, rename = "signingCertsSha256")]
-    pub signing_certs_sha256: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This feature is not generally available.
+pub struct EnterpriseUpgradeEvent {
+    /// The name of upgraded enterprise in the format "enterprises/{enterprise}"
     #[serde(default)]
-    pub uri: ::core::option::Option<String>,
+    pub enterprise: ::core::option::Option<String>,
+    /// Output only. The upgrade state of the enterprise. // TODO: enum values: ["UPGRADE_STATE_UNSPECIFIED", "UPGRADE_STATE_SUCCEEDED"]
+    #[serde(default, rename = "upgradeState")]
+    pub upgrade_state: ::core::option::Option<String>,
 }
 
-/// Controls the data from the work profile that can be accessed from the personal profile and vice versa. A NonComplianceDetail with MANAGEMENT_MODE is reported if the device does not have a work profile.
+/// Request message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CrossProfilePolicies {
-    /// Optional. Controls whether personal profile apps can invoke app functions exposed by apps in the work profile. // TODO: enum values: ["CROSS_PROFILE_APP_FUNCTIONS_UNSPECIFIED", "CROSS_PROFILE_APP_FUNCTIONS_DISALLOWED", "CROSS_PROFILE_APP_FUNCTIONS_ALLOWED"]
-    #[serde(default, rename = "crossProfileAppFunctions")]
-    pub cross_profile_app_functions: ::core::option::Option<String>,
-    /// Whether text copied from one profile (personal or work) can be pasted in the other profile. // TODO: enum values: ["CROSS_PROFILE_COPY_PASTE_UNSPECIFIED", "COPY_FROM_WORK_TO_PERSONAL_DISALLOWED", "CROSS_PROFILE_COPY_PASTE_ALLOWED"]
-    #[serde(default, rename = "crossProfileCopyPaste")]
-    pub cross_profile_copy_paste: ::core::option::Option<String>,
-    /// Whether data from one profile (personal or work) can be shared with apps in the other profile. Specifically controls simple data sharing via intents. Management of other cross-profile communication channels, such as contact search, copy/paste, or connected work & personal apps, are configured separately. // TODO: enum values: ["CROSS_PROFILE_DATA_SHARING_UNSPECIFIED", "CROSS_PROFILE_DATA_SHARING_DISALLOWED", "DATA_SHARING_FROM_WORK_TO_PERSONAL_DISALLOWED", "CROSS_PROFILE_DATA_SHARING_ALLOWED"]
-    #[serde(default, rename = "crossProfileDataSharing")]
-    pub cross_profile_data_sharing: ::core::option::Option<String>,
-    /// List of apps which are excluded from the ShowWorkContactsInPersonalProfile setting. For this to be set, ShowWorkContactsInPersonalProfile must be set to one of the following values: SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED. In this case, these exemptions act as a blocklist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED. In this case, these exemptions act as an allowlist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM. In this case, these exemptions act as an allowlist, in addition to the already allowlisted system apps.Supported on Android 14 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 14.
-    #[serde(default, rename = "exemptionsToShowWorkContactsInPersonalProfile")]
-    pub exemptions_to_show_work_contacts_in_personal_profile:
-        ::core::option::Option<PackageNameList>,
-    /// Whether personal apps can access contacts stored in the work profile.See also exemptions_to_show_work_contacts_in_personal_profile. // TODO: enum values: ["SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_UNSPECIFIED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM"]
-    #[serde(default, rename = "showWorkContactsInPersonalProfile")]
-    pub show_work_contacts_in_personal_profile: ::core::option::Option<String>,
-    /// Specifies the default behaviour for work profile widgets. If the policy does not specify work_profile_widgets for a specific application, it will behave according to the value specified here. // TODO: enum values: ["WORK_PROFILE_WIDGETS_DEFAULT_UNSPECIFIED", "WORK_PROFILE_WIDGETS_DEFAULT_ALLOWED", "WORK_PROFILE_WIDGETS_DEFAULT_DISALLOWED"]
-    #[serde(default, rename = "workProfileWidgetsDefault")]
-    pub work_profile_widgets_default: ::core::option::Option<String>,
+pub struct GenerateEnterpriseUpgradeUrlRequest {
+    /// Optional. Email address used to prefill the admin field of the enterprise signup form as part of the upgrade process. This value is a hint only and can be altered by the user. Personal email addresses are not allowed. If allowedDomains is non-empty then this must belong to one of the allowedDomains.
+    #[serde(default, rename = "adminEmail")]
+    pub admin_email: ::core::option::Option<String>,
+    /// Optional. A list of domains that are permitted for the admin email. The IT admin cannot enter an email address with a domain name that is not in this list. Subdomains of domains in this list are not allowed but can be allowed by adding a second entry which has *. prefixed to the domain name (e.g. *.example.com). If the field is not present or is an empty list then the IT admin is free to use any valid domain name. Personal email domains are not allowed.
+    #[serde(default, rename = "allowedDomains")]
+    pub allowed_domains: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Validates whether Android’s built-in cryptographic library (BoringSSL) is valid. Should always succeed on device boot, if it fails, the device should be considered untrusted.
+/// Response message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CryptoSelfTestCompletedEvent {
-    /// Whether the test succeeded.
+pub struct GenerateEnterpriseUpgradeUrlResponse {
+    /// A URL for an enterprise admin to upgrade their enterprise. The page can''t be rendered in an iframe.
     #[serde(default)]
-    pub success: ::core::option::Option<bool>,
+    pub url: ::core::option::Option<String>,
 }
 
-/// Configuration for a custom app.
+/// Response to a request to list devices for a given enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomAppConfig {
-    /// Optional. User uninstall settings of the custom app. // TODO: enum values: ["USER_UNINSTALL_SETTINGS_UNSPECIFIED", "DISALLOW_UNINSTALL_BY_USER", "ALLOW_UNINSTALL_BY_USER"]
-    #[serde(default, rename = "userUninstallSettings")]
-    pub user_uninstall_settings: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+pub struct ListDevicesResponse {
+    /// The list of devices.
     #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    pub devices: ::core::option::Option<::std::vec::Vec<Device>>,
+    /// If there are more results, a token to retrieve next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response to a request to list enrollment tokens for a given enterprise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEnrollmentTokensResponse {
+    /// The list of enrollment tokens.
+    #[serde(default, rename = "enrollmentTokens")]
+    pub enrollment_tokens: ::core::option::Option<::std::vec::Vec<EnrollmentToken>>,
+    /// If there are more results, a token to retrieve next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response to a request to list enterprises.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEnterprisesResponse {
+    /// The list of enterprises.
     #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    pub enterprises: ::core::option::Option<::std::vec::Vec<Enterprise>>,
+    /// If there are more results, a token to retrieve next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response to a request to list migration tokens for a given enterprise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMigrationTokensResponse {
+    /// The migration tokens from the specified enterprise.
+    #[serde(default, rename = "migrationTokens")]
+    pub migration_tokens: ::core::option::Option<::std::vec::Vec<MigrationToken>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub year: ::core::option::Option<i32>,
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Information about the application to be set as the default.
+/// Response to a request to list policies for a given enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultApplication {
-    /// Required. The package name that should be set as the default application. The policy is rejected if the package name is invalid.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
+pub struct ListPoliciesResponse {
+    /// If there are more results, a token to retrieve next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of policies.
+    #[serde(default)]
+    pub policies: ::core::option::Option<::std::vec::Vec<Policy>>,
 }
 
-/// Additional context for non-compliance related to default application settings.
+/// Response to a request to list web apps for a given enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultApplicationContext {
-    /// Output only. The scope of non-compliant default application setting. // TODO: enum values: ["DEFAULT_APPLICATION_SCOPE_UNSPECIFIED", "SCOPE_FULLY_MANAGED", "SCOPE_WORK_PROFILE", "SCOPE_PERSONAL_PROFILE"]
-    #[serde(default, rename = "defaultApplicationScope")]
-    pub default_application_scope: ::core::option::Option<String>,
+pub struct ListWebAppsResponse {
+    /// If there are more results, a token to retrieve next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of web apps.
+    #[serde(default, rename = "webApps")]
+    pub web_apps: ::core::option::Option<::std::vec::Vec<WebApp>>,
 }
 
-/// The default application information for a specific DefaultApplicationType.
+/// Request to update or create ApplicationPolicy objects in the given Policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultApplicationInfo {
-    /// Output only. Details on the default application setting attempts, in the same order as listed in defaultApplications.
-    #[serde(default, rename = "defaultApplicationSettingAttempts")]
-    pub default_application_setting_attempts:
-        ::core::option::Option<::std::vec::Vec<DefaultApplicationSettingAttempt>>,
-    /// Output only. The default application type. // TODO: enum values: ["DEFAULT_APPLICATION_TYPE_UNSPECIFIED", "DEFAULT_ASSISTANT", "DEFAULT_BROWSER", "DEFAULT_CALL_REDIRECTION", "DEFAULT_CALL_SCREENING", "DEFAULT_DIALER", "DEFAULT_HOME", "DEFAULT_SMS", "DEFAULT_WALLET"]
-    #[serde(default, rename = "defaultApplicationType")]
-    pub default_application_type: ::core::option::Option<String>,
-    /// Output only. The package name of the current default application.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
+pub struct ModifyPolicyApplicationsRequest {
+    /// Required. The changes to be made to the ApplicationPolicy objects. There must be at least one ApplicationPolicyChange.
+    #[serde(default)]
+    pub changes: ::core::option::Option<::std::vec::Vec<ApplicationPolicyChange>>,
 }
 
-/// The default application setting for a DefaultApplicationType.
+/// Response to a request to update or create ApplicationPolicy objects in the given policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultApplicationSetting {
-    /// Required. The scopes to which the policy should be applied. This list must not be empty or contain duplicates.A NonComplianceDetail with MANAGEMENT_MODE reason and DEFAULT_APPLICATION_SETTING_UNSUPPORTED_SCOPES specific reason is reported if none of the specified scopes can be applied to the management mode (e.g. a fully managed device receives a policy with only SCOPE_PERSONAL_PROFILE in the list).
-    #[serde(default, rename = "defaultApplicationScopes")]
-    pub default_application_scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The app type to set the default application. // TODO: enum values: ["DEFAULT_APPLICATION_TYPE_UNSPECIFIED", "DEFAULT_ASSISTANT", "DEFAULT_BROWSER", "DEFAULT_CALL_REDIRECTION", "DEFAULT_CALL_SCREENING", "DEFAULT_DIALER", "DEFAULT_HOME", "DEFAULT_SMS", "DEFAULT_WALLET"]
-    #[serde(default, rename = "defaultApplicationType")]
-    pub default_application_type: ::core::option::Option<String>,
-    /// Required. The list of applications that can be set as the default app for a given type. This list must not be empty or contain duplicates. The first app in the list that is installed and qualified for the defaultApplicationType (e.g. SMS app for DEFAULT_SMS) is set as the default app. The signing key certificate fingerprint of the app on the device must also match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts in order to be set as the default.If the defaultApplicationScopes contains SCOPE_FULLY_MANAGED or SCOPE_WORK_PROFILE, the app must have an entry in applications with installType set to a value other than BLOCKED.A NonComplianceDetail with APP_NOT_INSTALLED reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if none of the apps in the list are installed. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if at least one app is installed but the policy fails to apply due to other reasons (e.g. the app is not of the right type).When applying to SCOPE_PERSONAL_PROFILE on a company-owned device with a work profile, only pre-installed system apps can be set as the default. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if the policy fails to apply to the personal profile.
-    #[serde(default, rename = "defaultApplications")]
-    pub default_applications: ::core::option::Option<::std::vec::Vec<DefaultApplication>>,
+pub struct ModifyPolicyApplicationsResponse {
+    /// The updated policy.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
 }
 
-/// Details on a default application setting attempt.
+/// The result of an attempt to clear the data of a single app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultApplicationSettingAttempt {
-    /// Output only. The outcome of setting the app as the default. // TODO: enum values: ["ATTEMPT_OUTCOME_UNSPECIFIED", "SUCCESS", "APP_NOT_INSTALLED", "APP_SIGNING_CERT_MISMATCH", "OTHER_FAILURE"]
-    #[serde(default, rename = "attemptOutcome")]
-    pub attempt_outcome: ::core::option::Option<String>,
-    /// Output only. The package name of the attempted application.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
+pub struct PerAppResult {
+    /// The result of an attempt to clear the data of a single app. // TODO: enum values: ["CLEARING_RESULT_UNSPECIFIED", "SUCCESS", "APP_NOT_FOUND", "APP_PROTECTED", "API_LEVEL"]
+    #[serde(default, rename = "clearingResult")]
+    pub clearing_result: ::core::option::Option<String>,
+}
+
+/// Information about a device that is available during setup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisioningInfo {
+    /// The API level of the Android platform version running on the device.
+    #[serde(default, rename = "apiLevel")]
+    pub api_level: ::core::option::Option<i32>,
+    /// The email address of the authenticated user (only present for Google Account provisioning method).
+    #[serde(default, rename = "authenticatedUserEmail")]
+    pub authenticated_user_email: ::core::option::Option<String>,
+    /// The brand of the device. For example, Google.
+    #[serde(default)]
+    pub brand: ::core::option::Option<String>,
+    /// The name of the enterprise in the form enterprises/{enterprise}.
+    #[serde(default)]
+    pub enterprise: ::core::option::Option<String>,
+    /// For corporate-owned devices, IMEI number of the GSM device. For example, A1000031212.
+    #[serde(default)]
+    pub imei: ::core::option::Option<String>,
+    /// The management mode of the device or profile. // TODO: enum values: ["MANAGEMENT_MODE_UNSPECIFIED", "DEVICE_OWNER", "PROFILE_OWNER"]
+    #[serde(default, rename = "managementMode")]
+    pub management_mode: ::core::option::Option<String>,
+    /// For corporate-owned devices, MEID number of the CDMA device. For example, A00000292788E1.
+    #[serde(default)]
+    pub meid: ::core::option::Option<String>,
+    /// The model of the device. For example, Asus Nexus 7.
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// The name of this resource in the form provisioningInfo/{provisioning_info}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Ownership of the managed device. // TODO: enum values: ["OWNERSHIP_UNSPECIFIED", "COMPANY_OWNED", "PERSONALLY_OWNED"]
+    #[serde(default)]
+    pub ownership: ::core::option::Option<String>,
+    /// For corporate-owned devices, The device serial number.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+}
+
+/// Request to remove ApplicationPolicy objects in the given policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemovePolicyApplicationsRequest {
+    /// Required. Package names to be removed. Entries that are not found are ignored. There must be at least one entry in package_names.
+    #[serde(default, rename = "packageNames")]
+    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response to a request to remove ApplicationPolicy objects in the given policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemovePolicyApplicationsResponse {
+    /// The updated policy after ApplicationPolicy objects have been removed.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+}
+
+/// An enterprise signup URL.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignupUrl {
+    /// The name of the resource. Use this value in the signupUrl field when calling enterprises.create to complete the enterprise signup flow.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A URL where an enterprise admin can register their enterprise. The page can''t be rendered in an iframe.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A web token used to access the managed Google Play iframe.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebToken {
+    /// The features to enable. Use this if you want to control exactly which feature(s) will be activated; leave empty to allow all features.Restrictions / things to note: - If no features are listed here, all features are enabled — this is the default behavior where you give access to all features to your admins. - This must not contain any FEATURE_UNSPECIFIED values. - Repeated values are ignored
+    #[serde(default, rename = "enabledFeatures")]
+    pub enabled_features: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the web token, which is generated by the server during creation in the form enterprises/{enterpriseId}/webTokens/{webTokenId}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The URL of the parent frame hosting the iframe with the embedded UI. To prevent XSS, the iframe may not be hosted at other URLs. The URL must use the https scheme.
+    #[serde(default, rename = "parentFrameUrl")]
+    pub parent_frame_url: ::core::option::Option<String>,
+    /// Permissions available to an admin in the embedded UI. An admin must have all of these permissions in order to view the UI. This field is deprecated.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The token value which is used in the hosting page to generate the iframe with the embedded UI. This is a read-only field generated by the server.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Id to name association of a app track.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppTrackInfo {
+    /// The track name associated with the trackId, set in the Play Console. The name is modifiable from Play Console.
+    #[serde(default, rename = "trackAlias")]
+    pub track_alias: ::core::option::Option<String>,
+    /// The unmodifiable unique track identifier, taken from the releaseTrackId in the URL of the Play Console page that displays the app’s track information.
+    #[serde(default, rename = "trackId")]
+    pub track_id: ::core::option::Option<String>,
+}
+
+/// This represents a single version of the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppVersion {
+    /// If the value is True, it indicates that this version is a production track.
+    #[serde(default)]
+    pub production: ::core::option::Option<bool>,
+    /// Track identifiers that the app version is published in. This does not include the production track (see production instead).
+    #[serde(default, rename = "trackIds")]
+    pub track_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Unique increasing identifier for the app version.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+    /// The string used in the Play store by the app developer to identify the version. The string is not necessarily unique or localized (for example, the string could be "1.4").
+    #[serde(default, rename = "versionString")]
+    pub version_string: ::core::option::Option<String>,
+}
+
+/// Managed property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedProperty {
+    /// The default value of the property. BUNDLE_ARRAY properties don''t have a default value.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<serde_json::Value>,
+    /// A longer description of the property, providing more detail of what it affects. Localized.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// For CHOICE or MULTISELECT properties, the list of possible entries.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ManagedPropertyEntry>>,
+    /// The unique key that the app uses to identify the property, e.g. "com.google.android.gm.fieldname".
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// For BUNDLE_ARRAY properties, the list of nested properties. A BUNDLE_ARRAY property is at most two levels deep.
+    #[serde(default, rename = "nestedProperties")]
+    pub nested_properties: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
+    /// The name of the property. Localized.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The type of the property. // TODO: enum values: ["MANAGED_PROPERTY_TYPE_UNSPECIFIED", "BOOL", "STRING", "INTEGER", "CHOICE", "MULTISELECT", "HIDDEN", "BUNDLE", "BUNDLE_ARRAY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A permission required by the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationPermission {
+    /// A longer description of the permission, providing more detail on what it affects. Localized.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The name of the permission. Localized.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// An opaque string uniquely identifying the permission. Not localized.
+    #[serde(default, rename = "permissionId")]
+    pub permission_id: ::core::option::Option<String>,
+}
+
+/// An event logged on the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageLogEvent {
+    /// A shell command was issued over ADB via “adb shell command”. Part of SECURITY_LOGS.
+    #[serde(default, rename = "adbShellCommandEvent")]
+    pub adb_shell_command_event: ::core::option::Option<AdbShellCommandEvent>,
+    /// An ADB interactive shell was opened via “adb shell”. Part of SECURITY_LOGS.
+    #[serde(default, rename = "adbShellInteractiveEvent")]
+    pub adb_shell_interactive_event: ::core::option::Option<serde_json::Value>,
+    /// An app process was started. Part of SECURITY_LOGS.
+    #[serde(default, rename = "appProcessStartEvent")]
+    pub app_process_start_event: ::core::option::Option<AppProcessStartEvent>,
+    /// An admin has enabled or disabled backup service. Part of SECURITY_LOGS.
+    #[serde(default, rename = "backupServiceToggledEvent")]
+    pub backup_service_toggled_event: ::core::option::Option<BackupServiceToggledEvent>,
+    /// A new root certificate was installed into the system''s trusted credential storage. Part of SECURITY_LOGS.
+    #[serde(default, rename = "certAuthorityInstalledEvent")]
+    pub cert_authority_installed_event: ::core::option::Option<CertAuthorityInstalledEvent>,
+    /// A root certificate was removed from the system''s trusted credential storage. Part of SECURITY_LOGS.
+    #[serde(default, rename = "certAuthorityRemovedEvent")]
+    pub cert_authority_removed_event: ::core::option::Option<CertAuthorityRemovedEvent>,
+    /// An X.509v3 certificate failed to validate, currently this validation is performed on the Wi-FI access point and failure may be due to a mismatch upon server certificate validation. However it may in the future include other validation events of an X.509v3 certificate. Part of SECURITY_LOGS.
+    #[serde(default, rename = "certValidationFailureEvent")]
+    pub cert_validation_failure_event: ::core::option::Option<CertValidationFailureEvent>,
+    /// A TCP connect event was initiated through the standard network stack. Part of NETWORK_ACTIVITY_LOGS.
+    #[serde(default, rename = "connectEvent")]
+    pub connect_event: ::core::option::Option<ConnectEvent>,
+    /// Validates whether Android’s built-in cryptographic library (BoringSSL) is valid. Should always succeed on device boot, if it fails, the device should be considered untrusted. Part of SECURITY_LOGS.
+    #[serde(default, rename = "cryptoSelfTestCompletedEvent")]
+    pub crypto_self_test_completed_event: ::core::option::Option<CryptoSelfTestCompletedEvent>,
+    /// A DNS lookup event was initiated through the standard network stack. Part of NETWORK_ACTIVITY_LOGS.
+    #[serde(default, rename = "dnsEvent")]
+    pub dns_event: ::core::option::Option<DnsEvent>,
+    /// Device has completed enrollment. Part of AMAPI_LOGS.
+    #[serde(default, rename = "enrollmentCompleteEvent")]
+    pub enrollment_complete_event: ::core::option::Option<serde_json::Value>,
+    /// Unique id of the event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Device timestamp when the event was logged.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The particular usage log event type that was reported on the device. Use this to determine which event field to access. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "ADB_SHELL_COMMAND", "ADB_SHELL_INTERACTIVE", "APP_PROCESS_START", "KEYGUARD_DISMISSED", "KEYGUARD_DISMISS_AUTH_ATTEMPT", "KEYGUARD_SECURED", "FILE_PULLED", "FILE_PUSHED", "CERT_AUTHORITY_INSTALLED", "CERT_AUTHORITY_REMOVED", "CERT_VALIDATION_FAILURE", "CRYPTO_SELF_TEST_COMPLETED", "KEY_DESTRUCTION", "KEY_GENERATED", "KEY_IMPORT", "KEY_INTEGRITY_VIOLATION", "LOGGING_STARTED", "LOGGING_STOPPED", "LOG_BUFFER_SIZE_CRITICAL", "MEDIA_MOUNT", "MEDIA_UNMOUNT", "OS_SHUTDOWN", "OS_STARTUP", "REMOTE_LOCK", "WIPE_FAILURE", "CONNECT", "DNS", "STOP_LOST_MODE_USER_ATTEMPT", "LOST_MODE_OUTGOING_PHONE_CALL", "LOST_MODE_LOCATION", "ENROLLMENT_COMPLETE", "BACKUP_SERVICE_TOGGLED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// A file was downloaded from the device. Part of SECURITY_LOGS.
+    #[serde(default, rename = "filePulledEvent")]
+    pub file_pulled_event: ::core::option::Option<FilePulledEvent>,
+    /// A file was uploaded onto the device. Part of SECURITY_LOGS.
+    #[serde(default, rename = "filePushedEvent")]
+    pub file_pushed_event: ::core::option::Option<FilePushedEvent>,
+    /// A cryptographic key including user installed, admin installed and system maintained private key is removed from the device either by the user or management. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyDestructionEvent")]
+    pub key_destruction_event: ::core::option::Option<KeyDestructionEvent>,
+    /// A cryptographic key including user installed, admin installed and system maintained private key is installed on the device either by the user or management. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyGeneratedEvent")]
+    pub key_generated_event: ::core::option::Option<KeyGeneratedEvent>,
+    /// A cryptographic key including user installed, admin installed and system maintained private key is imported on the device either by the user or management. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyImportEvent")]
+    pub key_import_event: ::core::option::Option<KeyImportEvent>,
+    /// A cryptographic key including user installed, admin installed and system maintained private key is determined to be corrupted due to storage corruption, hardware failure or some OS issue. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyIntegrityViolationEvent")]
+    pub key_integrity_violation_event: ::core::option::Option<KeyIntegrityViolationEvent>,
+    /// An attempt was made to unlock the device. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyguardDismissAuthAttemptEvent")]
+    pub keyguard_dismiss_auth_attempt_event:
+        ::core::option::Option<KeyguardDismissAuthAttemptEvent>,
+    /// The keyguard was dismissed. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyguardDismissedEvent")]
+    pub keyguard_dismissed_event: ::core::option::Option<serde_json::Value>,
+    /// The device was locked either by user or timeout. Part of SECURITY_LOGS.
+    #[serde(default, rename = "keyguardSecuredEvent")]
+    pub keyguard_secured_event: ::core::option::Option<serde_json::Value>,
+    /// The audit log buffer has reached 90% of its capacity, therefore older events may be dropped. Part of SECURITY_LOGS.
+    #[serde(default, rename = "logBufferSizeCriticalEvent")]
+    pub log_buffer_size_critical_event: ::core::option::Option<serde_json::Value>,
+    /// usageLog policy has been enabled. Part of SECURITY_LOGS.
+    #[serde(default, rename = "loggingStartedEvent")]
+    pub logging_started_event: ::core::option::Option<serde_json::Value>,
+    /// usageLog policy has been disabled. Part of SECURITY_LOGS.
+    #[serde(default, rename = "loggingStoppedEvent")]
+    pub logging_stopped_event: ::core::option::Option<serde_json::Value>,
+    /// A lost mode location update when a device in lost mode.
+    #[serde(default, rename = "lostModeLocationEvent")]
+    pub lost_mode_location_event: ::core::option::Option<LostModeLocationEvent>,
+    /// An outgoing phone call has been made when a device in lost mode.
+    #[serde(default, rename = "lostModeOutgoingPhoneCallEvent")]
+    pub lost_mode_outgoing_phone_call_event: ::core::option::Option<serde_json::Value>,
+    /// Removable media was mounted. Part of SECURITY_LOGS.
+    #[serde(default, rename = "mediaMountEvent")]
+    pub media_mount_event: ::core::option::Option<MediaMountEvent>,
+    /// Removable media was unmounted. Part of SECURITY_LOGS.
+    #[serde(default, rename = "mediaUnmountEvent")]
+    pub media_unmount_event: ::core::option::Option<MediaUnmountEvent>,
+    /// Device was shutdown. Part of SECURITY_LOGS.
+    #[serde(default, rename = "osShutdownEvent")]
+    pub os_shutdown_event: ::core::option::Option<serde_json::Value>,
+    /// Device was started. Part of SECURITY_LOGS.
+    #[serde(default, rename = "osStartupEvent")]
+    pub os_startup_event: ::core::option::Option<OsStartupEvent>,
+    /// The device or profile has been remotely locked via the LOCK command. Part of SECURITY_LOGS.
+    #[serde(default, rename = "remoteLockEvent")]
+    pub remote_lock_event: ::core::option::Option<RemoteLockEvent>,
+    /// An attempt to take a device out of lost mode.
+    #[serde(default, rename = "stopLostModeUserAttemptEvent")]
+    pub stop_lost_mode_user_attempt_event: ::core::option::Option<StopLostModeUserAttemptEvent>,
+    /// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Part of SECURITY_LOGS.
+    #[serde(default, rename = "wipeFailureEvent")]
+    pub wipe_failure_event: ::core::option::Option<serde_json::Value>,
+}
+
+/// Parameters associated with the ADD_ESIM command to add an eSIM profile to the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddEsimParams {
+    /// Required. The activation code for the eSIM profile.
+    #[serde(default, rename = "activationCode")]
+    pub activation_code: ::core::option::Option<String>,
+    /// Required. The activation state of the eSIM profile once it is downloaded. // TODO: enum values: ["ACTIVATION_STATE_UNSPECIFIED", "ACTIVATED", "NOT_ACTIVATED"]
+    #[serde(default, rename = "activationState")]
+    pub activation_state: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the CLEAR_APP_DATA command to clear the data of specified apps from the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClearAppsDataParams {
+    /// The package names of the apps whose data will be cleared when the command is executed.
+    #[serde(default, rename = "packageNames")]
+    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Status and error details (if present) of an ADD_ESIM or REMOVE_ESIM command.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EsimCommandStatus {
+    /// Output only. Information about the eSIM added or removed. This is populated only when the eSIM operation status is SUCCESS.
+    #[serde(default, rename = "esimInfo")]
+    pub esim_info: ::core::option::Option<EsimInfo>,
+    /// Output only. Details of the error if the status is set to INTERNAL_ERROR.
+    #[serde(default, rename = "internalErrorDetails")]
+    pub internal_error_details: ::core::option::Option<InternalErrorDetails>,
+    /// Output only. Status of an ADD_ESIM or REMOVE_ESIM command. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "IN_PROGRESS", "PENDING_USER_ACTION", "ERROR_SETUP_IN_PROGRESS", "ERROR_USER_DENIED", "INTERNAL_ERROR", "ERROR_ICC_ID_NOT_FOUND", "ERROR_MULTIPLE_ACTIVE_ESIMS_NO_AVAILABLE_SLOT"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the REMOVE_ESIM command to remove an eSIM profile from the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveEsimParams {
+    /// Required. ICC ID of the eSIM profile to be deleted.
+    #[serde(default, rename = "iccId")]
+    pub icc_id: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the REQUEST_DEVICE_INFO command to get device related information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestDeviceInfoParams {
+    /// Required. Type of device information to be requested. // TODO: enum values: ["DEVICE_INFO_UNSPECIFIED", "EID"]
+    #[serde(default, rename = "deviceInfo")]
+    pub device_info: ::core::option::Option<String>,
+}
+
+/// Status of the REQUEST_DEVICE_INFO command.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestDeviceInfoStatus {
+    /// Information related to the EIDs of the device.
+    #[serde(default, rename = "eidInfo")]
+    pub eid_info: ::core::option::Option<EidInfo>,
+    /// Output only. Status of a REQUEST_DEVICE_INFO command. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCEEDED", "PENDING_USER_ACTION", "USER_DECLINED", "UNSUPPORTED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the START_LOST_MODE command to put the device into lost mode. At least one of the parameters, not including the organization name, must be provided in order for the device to be put into lost mode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartLostModeParams {
+    /// The email address displayed to the user when the device is in lost mode.
+    #[serde(default, rename = "lostEmailAddress")]
+    pub lost_email_address: ::core::option::Option<String>,
+    /// The message displayed to the user when the device is in lost mode.
+    #[serde(default, rename = "lostMessage")]
+    pub lost_message: ::core::option::Option<UserFacingMessage>,
+    /// The organization name displayed to the user when the device is in lost mode.
+    #[serde(default, rename = "lostOrganization")]
+    pub lost_organization: ::core::option::Option<UserFacingMessage>,
+    /// The phone number that will be called when the device is in lost mode and the call owner button is tapped.
+    #[serde(default, rename = "lostPhoneNumber")]
+    pub lost_phone_number: ::core::option::Option<UserFacingMessage>,
+    /// The street address displayed to the user when the device is in lost mode.
+    #[serde(default, rename = "lostStreetAddress")]
+    pub lost_street_address: ::core::option::Option<UserFacingMessage>,
+}
+
+/// Status of the START_LOST_MODE command to put the device into lost mode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartLostModeStatus {
+    /// The status. See StartLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "RESET_PASSWORD_RECENTLY", "USER_EXIT_LOST_MODE_RECENTLY", "ALREADY_IN_LOST_MODE"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Status of the STOP_LOST_MODE command to take the device out of lost mode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopLostModeStatus {
+    /// The status. See StopLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "NOT_IN_LOST_MODE"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the WIPE command to wipe the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WipeParams {
+    /// Optional. Flags to determine what data to wipe.
+    #[serde(default, rename = "wipeDataFlags")]
+    pub wipe_data_flags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A short message displayed to the user before wiping the work profile on personal devices. This has no effect on company owned devices. The maximum message length is 200 characters.
+    #[serde(default, rename = "wipeReason")]
+    pub wipe_reason: ::core::option::Option<UserFacingMessage>,
 }
 
 /// A device owned by an enterprise. Unless otherwise noted, all fields are read-only and can''t be modified by enterprises.devices.patch.
@@ -924,172 +781,6 @@ pub struct Device {
     pub user_name: ::core::option::Option<String>,
 }
 
-/// Covers controls for device connectivity such as Wi-Fi, USB data access, keyboard/mouse connections, and more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceConnectivityManagement {
-    /// Optional. Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
-    #[serde(default, rename = "apnPolicy")]
-    pub apn_policy: ::core::option::Option<ApnPolicy>,
-    /// Optional. Controls whether Bluetooth sharing is allowed. // TODO: enum values: ["BLUETOOTH_SHARING_UNSPECIFIED", "BLUETOOTH_SHARING_ALLOWED", "BLUETOOTH_SHARING_DISALLOWED"]
-    #[serde(default, rename = "bluetoothSharing")]
-    pub bluetooth_sharing: ::core::option::Option<String>,
-    /// Controls Wi-Fi configuring privileges. Based on the option set, user will have either full or limited or no control in configuring Wi-Fi networks. // TODO: enum values: ["CONFIGURE_WIFI_UNSPECIFIED", "ALLOW_CONFIGURING_WIFI", "DISALLOW_ADD_WIFI_CONFIG", "DISALLOW_CONFIGURING_WIFI"]
-    #[serde(default, rename = "configureWifi")]
-    pub configure_wifi: ::core::option::Option<String>,
-    /// Optional. Preferential network service configuration. Setting this field will override preferentialNetworkService. This can be set on both work profiles and fully managed devices on Android 13 and above. See 5G network slicing (https://developers.google.com/android/management/5g-network-slicing) guide for more details.
-    #[serde(default, rename = "preferentialNetworkServiceSettings")]
-    pub preferential_network_service_settings:
-        ::core::option::Option<PreferentialNetworkServiceSettings>,
-    /// Optional. The global private DNS settings.
-    #[serde(default, rename = "privateDnsSettings")]
-    pub private_dns_settings: ::core::option::Option<PrivateDnsSettings>,
-    /// Controls tethering settings. Based on the value set, the user is partially or fully disallowed from using different forms of tethering. // TODO: enum values: ["TETHERING_SETTINGS_UNSPECIFIED", "ALLOW_ALL_TETHERING", "DISALLOW_WIFI_TETHERING", "DISALLOW_ALL_TETHERING"]
-    #[serde(default, rename = "tetheringSettings")]
-    pub tethering_settings: ::core::option::Option<String>,
-    /// Controls what files and/or data can be transferred via USB. Supported only on company-owned devices. // TODO: enum values: ["USB_DATA_ACCESS_UNSPECIFIED", "ALLOW_USB_DATA_TRANSFER", "DISALLOW_USB_FILE_TRANSFER", "DISALLOW_USB_DATA_TRANSFER"]
-    #[serde(default, rename = "usbDataAccess")]
-    pub usb_data_access: ::core::option::Option<String>,
-    /// Controls configuring and using Wi-Fi direct settings. Supported on company-owned devices running Android 13 and above. // TODO: enum values: ["WIFI_DIRECT_SETTINGS_UNSPECIFIED", "ALLOW_WIFI_DIRECT", "DISALLOW_WIFI_DIRECT"]
-    #[serde(default, rename = "wifiDirectSettings")]
-    pub wifi_direct_settings: ::core::option::Option<String>,
-    /// Optional. Wi-Fi roaming policy.
-    #[serde(default, rename = "wifiRoamingPolicy")]
-    pub wifi_roaming_policy: ::core::option::Option<WifiRoamingPolicy>,
-    /// Restrictions on which Wi-Fi SSIDs the device can connect to. Note that this does not affect which networks can be configured on the device. Supported on company-owned devices running Android 13 and above.
-    #[serde(default, rename = "wifiSsidPolicy")]
-    pub wifi_ssid_policy: ::core::option::Option<WifiSsidPolicy>,
-}
-
-/// Controls for device radio settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceRadioState {
-    /// Controls whether airplane mode can be toggled by the user or not. // TODO: enum values: ["AIRPLANE_MODE_STATE_UNSPECIFIED", "AIRPLANE_MODE_USER_CHOICE", "AIRPLANE_MODE_DISABLED"]
-    #[serde(default, rename = "airplaneModeState")]
-    pub airplane_mode_state: ::core::option::Option<String>,
-    /// Controls whether cellular 2G setting can be toggled by the user or not. // TODO: enum values: ["CELLULAR_TWO_G_STATE_UNSPECIFIED", "CELLULAR_TWO_G_USER_CHOICE", "CELLULAR_TWO_G_DISABLED"]
-    #[serde(default, rename = "cellularTwoGState")]
-    pub cellular_two_g_state: ::core::option::Option<String>,
-    /// The minimum required security level of Wi-Fi networks that the device can connect to. // TODO: enum values: ["MINIMUM_WIFI_SECURITY_LEVEL_UNSPECIFIED", "OPEN_NETWORK_SECURITY", "PERSONAL_NETWORK_SECURITY", "ENTERPRISE_NETWORK_SECURITY", "ENTERPRISE_BIT192_NETWORK_SECURITY"]
-    #[serde(default, rename = "minimumWifiSecurityLevel")]
-    pub minimum_wifi_security_level: ::core::option::Option<String>,
-    /// Controls the state of the ultra wideband setting and whether the user can toggle it on or off. // TODO: enum values: ["ULTRA_WIDEBAND_STATE_UNSPECIFIED", "ULTRA_WIDEBAND_USER_CHOICE", "ULTRA_WIDEBAND_DISABLED"]
-    #[serde(default, rename = "ultraWidebandState")]
-    pub ultra_wideband_state: ::core::option::Option<String>,
-    /// Optional. Controls whether the user is allowed to add eSIM profiles. // TODO: enum values: ["USER_INITIATED_ADD_ESIM_SETTINGS_UNSPECIFIED", "USER_INITIATED_ADD_ESIM_ALLOWED", "USER_INITIATED_ADD_ESIM_DISALLOWED"]
-    #[serde(default, rename = "userInitiatedAddEsimSettings")]
-    pub user_initiated_add_esim_settings: ::core::option::Option<String>,
-    /// Controls current state of Wi-Fi and if user can change its state. // TODO: enum values: ["WIFI_STATE_UNSPECIFIED", "WIFI_STATE_USER_CHOICE", "WIFI_ENABLED", "WIFI_DISABLED"]
-    #[serde(default, rename = "wifiState")]
-    pub wifi_state: ::core::option::Option<String>,
-}
-
-/// Information about security related device settings on device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceSettings {
-    /// Whether ADB (https://developer.android.com/studio/command-line/adb.html) is enabled on the device.
-    #[serde(default, rename = "adbEnabled")]
-    pub adb_enabled: ::core::option::Option<bool>,
-    /// Whether developer mode is enabled on the device.
-    #[serde(default, rename = "developmentSettingsEnabled")]
-    pub development_settings_enabled: ::core::option::Option<bool>,
-    /// Encryption status from DevicePolicyManager. // TODO: enum values: ["ENCRYPTION_STATUS_UNSPECIFIED", "UNSUPPORTED", "INACTIVE", "ACTIVATING", "ACTIVE", "ACTIVE_DEFAULT_KEY", "ACTIVE_PER_USER"]
-    #[serde(default, rename = "encryptionStatus")]
-    pub encryption_status: ::core::option::Option<String>,
-    /// Whether the device is secured with PIN/password.
-    #[serde(default, rename = "isDeviceSecure")]
-    pub is_device_secure: ::core::option::Option<bool>,
-    /// Whether the storage encryption is enabled.
-    #[serde(default, rename = "isEncrypted")]
-    pub is_encrypted: ::core::option::Option<bool>,
-    /// Whether installing apps from unknown sources is enabled.
-    #[serde(default, rename = "unknownSourcesEnabled")]
-    pub unknown_sources_enabled: ::core::option::Option<bool>,
-    /// Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced on the device.
-    #[serde(default, rename = "verifyAppsEnabled")]
-    pub verify_apps_enabled: ::core::option::Option<bool>,
-}
-
-/// Device display information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Display {
-    /// Display density expressed as dots-per-inch.
-    #[serde(default)]
-    pub density: ::core::option::Option<i32>,
-    /// Unique display id.
-    #[serde(default, rename = "displayId")]
-    pub display_id: ::core::option::Option<i32>,
-    /// Display height in pixels.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Name of the display.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Refresh rate of the display in frames per second.
-    #[serde(default, rename = "refreshRate")]
-    pub refresh_rate: ::core::option::Option<i32>,
-    /// State of the display. // TODO: enum values: ["DISPLAY_STATE_UNSPECIFIED", "OFF", "ON", "DOZE", "SUSPENDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Display width in pixels.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// Controls for the display settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DisplaySettings {
-    /// Optional. Controls the screen brightness settings.
-    #[serde(default, rename = "screenBrightnessSettings")]
-    pub screen_brightness_settings: ::core::option::Option<ScreenBrightnessSettings>,
-    /// Optional. Controls the screen timeout settings.
-    #[serde(default, rename = "screenTimeoutSettings")]
-    pub screen_timeout_settings: ::core::option::Option<ScreenTimeoutSettings>,
-}
-
-/// A DNS lookup event was initiated through the standard network stack.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsEvent {
-    /// The hostname that was looked up.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// The (possibly truncated) list of the IP addresses returned for DNS lookup (max 10 IPv4 or IPv6 addresses).
-    #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The package name of the UID that performed the DNS lookup.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The number of IP addresses returned from the DNS lookup event. May be higher than the amount of ip_addresses if there were too many addresses to log.
-    #[serde(default, rename = "totalIpAddressesReturned")]
-    pub total_ip_addresses_returned: ::core::option::Option<String>,
-}
-
-/// Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DpcMigrationInfo {
-    /// Output only. If this device was migrated from another DPC, the additionalData field of the migration token is populated here.
-    #[serde(default, rename = "additionalData")]
-    pub additional_data: ::core::option::Option<String>,
-    /// Output only. If this device was migrated from another DPC, this is its package name. Not populated otherwise.
-    #[serde(default, rename = "previousDpc")]
-    pub previous_dpc: ::core::option::Option<String>,
-}
-
-/// EID information for each eUICC chip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Eid {
-    /// Output only. The EID
-    #[serde(default)]
-    pub eid: ::core::option::Option<String>,
-}
-
-/// Information related to the EIDs of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EidInfo {
-    /// Output only. EID information for each eUICC chip.
-    #[serde(default)]
-    pub eids: ::core::option::Option<::std::vec::Vec<Eid>>,
-}
-
 /// An enrollment token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnrollmentToken {
@@ -1172,545 +863,6 @@ pub struct Enterprise {
     pub terms_and_conditions: ::core::option::Option<::std::vec::Vec<TermsAndConditions>>,
 }
 
-/// An event sent for an enterprise upgrade. An enterprise upgrade is a process that upgrades a managed Google Play Accounts enterprise to a managed Google domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnterpriseUpgradeEvent {
-    /// The name of upgraded enterprise in the format "enterprises/{enterprise}"
-    #[serde(default)]
-    pub enterprise: ::core::option::Option<String>,
-    /// Output only. The upgrade state of the enterprise. // TODO: enum values: ["UPGRADE_STATE_UNSPECIFIED", "UPGRADE_STATE_SUCCEEDED"]
-    #[serde(default, rename = "upgradeState")]
-    pub upgrade_state: ::core::option::Option<String>,
-}
-
-/// Status and error details (if present) of an ADD_ESIM or REMOVE_ESIM command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EsimCommandStatus {
-    /// Output only. Information about the eSIM added or removed. This is populated only when the eSIM operation status is SUCCESS.
-    #[serde(default, rename = "esimInfo")]
-    pub esim_info: ::core::option::Option<EsimInfo>,
-    /// Output only. Details of the error if the status is set to INTERNAL_ERROR.
-    #[serde(default, rename = "internalErrorDetails")]
-    pub internal_error_details: ::core::option::Option<InternalErrorDetails>,
-    /// Output only. Status of an ADD_ESIM or REMOVE_ESIM command. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "IN_PROGRESS", "PENDING_USER_ACTION", "ERROR_SETUP_IN_PROGRESS", "ERROR_USER_DENIED", "INTERNAL_ERROR", "ERROR_ICC_ID_NOT_FOUND", "ERROR_MULTIPLE_ACTIVE_ESIMS_NO_AVAILABLE_SLOT"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Details of the eSIM added or removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EsimInfo {
-    /// Output only. ICC ID of the eSIM.
-    #[serde(default, rename = "iccId")]
-    pub icc_id: ::core::option::Option<String>,
-}
-
-/// Information related to the eUICC chip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EuiccChipInfo {
-    /// Output only. The Embedded Identity Document (EID) that identifies the eUICC chip for each eUICC chip on the device. This is available on company owned devices running Android 13 and above.
-    #[serde(default)]
-    pub eid: ::core::option::Option<String>,
-}
-
-/// Configuration to enable an app as an extension app, with the capability of interacting with Android Device Policy offline. For Android versions 11 and above, extension apps are exempt from battery restrictions so will not be placed into the restricted App Standby Bucket (https://developer.android.com/topic/performance/appstandby#restricted-bucket). Extensions apps are also protected against users clearing their data or force-closing the application, although admins can continue to use the clear app data command on extension apps if needed for Android 11 and above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtensionConfig {
-    /// Fully qualified class name of the receiver service class for Android Device Policy to notify the extension app of any local command status updates. The service must be exported in the extension app''s AndroidManifest.xml and extend NotificationReceiverService (https://developers.google.com/android/management/reference/amapi/com/google/android/managementapi/notification/NotificationReceiverService) (see Integrate with the AMAPI SDK (https://developers.google.com/android/management/sdk-integration) guide for more details).
-    #[serde(default, rename = "notificationReceiver")]
-    pub notification_receiver: ::core::option::Option<String>,
-    /// Hex-encoded SHA-256 hashes of the signing key certificates of the extension app. Only hexadecimal string representations of 64 characters are valid.The signing key certificate fingerprints are always obtained from the Play Store and this field is used to provide additional signing key certificate fingerprints. However, if the application is not available on the Play Store, this field needs to be set. A NonComplianceDetail with INVALID_VALUE is reported if this field is not set when the application is not available on the Play Store.The signing key certificate fingerprint of the extension app on the device must match one of the signing key certificate fingerprints obtained from the Play Store or the ones provided in this field for the app to be able to communicate with Android Device Policy.In production use cases, it is recommended to leave this empty.
-    #[serde(default, rename = "signingKeyFingerprintsSha256")]
-    pub signing_key_fingerprints_sha256: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Data hosted at an external location. The data is to be downloaded by Android Device Policy and verified against the hash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalData {
-    /// The base-64 encoded SHA-256 hash of the content hosted at url. If the content doesn''t match this hash, Android Device Policy won''t use the data.
-    #[serde(default, rename = "sha256Hash")]
-    pub sha256_hash: ::core::option::Option<String>,
-    /// The absolute URL to the data, which must use either the http or https scheme. Android Device Policy doesn''t provide any credentials in the GET request, so the URL must be publicly accessible. Including a long, random component in the URL may be used to prevent attackers from discovering the URL.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// A file was downloaded from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilePulledEvent {
-    /// The path of the file being pulled.
-    #[serde(default, rename = "filePath")]
-    pub file_path: ::core::option::Option<String>,
-}
-
-/// A file was uploaded onto the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilePushedEvent {
-    /// The path of the file being pushed.
-    #[serde(default, rename = "filePath")]
-    pub file_path: ::core::option::Option<String>,
-}
-
-/// A system freeze period. When a device’s clock is within the freeze period, all incoming system updates (including security patches) are blocked and won’t be installed.When the device is outside any set freeze periods, the normal policy behavior (automatic, windowed, or postponed) applies.Leap years are ignored in freeze period calculations, in particular: If Feb. 29th is set as the start or end date of a freeze period, the freeze period will start or end on Feb. 28th instead. When a device’s system clock reads Feb. 29th, it’s treated as Feb. 28th. When calculating the number of days in a freeze period or the time between two freeze periods, Feb. 29th is ignored and not counted as a day.Note: For Freeze Periods to take effect, SystemUpdateType cannot be specified as SYSTEM_UPDATE_TYPE_UNSPECIFIED, because freeze periods require a defined policy to be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FreezePeriod {
-    /// The end date (inclusive) of the freeze period. Must be no later than 90 days from the start date. If the end date is earlier than the start date, the freeze period is considered wrapping year-end. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// The start date (inclusive) of the freeze period. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-}
-
-/// Request message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GenerateEnterpriseUpgradeUrlRequest {
-    /// Optional. Email address used to prefill the admin field of the enterprise signup form as part of the upgrade process. This value is a hint only and can be altered by the user. Personal email addresses are not allowed. If allowedDomains is non-empty then this must belong to one of the allowedDomains.
-    #[serde(default, rename = "adminEmail")]
-    pub admin_email: ::core::option::Option<String>,
-    /// Optional. A list of domains that are permitted for the admin email. The IT admin cannot enter an email address with a domain name that is not in this list. Subdomains of domains in this list are not allowed but can be allowed by adding a second entry which has *. prefixed to the domain name (e.g. *.example.com). If the field is not present or is an empty list then the IT admin is free to use any valid domain name. Personal email domains are not allowed.
-    #[serde(default, rename = "allowedDomains")]
-    pub allowed_domains: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GenerateEnterpriseUpgradeUrlResponse {
-    /// A URL for an enterprise admin to upgrade their enterprise. The page can''t be rendered in an iframe.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Contains settings for Google-provided user authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAuthenticationSettings {
-    /// Output only. Whether users need to be authenticated by Google during the enrollment process. IT admin can specify if Google authentication is enabled for the enterprise for knowledge worker devices. This value can be set only via the Google Admin Console. Google authentication can be used with signin_url In the case where Google authentication is required and a signin_url is specified, Google authentication will be launched before signin_url. This value is overridden by EnrollmentToken.googleAuthenticationOptions and SigninDetail.googleAuthenticationOptions, if they are set. // TODO: enum values: ["GOOGLE_AUTHENTICATION_REQUIRED_UNSPECIFIED", "NOT_REQUIRED", "REQUIRED"]
-    #[serde(default, rename = "googleAuthenticationRequired")]
-    pub google_authentication_required: ::core::option::Option<String>,
-}
-
-/// Information about device hardware. The fields related to temperature thresholds are only available if hardwareStatusEnabled is true in the device''s policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HardwareInfo {
-    /// Battery shutdown temperature thresholds in Celsius for each battery on the device.
-    #[serde(default, rename = "batteryShutdownTemperatures")]
-    pub battery_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Battery throttling temperature thresholds in Celsius for each battery on the device.
-    #[serde(default, rename = "batteryThrottlingTemperatures")]
-    pub battery_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Brand of the device. For example, Google.
-    #[serde(default)]
-    pub brand: ::core::option::Option<String>,
-    /// CPU shutdown temperature thresholds in Celsius for each CPU on the device.
-    #[serde(default, rename = "cpuShutdownTemperatures")]
-    pub cpu_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// CPU throttling temperature thresholds in Celsius for each CPU on the device.
-    #[serde(default, rename = "cpuThrottlingTemperatures")]
-    pub cpu_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Baseband version. For example, MDM9625_104662.22.05.34p.
-    #[serde(default, rename = "deviceBasebandVersion")]
-    pub device_baseband_version: ::core::option::Option<String>,
-    /// Output only. ID that uniquely identifies a personally-owned device in a particular organization. On the same physical device when enrolled with the same organization, this ID persists across setups and even factory resets. This ID is available on personally-owned devices with a work profile on devices running Android 12 and above.
-    #[serde(default, rename = "enterpriseSpecificId")]
-    pub enterprise_specific_id: ::core::option::Option<String>,
-    /// Output only. Information related to the eUICC chip.
-    #[serde(default, rename = "euiccChipInfo")]
-    pub euicc_chip_info: ::core::option::Option<::std::vec::Vec<EuiccChipInfo>>,
-    /// GPU shutdown temperature thresholds in Celsius for each GPU on the device.
-    #[serde(default, rename = "gpuShutdownTemperatures")]
-    pub gpu_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// GPU throttling temperature thresholds in Celsius for each GPU on the device.
-    #[serde(default, rename = "gpuThrottlingTemperatures")]
-    pub gpu_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Name of the hardware. For example, Angler.
-    #[serde(default)]
-    pub hardware: ::core::option::Option<String>,
-    /// Manufacturer. For example, Motorola.
-    #[serde(default)]
-    pub manufacturer: ::core::option::Option<String>,
-    /// The model of the device. For example, Asus Nexus 7.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// The device serial number. However, for personally-owned devices running Android 12 and above, this is the same as the enterpriseSpecificId.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-    /// Device skin shutdown temperature thresholds in Celsius.
-    #[serde(default, rename = "skinShutdownTemperatures")]
-    pub skin_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Device skin throttling temperature thresholds in Celsius.
-    #[serde(default, rename = "skinThrottlingTemperatures")]
-    pub skin_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-}
-
-/// Hardware status. Temperatures may be compared to the temperature thresholds available in hardwareInfo to determine hardware health.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HardwareStatus {
-    /// Current battery temperatures in Celsius for each battery on the device.
-    #[serde(default, rename = "batteryTemperatures")]
-    pub battery_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Current CPU temperatures in Celsius for each CPU on the device.
-    #[serde(default, rename = "cpuTemperatures")]
-    pub cpu_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// CPU usages in percentage for each core available on the device. Usage is 0 for each unplugged core. Empty array implies that CPU usage is not supported in the system.
-    #[serde(default, rename = "cpuUsages")]
-    pub cpu_usages: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// The time the measurements were taken.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Fan speeds in RPM for each fan on the device. Empty array means that there are no fans or fan speed is not supported on the system.
-    #[serde(default, rename = "fanSpeeds")]
-    pub fan_speeds: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Current GPU temperatures in Celsius for each GPU on the device.
-    #[serde(default, rename = "gpuTemperatures")]
-    pub gpu_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Current device skin temperatures in Celsius.
-    #[serde(default, rename = "skinTemperatures")]
-    pub skin_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
-}
-
-/// Amongst apps with InstallType set to: FORCE_INSTALLED PREINSTALLEDthis defines a set of restrictions for the app installation. At least one of the fields must be set. When multiple fields are set, then all the constraints need to be satisfied for the app to be installed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstallConstraint {
-    /// Optional. Charging constraint. // TODO: enum values: ["CHARGING_CONSTRAINT_UNSPECIFIED", "CHARGING_NOT_REQUIRED", "INSTALL_ONLY_WHEN_CHARGING"]
-    #[serde(default, rename = "chargingConstraint")]
-    pub charging_constraint: ::core::option::Option<String>,
-    /// Optional. Device idle constraint. // TODO: enum values: ["DEVICE_IDLE_CONSTRAINT_UNSPECIFIED", "DEVICE_IDLE_NOT_REQUIRED", "INSTALL_ONLY_WHEN_DEVICE_IDLE"]
-    #[serde(default, rename = "deviceIdleConstraint")]
-    pub device_idle_constraint: ::core::option::Option<String>,
-    /// Optional. Network type constraint. // TODO: enum values: ["NETWORK_TYPE_CONSTRAINT_UNSPECIFIED", "INSTALL_ON_ANY_NETWORK", "INSTALL_ONLY_ON_UNMETERED_NETWORK"]
-    #[serde(default, rename = "networkTypeConstraint")]
-    pub network_type_constraint: ::core::option::Option<String>,
-}
-
-/// Internal error details if present for the ADD_ESIM or REMOVE_ESIM command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InternalErrorDetails {
-    /// Output only. Integer representation of the error code as specified here (https://developer.android.com/reference/android/telephony/euicc/EuiccManager#EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE). See also, OPERATION_SMDX_SUBJECT_REASON_CODE. See error_code_detail for more details.
-    #[serde(default, rename = "errorCode")]
-    pub error_code: ::core::option::Option<String>,
-    /// Output only. The error code detail corresponding to the error_code. // TODO: enum values: ["ERROR_CODE_DETAIL_UNSPECIFIED", "ERROR_TIME_OUT", "ERROR_EUICC_MISSING", "ERROR_UNSUPPORTED_VERSION", "ERROR_ADDRESS_MISSING", "ERROR_INVALID_CONFIRMATION_CODE", "ERROR_CERTIFICATE_ERROR", "ERROR_NO_PROFILES_AVAILABLE", "ERROR_CONNECTION_ERROR", "ERROR_INVALID_RESPONSE", "ERROR_CARRIER_LOCKED", "ERROR_DISALLOWED_BY_PPR", "ERROR_INVALID_ACTIVATION_CODE", "ERROR_INCOMPATIBLE_CARRIER", "ERROR_OPERATION_BUSY", "ERROR_INSTALL_PROFILE", "ERROR_EUICC_INSUFFICIENT_MEMORY", "ERROR_INVALID_PORT", "ERROR_SIM_MISSING"]
-    #[serde(default, rename = "errorCodeDetail")]
-    pub error_code_detail: ::core::option::Option<String>,
-    /// Output only. Integer representation of the operation code as specified here (https://developer.android.com/reference/android/telephony/euicc/EuiccManager#EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE). See operation_code_detail for more details.
-    #[serde(default, rename = "operationCode")]
-    pub operation_code: ::core::option::Option<String>,
-    /// Output only. The operation code detail corresponding to the operation_code. // TODO: enum values: ["OPERATION_CODE_DETAIL_UNSPECIFIED", "OPERATION_SYSTEM", "OPERATION_SIM_SLOT", "OPERATION_EUICC_CARD", "OPERATION_SMDX", "OPERATION_SWITCH", "OPERATION_DOWNLOAD", "OPERATION_METADATA", "OPERATION_EUICC_GSMA", "OPERATION_APDU", "OPERATION_SMDX_SUBJECT_REASON_CODE", "OPERATION_HTTP"]
-    #[serde(default, rename = "operationCodeDetail")]
-    pub operation_code_detail: ::core::option::Option<String>,
-}
-
-/// A cryptographic key including user installed, admin installed and system maintained private key is removed from the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyDestructionEvent {
-    /// UID of the application which owns the key.
-    #[serde(default, rename = "applicationUid")]
-    pub application_uid: ::core::option::Option<i32>,
-    /// Alias of the key.
-    #[serde(default, rename = "keyAlias")]
-    pub key_alias: ::core::option::Option<String>,
-    /// Whether the operation was successful.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-}
-
-/// A cryptographic key including user installed, admin installed and system maintained private key is installed on the device either by the user or management.This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyGeneratedEvent {
-    /// UID of the application which generated the key.
-    #[serde(default, rename = "applicationUid")]
-    pub application_uid: ::core::option::Option<i32>,
-    /// Alias of the key.
-    #[serde(default, rename = "keyAlias")]
-    pub key_alias: ::core::option::Option<String>,
-    /// Whether the operation was successful.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-}
-
-/// A cryptographic key including user installed, admin installed and system maintained private key is imported on the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyImportEvent {
-    /// UID of the application which imported the key
-    #[serde(default, rename = "applicationUid")]
-    pub application_uid: ::core::option::Option<i32>,
-    /// Alias of the key.
-    #[serde(default, rename = "keyAlias")]
-    pub key_alias: ::core::option::Option<String>,
-    /// Whether the operation was successful.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-}
-
-/// A cryptographic key including user installed, admin installed and system maintained private key is determined to be corrupted due to storage corruption, hardware failure or some OS issue. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyIntegrityViolationEvent {
-    /// UID of the application which owns the key
-    #[serde(default, rename = "applicationUid")]
-    pub application_uid: ::core::option::Option<i32>,
-    /// Alias of the key.
-    #[serde(default, rename = "keyAlias")]
-    pub key_alias: ::core::option::Option<String>,
-}
-
-/// Keyed app state reported by the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyedAppState {
-    /// The creation time of the app state on the device.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optionally, a machine-readable value to be read by the EMM. For example, setting values that the admin can choose to query against in the EMM console (e.g. “notify me if the battery_warning data &lt; 10”).
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// The key for the app state. Acts as a point of reference for what the app is providing state for. For example, when providing managed configuration feedback, this key could be the managed configuration key.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// The time the app state was most recently updated.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-    /// Optionally, a free-form message string to explain the app state. If the state was triggered by a particular value (e.g. a managed configuration value), it should be included in the message.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The severity of the app state. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFO", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// An attempt was made to unlock the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyguardDismissAuthAttemptEvent {
-    /// Whether a strong form of authentication (password, PIN, or pattern) was used to unlock device.
-    #[serde(default, rename = "strongAuthMethodUsed")]
-    pub strong_auth_method_used: ::core::option::Option<bool>,
-    /// Whether the unlock attempt was successful.
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-}
-
-/// Settings controlling the behavior of a device in kiosk mode. To enable kiosk mode, set kioskCustomLauncherEnabled to true or specify an app in the policy with installType KIOSK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KioskCustomization {
-    /// Specifies whether the Settings app is allowed in kiosk mode. // TODO: enum values: ["DEVICE_SETTINGS_UNSPECIFIED", "SETTINGS_ACCESS_ALLOWED", "SETTINGS_ACCESS_BLOCKED"]
-    #[serde(default, rename = "deviceSettings")]
-    pub device_settings: ::core::option::Option<String>,
-    /// Sets the behavior of a device in kiosk mode when a user presses and holds (long-presses) the Power button. // TODO: enum values: ["POWER_BUTTON_ACTIONS_UNSPECIFIED", "POWER_BUTTON_AVAILABLE", "POWER_BUTTON_BLOCKED"]
-    #[serde(default, rename = "powerButtonActions")]
-    pub power_button_actions: ::core::option::Option<String>,
-    /// Specifies whether system info and notifications are disabled in kiosk mode. // TODO: enum values: ["STATUS_BAR_UNSPECIFIED", "NOTIFICATIONS_AND_SYSTEM_INFO_ENABLED", "NOTIFICATIONS_AND_SYSTEM_INFO_DISABLED", "SYSTEM_INFO_ONLY"]
-    #[serde(default, rename = "statusBar")]
-    pub status_bar: ::core::option::Option<String>,
-    /// Specifies whether system error dialogs for crashed or unresponsive apps are blocked in kiosk mode. When blocked, the system will force-stop the app as if the user chooses the "close app" option on the UI. // TODO: enum values: ["SYSTEM_ERROR_WARNINGS_UNSPECIFIED", "ERROR_AND_WARNINGS_ENABLED", "ERROR_AND_WARNINGS_MUTED"]
-    #[serde(default, rename = "systemErrorWarnings")]
-    pub system_error_warnings: ::core::option::Option<String>,
-    /// Specifies which navigation features are enabled (e.g. Home, Overview buttons) in kiosk mode. // TODO: enum values: ["SYSTEM_NAVIGATION_UNSPECIFIED", "NAVIGATION_ENABLED", "NAVIGATION_DISABLED", "HOME_BUTTON_ONLY"]
-    #[serde(default, rename = "systemNavigation")]
-    pub system_navigation: ::core::option::Option<String>,
-}
-
-/// An action to launch an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LaunchAppAction {
-    /// Package name of app to be launched
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Response to a request to list devices for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDevicesResponse {
-    /// The list of devices.
-    #[serde(default)]
-    pub devices: ::core::option::Option<::std::vec::Vec<Device>>,
-    /// If there are more results, a token to retrieve next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response to a request to list enrollment tokens for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEnrollmentTokensResponse {
-    /// The list of enrollment tokens.
-    #[serde(default, rename = "enrollmentTokens")]
-    pub enrollment_tokens: ::core::option::Option<::std::vec::Vec<EnrollmentToken>>,
-    /// If there are more results, a token to retrieve next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response to a request to list enterprises.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEnterprisesResponse {
-    /// The list of enterprises.
-    #[serde(default)]
-    pub enterprises: ::core::option::Option<::std::vec::Vec<Enterprise>>,
-    /// If there are more results, a token to retrieve next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response to a request to list migration tokens for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMigrationTokensResponse {
-    /// The migration tokens from the specified enterprise.
-    #[serde(default, rename = "migrationTokens")]
-    pub migration_tokens: ::core::option::Option<::std::vec::Vec<MigrationToken>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response to a request to list policies for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListPoliciesResponse {
-    /// If there are more results, a token to retrieve next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of policies.
-    #[serde(default)]
-    pub policies: ::core::option::Option<::std::vec::Vec<Policy>>,
-}
-
-/// Response to a request to list web apps for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListWebAppsResponse {
-    /// If there are more results, a token to retrieve next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of web apps.
-    #[serde(default, rename = "webApps")]
-    pub web_apps: ::core::option::Option<::std::vec::Vec<WebApp>>,
-}
-
-/// The device location containing the latitude and longitude.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The latitude position of the location
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude position of the location
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// A lost mode event containing the device location and battery level as a percentage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LostModeLocationEvent {
-    /// The battery level as a number between 0 and 100 inclusive
-    #[serde(default, rename = "batteryLevel")]
-    pub battery_level: ::core::option::Option<i32>,
-    /// The device location
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-}
-
-/// The managed configurations template for the app, saved from the managed configurations iframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedConfigurationTemplate {
-    /// Optional, a map containing configuration variables defined for the configuration.
-    #[serde(default, rename = "configurationVariables")]
-    pub configuration_variables: ::core::option::Option<serde_json::Value>,
-    /// The ID of the managed configurations template.
-    #[serde(default, rename = "templateId")]
-    pub template_id: ::core::option::Option<String>,
-}
-
-/// Managed property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedProperty {
-    /// The default value of the property. BUNDLE_ARRAY properties don''t have a default value.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<serde_json::Value>,
-    /// A longer description of the property, providing more detail of what it affects. Localized.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// For CHOICE or MULTISELECT properties, the list of possible entries.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ManagedPropertyEntry>>,
-    /// The unique key that the app uses to identify the property, e.g. "com.google.android.gm.fieldname".
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// For BUNDLE_ARRAY properties, the list of nested properties. A BUNDLE_ARRAY property is at most two levels deep.
-    #[serde(default, rename = "nestedProperties")]
-    pub nested_properties: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
-    /// The name of the property. Localized.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The type of the property. // TODO: enum values: ["MANAGED_PROPERTY_TYPE_UNSPECIFIED", "BOOL", "STRING", "INTEGER", "CHOICE", "MULTISELECT", "HIDDEN", "BUNDLE", "BUNDLE_ARRAY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An entry of a managed property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedPropertyEntry {
-    /// The human-readable name of the value. Localized.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The machine-readable value of the entry, which should be used in the configuration. Not localized.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Removable media was mounted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MediaMountEvent {
-    /// Mount point.
-    #[serde(default, rename = "mountPoint")]
-    pub mount_point: ::core::option::Option<String>,
-    /// Volume label. Redacted to empty string on organization-owned managed profile devices.
-    #[serde(default, rename = "volumeLabel")]
-    pub volume_label: ::core::option::Option<String>,
-}
-
-/// Removable media was unmounted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MediaUnmountEvent {
-    /// Mount point.
-    #[serde(default, rename = "mountPoint")]
-    pub mount_point: ::core::option::Option<String>,
-    /// Volume label. Redacted to empty string on organization-owned managed profile devices.
-    #[serde(default, rename = "volumeLabel")]
-    pub volume_label: ::core::option::Option<String>,
-}
-
-/// An event related to memory and storage measurements.To distinguish between new and old events, we recommend using the createTime field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemoryEvent {
-    /// The number of free bytes in the medium, or for EXTERNAL_STORAGE_DETECTED, the total capacity in bytes of the storage medium.
-    #[serde(default, rename = "byteCount")]
-    pub byte_count: ::core::option::Option<String>,
-    /// The creation time of the event.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Event type. // TODO: enum values: ["MEMORY_EVENT_TYPE_UNSPECIFIED", "RAM_MEASURED", "INTERNAL_STORAGE_MEASURED", "EXTERNAL_STORAGE_DETECTED", "EXTERNAL_STORAGE_REMOVED", "EXTERNAL_STORAGE_MEASURED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// Information about device memory and storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemoryInfo {
-    /// Total internal storage on device in bytes.
-    #[serde(default, rename = "totalInternalStorage")]
-    pub total_internal_storage: ::core::option::Option<String>,
-    /// Total RAM on device in bytes.
-    #[serde(default, rename = "totalRam")]
-    pub total_ram: ::core::option::Option<String>,
-}
-
 /// A token to initiate the migration of a device from being managed by a third-party DPC to being managed by Android Management API. A migration token is valid only for a single device. See the guide (https://developers.google.com/android/management/dpc-migration) for more details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MigrationToken {
@@ -1749,104 +901,6 @@ pub struct MigrationToken {
     pub value: ::core::option::Option<String>,
 }
 
-/// Request to update or create ApplicationPolicy objects in the given Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyPolicyApplicationsRequest {
-    /// Required. The changes to be made to the ApplicationPolicy objects. There must be at least one ApplicationPolicyChange.
-    #[serde(default)]
-    pub changes: ::core::option::Option<::std::vec::Vec<ApplicationPolicyChange>>,
-}
-
-/// Response to a request to update or create ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyPolicyApplicationsResponse {
-    /// The updated policy.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-}
-
-/// Device network info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkInfo {
-    /// IMEI number of the GSM device. For example, A1000031212.
-    #[serde(default)]
-    pub imei: ::core::option::Option<String>,
-    /// MEID number of the CDMA device. For example, A00000292788E1.
-    #[serde(default)]
-    pub meid: ::core::option::Option<String>,
-    /// Alphabetic name of current registered operator. For example, Vodafone.
-    #[serde(default, rename = "networkOperatorName")]
-    pub network_operator_name: ::core::option::Option<String>,
-    /// Provides telephony information associated with each SIM card on the device. Only supported on fully managed devices starting from Android 6.
-    #[serde(default, rename = "telephonyInfos")]
-    pub telephony_infos: ::core::option::Option<::std::vec::Vec<TelephonyInfo>>,
-    /// Wi-Fi MAC address of the device. For example, 7c:11:11:11:11:11.
-    #[serde(default, rename = "wifiMacAddress")]
-    pub wifi_mac_address: ::core::option::Option<String>,
-}
-
-/// Provides detail about non-compliance with a policy setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NonComplianceDetail {
-    /// If the policy setting could not be applied, the current value of the setting on the device.
-    #[serde(default, rename = "currentValue")]
-    pub current_value: ::core::option::Option<serde_json::Value>,
-    /// For settings with nested fields, if a particular nested field is out of compliance, this specifies the full path to the offending field. The path is formatted in the same way the policy JSON field would be referenced in JavaScript, that is: 1) For object-typed fields, the field name is followed by a dot then by a subfield name. 2) For array-typed fields, the field name is followed by the array index enclosed in brackets. For example, to indicate a problem with the url field in the externalData field in the 3rd application, the path would be applications[2].externalData.url
-    #[serde(default, rename = "fieldPath")]
-    pub field_path: ::core::option::Option<String>,
-    /// If package_name is set and the non-compliance reason is APP_NOT_INSTALLED or APP_NOT_UPDATED, the detailed reason the app can''t be installed or updated. // TODO: enum values: ["INSTALLATION_FAILURE_REASON_UNSPECIFIED", "INSTALLATION_FAILURE_REASON_UNKNOWN", "IN_PROGRESS", "NOT_FOUND", "NOT_COMPATIBLE_WITH_DEVICE", "NOT_APPROVED", "PERMISSIONS_NOT_ACCEPTED", "NOT_AVAILABLE_IN_COUNTRY", "NO_LICENSES_REMAINING", "NOT_ENROLLED", "USER_INVALID", "NETWORK_ERROR_UNRELIABLE_CONNECTION", "INSUFFICIENT_STORAGE"]
-    #[serde(default, rename = "installationFailureReason")]
-    pub installation_failure_reason: ::core::option::Option<String>,
-    /// The reason the device is not in compliance with the setting. // TODO: enum values: ["NON_COMPLIANCE_REASON_UNSPECIFIED", "API_LEVEL", "MANAGEMENT_MODE", "USER_ACTION", "INVALID_VALUE", "APP_NOT_INSTALLED", "UNSUPPORTED", "APP_INSTALLED", "PENDING", "APP_INCOMPATIBLE", "APP_NOT_UPDATED", "DEVICE_INCOMPATIBLE", "APP_SIGNING_CERT_MISMATCH", "PROJECT_NOT_PERMITTED"]
-    #[serde(default, rename = "nonComplianceReason")]
-    pub non_compliance_reason: ::core::option::Option<String>,
-    /// The package name indicating which app is out of compliance, if applicable.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The name of the policy setting. This is the JSON field name of a top-level Policy field.
-    #[serde(default, rename = "settingName")]
-    pub setting_name: ::core::option::Option<String>,
-    /// Additional context for specific_non_compliance_reason.
-    #[serde(default, rename = "specificNonComplianceContext")]
-    pub specific_non_compliance_context: ::core::option::Option<SpecificNonComplianceContext>,
-    /// The policy-specific reason the device is not in compliance with the setting. // TODO: enum values: ["SPECIFIC_NON_COMPLIANCE_REASON_UNSPECIFIED", "PASSWORD_POLICIES_USER_CREDENTIALS_CONFIRMATION_REQUIRED", "PASSWORD_POLICIES_PASSWORD_EXPIRED", "PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT", "ONC_WIFI_INVALID_VALUE", "ONC_WIFI_API_LEVEL", "ONC_WIFI_INVALID_ENTERPRISE_CONFIG", "ONC_WIFI_USER_SHOULD_REMOVE_NETWORK", "ONC_WIFI_KEY_PAIR_ALIAS_NOT_CORRESPONDING_TO_EXISTING_KEY", "PERMISSIBLE_USAGE_RESTRICTION", "REQUIRED_ACCOUNT_NOT_IN_ENTERPRISE", "NEW_ACCOUNT_NOT_IN_ENTERPRISE", "DEFAULT_APPLICATION_SETTING_UNSUPPORTED_SCOPES", "DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE", "PRIVATE_DNS_HOST_NOT_SERVING"]
-    #[serde(default, rename = "specificNonComplianceReason")]
-    pub specific_non_compliance_reason: ::core::option::Option<String>,
-}
-
-/// A compliance rule condition which is satisfied if there exists any matching NonComplianceDetail for the device. A NonComplianceDetail matches a NonComplianceDetailCondition if all the fields which are set within the NonComplianceDetailCondition match the corresponding NonComplianceDetail fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NonComplianceDetailCondition {
-    /// The reason the device is not in compliance with the setting. If not set, then this condition matches any reason. // TODO: enum values: ["NON_COMPLIANCE_REASON_UNSPECIFIED", "API_LEVEL", "MANAGEMENT_MODE", "USER_ACTION", "INVALID_VALUE", "APP_NOT_INSTALLED", "UNSUPPORTED", "APP_INSTALLED", "PENDING", "APP_INCOMPATIBLE", "APP_NOT_UPDATED", "DEVICE_INCOMPATIBLE", "APP_SIGNING_CERT_MISMATCH", "PROJECT_NOT_PERMITTED"]
-    #[serde(default, rename = "nonComplianceReason")]
-    pub non_compliance_reason: ::core::option::Option<String>,
-    /// The package name of the app that''s out of compliance. If not set, then this condition matches any package name.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The name of the policy setting. This is the JSON field name of a top-level Policy field. If not set, then this condition matches any setting name.
-    #[serde(default, rename = "settingName")]
-    pub setting_name: ::core::option::Option<String>,
-}
-
-/// This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OncCertificateProvider {
-    /// This feature is not generally available.
-    #[serde(default, rename = "certificateReferences")]
-    pub certificate_references: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This feature is not generally available.
-    #[serde(default, rename = "contentProviderEndpoint")]
-    pub content_provider_endpoint: ::core::option::Option<ContentProviderEndpoint>,
-}
-
-/// Additional context for non-compliance related to Wi-Fi configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OncWifiContext {
-    /// The GUID of non-compliant Wi-Fi configuration.
-    #[serde(default, rename = "wifiGuid")]
-    pub wifi_guid: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -1867,151 +921,38 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Device was started.
+/// A web app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsStartupEvent {
-    /// Verified Boot state. // TODO: enum values: ["VERIFIED_BOOT_STATE_UNSPECIFIED", "GREEN", "YELLOW", "ORANGE"]
-    #[serde(default, rename = "verifiedBootState")]
-    pub verified_boot_state: ::core::option::Option<String>,
-    /// dm-verity mode. // TODO: enum values: ["DM_VERITY_MODE_UNSPECIFIED", "ENFORCING", "IO_ERROR", "DISABLED"]
-    #[serde(default, rename = "verityMode")]
-    pub verity_mode: ::core::option::Option<String>,
-}
-
-/// A list of package names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PackageNameList {
-    /// A list of package names.
-    #[serde(default, rename = "packageNames")]
-    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Additional context for non-compliance related to password policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PasswordPoliciesContext {
-    /// The scope of non-compliant password. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_DEVICE", "SCOPE_PROFILE"]
-    #[serde(default, rename = "passwordPolicyScope")]
-    pub password_policy_scope: ::core::option::Option<String>,
-}
-
-/// Requirements for the password used to unlock a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PasswordRequirements {
-    /// Number of incorrect device-unlock passwords that can be entered before a device is wiped. A value of 0 means there is no restriction.
-    #[serde(default, rename = "maximumFailedPasswordsForWipe")]
-    pub maximum_failed_passwords_for_wipe: ::core::option::Option<i32>,
-    /// Password expiration timeout.
-    #[serde(default, rename = "passwordExpirationTimeout")]
-    pub password_expiration_timeout: ::core::option::Option<String>,
-    /// The length of the password history. After setting this field, the user won''t be able to enter a new password that is the same as any password in the history. A value of 0 means there is no restriction.
-    #[serde(default, rename = "passwordHistoryLength")]
-    pub password_history_length: ::core::option::Option<i32>,
-    /// The minimum allowed password length. A value of 0 means there is no restriction. Only enforced when password_quality is NUMERIC, NUMERIC_COMPLEX, ALPHABETIC, ALPHANUMERIC, or COMPLEX.
-    #[serde(default, rename = "passwordMinimumLength")]
-    pub password_minimum_length: ::core::option::Option<i32>,
-    /// Minimum number of letters required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumLetters")]
-    pub password_minimum_letters: ::core::option::Option<i32>,
-    /// Minimum number of lower case letters required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumLowerCase")]
-    pub password_minimum_lower_case: ::core::option::Option<i32>,
-    /// Minimum number of non-letter characters (numerical digits or symbols) required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumNonLetter")]
-    pub password_minimum_non_letter: ::core::option::Option<i32>,
-    /// Minimum number of numerical digits required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumNumeric")]
-    pub password_minimum_numeric: ::core::option::Option<i32>,
-    /// Minimum number of symbols required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumSymbols")]
-    pub password_minimum_symbols: ::core::option::Option<i32>,
-    /// Minimum number of upper case letters required in the password. Only enforced when password_quality is COMPLEX.
-    #[serde(default, rename = "passwordMinimumUpperCase")]
-    pub password_minimum_upper_case: ::core::option::Option<i32>,
-    /// The required password quality. // TODO: enum values: ["PASSWORD_QUALITY_UNSPECIFIED", "BIOMETRIC_WEAK", "SOMETHING", "NUMERIC", "NUMERIC_COMPLEX", "ALPHABETIC", "ALPHANUMERIC", "COMPLEX", "COMPLEXITY_LOW", "COMPLEXITY_MEDIUM", "COMPLEXITY_HIGH"]
-    #[serde(default, rename = "passwordQuality")]
-    pub password_quality: ::core::option::Option<String>,
-    /// The scope that the password requirement applies to. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_DEVICE", "SCOPE_PROFILE"]
-    #[serde(default, rename = "passwordScope")]
-    pub password_scope: ::core::option::Option<String>,
-    /// The length of time after a device or work profile is unlocked using a strong form of authentication (password, PIN, pattern) that it can be unlocked using any other authentication method (e.g. fingerprint, trust agents, face). After the specified time period elapses, only strong forms of authentication can be used to unlock the device or work profile. // TODO: enum values: ["REQUIRE_PASSWORD_UNLOCK_UNSPECIFIED", "USE_DEFAULT_DEVICE_TIMEOUT", "REQUIRE_EVERY_DAY"]
-    #[serde(default, rename = "requirePasswordUnlock")]
-    pub require_password_unlock: ::core::option::Option<String>,
-    /// Controls whether a unified lock is allowed for the device and the work profile, on devices running Android 9 and above with a work profile. This can be set only if password_scope is set to SCOPE_PROFILE, the policy will be rejected otherwise. If user has not set a separate work lock and this field is set to REQUIRE_SEPARATE_WORK_LOCK, a NonComplianceDetail is reported with nonComplianceReason set to USER_ACTION. // TODO: enum values: ["UNIFIED_LOCK_SETTINGS_UNSPECIFIED", "ALLOW_UNIFIED_WORK_AND_PERSONAL_LOCK", "REQUIRE_SEPARATE_WORK_LOCK"]
-    #[serde(default, rename = "unifiedLockSettings")]
-    pub unified_lock_settings: ::core::option::Option<String>,
-}
-
-/// The result of an attempt to clear the data of a single app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerAppResult {
-    /// The result of an attempt to clear the data of a single app. // TODO: enum values: ["CLEARING_RESULT_UNSPECIFIED", "SUCCESS", "APP_NOT_FOUND", "APP_PROTECTED", "API_LEVEL"]
-    #[serde(default, rename = "clearingResult")]
-    pub clearing_result: ::core::option::Option<String>,
-}
-
-/// Configuration for an Android permission and its grant state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PermissionGrant {
-    /// The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.
+pub struct WebApp {
+    /// The display mode of the web app. // TODO: enum values: ["DISPLAY_MODE_UNSPECIFIED", "MINIMAL_UI", "STANDALONE", "FULL_SCREEN"]
+    #[serde(default, rename = "displayMode")]
+    pub display_mode: ::core::option::Option<String>,
+    /// A list of icons for the web app. Must have at least one element.
     #[serde(default)]
-    pub permission: ::core::option::Option<String>,
-    /// The policy for granting the permission. // TODO: enum values: ["PERMISSION_POLICY_UNSPECIFIED", "PROMPT", "GRANT", "DENY"]
+    pub icons: ::core::option::Option<::std::vec::Vec<WebAppIcon>>,
+    /// The name of the web app, which is generated by the server during creation in the form enterprises/{enterpriseId}/webApps/{packageName}.
     #[serde(default)]
-    pub policy: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// The start URL, i.e. the URL that should load when the user opens the application.
+    #[serde(default, rename = "startUrl")]
+    pub start_url: ::core::option::Option<String>,
+    /// The title of the web app as displayed to the user (e.g., amongst a list of other applications, or as a label for an icon).
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The current version of the app.Note that the version can automatically increase during the lifetime of the web app, while Google does internal housekeeping to keep the web app up-to-date.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<String>,
 }
 
-/// A default activity for handling intents that match a particular intent filter. Note: To set up a kiosk, use InstallType to KIOSK rather than use persistent preferred activities.
+/// A change to be made to a single ApplicationPolicy object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersistentPreferredActivity {
-    /// The intent actions to match in the filter. If any actions are included in the filter, then an intent''s action must be one of those values for it to match. If no actions are included, the intent action is ignored.
+pub struct ApplicationPolicyChange {
+    /// If ApplicationPolicy.packageName matches an existing ApplicationPolicy object within the Policy being modified, then that object will be updated. Otherwise, it will be added to the end of the Policy.applications.
     #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The intent categories to match in the filter. An intent includes the categories that it requires, all of which must be included in the filter in order to match. In other words, adding a category to the filter has no impact on matching unless that category is specified in the intent.
-    #[serde(default)]
-    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The activity that should be the default intent handler. This should be an Android component name, e.g. com.android.enterprise.app/.MainActivity. Alternatively, the value may be the package name of an app, which causes Android Device Policy to choose an appropriate activity from the app to handle the intent.
-    #[serde(default, rename = "receiverActivity")]
-    pub receiver_activity: ::core::option::Option<String>,
-}
-
-/// Policies for apps in the personal profile of a company-owned device with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonalApplicationPolicy {
-    /// The type of installation to perform. // TODO: enum values: ["INSTALL_TYPE_UNSPECIFIED", "BLOCKED", "AVAILABLE"]
-    #[serde(default, rename = "installType")]
-    pub install_type: ::core::option::Option<String>,
-    /// The package name of the application.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Policies controlling personal usage on a company-owned device with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonalUsagePolicies {
-    /// Account types that can''t be managed by the user.
-    #[serde(default, rename = "accountTypesWithManagementDisabled")]
-    pub account_types_with_management_disabled: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Whether bluetooth sharing is allowed. // TODO: enum values: ["BLUETOOTH_SHARING_UNSPECIFIED", "BLUETOOTH_SHARING_ALLOWED", "BLUETOOTH_SHARING_DISALLOWED"]
-    #[serde(default, rename = "bluetoothSharing")]
-    pub bluetooth_sharing: ::core::option::Option<String>,
-    /// If true, the camera is disabled on the personal profile.
-    #[serde(default, rename = "cameraDisabled")]
-    pub camera_disabled: ::core::option::Option<bool>,
-    /// Controls how long the work profile can stay off. The minimum duration must be at least 3 days. Other details are as follows: - If the duration is set to 0, the feature is turned off. - If the duration is set to a value smaller than the minimum duration, the feature returns an error. *Note:* If you want to avoid personal profiles being suspended during long periods of off-time, you can temporarily set a large value for this parameter.
-    #[serde(default, rename = "maxDaysWithWorkOff")]
-    pub max_days_with_work_off: ::core::option::Option<i32>,
-    /// Policy applied to applications in the personal profile.
-    #[serde(default, rename = "personalApplications")]
-    pub personal_applications: ::core::option::Option<::std::vec::Vec<PersonalApplicationPolicy>>,
-    /// Used together with personalApplications to control how apps in the personal profile are allowed or blocked. // TODO: enum values: ["PLAY_STORE_MODE_UNSPECIFIED", "BLACKLIST", "BLOCKLIST", "ALLOWLIST"]
-    #[serde(default, rename = "personalPlayStoreMode")]
-    pub personal_play_store_mode: ::core::option::Option<String>,
-    /// Optional. Controls whether a private space is allowed on the device. // TODO: enum values: ["PRIVATE_SPACE_POLICY_UNSPECIFIED", "PRIVATE_SPACE_ALLOWED", "PRIVATE_SPACE_DISALLOWED"]
-    #[serde(default, rename = "privateSpacePolicy")]
-    pub private_space_policy: ::core::option::Option<String>,
-    /// If true, screen capture is disabled for all users. This also blocks Circle to Search (https://support.google.com/android/answer/14508957).
-    #[serde(default, rename = "screenCaptureDisabled")]
-    pub screen_capture_disabled: ::core::option::Option<bool>,
+    pub application: ::core::option::Option<ApplicationPolicy>,
+    /// The field mask indicating the fields to update. If omitted, all modifiable fields are updated.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// A policy resource represents a group of settings that govern the behavior of a managed device and the apps installed on it.
@@ -2318,135 +1259,244 @@ pub struct Policy {
     pub work_account_setup_config: ::core::option::Option<WorkAccountSetupConfig>,
 }
 
-/// A rule that defines the actions to take if a device or work profile is not compliant with the policy specified in settingName. In the case of multiple matching or multiple triggered enforcement rules, a merge will occur with the most severe action being taken. However, all triggered rules are still kept track of: this includes initial trigger time and all associated non-compliance details. In the situation where the most severe enforcement rule is satisfied, the next most appropriate action is applied.
+/// An entry of a managed property.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PolicyEnforcementRule {
-    /// An action to block access to apps and data on a company owned device or in a work profile. This action also triggers a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
-    #[serde(default, rename = "blockAction")]
-    pub block_action: ::core::option::Option<BlockAction>,
-    /// The top-level policy to enforce. For example, applications or passwordPolicies.
-    #[serde(default, rename = "settingName")]
-    pub setting_name: ::core::option::Option<String>,
-    /// An action to reset a company owned device or delete a work profile. Note: blockAction must also be specified.
-    #[serde(default, rename = "wipeAction")]
-    pub wipe_action: ::core::option::Option<WipeAction>,
-}
-
-/// Additional details regarding the security posture of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostureDetail {
-    /// Corresponding admin-facing advice to mitigate this security risk and improve the security posture of the device.
-    #[serde(default)]
-    pub advice: ::core::option::Option<::std::vec::Vec<UserFacingMessage>>,
-    /// A specific security risk that negatively affects the security posture of the device. // TODO: enum values: ["SECURITY_RISK_UNSPECIFIED", "UNKNOWN_OS", "COMPROMISED_OS", "HARDWARE_BACKED_EVALUATION_FAILED"]
-    #[serde(default, rename = "securityRisk")]
-    pub security_risk: ::core::option::Option<String>,
-}
-
-/// A power management event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PowerManagementEvent {
-    /// For BATTERY_LEVEL_COLLECTED events, the battery level as a percentage.
-    #[serde(default, rename = "batteryLevel")]
-    pub battery_level: ::core::option::Option<f32>,
-    /// The creation time of the event.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Event type. // TODO: enum values: ["POWER_MANAGEMENT_EVENT_TYPE_UNSPECIFIED", "BATTERY_LEVEL_COLLECTED", "POWER_CONNECTED", "POWER_DISCONNECTED", "BATTERY_LOW", "BATTERY_OKAY", "BOOT_COMPLETED", "SHUTDOWN"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// Individual preferential network service configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreferentialNetworkServiceConfig {
-    /// Optional. Whether fallback to the device-wide default network is allowed. If this is set to FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED, then nonMatchingNetworks must not be set to NON_MATCHING_NETWORKS_DISALLOWED, the policy will be rejected otherwise. Note: If this is set to FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED, applications are not able to access the internet if the 5G slice is not available. // TODO: enum values: ["FALLBACK_TO_DEFAULT_CONNECTION_UNSPECIFIED", "FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED", "FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED"]
-    #[serde(default, rename = "fallbackToDefaultConnection")]
-    pub fallback_to_default_connection: ::core::option::Option<String>,
-    /// Optional. Whether apps this configuration applies to are blocked from using networks other than the preferential service. If this is set to NON_MATCHING_NETWORKS_DISALLOWED, then fallbackToDefaultConnection must be set to FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED. // TODO: enum values: ["NON_MATCHING_NETWORKS_UNSPECIFIED", "NON_MATCHING_NETWORKS_ALLOWED", "NON_MATCHING_NETWORKS_DISALLOWED"]
-    #[serde(default, rename = "nonMatchingNetworks")]
-    pub non_matching_networks: ::core::option::Option<String>,
-    /// Required. Preferential network identifier. This must not be set to NO_PREFERENTIAL_NETWORK or PREFERENTIAL_NETWORK_ID_UNSPECIFIED, the policy will be rejected otherwise. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
-    #[serde(default, rename = "preferentialNetworkId")]
-    pub preferential_network_id: ::core::option::Option<String>,
-}
-
-/// Preferential network service settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreferentialNetworkServiceSettings {
-    /// Required. Default preferential network ID for the applications that are not in applications or if ApplicationPolicy.preferentialNetworkId is set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs, unless this is set to NO_PREFERENTIAL_NETWORK. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED or unset, this defaults to NO_PREFERENTIAL_NETWORK. Note: If the default preferential network is misconfigured, applications with no ApplicationPolicy.preferentialNetworkId set are not able to access the internet. This setting does not apply to the following critical apps: com.google.android.apps.work.clouddpc com.google.android.gmsApplicationPolicy.preferentialNetworkId can still be used to configure the preferential network for them. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
-    #[serde(default, rename = "defaultPreferentialNetworkId")]
-    pub default_preferential_network_id: ::core::option::Option<String>,
-    /// Required. Preferential network service configurations which enables having multiple enterprise slices. There must not be multiple configurations with the same preferentialNetworkId. If a configuration is not referenced by any application by setting ApplicationPolicy.preferentialNetworkId or by setting defaultPreferentialNetworkId, it will be ignored. For devices on 4G networks, enterprise APN needs to be configured additionally to set up data call for preferential network service. These APNs can be added using apnPolicy.
-    #[serde(default, rename = "preferentialNetworkServiceConfigs")]
-    pub preferential_network_service_configs:
-        ::core::option::Option<::std::vec::Vec<PreferentialNetworkServiceConfig>>,
-}
-
-/// Controls the device''s private DNS settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateDnsSettings {
-    /// Optional. The hostname of the DNS server. This must be set if and only if private_dns_mode is set to PRIVATE_DNS_SPECIFIED_HOST. Supported on Android 10 and above on fully managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported on other management modes. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with PENDING is reported if the device is not connected to a network. A NonComplianceDetail with nonComplianceReason INVALID_VALUE and specificNonComplianceReason PRIVATE_DNS_HOST_NOT_SERVING is reported if the specified host is not a DNS server or not supported on Android. A NonComplianceDetail with INVALID_VALUE is reported if applying this setting fails for any other reason.
-    #[serde(default, rename = "privateDnsHost")]
-    pub private_dns_host: ::core::option::Option<String>,
-    /// Optional. The configuration mode for device''s global private DNS settings. If this is set to PRIVATE_DNS_SPECIFIED_HOST, then private_dns_host must be set. // TODO: enum values: ["PRIVATE_DNS_MODE_UNSPECIFIED", "PRIVATE_DNS_USER_CHOICE", "PRIVATE_DNS_AUTOMATIC", "PRIVATE_DNS_SPECIFIED_HOST"]
-    #[serde(default, rename = "privateDnsMode")]
-    pub private_dns_mode: ::core::option::Option<String>,
-}
-
-/// Information about a device that is available during setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProvisioningInfo {
-    /// The API level of the Android platform version running on the device.
-    #[serde(default, rename = "apiLevel")]
-    pub api_level: ::core::option::Option<i32>,
-    /// The email address of the authenticated user (only present for Google Account provisioning method).
-    #[serde(default, rename = "authenticatedUserEmail")]
-    pub authenticated_user_email: ::core::option::Option<String>,
-    /// The brand of the device. For example, Google.
-    #[serde(default)]
-    pub brand: ::core::option::Option<String>,
-    /// The name of the enterprise in the form enterprises/{enterprise}.
-    #[serde(default)]
-    pub enterprise: ::core::option::Option<String>,
-    /// For corporate-owned devices, IMEI number of the GSM device. For example, A1000031212.
-    #[serde(default)]
-    pub imei: ::core::option::Option<String>,
-    /// The management mode of the device or profile. // TODO: enum values: ["MANAGEMENT_MODE_UNSPECIFIED", "DEVICE_OWNER", "PROFILE_OWNER"]
-    #[serde(default, rename = "managementMode")]
-    pub management_mode: ::core::option::Option<String>,
-    /// For corporate-owned devices, MEID number of the CDMA device. For example, A00000292788E1.
-    #[serde(default)]
-    pub meid: ::core::option::Option<String>,
-    /// The model of the device. For example, Asus Nexus 7.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// The name of this resource in the form provisioningInfo/{provisioning_info}.
+pub struct ManagedPropertyEntry {
+    /// The human-readable name of the value. Localized.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Ownership of the managed device. // TODO: enum values: ["OWNERSHIP_UNSPECIFIED", "COMPANY_OWNED", "PERSONALLY_OWNED"]
+    /// The machine-readable value of the entry, which should be used in the configuration. Not localized.
     #[serde(default)]
-    pub ownership: ::core::option::Option<String>,
-    /// For corporate-owned devices, The device serial number.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
-/// Configuration info for an HTTP proxy. For a direct proxy, set the host, port, and excluded_hosts fields. For a PAC script proxy, set the pac_uri field.
+/// A shell command was issued over ADB via “adb shell command”.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProxyInfo {
-    /// For a direct proxy, the hosts for which the proxy is bypassed. The host names may contain wildcards such as *.example.com.
-    #[serde(default, rename = "excludedHosts")]
-    pub excluded_hosts: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The host of the direct proxy.
+pub struct AdbShellCommandEvent {
+    /// Shell command that was issued over ADB via "adb shell command". Redacted to empty string on organization-owned managed profile devices.
+    #[serde(default, rename = "shellCmd")]
+    pub shell_cmd: ::core::option::Option<String>,
+}
+
+/// An app process was started. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppProcessStartEvent {
+    /// Information about a process.
+    #[serde(default, rename = "processInfo")]
+    pub process_info: ::core::option::Option<AppProcessInfo>,
+}
+
+/// An admin has enabled or disabled backup service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupServiceToggledEvent {
+    /// Package name of the admin app requesting the change.
+    #[serde(default, rename = "adminPackageName")]
+    pub admin_package_name: ::core::option::Option<String>,
+    /// User ID of the admin app from the which the change was requested.
+    #[serde(default, rename = "adminUserId")]
+    pub admin_user_id: ::core::option::Option<i32>,
+    /// Whether the backup service is enabled // TODO: enum values: ["BACKUP_SERVICE_STATE_UNSPECIFIED", "BACKUP_SERVICE_DISABLED", "BACKUP_SERVICE_ENABLED"]
+    #[serde(default, rename = "backupServiceState")]
+    pub backup_service_state: ::core::option::Option<String>,
+}
+
+/// A new root certificate was installed into the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertAuthorityInstalledEvent {
+    /// Subject of the certificate.
     #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// The URI of the PAC script used to configure the proxy.
-    #[serde(default, rename = "pacUri")]
-    pub pac_uri: ::core::option::Option<String>,
-    /// The port of the direct proxy.
+    pub certificate: ::core::option::Option<String>,
+    /// Whether the installation event succeeded.
     #[serde(default)]
-    pub port: ::core::option::Option<i32>,
+    pub success: ::core::option::Option<bool>,
+    /// The user in which the certificate install event happened. Only available for devices running Android 11 and above.
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<i32>,
+}
+
+/// A root certificate was removed from the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertAuthorityRemovedEvent {
+    /// Subject of the certificate.
+    #[serde(default)]
+    pub certificate: ::core::option::Option<String>,
+    /// Whether the removal succeeded.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+    /// The user in which the certificate removal event occurred. Only available for devices running Android 11 and above.
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<i32>,
+}
+
+/// An X.509v3 certificate failed to validate, currently this validation is performed on the Wi-FI access point and failure may be due to a mismatch upon server certificate validation. However it may in the future include other validation events of an X.509v3 certificate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertValidationFailureEvent {
+    /// The reason why certification validation failed.
+    #[serde(default, rename = "failureReason")]
+    pub failure_reason: ::core::option::Option<String>,
+}
+
+/// A TCP connect event was initiated through the standard network stack.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectEvent {
+    /// The destination IP address of the connect call.
+    #[serde(default, rename = "destinationIpAddress")]
+    pub destination_ip_address: ::core::option::Option<String>,
+    /// The destination port of the connect call.
+    #[serde(default, rename = "destinationPort")]
+    pub destination_port: ::core::option::Option<i32>,
+    /// The package name of the UID that performed the connect call.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Validates whether Android’s built-in cryptographic library (BoringSSL) is valid. Should always succeed on device boot, if it fails, the device should be considered untrusted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CryptoSelfTestCompletedEvent {
+    /// Whether the test succeeded.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// A DNS lookup event was initiated through the standard network stack.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsEvent {
+    /// The hostname that was looked up.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// The (possibly truncated) list of the IP addresses returned for DNS lookup (max 10 IPv4 or IPv6 addresses).
+    #[serde(default, rename = "ipAddresses")]
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The package name of the UID that performed the DNS lookup.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The number of IP addresses returned from the DNS lookup event. May be higher than the amount of ip_addresses if there were too many addresses to log.
+    #[serde(default, rename = "totalIpAddressesReturned")]
+    pub total_ip_addresses_returned: ::core::option::Option<String>,
+}
+
+/// A file was downloaded from the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePulledEvent {
+    /// The path of the file being pulled.
+    #[serde(default, rename = "filePath")]
+    pub file_path: ::core::option::Option<String>,
+}
+
+/// A file was uploaded onto the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePushedEvent {
+    /// The path of the file being pushed.
+    #[serde(default, rename = "filePath")]
+    pub file_path: ::core::option::Option<String>,
+}
+
+/// A cryptographic key including user installed, admin installed and system maintained private key is removed from the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyDestructionEvent {
+    /// UID of the application which owns the key.
+    #[serde(default, rename = "applicationUid")]
+    pub application_uid: ::core::option::Option<i32>,
+    /// Alias of the key.
+    #[serde(default, rename = "keyAlias")]
+    pub key_alias: ::core::option::Option<String>,
+    /// Whether the operation was successful.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// A cryptographic key including user installed, admin installed and system maintained private key is installed on the device either by the user or management.This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyGeneratedEvent {
+    /// UID of the application which generated the key.
+    #[serde(default, rename = "applicationUid")]
+    pub application_uid: ::core::option::Option<i32>,
+    /// Alias of the key.
+    #[serde(default, rename = "keyAlias")]
+    pub key_alias: ::core::option::Option<String>,
+    /// Whether the operation was successful.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// A cryptographic key including user installed, admin installed and system maintained private key is imported on the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyImportEvent {
+    /// UID of the application which imported the key
+    #[serde(default, rename = "applicationUid")]
+    pub application_uid: ::core::option::Option<i32>,
+    /// Alias of the key.
+    #[serde(default, rename = "keyAlias")]
+    pub key_alias: ::core::option::Option<String>,
+    /// Whether the operation was successful.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// A cryptographic key including user installed, admin installed and system maintained private key is determined to be corrupted due to storage corruption, hardware failure or some OS issue. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyIntegrityViolationEvent {
+    /// UID of the application which owns the key
+    #[serde(default, rename = "applicationUid")]
+    pub application_uid: ::core::option::Option<i32>,
+    /// Alias of the key.
+    #[serde(default, rename = "keyAlias")]
+    pub key_alias: ::core::option::Option<String>,
+}
+
+/// An attempt was made to unlock the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyguardDismissAuthAttemptEvent {
+    /// Whether a strong form of authentication (password, PIN, or pattern) was used to unlock device.
+    #[serde(default, rename = "strongAuthMethodUsed")]
+    pub strong_auth_method_used: ::core::option::Option<bool>,
+    /// Whether the unlock attempt was successful.
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// A lost mode event containing the device location and battery level as a percentage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LostModeLocationEvent {
+    /// The battery level as a number between 0 and 100 inclusive
+    #[serde(default, rename = "batteryLevel")]
+    pub battery_level: ::core::option::Option<i32>,
+    /// The device location
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+}
+
+/// Removable media was mounted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaMountEvent {
+    /// Mount point.
+    #[serde(default, rename = "mountPoint")]
+    pub mount_point: ::core::option::Option<String>,
+    /// Volume label. Redacted to empty string on organization-owned managed profile devices.
+    #[serde(default, rename = "volumeLabel")]
+    pub volume_label: ::core::option::Option<String>,
+}
+
+/// Removable media was unmounted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaUnmountEvent {
+    /// Mount point.
+    #[serde(default, rename = "mountPoint")]
+    pub mount_point: ::core::option::Option<String>,
+    /// Volume label. Redacted to empty string on organization-owned managed profile devices.
+    #[serde(default, rename = "volumeLabel")]
+    pub volume_label: ::core::option::Option<String>,
+}
+
+/// Device was started.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OsStartupEvent {
+    /// Verified Boot state. // TODO: enum values: ["VERIFIED_BOOT_STATE_UNSPECIFIED", "GREEN", "YELLOW", "ORANGE"]
+    #[serde(default, rename = "verifiedBootState")]
+    pub verified_boot_state: ::core::option::Option<String>,
+    /// dm-verity mode. // TODO: enum values: ["DM_VERITY_MODE_UNSPECIFIED", "ENFORCING", "IO_ERROR", "DISABLED"]
+    #[serde(default, rename = "verityMode")]
+    pub verity_mode: ::core::option::Option<String>,
 }
 
 /// The device or profile has been remotely locked via the LOCK command.
@@ -2463,77 +1513,342 @@ pub struct RemoteLockEvent {
     pub target_user_id: ::core::option::Option<i32>,
 }
 
-/// Parameters associated with the REMOVE_ESIM command to remove an eSIM profile from the device.
+/// A lost mode event indicating the user has attempted to stop lost mode.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoveEsimParams {
-    /// Required. ICC ID of the eSIM profile to be deleted.
-    #[serde(default, rename = "iccId")]
-    pub icc_id: ::core::option::Option<String>,
-}
-
-/// Request to remove ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemovePolicyApplicationsRequest {
-    /// Required. Package names to be removed. Entries that are not found are ignored. There must be at least one entry in package_names.
-    #[serde(default, rename = "packageNames")]
-    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response to a request to remove ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemovePolicyApplicationsResponse {
-    /// The updated policy after ApplicationPolicy objects have been removed.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-}
-
-/// Parameters associated with the REQUEST_DEVICE_INFO command to get device related information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestDeviceInfoParams {
-    /// Required. Type of device information to be requested. // TODO: enum values: ["DEVICE_INFO_UNSPECIFIED", "EID"]
-    #[serde(default, rename = "deviceInfo")]
-    pub device_info: ::core::option::Option<String>,
-}
-
-/// Status of the REQUEST_DEVICE_INFO command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestDeviceInfoStatus {
-    /// Information related to the EIDs of the device.
-    #[serde(default, rename = "eidInfo")]
-    pub eid_info: ::core::option::Option<EidInfo>,
-    /// Output only. Status of a REQUEST_DEVICE_INFO command. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCEEDED", "PENDING_USER_ACTION", "USER_DECLINED", "UNSUPPORTED"]
+pub struct StopLostModeUserAttemptEvent {
+    /// The status of the attempt to stop lost mode. // TODO: enum values: ["STATUS_UNSPECIFIED", "ATTEMPT_SUCCEEDED", "ATTEMPT_FAILED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
 }
 
-/// Role an app can have.
+/// Details of the eSIM added or removed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Role {
-    /// Required. The type of the role an app can have. // TODO: enum values: ["ROLE_TYPE_UNSPECIFIED", "COMPANION_APP", "KIOSK", "MOBILE_THREAT_DEFENSE_ENDPOINT_DETECTION_RESPONSE", "SYSTEM_HEALTH_MONITORING"]
-    #[serde(default, rename = "roleType")]
-    pub role_type: ::core::option::Option<String>,
+pub struct EsimInfo {
+    /// Output only. ICC ID of the eSIM.
+    #[serde(default, rename = "iccId")]
+    pub icc_id: ::core::option::Option<String>,
 }
 
-/// Controls for the screen brightness settings.
+/// Internal error details if present for the ADD_ESIM or REMOVE_ESIM command.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenBrightnessSettings {
-    /// Optional. The screen brightness between 1 and 255 where 1 is the lowest and 255 is the highest brightness. A value of 0 (default) means no screen brightness set. Any other value is rejected. screenBrightnessMode must be either BRIGHTNESS_AUTOMATIC or BRIGHTNESS_FIXED to set this. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
-    #[serde(default, rename = "screenBrightness")]
-    pub screen_brightness: ::core::option::Option<i32>,
-    /// Optional. Controls the screen brightness mode. // TODO: enum values: ["SCREEN_BRIGHTNESS_MODE_UNSPECIFIED", "BRIGHTNESS_USER_CHOICE", "BRIGHTNESS_AUTOMATIC", "BRIGHTNESS_FIXED"]
-    #[serde(default, rename = "screenBrightnessMode")]
-    pub screen_brightness_mode: ::core::option::Option<String>,
+pub struct InternalErrorDetails {
+    /// Output only. Integer representation of the error code as specified here (https://developer.android.com/reference/android/telephony/euicc/EuiccManager#EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE). See also, OPERATION_SMDX_SUBJECT_REASON_CODE. See error_code_detail for more details.
+    #[serde(default, rename = "errorCode")]
+    pub error_code: ::core::option::Option<String>,
+    /// Output only. The error code detail corresponding to the error_code. // TODO: enum values: ["ERROR_CODE_DETAIL_UNSPECIFIED", "ERROR_TIME_OUT", "ERROR_EUICC_MISSING", "ERROR_UNSUPPORTED_VERSION", "ERROR_ADDRESS_MISSING", "ERROR_INVALID_CONFIRMATION_CODE", "ERROR_CERTIFICATE_ERROR", "ERROR_NO_PROFILES_AVAILABLE", "ERROR_CONNECTION_ERROR", "ERROR_INVALID_RESPONSE", "ERROR_CARRIER_LOCKED", "ERROR_DISALLOWED_BY_PPR", "ERROR_INVALID_ACTIVATION_CODE", "ERROR_INCOMPATIBLE_CARRIER", "ERROR_OPERATION_BUSY", "ERROR_INSTALL_PROFILE", "ERROR_EUICC_INSUFFICIENT_MEMORY", "ERROR_INVALID_PORT", "ERROR_SIM_MISSING"]
+    #[serde(default, rename = "errorCodeDetail")]
+    pub error_code_detail: ::core::option::Option<String>,
+    /// Output only. Integer representation of the operation code as specified here (https://developer.android.com/reference/android/telephony/euicc/EuiccManager#EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE). See operation_code_detail for more details.
+    #[serde(default, rename = "operationCode")]
+    pub operation_code: ::core::option::Option<String>,
+    /// Output only. The operation code detail corresponding to the operation_code. // TODO: enum values: ["OPERATION_CODE_DETAIL_UNSPECIFIED", "OPERATION_SYSTEM", "OPERATION_SIM_SLOT", "OPERATION_EUICC_CARD", "OPERATION_SMDX", "OPERATION_SWITCH", "OPERATION_DOWNLOAD", "OPERATION_METADATA", "OPERATION_EUICC_GSMA", "OPERATION_APDU", "OPERATION_SMDX_SUBJECT_REASON_CODE", "OPERATION_HTTP"]
+    #[serde(default, rename = "operationCodeDetail")]
+    pub operation_code_detail: ::core::option::Option<String>,
 }
 
-/// Controls the screen timeout settings.
+/// Information related to the EIDs of the device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenTimeoutSettings {
-    /// Optional. Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
-    #[serde(default, rename = "screenTimeout")]
-    pub screen_timeout: ::core::option::Option<String>,
-    /// Optional. Controls whether the user is allowed to configure the screen timeout. // TODO: enum values: ["SCREEN_TIMEOUT_MODE_UNSPECIFIED", "SCREEN_TIMEOUT_USER_CHOICE", "SCREEN_TIMEOUT_ENFORCED"]
-    #[serde(default, rename = "screenTimeoutMode")]
-    pub screen_timeout_mode: ::core::option::Option<String>,
+pub struct EidInfo {
+    /// Output only. EID information for each eUICC chip.
+    #[serde(default)]
+    pub eids: ::core::option::Option<::std::vec::Vec<Eid>>,
+}
+
+/// Information reported about an installed app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationReport {
+    /// The source of the package. // TODO: enum values: ["APPLICATION_SOURCE_UNSPECIFIED", "SYSTEM_APP_FACTORY_VERSION", "SYSTEM_APP_UPDATED_VERSION", "INSTALLED_FROM_PLAY_STORE", "CUSTOM"]
+    #[serde(default, rename = "applicationSource")]
+    pub application_source: ::core::option::Option<String>,
+    /// The display name of the app.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The list of app events which have occurred in the last 30 hours.
+    #[serde(default)]
+    pub events: ::core::option::Option<::std::vec::Vec<ApplicationEvent>>,
+    /// The package name of the app that installed this app.
+    #[serde(default, rename = "installerPackageName")]
+    pub installer_package_name: ::core::option::Option<String>,
+    /// List of keyed app states reported by the app.
+    #[serde(default, rename = "keyedAppStates")]
+    pub keyed_app_states: ::core::option::Option<::std::vec::Vec<KeyedAppState>>,
+    /// Package name of the app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The SHA-256 hash of the app''s APK file, which can be used to verify the app hasn''t been modified. Each byte of the hash value is represented as a two-digit hexadecimal number.
+    #[serde(default, rename = "packageSha256Hash")]
+    pub package_sha256_hash: ::core::option::Option<String>,
+    /// The SHA-1 hash of each android.content.pm.Signature (https://developer.android.com/reference/android/content/pm/Signature.html) associated with the app package. Each byte of each hash value is represented as a two-digit hexadecimal number.
+    #[serde(default, rename = "signingKeyCertFingerprints")]
+    pub signing_key_cert_fingerprints: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Application state. // TODO: enum values: ["APPLICATION_STATE_UNSPECIFIED", "REMOVED", "INSTALLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Whether the app is user facing. // TODO: enum values: ["USER_FACING_TYPE_UNSPECIFIED", "NOT_USER_FACING", "USER_FACING"]
+    #[serde(default, rename = "userFacingType")]
+    pub user_facing_type: ::core::option::Option<String>,
+    /// The app version code, which can be used to determine whether one version is more recent than another.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+    /// The app version as displayed to the user.
+    #[serde(default, rename = "versionName")]
+    pub version_name: ::core::option::Option<String>,
+}
+
+/// Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device''s policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommonCriteriaModeInfo {
+    /// Whether Common Criteria Mode is enabled. // TODO: enum values: ["COMMON_CRITERIA_MODE_STATUS_UNKNOWN", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
+    #[serde(default, rename = "commonCriteriaModeStatus")]
+    pub common_criteria_mode_status: ::core::option::Option<String>,
+    /// Output only. The status of policy signature verification. // TODO: enum values: ["POLICY_SIGNATURE_VERIFICATION_STATUS_UNSPECIFIED", "POLICY_SIGNATURE_VERIFICATION_DISABLED", "POLICY_SIGNATURE_VERIFICATION_SUCCEEDED", "POLICY_SIGNATURE_VERIFICATION_NOT_SUPPORTED", "POLICY_SIGNATURE_VERIFICATION_FAILED"]
+    #[serde(default, rename = "policySignatureVerificationStatus")]
+    pub policy_signature_verification_status: ::core::option::Option<String>,
+}
+
+/// The default application information for a specific DefaultApplicationType.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultApplicationInfo {
+    /// Output only. Details on the default application setting attempts, in the same order as listed in defaultApplications.
+    #[serde(default, rename = "defaultApplicationSettingAttempts")]
+    pub default_application_setting_attempts:
+        ::core::option::Option<::std::vec::Vec<DefaultApplicationSettingAttempt>>,
+    /// Output only. The default application type. // TODO: enum values: ["DEFAULT_APPLICATION_TYPE_UNSPECIFIED", "DEFAULT_ASSISTANT", "DEFAULT_BROWSER", "DEFAULT_CALL_REDIRECTION", "DEFAULT_CALL_SCREENING", "DEFAULT_DIALER", "DEFAULT_HOME", "DEFAULT_SMS", "DEFAULT_WALLET"]
+    #[serde(default, rename = "defaultApplicationType")]
+    pub default_application_type: ::core::option::Option<String>,
+    /// Output only. The package name of the current default application.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Information about security related device settings on device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceSettings {
+    /// Whether ADB (https://developer.android.com/studio/command-line/adb.html) is enabled on the device.
+    #[serde(default, rename = "adbEnabled")]
+    pub adb_enabled: ::core::option::Option<bool>,
+    /// Whether developer mode is enabled on the device.
+    #[serde(default, rename = "developmentSettingsEnabled")]
+    pub development_settings_enabled: ::core::option::Option<bool>,
+    /// Encryption status from DevicePolicyManager. // TODO: enum values: ["ENCRYPTION_STATUS_UNSPECIFIED", "UNSUPPORTED", "INACTIVE", "ACTIVATING", "ACTIVE", "ACTIVE_DEFAULT_KEY", "ACTIVE_PER_USER"]
+    #[serde(default, rename = "encryptionStatus")]
+    pub encryption_status: ::core::option::Option<String>,
+    /// Whether the device is secured with PIN/password.
+    #[serde(default, rename = "isDeviceSecure")]
+    pub is_device_secure: ::core::option::Option<bool>,
+    /// Whether the storage encryption is enabled.
+    #[serde(default, rename = "isEncrypted")]
+    pub is_encrypted: ::core::option::Option<bool>,
+    /// Whether installing apps from unknown sources is enabled.
+    #[serde(default, rename = "unknownSourcesEnabled")]
+    pub unknown_sources_enabled: ::core::option::Option<bool>,
+    /// Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced on the device.
+    #[serde(default, rename = "verifyAppsEnabled")]
+    pub verify_apps_enabled: ::core::option::Option<bool>,
+}
+
+/// Device display information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Display {
+    /// Display density expressed as dots-per-inch.
+    #[serde(default)]
+    pub density: ::core::option::Option<i32>,
+    /// Unique display id.
+    #[serde(default, rename = "displayId")]
+    pub display_id: ::core::option::Option<i32>,
+    /// Display height in pixels.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// Name of the display.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Refresh rate of the display in frames per second.
+    #[serde(default, rename = "refreshRate")]
+    pub refresh_rate: ::core::option::Option<i32>,
+    /// State of the display. // TODO: enum values: ["DISPLAY_STATE_UNSPECIFIED", "OFF", "ON", "DOZE", "SUSPENDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Display width in pixels.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DpcMigrationInfo {
+    /// Output only. If this device was migrated from another DPC, the additionalData field of the migration token is populated here.
+    #[serde(default, rename = "additionalData")]
+    pub additional_data: ::core::option::Option<String>,
+    /// Output only. If this device was migrated from another DPC, this is its package name. Not populated otherwise.
+    #[serde(default, rename = "previousDpc")]
+    pub previous_dpc: ::core::option::Option<String>,
+}
+
+/// Information about device hardware. The fields related to temperature thresholds are only available if hardwareStatusEnabled is true in the device''s policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HardwareInfo {
+    /// Battery shutdown temperature thresholds in Celsius for each battery on the device.
+    #[serde(default, rename = "batteryShutdownTemperatures")]
+    pub battery_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Battery throttling temperature thresholds in Celsius for each battery on the device.
+    #[serde(default, rename = "batteryThrottlingTemperatures")]
+    pub battery_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Brand of the device. For example, Google.
+    #[serde(default)]
+    pub brand: ::core::option::Option<String>,
+    /// CPU shutdown temperature thresholds in Celsius for each CPU on the device.
+    #[serde(default, rename = "cpuShutdownTemperatures")]
+    pub cpu_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// CPU throttling temperature thresholds in Celsius for each CPU on the device.
+    #[serde(default, rename = "cpuThrottlingTemperatures")]
+    pub cpu_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Baseband version. For example, MDM9625_104662.22.05.34p.
+    #[serde(default, rename = "deviceBasebandVersion")]
+    pub device_baseband_version: ::core::option::Option<String>,
+    /// Output only. ID that uniquely identifies a personally-owned device in a particular organization. On the same physical device when enrolled with the same organization, this ID persists across setups and even factory resets. This ID is available on personally-owned devices with a work profile on devices running Android 12 and above.
+    #[serde(default, rename = "enterpriseSpecificId")]
+    pub enterprise_specific_id: ::core::option::Option<String>,
+    /// Output only. Information related to the eUICC chip.
+    #[serde(default, rename = "euiccChipInfo")]
+    pub euicc_chip_info: ::core::option::Option<::std::vec::Vec<EuiccChipInfo>>,
+    /// GPU shutdown temperature thresholds in Celsius for each GPU on the device.
+    #[serde(default, rename = "gpuShutdownTemperatures")]
+    pub gpu_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// GPU throttling temperature thresholds in Celsius for each GPU on the device.
+    #[serde(default, rename = "gpuThrottlingTemperatures")]
+    pub gpu_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Name of the hardware. For example, Angler.
+    #[serde(default)]
+    pub hardware: ::core::option::Option<String>,
+    /// Manufacturer. For example, Motorola.
+    #[serde(default)]
+    pub manufacturer: ::core::option::Option<String>,
+    /// The model of the device. For example, Asus Nexus 7.
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// The device serial number. However, for personally-owned devices running Android 12 and above, this is the same as the enterpriseSpecificId.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+    /// Device skin shutdown temperature thresholds in Celsius.
+    #[serde(default, rename = "skinShutdownTemperatures")]
+    pub skin_shutdown_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Device skin throttling temperature thresholds in Celsius.
+    #[serde(default, rename = "skinThrottlingTemperatures")]
+    pub skin_throttling_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+}
+
+/// Hardware status. Temperatures may be compared to the temperature thresholds available in hardwareInfo to determine hardware health.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HardwareStatus {
+    /// Current battery temperatures in Celsius for each battery on the device.
+    #[serde(default, rename = "batteryTemperatures")]
+    pub battery_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Current CPU temperatures in Celsius for each CPU on the device.
+    #[serde(default, rename = "cpuTemperatures")]
+    pub cpu_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// CPU usages in percentage for each core available on the device. Usage is 0 for each unplugged core. Empty array implies that CPU usage is not supported in the system.
+    #[serde(default, rename = "cpuUsages")]
+    pub cpu_usages: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// The time the measurements were taken.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Fan speeds in RPM for each fan on the device. Empty array means that there are no fans or fan speed is not supported on the system.
+    #[serde(default, rename = "fanSpeeds")]
+    pub fan_speeds: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Current GPU temperatures in Celsius for each GPU on the device.
+    #[serde(default, rename = "gpuTemperatures")]
+    pub gpu_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Current device skin temperatures in Celsius.
+    #[serde(default, rename = "skinTemperatures")]
+    pub skin_temperatures: ::core::option::Option<::std::vec::Vec<f32>>,
+}
+
+/// An event related to memory and storage measurements.To distinguish between new and old events, we recommend using the createTime field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryEvent {
+    /// The number of free bytes in the medium, or for EXTERNAL_STORAGE_DETECTED, the total capacity in bytes of the storage medium.
+    #[serde(default, rename = "byteCount")]
+    pub byte_count: ::core::option::Option<String>,
+    /// The creation time of the event.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Event type. // TODO: enum values: ["MEMORY_EVENT_TYPE_UNSPECIFIED", "RAM_MEASURED", "INTERNAL_STORAGE_MEASURED", "EXTERNAL_STORAGE_DETECTED", "EXTERNAL_STORAGE_REMOVED", "EXTERNAL_STORAGE_MEASURED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// Information about device memory and storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryInfo {
+    /// Total internal storage on device in bytes.
+    #[serde(default, rename = "totalInternalStorage")]
+    pub total_internal_storage: ::core::option::Option<String>,
+    /// Total RAM on device in bytes.
+    #[serde(default, rename = "totalRam")]
+    pub total_ram: ::core::option::Option<String>,
+}
+
+/// Device network info.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkInfo {
+    /// IMEI number of the GSM device. For example, A1000031212.
+    #[serde(default)]
+    pub imei: ::core::option::Option<String>,
+    /// MEID number of the CDMA device. For example, A00000292788E1.
+    #[serde(default)]
+    pub meid: ::core::option::Option<String>,
+    /// Alphabetic name of current registered operator. For example, Vodafone.
+    #[serde(default, rename = "networkOperatorName")]
+    pub network_operator_name: ::core::option::Option<String>,
+    /// Provides telephony information associated with each SIM card on the device. Only supported on fully managed devices starting from Android 6.
+    #[serde(default, rename = "telephonyInfos")]
+    pub telephony_infos: ::core::option::Option<::std::vec::Vec<TelephonyInfo>>,
+    /// Wi-Fi MAC address of the device. For example, 7c:11:11:11:11:11.
+    #[serde(default, rename = "wifiMacAddress")]
+    pub wifi_mac_address: ::core::option::Option<String>,
+}
+
+/// Provides detail about non-compliance with a policy setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NonComplianceDetail {
+    /// If the policy setting could not be applied, the current value of the setting on the device.
+    #[serde(default, rename = "currentValue")]
+    pub current_value: ::core::option::Option<serde_json::Value>,
+    /// For settings with nested fields, if a particular nested field is out of compliance, this specifies the full path to the offending field. The path is formatted in the same way the policy JSON field would be referenced in JavaScript, that is: 1) For object-typed fields, the field name is followed by a dot then by a subfield name. 2) For array-typed fields, the field name is followed by the array index enclosed in brackets. For example, to indicate a problem with the url field in the externalData field in the 3rd application, the path would be applications[2].externalData.url
+    #[serde(default, rename = "fieldPath")]
+    pub field_path: ::core::option::Option<String>,
+    /// If package_name is set and the non-compliance reason is APP_NOT_INSTALLED or APP_NOT_UPDATED, the detailed reason the app can''t be installed or updated. // TODO: enum values: ["INSTALLATION_FAILURE_REASON_UNSPECIFIED", "INSTALLATION_FAILURE_REASON_UNKNOWN", "IN_PROGRESS", "NOT_FOUND", "NOT_COMPATIBLE_WITH_DEVICE", "NOT_APPROVED", "PERMISSIONS_NOT_ACCEPTED", "NOT_AVAILABLE_IN_COUNTRY", "NO_LICENSES_REMAINING", "NOT_ENROLLED", "USER_INVALID", "NETWORK_ERROR_UNRELIABLE_CONNECTION", "INSUFFICIENT_STORAGE"]
+    #[serde(default, rename = "installationFailureReason")]
+    pub installation_failure_reason: ::core::option::Option<String>,
+    /// The reason the device is not in compliance with the setting. // TODO: enum values: ["NON_COMPLIANCE_REASON_UNSPECIFIED", "API_LEVEL", "MANAGEMENT_MODE", "USER_ACTION", "INVALID_VALUE", "APP_NOT_INSTALLED", "UNSUPPORTED", "APP_INSTALLED", "PENDING", "APP_INCOMPATIBLE", "APP_NOT_UPDATED", "DEVICE_INCOMPATIBLE", "APP_SIGNING_CERT_MISMATCH", "PROJECT_NOT_PERMITTED"]
+    #[serde(default, rename = "nonComplianceReason")]
+    pub non_compliance_reason: ::core::option::Option<String>,
+    /// The package name indicating which app is out of compliance, if applicable.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The name of the policy setting. This is the JSON field name of a top-level Policy field.
+    #[serde(default, rename = "settingName")]
+    pub setting_name: ::core::option::Option<String>,
+    /// Additional context for specific_non_compliance_reason.
+    #[serde(default, rename = "specificNonComplianceContext")]
+    pub specific_non_compliance_context: ::core::option::Option<SpecificNonComplianceContext>,
+    /// The policy-specific reason the device is not in compliance with the setting. // TODO: enum values: ["SPECIFIC_NON_COMPLIANCE_REASON_UNSPECIFIED", "PASSWORD_POLICIES_USER_CREDENTIALS_CONFIRMATION_REQUIRED", "PASSWORD_POLICIES_PASSWORD_EXPIRED", "PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT", "ONC_WIFI_INVALID_VALUE", "ONC_WIFI_API_LEVEL", "ONC_WIFI_INVALID_ENTERPRISE_CONFIG", "ONC_WIFI_USER_SHOULD_REMOVE_NETWORK", "ONC_WIFI_KEY_PAIR_ALIAS_NOT_CORRESPONDING_TO_EXISTING_KEY", "PERMISSIBLE_USAGE_RESTRICTION", "REQUIRED_ACCOUNT_NOT_IN_ENTERPRISE", "NEW_ACCOUNT_NOT_IN_ENTERPRISE", "DEFAULT_APPLICATION_SETTING_UNSUPPORTED_SCOPES", "DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE", "PRIVATE_DNS_HOST_NOT_SERVING"]
+    #[serde(default, rename = "specificNonComplianceReason")]
+    pub specific_non_compliance_reason: ::core::option::Option<String>,
+}
+
+/// A power management event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PowerManagementEvent {
+    /// For BATTERY_LEVEL_COLLECTED events, the battery level as a percentage.
+    #[serde(default, rename = "batteryLevel")]
+    pub battery_level: ::core::option::Option<f32>,
+    /// The creation time of the event.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Event type. // TODO: enum values: ["POWER_MANAGEMENT_EVENT_TYPE_UNSPECIFIED", "BATTERY_LEVEL_COLLECTED", "POWER_CONNECTED", "POWER_DISCONNECTED", "BATTERY_LOW", "BATTERY_OKAY", "BOOT_COMPLETED", "SHUTDOWN"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
 }
 
 /// The security posture of the device, as determined by the current device state and the policies applied.
@@ -2545,54 +1860,6 @@ pub struct SecurityPosture {
     /// Additional details regarding the security posture of the device.
     #[serde(default, rename = "postureDetails")]
     pub posture_details: ::core::option::Option<::std::vec::Vec<PostureDetail>>,
-}
-
-/// An action executed during setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetupAction {
-    /// Description of this action.
-    #[serde(default)]
-    pub description: ::core::option::Option<UserFacingMessage>,
-    /// An action to launch an app. The app will be launched with an intent containing an extra with key com.google.android.apps.work.clouddpc.EXTRA_LAUNCHED_AS_SETUP_ACTION set to the boolean value true to indicate that this is a setup action flow. If SetupAction references an app, the corresponding installType in the application policy must be set as REQUIRED_FOR_SETUP or said setup will fail.
-    #[serde(default, rename = "launchApp")]
-    pub launch_app: ::core::option::Option<LaunchAppAction>,
-    /// Title of this action.
-    #[serde(default)]
-    pub title: ::core::option::Option<UserFacingMessage>,
-}
-
-/// A resource containing sign in details for an enterprise. Use enterprises to manage SigninDetails for a given enterprise.For an enterprise, we can have any number of SigninDetails that is uniquely identified by combination of the following three fields (signin_url, allow_personal_usage, token_tag). One cannot create two SigninDetails with the same (signin_url, allow_personal_usage, token_tag). (token_tag is an optional field).Patch: The operation updates the current list of SigninDetails with the new list of SigninDetails. If the stored SigninDetail configuration is passed, it returns the same signin_enrollment_token and qr_code. If we pass multiple identical SigninDetail configurations that are not stored, it will store the first one amongst those SigninDetail configurations. if the configuration already exists we cannot request it more than once in a particular patch API call, otherwise it will give a duplicate key error and the whole operation will fail. If we remove certain SigninDetail configuration from the request then it will get removed from the storage. We can then request another signin_enrollment_token and qr_code for the same SigninDetail configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SigninDetail {
-    /// Controls whether personal usage is allowed on a device provisioned with this enrollment token.For company-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage requires the user provision the device as a fully managed device.For personally-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage will prevent the device from provisioning. Personal usage cannot be disabled on personally-owned device. // TODO: enum values: ["ALLOW_PERSONAL_USAGE_UNSPECIFIED", "PERSONAL_USAGE_ALLOWED", "PERSONAL_USAGE_DISALLOWED", "PERSONAL_USAGE_DISALLOWED_USERLESS"]
-    #[serde(default, rename = "allowPersonalUsage")]
-    pub allow_personal_usage: ::core::option::Option<String>,
-    /// Optional. Whether the sign-in URL should be used by default for the enterprise. The SigninDetail with defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT is used for Google account enrollment method. Only one of an enterprise''s signinDetails can have defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT. If an Enterprise has at least one signinDetails and none of them have defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT then the first one from the list is selected and has set defaultStatus to SIGNIN_DETAIL_IS_DEFAULT. If no signinDetails specified for the Enterprise then the Google Account device enrollment will fail. // TODO: enum values: ["SIGNIN_DETAIL_DEFAULT_STATUS_UNSPECIFIED", "SIGNIN_DETAIL_IS_DEFAULT", "SIGNIN_DETAIL_IS_NOT_DEFAULT"]
-    #[serde(default, rename = "defaultStatus")]
-    pub default_status: ::core::option::Option<String>,
-    /// A JSON string whose UTF-8 representation can be used to generate a QR code to enroll a device with this enrollment token. To enroll a device using NFC, the NFC record must contain a serialized java.util.Properties representation of the properties in the JSON. This is a read-only field generated by the server.
-    #[serde(default, rename = "qrCode")]
-    pub qr_code: ::core::option::Option<String>,
-    /// An enterprise wide enrollment token used to trigger custom sign-in flow. This is a read-only field generated by the server.
-    #[serde(default, rename = "signinEnrollmentToken")]
-    pub signin_enrollment_token: ::core::option::Option<String>,
-    /// Sign-in URL for authentication when device is provisioned with a sign-in enrollment token. The sign-in endpoint should finish authentication flow with a URL in the form of https://enterprise.google.com/android/enroll?et= for a successful login, or https://enterprise.google.com/android/enroll/invalid for a failed login.
-    #[serde(default, rename = "signinUrl")]
-    pub signin_url: ::core::option::Option<String>,
-    /// An EMM-specified metadata to distinguish between instances of SigninDetail.
-    #[serde(default, rename = "tokenTag")]
-    pub token_tag: ::core::option::Option<String>,
-}
-
-/// An enterprise signup URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignupUrl {
-    /// The name of the resource. Use this value in the signupUrl field when calling enterprises.create to complete the enterprise signup flow.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A URL where an enterprise admin can register their enterprise. The page can''t be rendered in an iframe.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Information about device software.
@@ -2633,46 +1900,91 @@ pub struct SoftwareInfo {
     pub system_update_info: ::core::option::Option<SystemUpdateInfo>,
 }
 
-/// Additional context for SpecificNonComplianceReason.
+/// A user belonging to an enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpecificNonComplianceContext {
-    /// Output only. Additional context for non-compliance related to default application settings. See DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE.
-    #[serde(default, rename = "defaultApplicationContext")]
-    pub default_application_context: ::core::option::Option<DefaultApplicationContext>,
-    /// Additional context for non-compliance related to Wi-Fi configuration. See ONC_WIFI_INVALID_VALUE and ONC_WIFI_API_LEVEL
-    #[serde(default, rename = "oncWifiContext")]
-    pub onc_wifi_context: ::core::option::Option<OncWifiContext>,
-    /// Additional context for non-compliance related to password policies. See PASSWORD_POLICIES_PASSWORD_EXPIRED and PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT.
-    #[serde(default, rename = "passwordPoliciesContext")]
-    pub password_policies_context: ::core::option::Option<PasswordPoliciesContext>,
+pub struct User {
+    /// A unique identifier you create for this user, such as user342 or asset#44418. This field must be set when the user is created and can''t be updated. This field must not contain personally identifiable information (PII). This identifier must be 1024 characters or less; otherwise, the update policy request will fail.
+    #[serde(default, rename = "accountIdentifier")]
+    pub account_identifier: ::core::option::Option<String>,
 }
 
-/// Parameters associated with the START_LOST_MODE command to put the device into lost mode. At least one of the parameters, not including the organization name, must be provided in order for the device to be put into lost mode.
+/// Contact details for managed Google Play enterprises.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartLostModeParams {
-    /// The email address displayed to the user when the device is in lost mode.
-    #[serde(default, rename = "lostEmailAddress")]
-    pub lost_email_address: ::core::option::Option<String>,
-    /// The message displayed to the user when the device is in lost mode.
-    #[serde(default, rename = "lostMessage")]
-    pub lost_message: ::core::option::Option<UserFacingMessage>,
-    /// The organization name displayed to the user when the device is in lost mode.
-    #[serde(default, rename = "lostOrganization")]
-    pub lost_organization: ::core::option::Option<UserFacingMessage>,
-    /// The phone number that will be called when the device is in lost mode and the call owner button is tapped.
-    #[serde(default, rename = "lostPhoneNumber")]
-    pub lost_phone_number: ::core::option::Option<UserFacingMessage>,
-    /// The street address displayed to the user when the device is in lost mode.
-    #[serde(default, rename = "lostStreetAddress")]
-    pub lost_street_address: ::core::option::Option<UserFacingMessage>,
+pub struct ContactInfo {
+    /// Email address for a point of contact, which will be used to send important announcements related to managed Google Play.
+    #[serde(default, rename = "contactEmail")]
+    pub contact_email: ::core::option::Option<String>,
+    /// The email of the data protection officer. The email is validated but not verified.
+    #[serde(default, rename = "dataProtectionOfficerEmail")]
+    pub data_protection_officer_email: ::core::option::Option<String>,
+    /// The name of the data protection officer.
+    #[serde(default, rename = "dataProtectionOfficerName")]
+    pub data_protection_officer_name: ::core::option::Option<String>,
+    /// The phone number of the data protection officer The phone number is validated but not verified.
+    #[serde(default, rename = "dataProtectionOfficerPhone")]
+    pub data_protection_officer_phone: ::core::option::Option<String>,
+    /// The email of the EU representative. The email is validated but not verified.
+    #[serde(default, rename = "euRepresentativeEmail")]
+    pub eu_representative_email: ::core::option::Option<String>,
+    /// The name of the EU representative.
+    #[serde(default, rename = "euRepresentativeName")]
+    pub eu_representative_name: ::core::option::Option<String>,
+    /// The phone number of the EU representative. The phone number is validated but not verified.
+    #[serde(default, rename = "euRepresentativePhone")]
+    pub eu_representative_phone: ::core::option::Option<String>,
 }
 
-/// Status of the START_LOST_MODE command to put the device into lost mode.
+/// Contains settings for Google-provided user authentication.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartLostModeStatus {
-    /// The status. See StartLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "RESET_PASSWORD_RECENTLY", "USER_EXIT_LOST_MODE_RECENTLY", "ALREADY_IN_LOST_MODE"]
+pub struct GoogleAuthenticationSettings {
+    /// Output only. Whether users need to be authenticated by Google during the enrollment process. IT admin can specify if Google authentication is enabled for the enterprise for knowledge worker devices. This value can be set only via the Google Admin Console. Google authentication can be used with signin_url In the case where Google authentication is required and a signin_url is specified, Google authentication will be launched before signin_url. This value is overridden by EnrollmentToken.googleAuthenticationOptions and SigninDetail.googleAuthenticationOptions, if they are set. // TODO: enum values: ["GOOGLE_AUTHENTICATION_REQUIRED_UNSPECIFIED", "NOT_REQUIRED", "REQUIRED"]
+    #[serde(default, rename = "googleAuthenticationRequired")]
+    pub google_authentication_required: ::core::option::Option<String>,
+}
+
+/// Data hosted at an external location. The data is to be downloaded by Android Device Policy and verified against the hash.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalData {
+    /// The base-64 encoded SHA-256 hash of the content hosted at url. If the content doesn''t match this hash, Android Device Policy won''t use the data.
+    #[serde(default, rename = "sha256Hash")]
+    pub sha256_hash: ::core::option::Option<String>,
+    /// The absolute URL to the data, which must use either the http or https scheme. Android Device Policy doesn''t provide any credentials in the GET request, so the URL must be publicly accessible. Including a long, random component in the URL may be used to prevent attackers from discovering the URL.
     #[serde(default)]
-    pub status: ::core::option::Option<String>,
+    pub url: ::core::option::Option<String>,
+}
+
+/// A resource containing sign in details for an enterprise. Use enterprises to manage SigninDetails for a given enterprise.For an enterprise, we can have any number of SigninDetails that is uniquely identified by combination of the following three fields (signin_url, allow_personal_usage, token_tag). One cannot create two SigninDetails with the same (signin_url, allow_personal_usage, token_tag). (token_tag is an optional field).Patch: The operation updates the current list of SigninDetails with the new list of SigninDetails. If the stored SigninDetail configuration is passed, it returns the same signin_enrollment_token and qr_code. If we pass multiple identical SigninDetail configurations that are not stored, it will store the first one amongst those SigninDetail configurations. if the configuration already exists we cannot request it more than once in a particular patch API call, otherwise it will give a duplicate key error and the whole operation will fail. If we remove certain SigninDetail configuration from the request then it will get removed from the storage. We can then request another signin_enrollment_token and qr_code for the same SigninDetail configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SigninDetail {
+    /// Controls whether personal usage is allowed on a device provisioned with this enrollment token.For company-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage requires the user provision the device as a fully managed device.For personally-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage will prevent the device from provisioning. Personal usage cannot be disabled on personally-owned device. // TODO: enum values: ["ALLOW_PERSONAL_USAGE_UNSPECIFIED", "PERSONAL_USAGE_ALLOWED", "PERSONAL_USAGE_DISALLOWED", "PERSONAL_USAGE_DISALLOWED_USERLESS"]
+    #[serde(default, rename = "allowPersonalUsage")]
+    pub allow_personal_usage: ::core::option::Option<String>,
+    /// Optional. Whether the sign-in URL should be used by default for the enterprise. The SigninDetail with defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT is used for Google account enrollment method. Only one of an enterprise''s signinDetails can have defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT. If an Enterprise has at least one signinDetails and none of them have defaultStatus set to SIGNIN_DETAIL_IS_DEFAULT then the first one from the list is selected and has set defaultStatus to SIGNIN_DETAIL_IS_DEFAULT. If no signinDetails specified for the Enterprise then the Google Account device enrollment will fail. // TODO: enum values: ["SIGNIN_DETAIL_DEFAULT_STATUS_UNSPECIFIED", "SIGNIN_DETAIL_IS_DEFAULT", "SIGNIN_DETAIL_IS_NOT_DEFAULT"]
+    #[serde(default, rename = "defaultStatus")]
+    pub default_status: ::core::option::Option<String>,
+    /// A JSON string whose UTF-8 representation can be used to generate a QR code to enroll a device with this enrollment token. To enroll a device using NFC, the NFC record must contain a serialized java.util.Properties representation of the properties in the JSON. This is a read-only field generated by the server.
+    #[serde(default, rename = "qrCode")]
+    pub qr_code: ::core::option::Option<String>,
+    /// An enterprise wide enrollment token used to trigger custom sign-in flow. This is a read-only field generated by the server.
+    #[serde(default, rename = "signinEnrollmentToken")]
+    pub signin_enrollment_token: ::core::option::Option<String>,
+    /// Sign-in URL for authentication when device is provisioned with a sign-in enrollment token. The sign-in endpoint should finish authentication flow with a URL in the form of https://enterprise.google.com/android/enroll?et= for a successful login, or https://enterprise.google.com/android/enroll/invalid for a failed login.
+    #[serde(default, rename = "signinUrl")]
+    pub signin_url: ::core::option::Option<String>,
+    /// An EMM-specified metadata to distinguish between instances of SigninDetail.
+    #[serde(default, rename = "tokenTag")]
+    pub token_tag: ::core::option::Option<String>,
+}
+
+/// A terms and conditions page to be accepted during provisioning.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TermsAndConditions {
+    /// A well-formatted HTML string. It will be parsed on the client with android.text.Html#fromHtml.
+    #[serde(default)]
+    pub content: ::core::option::Option<UserFacingMessage>,
+    /// A short header which appears above the HTML content.
+    #[serde(default)]
+    pub header: ::core::option::Option<UserFacingMessage>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
@@ -2687,6 +1999,434 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// An icon for a web app. Supported formats are: png, jpg and webp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebAppIcon {
+    /// The actual bytes of the image in a base64url encoded string (c.f. RFC4648, section 5 "Base 64 Encoding with URL and Filename Safe Alphabet"). - The image type can be png or jpg. - The image should ideally be square. - The image should ideally have a size of 512x512.
+    #[serde(default, rename = "imageData")]
+    pub image_data: ::core::option::Option<String>,
+}
+
+/// Advanced security settings. In most cases, setting these is not needed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvancedSecurityOverrides {
+    /// Controls Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC). Enabling Common Criteria Mode increases certain security components on a device, see CommonCriteriaMode for details.Warning: Common Criteria Mode enforces a strict security model typically only required for IT products used in national security systems and other highly sensitive organizations. Standard device use may be affected. Only enabled if required. If Common Criteria Mode is turned off after being enabled previously, all user-configured Wi-Fi networks may be lost and any enterprise-configured Wi-Fi networks that require user input may need to be reconfigured. // TODO: enum values: ["COMMON_CRITERIA_MODE_UNSPECIFIED", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
+    #[serde(default, rename = "commonCriteriaMode")]
+    pub common_criteria_mode: ::core::option::Option<String>,
+    /// Optional. Controls whether content protection, which scans for deceptive apps, is enabled. This is supported on Android 15 and above. // TODO: enum values: ["CONTENT_PROTECTION_POLICY_UNSPECIFIED", "CONTENT_PROTECTION_DISABLED", "CONTENT_PROTECTION_ENFORCED", "CONTENT_PROTECTION_USER_CHOICE"]
+    #[serde(default, rename = "contentProtectionPolicy")]
+    pub content_protection_policy: ::core::option::Option<String>,
+    /// Controls access to developer settings: developer options and safe boot. Replaces safeBootDisabled (deprecated) and debuggingFeaturesAllowed (deprecated). On personally-owned devices with a work profile, setting this policy will not disable safe boot. In this case, a NonComplianceDetail with MANAGEMENT_MODE is reported. // TODO: enum values: ["DEVELOPER_SETTINGS_UNSPECIFIED", "DEVELOPER_SETTINGS_DISABLED", "DEVELOPER_SETTINGS_ALLOWED"]
+    #[serde(default, rename = "developerSettings")]
+    pub developer_settings: ::core::option::Option<String>,
+    /// Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced. Replaces ensureVerifyAppsEnabled (deprecated). // TODO: enum values: ["GOOGLE_PLAY_PROTECT_VERIFY_APPS_UNSPECIFIED", "VERIFY_APPS_ENFORCED", "VERIFY_APPS_USER_CHOICE"]
+    #[serde(default, rename = "googlePlayProtectVerifyApps")]
+    pub google_play_protect_verify_apps: ::core::option::Option<String>,
+    /// Optional. Controls Memory Tagging Extension (MTE) (https://source.android.com/docs/security/test/memory-safety/arm-mte) on the device. The device needs to be rebooted to apply changes to the MTE policy. On Android 15 and above, a NonComplianceDetail with PENDING is reported if the policy change is pending a device reboot. // TODO: enum values: ["MTE_POLICY_UNSPECIFIED", "MTE_USER_CHOICE", "MTE_ENFORCED", "MTE_DISABLED"]
+    #[serde(default, rename = "mtePolicy")]
+    pub mte_policy: ::core::option::Option<String>,
+    /// Personal apps that can read work profile notifications using a NotificationListenerService (https://developer.android.com/reference/android/service/notification/NotificationListenerService). By default, no personal apps (aside from system apps) can read work notifications. Each value in the list must be a package name.
+    #[serde(default, rename = "personalAppsThatCanReadWorkNotifications")]
+    pub personal_apps_that_can_read_work_notifications:
+        ::core::option::Option<::std::vec::Vec<String>>,
+    /// The policy for untrusted apps (apps from unknown sources) enforced on the device. Replaces install_unknown_sources_allowed (deprecated). // TODO: enum values: ["UNTRUSTED_APPS_POLICY_UNSPECIFIED", "DISALLOW_INSTALL", "ALLOW_INSTALL_IN_PERSONAL_PROFILE_ONLY", "ALLOW_INSTALL_DEVICE_WIDE"]
+    #[serde(default, rename = "untrustedAppsPolicy")]
+    pub untrusted_apps_policy: ::core::option::Option<String>,
+}
+
+/// Configuration for an always-on VPN connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlwaysOnVpnPackage {
+    /// Disallows networking when the VPN is not connected.
+    #[serde(default, rename = "lockdownEnabled")]
+    pub lockdown_enabled: ::core::option::Option<bool>,
+    /// The package name of the VPN app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Policy for an individual app. Note: Application availability on a given device cannot be changed using this policy if installAppsDisabled is enabled. The maximum number of applications that you can specify per policy is 3,000.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationPolicy {
+    /// List of the app’s track IDs that a device belonging to the enterprise can access. If the list contains multiple track IDs, devices receive the latest version among all accessible tracks. If the list contains no track IDs, devices only have access to the app’s production track. More details about each track are available in AppTrackInfo.
+    #[serde(default, rename = "accessibleTrackIds")]
+    pub accessible_track_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies whether the app is allowed networking when the VPN is not connected and alwaysOnVpnPackage.lockdownEnabled is enabled. If set to VPN_LOCKDOWN_ENFORCED, the app is not allowed networking, and if set to VPN_LOCKDOWN_EXEMPTION, the app is allowed networking. Only supported on devices running Android 10 and above. If this is not supported by the device, the device will contain a NonComplianceDetail with non_compliance_reason set to API_LEVEL and a fieldPath. If this is not applicable to the app, the device will contain a NonComplianceDetail with non_compliance_reason set to UNSUPPORTED and a fieldPath. The fieldPath is set to applications[i].alwaysOnVpnLockdownExemption, where i is the index of the package in the applications policy. // TODO: enum values: ["ALWAYS_ON_VPN_LOCKDOWN_EXEMPTION_UNSPECIFIED", "VPN_LOCKDOWN_ENFORCED", "VPN_LOCKDOWN_EXEMPTION"]
+    #[serde(default, rename = "alwaysOnVpnLockdownExemption")]
+    pub always_on_vpn_lockdown_exemption: ::core::option::Option<String>,
+    /// Controls the auto-update mode for the app. // TODO: enum values: ["AUTO_UPDATE_MODE_UNSPECIFIED", "AUTO_UPDATE_DEFAULT", "AUTO_UPDATE_POSTPONED", "AUTO_UPDATE_HIGH_PRIORITY"]
+    #[serde(default, rename = "autoUpdateMode")]
+    pub auto_update_mode: ::core::option::Option<String>,
+    /// Controls whether the app can communicate with itself across a device’s work and personal profiles, subject to user consent. // TODO: enum values: ["CONNECTED_WORK_AND_PERSONAL_APP_UNSPECIFIED", "CONNECTED_WORK_AND_PERSONAL_APP_DISALLOWED", "CONNECTED_WORK_AND_PERSONAL_APP_ALLOWED"]
+    #[serde(default, rename = "connectedWorkAndPersonalApp")]
+    pub connected_work_and_personal_app: ::core::option::Option<String>,
+    /// Optional. Whether the app is allowed to act as a credential provider on Android 14 and above. // TODO: enum values: ["CREDENTIAL_PROVIDER_POLICY_UNSPECIFIED", "CREDENTIAL_PROVIDER_ALLOWED"]
+    #[serde(default, rename = "credentialProviderPolicy")]
+    pub credential_provider_policy: ::core::option::Option<String>,
+    /// Optional. Configuration for this custom app.install_type must be set to CUSTOM for this to be set.
+    #[serde(default, rename = "customAppConfig")]
+    pub custom_app_config: ::core::option::Option<CustomAppConfig>,
+    /// The default policy for all permissions requested by the app. If specified, this overrides the policy-level default_permission_policy which applies to all apps. It does not override the permission_grants which applies to all apps. // TODO: enum values: ["PERMISSION_POLICY_UNSPECIFIED", "PROMPT", "GRANT", "DENY"]
+    #[serde(default, rename = "defaultPermissionPolicy")]
+    pub default_permission_policy: ::core::option::Option<String>,
+    /// The scopes delegated to the app from Android Device Policy. These provide additional privileges for the applications they are applied to.
+    #[serde(default, rename = "delegatedScopes")]
+    pub delegated_scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether the app is disabled. When disabled, the app data is still preserved.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Configuration to enable this app as an extension app, with the capability of interacting with Android Device Policy offline.This field can be set for at most one app. If there is any app with COMPANION_APP role, this field cannot be set.The signing key certificate fingerprint of the app on the device must match one of the entries in ApplicationPolicy.signingKeyCerts or ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) or the signing key certificate fingerprints obtained from Play Store for the app to be able to communicate with Android Device Policy. If the app is not on Play Store and if ApplicationPolicy.signingKeyCerts and ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) are not set, a NonComplianceDetail with INVALID_VALUE is reported.
+    #[serde(default, rename = "extensionConfig")]
+    pub extension_config: ::core::option::Option<ExtensionConfig>,
+    /// Optional. The constraints for installing the app. You can specify a maximum of one InstallConstraint. Multiple constraints are rejected.
+    #[serde(default, rename = "installConstraint")]
+    pub install_constraint: ::core::option::Option<::std::vec::Vec<InstallConstraint>>,
+    /// Optional. Amongst apps with installType set to: FORCE_INSTALLED PREINSTALLEDthis controls the relative priority of installation. A value of 0 (default) means this app has no priority over other apps. For values between 1 and 10,000, a lower value means a higher priority. Values outside of the range 0 to 10,000 inclusive are rejected.
+    #[serde(default, rename = "installPriority")]
+    pub install_priority: ::core::option::Option<i32>,
+    /// The type of installation to perform. // TODO: enum values: ["INSTALL_TYPE_UNSPECIFIED", "PREINSTALLED", "FORCE_INSTALLED", "BLOCKED", "AVAILABLE", "REQUIRED_FOR_SETUP", "KIOSK", "CUSTOM"]
+    #[serde(default, rename = "installType")]
+    pub install_type: ::core::option::Option<String>,
+    /// Whether the app is allowed to lock itself in full-screen mode. DEPRECATED. Use InstallType KIOSK or kioskCustomLauncherEnabled to configure a dedicated device.
+    #[serde(default, rename = "lockTaskAllowed")]
+    pub lock_task_allowed: ::core::option::Option<bool>,
+    /// Managed configuration applied to the app. The format for the configuration is dictated by the ManagedProperty values supported by the app. Each field name in the managed configuration must match the key field of the ManagedProperty. The field value must be compatible with the type of the ManagedProperty: *type* *JSON value* BOOL true or false STRING string INTEGER number CHOICE string MULTISELECT array of strings HIDDEN string BUNDLE_ARRAY array of objects Note: string values cannot be longer than 65535 characters.
+    #[serde(default, rename = "managedConfiguration")]
+    pub managed_configuration: ::core::option::Option<serde_json::Value>,
+    /// The managed configurations template for the app, saved from the managed configurations iframe. This field is ignored if managed_configuration is set.
+    #[serde(default, rename = "managedConfigurationTemplate")]
+    pub managed_configuration_template: ::core::option::Option<ManagedConfigurationTemplate>,
+    /// The minimum version of the app that runs on the device. If set, the device attempts to update the app to at least this version code. If the app is not up-to-date, the device will contain a NonComplianceDetail with non_compliance_reason set to APP_NOT_UPDATED. The app must already be published to Google Play with a version code greater than or equal to this value. At most 20 apps may specify a minimum version code per policy.
+    #[serde(default, rename = "minimumVersionCode")]
+    pub minimum_version_code: ::core::option::Option<i32>,
+    /// The package name of the app. For example, com.google.android.youtube for the YouTube app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Explicit permission grants or denials for the app. These values override the default_permission_policy and permission_grants which apply to all apps.
+    #[serde(default, rename = "permissionGrants")]
+    pub permission_grants: ::core::option::Option<::std::vec::Vec<PermissionGrant>>,
+    /// Optional. ID of the preferential network the application uses. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED, the application will use the default network ID specified in defaultPreferentialNetworkId. See the documentation of defaultPreferentialNetworkId for the list of apps excluded from this defaulting. This applies on both work profiles and fully managed devices on Android 13 and above. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
+    #[serde(default, rename = "preferentialNetworkId")]
+    pub preferential_network_id: ::core::option::Option<String>,
+    /// Optional. Roles the app has.Apps having certain roles can be exempted from power and background execution restrictions, suspension and hibernation on Android 14 and above. The user control can also be disallowed for apps with certain roles on Android 11 and above. Refer to the documentation of each RoleType for more details.The app is notified about the roles that are set for it if the app has a notification receiver service with . The app is notified whenever its roles are updated or after the app is installed when it has nonempty list of roles. The app can use this notification to bootstrap itself after the installation. See Integrate with the AMAPI SDK (https://developers.google.com/android/management/sdk-integration) and Manage app roles (https://developers.google.com/android/management/app-roles) guides for more details on the requirements for the service.For the exemptions to be applied and the app to be notified about the roles, the signing key certificate fingerprint of the app on the device must match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts. Otherwise, a NonComplianceDetail with APP_SIGNING_CERT_MISMATCH is reported.There must not be duplicate roles with the same roleType. Multiple apps cannot hold a role with the same roleType. A role with type ROLE_TYPE_UNSPECIFIED is not allowed.
+    #[serde(default)]
+    pub roles: ::core::option::Option<::std::vec::Vec<Role>>,
+    /// Optional. Signing key certificates of the app.This field is required in the following cases: The app has installType set to CUSTOM (i.e. a custom app). The app has roles set to a nonempty list and the app does not exist on the Play Store. The app has extensionConfig set (i.e. an extension app) but ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) is not set and the app does not exist on the Play Store.If this field is not set for a custom app, the policy is rejected. If it is not set when required for a non-custom app, a NonComplianceDetail with INVALID_VALUE is reported.For other cases, this field is optional and the signing key certificates obtained from Play Store are used.See following policy settings to see how this field is used: choosePrivateKeyRules ApplicationPolicy.InstallType.CUSTOM ApplicationPolicy.extensionConfig ApplicationPolicy.roles
+    #[serde(default, rename = "signingKeyCerts")]
+    pub signing_key_certs: ::core::option::Option<::std::vec::Vec<ApplicationSigningKeyCert>>,
+    /// Optional. Specifies whether user control is permitted for the app. User control includes user actions like force-stopping and clearing app data. Certain types of apps have special treatment, see USER_CONTROL_SETTINGS_UNSPECIFIED and USER_CONTROL_ALLOWED for more details. // TODO: enum values: ["USER_CONTROL_SETTINGS_UNSPECIFIED", "USER_CONTROL_ALLOWED", "USER_CONTROL_DISALLOWED"]
+    #[serde(default, rename = "userControlSettings")]
+    pub user_control_settings: ::core::option::Option<String>,
+    /// Specifies whether the app installed in the work profile is allowed to add widgets to the home screen. // TODO: enum values: ["WORK_PROFILE_WIDGETS_UNSPECIFIED", "WORK_PROFILE_WIDGETS_ALLOWED", "WORK_PROFILE_WIDGETS_DISALLOWED"]
+    #[serde(default, rename = "workProfileWidgets")]
+    pub work_profile_widgets: ::core::option::Option<String>,
+}
+
+/// Controls apps'' access to private keys. The rule determines which private key, if any, Android Device Policy grants to the specified app. Access is granted either when the app calls KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) (or any overloads) to request a private key alias for a given URL, or for rules that are not URL-specific (that is, if urlPattern is not set, or set to the empty string or .*) on Android 11 and above, directly so that the app can call KeyChain.getPrivateKey (https://developer.android.com/reference/android/security/KeyChain#getPrivateKey%28android.content.Context,%20java.lang.String%29), without first having to call KeyChain.choosePrivateKeyAlias.When an app calls KeyChain.choosePrivateKeyAlias if more than one choosePrivateKeyRules matches, the last matching rule defines which key alias to return.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChoosePrivateKeyRule {
+    /// The package names to which this rule applies. The signing key certificate fingerprint of the app is verified against the signing key certificate fingerprints provided by Play Store and ApplicationPolicy.signingKeyCerts . If no package names are specified, then the alias is provided to all apps that call KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) or any overloads (but not without calling KeyChain.choosePrivateKeyAlias, even on Android 11 and above). Any app with the same Android UID as a package specified here will have access when they call KeyChain.choosePrivateKeyAlias.
+    #[serde(default, rename = "packageNames")]
+    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The alias of the private key to be used.
+    #[serde(default, rename = "privateKeyAlias")]
+    pub private_key_alias: ::core::option::Option<String>,
+    /// The URL pattern to match against the URL of the request. If not set or empty, it matches all URLs. This uses the regular expression syntax of java.util.regex.Pattern.
+    #[serde(default, rename = "urlPattern")]
+    pub url_pattern: ::core::option::Option<String>,
+}
+
+/// A rule declaring which mitigating actions to take when a device is not compliant with its policy. For every rule, there is always an implicit mitigating action to set policy_compliant to false for the Device resource, and display a message on the device indicating that the device is not compliant with its policy. Other mitigating actions may optionally be taken as well, depending on the field values in the rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplianceRule {
+    /// A condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement.
+    #[serde(default, rename = "apiLevelCondition")]
+    pub api_level_condition: ::core::option::Option<ApiLevelCondition>,
+    /// If set to true, the rule includes a mitigating action to disable apps so that the device is effectively disabled, but app data is preserved. If the device is running an app in locked task mode, the app will be closed and a UI showing the reason for non-compliance will be displayed.
+    #[serde(default, rename = "disableApps")]
+    pub disable_apps: ::core::option::Option<bool>,
+    /// A condition which is satisfied if there exists any matching NonComplianceDetail for the device.
+    #[serde(default, rename = "nonComplianceDetailCondition")]
+    pub non_compliance_detail_condition: ::core::option::Option<NonComplianceDetailCondition>,
+    /// If set, the rule includes a mitigating action to disable apps specified in the list, but app data is preserved.
+    #[serde(default, rename = "packageNamesToDisable")]
+    pub package_names_to_disable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Controls the data from the work profile that can be accessed from the personal profile and vice versa. A NonComplianceDetail with MANAGEMENT_MODE is reported if the device does not have a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CrossProfilePolicies {
+    /// Optional. Controls whether personal profile apps can invoke app functions exposed by apps in the work profile. // TODO: enum values: ["CROSS_PROFILE_APP_FUNCTIONS_UNSPECIFIED", "CROSS_PROFILE_APP_FUNCTIONS_DISALLOWED", "CROSS_PROFILE_APP_FUNCTIONS_ALLOWED"]
+    #[serde(default, rename = "crossProfileAppFunctions")]
+    pub cross_profile_app_functions: ::core::option::Option<String>,
+    /// Whether text copied from one profile (personal or work) can be pasted in the other profile. // TODO: enum values: ["CROSS_PROFILE_COPY_PASTE_UNSPECIFIED", "COPY_FROM_WORK_TO_PERSONAL_DISALLOWED", "CROSS_PROFILE_COPY_PASTE_ALLOWED"]
+    #[serde(default, rename = "crossProfileCopyPaste")]
+    pub cross_profile_copy_paste: ::core::option::Option<String>,
+    /// Whether data from one profile (personal or work) can be shared with apps in the other profile. Specifically controls simple data sharing via intents. Management of other cross-profile communication channels, such as contact search, copy/paste, or connected work & personal apps, are configured separately. // TODO: enum values: ["CROSS_PROFILE_DATA_SHARING_UNSPECIFIED", "CROSS_PROFILE_DATA_SHARING_DISALLOWED", "DATA_SHARING_FROM_WORK_TO_PERSONAL_DISALLOWED", "CROSS_PROFILE_DATA_SHARING_ALLOWED"]
+    #[serde(default, rename = "crossProfileDataSharing")]
+    pub cross_profile_data_sharing: ::core::option::Option<String>,
+    /// List of apps which are excluded from the ShowWorkContactsInPersonalProfile setting. For this to be set, ShowWorkContactsInPersonalProfile must be set to one of the following values: SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED. In this case, these exemptions act as a blocklist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED. In this case, these exemptions act as an allowlist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM. In this case, these exemptions act as an allowlist, in addition to the already allowlisted system apps.Supported on Android 14 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 14.
+    #[serde(default, rename = "exemptionsToShowWorkContactsInPersonalProfile")]
+    pub exemptions_to_show_work_contacts_in_personal_profile:
+        ::core::option::Option<PackageNameList>,
+    /// Whether personal apps can access contacts stored in the work profile.See also exemptions_to_show_work_contacts_in_personal_profile. // TODO: enum values: ["SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_UNSPECIFIED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED", "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM"]
+    #[serde(default, rename = "showWorkContactsInPersonalProfile")]
+    pub show_work_contacts_in_personal_profile: ::core::option::Option<String>,
+    /// Specifies the default behaviour for work profile widgets. If the policy does not specify work_profile_widgets for a specific application, it will behave according to the value specified here. // TODO: enum values: ["WORK_PROFILE_WIDGETS_DEFAULT_UNSPECIFIED", "WORK_PROFILE_WIDGETS_DEFAULT_ALLOWED", "WORK_PROFILE_WIDGETS_DEFAULT_DISALLOWED"]
+    #[serde(default, rename = "workProfileWidgetsDefault")]
+    pub work_profile_widgets_default: ::core::option::Option<String>,
+}
+
+/// The default application setting for a DefaultApplicationType.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultApplicationSetting {
+    /// Required. The scopes to which the policy should be applied. This list must not be empty or contain duplicates.A NonComplianceDetail with MANAGEMENT_MODE reason and DEFAULT_APPLICATION_SETTING_UNSUPPORTED_SCOPES specific reason is reported if none of the specified scopes can be applied to the management mode (e.g. a fully managed device receives a policy with only SCOPE_PERSONAL_PROFILE in the list).
+    #[serde(default, rename = "defaultApplicationScopes")]
+    pub default_application_scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The app type to set the default application. // TODO: enum values: ["DEFAULT_APPLICATION_TYPE_UNSPECIFIED", "DEFAULT_ASSISTANT", "DEFAULT_BROWSER", "DEFAULT_CALL_REDIRECTION", "DEFAULT_CALL_SCREENING", "DEFAULT_DIALER", "DEFAULT_HOME", "DEFAULT_SMS", "DEFAULT_WALLET"]
+    #[serde(default, rename = "defaultApplicationType")]
+    pub default_application_type: ::core::option::Option<String>,
+    /// Required. The list of applications that can be set as the default app for a given type. This list must not be empty or contain duplicates. The first app in the list that is installed and qualified for the defaultApplicationType (e.g. SMS app for DEFAULT_SMS) is set as the default app. The signing key certificate fingerprint of the app on the device must also match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts in order to be set as the default.If the defaultApplicationScopes contains SCOPE_FULLY_MANAGED or SCOPE_WORK_PROFILE, the app must have an entry in applications with installType set to a value other than BLOCKED.A NonComplianceDetail with APP_NOT_INSTALLED reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if none of the apps in the list are installed. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if at least one app is installed but the policy fails to apply due to other reasons (e.g. the app is not of the right type).When applying to SCOPE_PERSONAL_PROFILE on a company-owned device with a work profile, only pre-installed system apps can be set as the default. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if the policy fails to apply to the personal profile.
+    #[serde(default, rename = "defaultApplications")]
+    pub default_applications: ::core::option::Option<::std::vec::Vec<DefaultApplication>>,
+}
+
+/// Covers controls for device connectivity such as Wi-Fi, USB data access, keyboard/mouse connections, and more.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceConnectivityManagement {
+    /// Optional. Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
+    #[serde(default, rename = "apnPolicy")]
+    pub apn_policy: ::core::option::Option<ApnPolicy>,
+    /// Optional. Controls whether Bluetooth sharing is allowed. // TODO: enum values: ["BLUETOOTH_SHARING_UNSPECIFIED", "BLUETOOTH_SHARING_ALLOWED", "BLUETOOTH_SHARING_DISALLOWED"]
+    #[serde(default, rename = "bluetoothSharing")]
+    pub bluetooth_sharing: ::core::option::Option<String>,
+    /// Controls Wi-Fi configuring privileges. Based on the option set, user will have either full or limited or no control in configuring Wi-Fi networks. // TODO: enum values: ["CONFIGURE_WIFI_UNSPECIFIED", "ALLOW_CONFIGURING_WIFI", "DISALLOW_ADD_WIFI_CONFIG", "DISALLOW_CONFIGURING_WIFI"]
+    #[serde(default, rename = "configureWifi")]
+    pub configure_wifi: ::core::option::Option<String>,
+    /// Optional. Preferential network service configuration. Setting this field will override preferentialNetworkService. This can be set on both work profiles and fully managed devices on Android 13 and above. See 5G network slicing (https://developers.google.com/android/management/5g-network-slicing) guide for more details.
+    #[serde(default, rename = "preferentialNetworkServiceSettings")]
+    pub preferential_network_service_settings:
+        ::core::option::Option<PreferentialNetworkServiceSettings>,
+    /// Optional. The global private DNS settings.
+    #[serde(default, rename = "privateDnsSettings")]
+    pub private_dns_settings: ::core::option::Option<PrivateDnsSettings>,
+    /// Controls tethering settings. Based on the value set, the user is partially or fully disallowed from using different forms of tethering. // TODO: enum values: ["TETHERING_SETTINGS_UNSPECIFIED", "ALLOW_ALL_TETHERING", "DISALLOW_WIFI_TETHERING", "DISALLOW_ALL_TETHERING"]
+    #[serde(default, rename = "tetheringSettings")]
+    pub tethering_settings: ::core::option::Option<String>,
+    /// Controls what files and/or data can be transferred via USB. Supported only on company-owned devices. // TODO: enum values: ["USB_DATA_ACCESS_UNSPECIFIED", "ALLOW_USB_DATA_TRANSFER", "DISALLOW_USB_FILE_TRANSFER", "DISALLOW_USB_DATA_TRANSFER"]
+    #[serde(default, rename = "usbDataAccess")]
+    pub usb_data_access: ::core::option::Option<String>,
+    /// Controls configuring and using Wi-Fi direct settings. Supported on company-owned devices running Android 13 and above. // TODO: enum values: ["WIFI_DIRECT_SETTINGS_UNSPECIFIED", "ALLOW_WIFI_DIRECT", "DISALLOW_WIFI_DIRECT"]
+    #[serde(default, rename = "wifiDirectSettings")]
+    pub wifi_direct_settings: ::core::option::Option<String>,
+    /// Optional. Wi-Fi roaming policy.
+    #[serde(default, rename = "wifiRoamingPolicy")]
+    pub wifi_roaming_policy: ::core::option::Option<WifiRoamingPolicy>,
+    /// Restrictions on which Wi-Fi SSIDs the device can connect to. Note that this does not affect which networks can be configured on the device. Supported on company-owned devices running Android 13 and above.
+    #[serde(default, rename = "wifiSsidPolicy")]
+    pub wifi_ssid_policy: ::core::option::Option<WifiSsidPolicy>,
+}
+
+/// Controls for device radio settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceRadioState {
+    /// Controls whether airplane mode can be toggled by the user or not. // TODO: enum values: ["AIRPLANE_MODE_STATE_UNSPECIFIED", "AIRPLANE_MODE_USER_CHOICE", "AIRPLANE_MODE_DISABLED"]
+    #[serde(default, rename = "airplaneModeState")]
+    pub airplane_mode_state: ::core::option::Option<String>,
+    /// Controls whether cellular 2G setting can be toggled by the user or not. // TODO: enum values: ["CELLULAR_TWO_G_STATE_UNSPECIFIED", "CELLULAR_TWO_G_USER_CHOICE", "CELLULAR_TWO_G_DISABLED"]
+    #[serde(default, rename = "cellularTwoGState")]
+    pub cellular_two_g_state: ::core::option::Option<String>,
+    /// The minimum required security level of Wi-Fi networks that the device can connect to. // TODO: enum values: ["MINIMUM_WIFI_SECURITY_LEVEL_UNSPECIFIED", "OPEN_NETWORK_SECURITY", "PERSONAL_NETWORK_SECURITY", "ENTERPRISE_NETWORK_SECURITY", "ENTERPRISE_BIT192_NETWORK_SECURITY"]
+    #[serde(default, rename = "minimumWifiSecurityLevel")]
+    pub minimum_wifi_security_level: ::core::option::Option<String>,
+    /// Controls the state of the ultra wideband setting and whether the user can toggle it on or off. // TODO: enum values: ["ULTRA_WIDEBAND_STATE_UNSPECIFIED", "ULTRA_WIDEBAND_USER_CHOICE", "ULTRA_WIDEBAND_DISABLED"]
+    #[serde(default, rename = "ultraWidebandState")]
+    pub ultra_wideband_state: ::core::option::Option<String>,
+    /// Optional. Controls whether the user is allowed to add eSIM profiles. // TODO: enum values: ["USER_INITIATED_ADD_ESIM_SETTINGS_UNSPECIFIED", "USER_INITIATED_ADD_ESIM_ALLOWED", "USER_INITIATED_ADD_ESIM_DISALLOWED"]
+    #[serde(default, rename = "userInitiatedAddEsimSettings")]
+    pub user_initiated_add_esim_settings: ::core::option::Option<String>,
+    /// Controls current state of Wi-Fi and if user can change its state. // TODO: enum values: ["WIFI_STATE_UNSPECIFIED", "WIFI_STATE_USER_CHOICE", "WIFI_ENABLED", "WIFI_DISABLED"]
+    #[serde(default, rename = "wifiState")]
+    pub wifi_state: ::core::option::Option<String>,
+}
+
+/// Controls for the display settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisplaySettings {
+    /// Optional. Controls the screen brightness settings.
+    #[serde(default, rename = "screenBrightnessSettings")]
+    pub screen_brightness_settings: ::core::option::Option<ScreenBrightnessSettings>,
+    /// Optional. Controls the screen timeout settings.
+    #[serde(default, rename = "screenTimeoutSettings")]
+    pub screen_timeout_settings: ::core::option::Option<ScreenTimeoutSettings>,
+}
+
+/// Settings controlling the behavior of a device in kiosk mode. To enable kiosk mode, set kioskCustomLauncherEnabled to true or specify an app in the policy with installType KIOSK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KioskCustomization {
+    /// Specifies whether the Settings app is allowed in kiosk mode. // TODO: enum values: ["DEVICE_SETTINGS_UNSPECIFIED", "SETTINGS_ACCESS_ALLOWED", "SETTINGS_ACCESS_BLOCKED"]
+    #[serde(default, rename = "deviceSettings")]
+    pub device_settings: ::core::option::Option<String>,
+    /// Sets the behavior of a device in kiosk mode when a user presses and holds (long-presses) the Power button. // TODO: enum values: ["POWER_BUTTON_ACTIONS_UNSPECIFIED", "POWER_BUTTON_AVAILABLE", "POWER_BUTTON_BLOCKED"]
+    #[serde(default, rename = "powerButtonActions")]
+    pub power_button_actions: ::core::option::Option<String>,
+    /// Specifies whether system info and notifications are disabled in kiosk mode. // TODO: enum values: ["STATUS_BAR_UNSPECIFIED", "NOTIFICATIONS_AND_SYSTEM_INFO_ENABLED", "NOTIFICATIONS_AND_SYSTEM_INFO_DISABLED", "SYSTEM_INFO_ONLY"]
+    #[serde(default, rename = "statusBar")]
+    pub status_bar: ::core::option::Option<String>,
+    /// Specifies whether system error dialogs for crashed or unresponsive apps are blocked in kiosk mode. When blocked, the system will force-stop the app as if the user chooses the "close app" option on the UI. // TODO: enum values: ["SYSTEM_ERROR_WARNINGS_UNSPECIFIED", "ERROR_AND_WARNINGS_ENABLED", "ERROR_AND_WARNINGS_MUTED"]
+    #[serde(default, rename = "systemErrorWarnings")]
+    pub system_error_warnings: ::core::option::Option<String>,
+    /// Specifies which navigation features are enabled (e.g. Home, Overview buttons) in kiosk mode. // TODO: enum values: ["SYSTEM_NAVIGATION_UNSPECIFIED", "NAVIGATION_ENABLED", "NAVIGATION_DISABLED", "HOME_BUTTON_ONLY"]
+    #[serde(default, rename = "systemNavigation")]
+    pub system_navigation: ::core::option::Option<String>,
+}
+
+/// This feature is not generally available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OncCertificateProvider {
+    /// This feature is not generally available.
+    #[serde(default, rename = "certificateReferences")]
+    pub certificate_references: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This feature is not generally available.
+    #[serde(default, rename = "contentProviderEndpoint")]
+    pub content_provider_endpoint: ::core::option::Option<ContentProviderEndpoint>,
+}
+
+/// Requirements for the password used to unlock a device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PasswordRequirements {
+    /// Number of incorrect device-unlock passwords that can be entered before a device is wiped. A value of 0 means there is no restriction.
+    #[serde(default, rename = "maximumFailedPasswordsForWipe")]
+    pub maximum_failed_passwords_for_wipe: ::core::option::Option<i32>,
+    /// Password expiration timeout.
+    #[serde(default, rename = "passwordExpirationTimeout")]
+    pub password_expiration_timeout: ::core::option::Option<String>,
+    /// The length of the password history. After setting this field, the user won''t be able to enter a new password that is the same as any password in the history. A value of 0 means there is no restriction.
+    #[serde(default, rename = "passwordHistoryLength")]
+    pub password_history_length: ::core::option::Option<i32>,
+    /// The minimum allowed password length. A value of 0 means there is no restriction. Only enforced when password_quality is NUMERIC, NUMERIC_COMPLEX, ALPHABETIC, ALPHANUMERIC, or COMPLEX.
+    #[serde(default, rename = "passwordMinimumLength")]
+    pub password_minimum_length: ::core::option::Option<i32>,
+    /// Minimum number of letters required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumLetters")]
+    pub password_minimum_letters: ::core::option::Option<i32>,
+    /// Minimum number of lower case letters required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumLowerCase")]
+    pub password_minimum_lower_case: ::core::option::Option<i32>,
+    /// Minimum number of non-letter characters (numerical digits or symbols) required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumNonLetter")]
+    pub password_minimum_non_letter: ::core::option::Option<i32>,
+    /// Minimum number of numerical digits required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumNumeric")]
+    pub password_minimum_numeric: ::core::option::Option<i32>,
+    /// Minimum number of symbols required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumSymbols")]
+    pub password_minimum_symbols: ::core::option::Option<i32>,
+    /// Minimum number of upper case letters required in the password. Only enforced when password_quality is COMPLEX.
+    #[serde(default, rename = "passwordMinimumUpperCase")]
+    pub password_minimum_upper_case: ::core::option::Option<i32>,
+    /// The required password quality. // TODO: enum values: ["PASSWORD_QUALITY_UNSPECIFIED", "BIOMETRIC_WEAK", "SOMETHING", "NUMERIC", "NUMERIC_COMPLEX", "ALPHABETIC", "ALPHANUMERIC", "COMPLEX", "COMPLEXITY_LOW", "COMPLEXITY_MEDIUM", "COMPLEXITY_HIGH"]
+    #[serde(default, rename = "passwordQuality")]
+    pub password_quality: ::core::option::Option<String>,
+    /// The scope that the password requirement applies to. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_DEVICE", "SCOPE_PROFILE"]
+    #[serde(default, rename = "passwordScope")]
+    pub password_scope: ::core::option::Option<String>,
+    /// The length of time after a device or work profile is unlocked using a strong form of authentication (password, PIN, pattern) that it can be unlocked using any other authentication method (e.g. fingerprint, trust agents, face). After the specified time period elapses, only strong forms of authentication can be used to unlock the device or work profile. // TODO: enum values: ["REQUIRE_PASSWORD_UNLOCK_UNSPECIFIED", "USE_DEFAULT_DEVICE_TIMEOUT", "REQUIRE_EVERY_DAY"]
+    #[serde(default, rename = "requirePasswordUnlock")]
+    pub require_password_unlock: ::core::option::Option<String>,
+    /// Controls whether a unified lock is allowed for the device and the work profile, on devices running Android 9 and above with a work profile. This can be set only if password_scope is set to SCOPE_PROFILE, the policy will be rejected otherwise. If user has not set a separate work lock and this field is set to REQUIRE_SEPARATE_WORK_LOCK, a NonComplianceDetail is reported with nonComplianceReason set to USER_ACTION. // TODO: enum values: ["UNIFIED_LOCK_SETTINGS_UNSPECIFIED", "ALLOW_UNIFIED_WORK_AND_PERSONAL_LOCK", "REQUIRE_SEPARATE_WORK_LOCK"]
+    #[serde(default, rename = "unifiedLockSettings")]
+    pub unified_lock_settings: ::core::option::Option<String>,
+}
+
+/// A default activity for handling intents that match a particular intent filter. Note: To set up a kiosk, use InstallType to KIOSK rather than use persistent preferred activities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersistentPreferredActivity {
+    /// The intent actions to match in the filter. If any actions are included in the filter, then an intent''s action must be one of those values for it to match. If no actions are included, the intent action is ignored.
+    #[serde(default)]
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The intent categories to match in the filter. An intent includes the categories that it requires, all of which must be included in the filter in order to match. In other words, adding a category to the filter has no impact on matching unless that category is specified in the intent.
+    #[serde(default)]
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The activity that should be the default intent handler. This should be an Android component name, e.g. com.android.enterprise.app/.MainActivity. Alternatively, the value may be the package name of an app, which causes Android Device Policy to choose an appropriate activity from the app to handle the intent.
+    #[serde(default, rename = "receiverActivity")]
+    pub receiver_activity: ::core::option::Option<String>,
+}
+
+/// Policies controlling personal usage on a company-owned device with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalUsagePolicies {
+    /// Account types that can''t be managed by the user.
+    #[serde(default, rename = "accountTypesWithManagementDisabled")]
+    pub account_types_with_management_disabled: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Whether bluetooth sharing is allowed. // TODO: enum values: ["BLUETOOTH_SHARING_UNSPECIFIED", "BLUETOOTH_SHARING_ALLOWED", "BLUETOOTH_SHARING_DISALLOWED"]
+    #[serde(default, rename = "bluetoothSharing")]
+    pub bluetooth_sharing: ::core::option::Option<String>,
+    /// If true, the camera is disabled on the personal profile.
+    #[serde(default, rename = "cameraDisabled")]
+    pub camera_disabled: ::core::option::Option<bool>,
+    /// Controls how long the work profile can stay off. The minimum duration must be at least 3 days. Other details are as follows: - If the duration is set to 0, the feature is turned off. - If the duration is set to a value smaller than the minimum duration, the feature returns an error. *Note:* If you want to avoid personal profiles being suspended during long periods of off-time, you can temporarily set a large value for this parameter.
+    #[serde(default, rename = "maxDaysWithWorkOff")]
+    pub max_days_with_work_off: ::core::option::Option<i32>,
+    /// Policy applied to applications in the personal profile.
+    #[serde(default, rename = "personalApplications")]
+    pub personal_applications: ::core::option::Option<::std::vec::Vec<PersonalApplicationPolicy>>,
+    /// Used together with personalApplications to control how apps in the personal profile are allowed or blocked. // TODO: enum values: ["PLAY_STORE_MODE_UNSPECIFIED", "BLACKLIST", "BLOCKLIST", "ALLOWLIST"]
+    #[serde(default, rename = "personalPlayStoreMode")]
+    pub personal_play_store_mode: ::core::option::Option<String>,
+    /// Optional. Controls whether a private space is allowed on the device. // TODO: enum values: ["PRIVATE_SPACE_POLICY_UNSPECIFIED", "PRIVATE_SPACE_ALLOWED", "PRIVATE_SPACE_DISALLOWED"]
+    #[serde(default, rename = "privateSpacePolicy")]
+    pub private_space_policy: ::core::option::Option<String>,
+    /// If true, screen capture is disabled for all users. This also blocks Circle to Search (https://support.google.com/android/answer/14508957).
+    #[serde(default, rename = "screenCaptureDisabled")]
+    pub screen_capture_disabled: ::core::option::Option<bool>,
+}
+
+/// A rule that defines the actions to take if a device or work profile is not compliant with the policy specified in settingName. In the case of multiple matching or multiple triggered enforcement rules, a merge will occur with the most severe action being taken. However, all triggered rules are still kept track of: this includes initial trigger time and all associated non-compliance details. In the situation where the most severe enforcement rule is satisfied, the next most appropriate action is applied.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PolicyEnforcementRule {
+    /// An action to block access to apps and data on a company owned device or in a work profile. This action also triggers a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
+    #[serde(default, rename = "blockAction")]
+    pub block_action: ::core::option::Option<BlockAction>,
+    /// The top-level policy to enforce. For example, applications or passwordPolicies.
+    #[serde(default, rename = "settingName")]
+    pub setting_name: ::core::option::Option<String>,
+    /// An action to reset a company owned device or delete a work profile. Note: blockAction must also be specified.
+    #[serde(default, rename = "wipeAction")]
+    pub wipe_action: ::core::option::Option<WipeAction>,
+}
+
+/// Configuration info for an HTTP proxy. For a direct proxy, set the host, port, and excluded_hosts fields. For a PAC script proxy, set the pac_uri field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProxyInfo {
+    /// For a direct proxy, the hosts for which the proxy is bypassed. The host names may contain wildcards such as *.example.com.
+    #[serde(default, rename = "excludedHosts")]
+    pub excluded_hosts: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The host of the direct proxy.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// The URI of the PAC script used to configure the proxy.
+    #[serde(default, rename = "pacUri")]
+    pub pac_uri: ::core::option::Option<String>,
+    /// The port of the direct proxy.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+}
+
+/// An action executed during setup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetupAction {
+    /// Description of this action.
+    #[serde(default)]
+    pub description: ::core::option::Option<UserFacingMessage>,
+    /// An action to launch an app. The app will be launched with an intent containing an extra with key com.google.android.apps.work.clouddpc.EXTRA_LAUNCHED_AS_SETUP_ACTION set to the boolean value true to indicate that this is a setup action flow. If SetupAction references an app, the corresponding installType in the application policy must be set as REQUIRED_FOR_SETUP or said setup will fail.
+    #[serde(default, rename = "launchApp")]
+    pub launch_app: ::core::option::Option<LaunchAppAction>,
+    /// Title of this action.
+    #[serde(default)]
+    pub title: ::core::option::Option<UserFacingMessage>,
 }
 
 /// Settings controlling the behavior of status reports.
@@ -2730,22 +2470,6 @@ pub struct StatusReportingSettings {
     pub system_properties_enabled: ::core::option::Option<bool>,
 }
 
-/// Status of the STOP_LOST_MODE command to take the device out of lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopLostModeStatus {
-    /// The status. See StopLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "NOT_IN_LOST_MODE"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// A lost mode event indicating the user has attempted to stop lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopLostModeUserAttemptEvent {
-    /// The status of the attempt to stop lost mode. // TODO: enum values: ["STATUS_UNSPECIFIED", "ATTEMPT_SUCCEEDED", "ATTEMPT_FAILED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
 /// Configuration for managing system updatesNote: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded but require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemUpdate {
@@ -2763,15 +2487,124 @@ pub struct SystemUpdate {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Information about a potential pending system update.
+/// Controls types of device activity logs collected from the device and reported via Pub/Sub notification (https://developers.google.com/android/management/notifications).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemUpdateInfo {
-    /// The time when the update was first available. A zero value indicates that this field is not set. This field is set only if an update is available (that is, updateStatus is neither UPDATE_STATUS_UNKNOWN nor UP_TO_DATE).
-    #[serde(default, rename = "updateReceivedTime")]
-    pub update_received_time: ::core::option::Option<String>,
-    /// The status of an update: whether an update exists and what type it is. // TODO: enum values: ["UPDATE_STATUS_UNKNOWN", "UP_TO_DATE", "UNKNOWN_UPDATE_AVAILABLE", "SECURITY_UPDATE_AVAILABLE", "OS_UPDATE_AVAILABLE"]
-    #[serde(default, rename = "updateStatus")]
-    pub update_status: ::core::option::Option<String>,
+pub struct UsageLog {
+    /// Specifies which log types are enabled. Note that users will receive on-device messaging when usage logging is enabled.
+    #[serde(default, rename = "enabledLogTypes")]
+    pub enabled_log_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies which of the enabled log types can be uploaded over mobile data. By default logs are queued for upload when the device connects to WiFi.
+    #[serde(default, rename = "uploadOnCellularAllowed")]
+    pub upload_on_cellular_allowed: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Controls the work account setup configuration, such as details of whether a Google authenticated account is required.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkAccountSetupConfig {
+    /// Optional. The authentication type of the user on the device. // TODO: enum values: ["AUTHENTICATION_TYPE_UNSPECIFIED", "AUTHENTICATION_TYPE_NOT_ENFORCED", "GOOGLE_AUTHENTICATED"]
+    #[serde(default, rename = "authenticationType")]
+    pub authentication_type: ::core::option::Option<String>,
+    /// Optional. The specific google work account email address to be added. This field is only relevant if authenticationType is GOOGLE_AUTHENTICATED. This must be an enterprise account and not a consumer account. Once set and a Google authenticated account is added to the device, changing this field will have no effect, and thus recommended to be set only once.
+    #[serde(default, rename = "requiredAccountEmail")]
+    pub required_account_email: ::core::option::Option<String>,
+}
+
+/// Information about a process. It contains process name, start time, app Uid, app Pid, seinfo tag, hash of the base APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppProcessInfo {
+    /// SHA-256 hash of the base APK, in hexadecimal format.
+    #[serde(default, rename = "apkSha256Hash")]
+    pub apk_sha256_hash: ::core::option::Option<String>,
+    /// Package names of all packages that are associated with the particular user ID. In most cases, this will be a single package name, the package that has been assigned that user ID. If multiple application share a UID then all packages sharing UID will be included.
+    #[serde(default, rename = "packageNames")]
+    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Process ID.
+    #[serde(default)]
+    pub pid: ::core::option::Option<i32>,
+    /// Process name.
+    #[serde(default, rename = "processName")]
+    pub process_name: ::core::option::Option<String>,
+    /// SELinux policy info.
+    #[serde(default)]
+    pub seinfo: ::core::option::Option<String>,
+    /// Process start time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// UID of the package.
+    #[serde(default)]
+    pub uid: ::core::option::Option<i32>,
+}
+
+/// The device location containing the latitude and longitude.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The latitude position of the location
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude position of the location
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
+/// EID information for each eUICC chip.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Eid {
+    /// Output only. The EID
+    #[serde(default)]
+    pub eid: ::core::option::Option<String>,
+}
+
+/// An app-related event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationEvent {
+    /// The creation time of the event.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// App event type. // TODO: enum values: ["APPLICATION_EVENT_TYPE_UNSPECIFIED", "INSTALLED", "CHANGED", "DATA_CLEARED", "REMOVED", "REPLACED", "RESTARTED", "PINNED", "UNPINNED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// Keyed app state reported by the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyedAppState {
+    /// The creation time of the app state on the device.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optionally, a machine-readable value to be read by the EMM. For example, setting values that the admin can choose to query against in the EMM console (e.g. “notify me if the battery_warning data &lt; 10”).
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// The key for the app state. Acts as a point of reference for what the app is providing state for. For example, when providing managed configuration feedback, this key could be the managed configuration key.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// The time the app state was most recently updated.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+    /// Optionally, a free-form message string to explain the app state. If the state was triggered by a particular value (e.g. a managed configuration value), it should be included in the message.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The severity of the app state. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFO", "ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Details on a default application setting attempt.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultApplicationSettingAttempt {
+    /// Output only. The outcome of setting the app as the default. // TODO: enum values: ["ATTEMPT_OUTCOME_UNSPECIFIED", "SUCCESS", "APP_NOT_INSTALLED", "APP_SIGNING_CERT_MISMATCH", "OTHER_FAILURE"]
+    #[serde(default, rename = "attemptOutcome")]
+    pub attempt_outcome: ::core::option::Option<String>,
+    /// Output only. The package name of the attempted application.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Information related to the eUICC chip.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EuiccChipInfo {
+    /// Output only. The Embedded Identity Document (EID) that identifies the eUICC chip for each eUICC chip on the device. This is available on company owned devices running Android 13 and above.
+    #[serde(default)]
+    pub eid: ::core::option::Option<String>,
 }
 
 /// Telephony information associated with a given SIM card on the device. This is supported for all SIM cards on fully managed devices on Android 6 and above. In addition, this is supported for admin-added eSIMs on all devices for Android 15 and above.
@@ -2794,145 +2627,322 @@ pub struct TelephonyInfo {
     pub phone_number: ::core::option::Option<String>,
 }
 
-/// A terms and conditions page to be accepted during provisioning.
+/// Additional context for SpecificNonComplianceReason.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TermsAndConditions {
-    /// A well-formatted HTML string. It will be parsed on the client with android.text.Html#fromHtml.
+pub struct SpecificNonComplianceContext {
+    /// Output only. Additional context for non-compliance related to default application settings. See DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE.
+    #[serde(default, rename = "defaultApplicationContext")]
+    pub default_application_context: ::core::option::Option<DefaultApplicationContext>,
+    /// Additional context for non-compliance related to Wi-Fi configuration. See ONC_WIFI_INVALID_VALUE and ONC_WIFI_API_LEVEL
+    #[serde(default, rename = "oncWifiContext")]
+    pub onc_wifi_context: ::core::option::Option<OncWifiContext>,
+    /// Additional context for non-compliance related to password policies. See PASSWORD_POLICIES_PASSWORD_EXPIRED and PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT.
+    #[serde(default, rename = "passwordPoliciesContext")]
+    pub password_policies_context: ::core::option::Option<PasswordPoliciesContext>,
+}
+
+/// Additional details regarding the security posture of the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostureDetail {
+    /// Corresponding admin-facing advice to mitigate this security risk and improve the security posture of the device.
     #[serde(default)]
-    pub content: ::core::option::Option<UserFacingMessage>,
-    /// A short header which appears above the HTML content.
+    pub advice: ::core::option::Option<::std::vec::Vec<UserFacingMessage>>,
+    /// A specific security risk that negatively affects the security posture of the device. // TODO: enum values: ["SECURITY_RISK_UNSPECIFIED", "UNKNOWN_OS", "COMPROMISED_OS", "HARDWARE_BACKED_EVALUATION_FAILED"]
+    #[serde(default, rename = "securityRisk")]
+    pub security_risk: ::core::option::Option<String>,
+}
+
+/// Information about a potential pending system update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemUpdateInfo {
+    /// The time when the update was first available. A zero value indicates that this field is not set. This field is set only if an update is available (that is, updateStatus is neither UPDATE_STATUS_UNKNOWN nor UP_TO_DATE).
+    #[serde(default, rename = "updateReceivedTime")]
+    pub update_received_time: ::core::option::Option<String>,
+    /// The status of an update: whether an update exists and what type it is. // TODO: enum values: ["UPDATE_STATUS_UNKNOWN", "UP_TO_DATE", "UNKNOWN_UPDATE_AVAILABLE", "SECURITY_UPDATE_AVAILABLE", "OS_UPDATE_AVAILABLE"]
+    #[serde(default, rename = "updateStatus")]
+    pub update_status: ::core::option::Option<String>,
+}
+
+/// Configuration for a custom app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomAppConfig {
+    /// Optional. User uninstall settings of the custom app. // TODO: enum values: ["USER_UNINSTALL_SETTINGS_UNSPECIFIED", "DISALLOW_UNINSTALL_BY_USER", "ALLOW_UNINSTALL_BY_USER"]
+    #[serde(default, rename = "userUninstallSettings")]
+    pub user_uninstall_settings: ::core::option::Option<String>,
+}
+
+/// Configuration to enable an app as an extension app, with the capability of interacting with Android Device Policy offline. For Android versions 11 and above, extension apps are exempt from battery restrictions so will not be placed into the restricted App Standby Bucket (https://developer.android.com/topic/performance/appstandby#restricted-bucket). Extensions apps are also protected against users clearing their data or force-closing the application, although admins can continue to use the clear app data command on extension apps if needed for Android 11 and above.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionConfig {
+    /// Fully qualified class name of the receiver service class for Android Device Policy to notify the extension app of any local command status updates. The service must be exported in the extension app''s AndroidManifest.xml and extend NotificationReceiverService (https://developers.google.com/android/management/reference/amapi/com/google/android/managementapi/notification/NotificationReceiverService) (see Integrate with the AMAPI SDK (https://developers.google.com/android/management/sdk-integration) guide for more details).
+    #[serde(default, rename = "notificationReceiver")]
+    pub notification_receiver: ::core::option::Option<String>,
+    /// Hex-encoded SHA-256 hashes of the signing key certificates of the extension app. Only hexadecimal string representations of 64 characters are valid.The signing key certificate fingerprints are always obtained from the Play Store and this field is used to provide additional signing key certificate fingerprints. However, if the application is not available on the Play Store, this field needs to be set. A NonComplianceDetail with INVALID_VALUE is reported if this field is not set when the application is not available on the Play Store.The signing key certificate fingerprint of the extension app on the device must match one of the signing key certificate fingerprints obtained from the Play Store or the ones provided in this field for the app to be able to communicate with Android Device Policy.In production use cases, it is recommended to leave this empty.
+    #[serde(default, rename = "signingKeyFingerprintsSha256")]
+    pub signing_key_fingerprints_sha256: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Amongst apps with InstallType set to: FORCE_INSTALLED PREINSTALLEDthis defines a set of restrictions for the app installation. At least one of the fields must be set. When multiple fields are set, then all the constraints need to be satisfied for the app to be installed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallConstraint {
+    /// Optional. Charging constraint. // TODO: enum values: ["CHARGING_CONSTRAINT_UNSPECIFIED", "CHARGING_NOT_REQUIRED", "INSTALL_ONLY_WHEN_CHARGING"]
+    #[serde(default, rename = "chargingConstraint")]
+    pub charging_constraint: ::core::option::Option<String>,
+    /// Optional. Device idle constraint. // TODO: enum values: ["DEVICE_IDLE_CONSTRAINT_UNSPECIFIED", "DEVICE_IDLE_NOT_REQUIRED", "INSTALL_ONLY_WHEN_DEVICE_IDLE"]
+    #[serde(default, rename = "deviceIdleConstraint")]
+    pub device_idle_constraint: ::core::option::Option<String>,
+    /// Optional. Network type constraint. // TODO: enum values: ["NETWORK_TYPE_CONSTRAINT_UNSPECIFIED", "INSTALL_ON_ANY_NETWORK", "INSTALL_ONLY_ON_UNMETERED_NETWORK"]
+    #[serde(default, rename = "networkTypeConstraint")]
+    pub network_type_constraint: ::core::option::Option<String>,
+}
+
+/// The managed configurations template for the app, saved from the managed configurations iframe.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedConfigurationTemplate {
+    /// Optional, a map containing configuration variables defined for the configuration.
+    #[serde(default, rename = "configurationVariables")]
+    pub configuration_variables: ::core::option::Option<serde_json::Value>,
+    /// The ID of the managed configurations template.
+    #[serde(default, rename = "templateId")]
+    pub template_id: ::core::option::Option<String>,
+}
+
+/// Configuration for an Android permission and its grant state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionGrant {
+    /// The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.
     #[serde(default)]
-    pub header: ::core::option::Option<UserFacingMessage>,
+    pub permission: ::core::option::Option<String>,
+    /// The policy for granting the permission. // TODO: enum values: ["PERMISSION_POLICY_UNSPECIFIED", "PROMPT", "GRANT", "DENY"]
+    #[serde(default)]
+    pub policy: ::core::option::Option<String>,
 }
 
-/// Controls types of device activity logs collected from the device and reported via Pub/Sub notification (https://developers.google.com/android/management/notifications).
+/// Role an app can have.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsageLog {
-    /// Specifies which log types are enabled. Note that users will receive on-device messaging when usage logging is enabled.
-    #[serde(default, rename = "enabledLogTypes")]
-    pub enabled_log_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies which of the enabled log types can be uploaded over mobile data. By default logs are queued for upload when the device connects to WiFi.
-    #[serde(default, rename = "uploadOnCellularAllowed")]
-    pub upload_on_cellular_allowed: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct Role {
+    /// Required. The type of the role an app can have. // TODO: enum values: ["ROLE_TYPE_UNSPECIFIED", "COMPANION_APP", "KIOSK", "MOBILE_THREAT_DEFENSE_ENDPOINT_DETECTION_RESPONSE", "SYSTEM_HEALTH_MONITORING"]
+    #[serde(default, rename = "roleType")]
+    pub role_type: ::core::option::Option<String>,
 }
 
-/// An event logged on the device.
+/// The application signing key certificate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsageLogEvent {
-    /// A shell command was issued over ADB via “adb shell command”. Part of SECURITY_LOGS.
-    #[serde(default, rename = "adbShellCommandEvent")]
-    pub adb_shell_command_event: ::core::option::Option<AdbShellCommandEvent>,
-    /// An ADB interactive shell was opened via “adb shell”. Part of SECURITY_LOGS.
-    #[serde(default, rename = "adbShellInteractiveEvent")]
-    pub adb_shell_interactive_event: ::core::option::Option<serde_json::Value>,
-    /// An app process was started. Part of SECURITY_LOGS.
-    #[serde(default, rename = "appProcessStartEvent")]
-    pub app_process_start_event: ::core::option::Option<AppProcessStartEvent>,
-    /// An admin has enabled or disabled backup service. Part of SECURITY_LOGS.
-    #[serde(default, rename = "backupServiceToggledEvent")]
-    pub backup_service_toggled_event: ::core::option::Option<BackupServiceToggledEvent>,
-    /// A new root certificate was installed into the system''s trusted credential storage. Part of SECURITY_LOGS.
-    #[serde(default, rename = "certAuthorityInstalledEvent")]
-    pub cert_authority_installed_event: ::core::option::Option<CertAuthorityInstalledEvent>,
-    /// A root certificate was removed from the system''s trusted credential storage. Part of SECURITY_LOGS.
-    #[serde(default, rename = "certAuthorityRemovedEvent")]
-    pub cert_authority_removed_event: ::core::option::Option<CertAuthorityRemovedEvent>,
-    /// An X.509v3 certificate failed to validate, currently this validation is performed on the Wi-FI access point and failure may be due to a mismatch upon server certificate validation. However it may in the future include other validation events of an X.509v3 certificate. Part of SECURITY_LOGS.
-    #[serde(default, rename = "certValidationFailureEvent")]
-    pub cert_validation_failure_event: ::core::option::Option<CertValidationFailureEvent>,
-    /// A TCP connect event was initiated through the standard network stack. Part of NETWORK_ACTIVITY_LOGS.
-    #[serde(default, rename = "connectEvent")]
-    pub connect_event: ::core::option::Option<ConnectEvent>,
-    /// Validates whether Android’s built-in cryptographic library (BoringSSL) is valid. Should always succeed on device boot, if it fails, the device should be considered untrusted. Part of SECURITY_LOGS.
-    #[serde(default, rename = "cryptoSelfTestCompletedEvent")]
-    pub crypto_self_test_completed_event: ::core::option::Option<CryptoSelfTestCompletedEvent>,
-    /// A DNS lookup event was initiated through the standard network stack. Part of NETWORK_ACTIVITY_LOGS.
-    #[serde(default, rename = "dnsEvent")]
-    pub dns_event: ::core::option::Option<DnsEvent>,
-    /// Device has completed enrollment. Part of AMAPI_LOGS.
-    #[serde(default, rename = "enrollmentCompleteEvent")]
-    pub enrollment_complete_event: ::core::option::Option<serde_json::Value>,
-    /// Unique id of the event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Device timestamp when the event was logged.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The particular usage log event type that was reported on the device. Use this to determine which event field to access. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "ADB_SHELL_COMMAND", "ADB_SHELL_INTERACTIVE", "APP_PROCESS_START", "KEYGUARD_DISMISSED", "KEYGUARD_DISMISS_AUTH_ATTEMPT", "KEYGUARD_SECURED", "FILE_PULLED", "FILE_PUSHED", "CERT_AUTHORITY_INSTALLED", "CERT_AUTHORITY_REMOVED", "CERT_VALIDATION_FAILURE", "CRYPTO_SELF_TEST_COMPLETED", "KEY_DESTRUCTION", "KEY_GENERATED", "KEY_IMPORT", "KEY_INTEGRITY_VIOLATION", "LOGGING_STARTED", "LOGGING_STOPPED", "LOG_BUFFER_SIZE_CRITICAL", "MEDIA_MOUNT", "MEDIA_UNMOUNT", "OS_SHUTDOWN", "OS_STARTUP", "REMOTE_LOCK", "WIPE_FAILURE", "CONNECT", "DNS", "STOP_LOST_MODE_USER_ATTEMPT", "LOST_MODE_OUTGOING_PHONE_CALL", "LOST_MODE_LOCATION", "ENROLLMENT_COMPLETE", "BACKUP_SERVICE_TOGGLED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// A file was downloaded from the device. Part of SECURITY_LOGS.
-    #[serde(default, rename = "filePulledEvent")]
-    pub file_pulled_event: ::core::option::Option<FilePulledEvent>,
-    /// A file was uploaded onto the device. Part of SECURITY_LOGS.
-    #[serde(default, rename = "filePushedEvent")]
-    pub file_pushed_event: ::core::option::Option<FilePushedEvent>,
-    /// A cryptographic key including user installed, admin installed and system maintained private key is removed from the device either by the user or management. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyDestructionEvent")]
-    pub key_destruction_event: ::core::option::Option<KeyDestructionEvent>,
-    /// A cryptographic key including user installed, admin installed and system maintained private key is installed on the device either by the user or management. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyGeneratedEvent")]
-    pub key_generated_event: ::core::option::Option<KeyGeneratedEvent>,
-    /// A cryptographic key including user installed, admin installed and system maintained private key is imported on the device either by the user or management. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyImportEvent")]
-    pub key_import_event: ::core::option::Option<KeyImportEvent>,
-    /// A cryptographic key including user installed, admin installed and system maintained private key is determined to be corrupted due to storage corruption, hardware failure or some OS issue. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyIntegrityViolationEvent")]
-    pub key_integrity_violation_event: ::core::option::Option<KeyIntegrityViolationEvent>,
-    /// An attempt was made to unlock the device. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyguardDismissAuthAttemptEvent")]
-    pub keyguard_dismiss_auth_attempt_event:
-        ::core::option::Option<KeyguardDismissAuthAttemptEvent>,
-    /// The keyguard was dismissed. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyguardDismissedEvent")]
-    pub keyguard_dismissed_event: ::core::option::Option<serde_json::Value>,
-    /// The device was locked either by user or timeout. Part of SECURITY_LOGS.
-    #[serde(default, rename = "keyguardSecuredEvent")]
-    pub keyguard_secured_event: ::core::option::Option<serde_json::Value>,
-    /// The audit log buffer has reached 90% of its capacity, therefore older events may be dropped. Part of SECURITY_LOGS.
-    #[serde(default, rename = "logBufferSizeCriticalEvent")]
-    pub log_buffer_size_critical_event: ::core::option::Option<serde_json::Value>,
-    /// usageLog policy has been enabled. Part of SECURITY_LOGS.
-    #[serde(default, rename = "loggingStartedEvent")]
-    pub logging_started_event: ::core::option::Option<serde_json::Value>,
-    /// usageLog policy has been disabled. Part of SECURITY_LOGS.
-    #[serde(default, rename = "loggingStoppedEvent")]
-    pub logging_stopped_event: ::core::option::Option<serde_json::Value>,
-    /// A lost mode location update when a device in lost mode.
-    #[serde(default, rename = "lostModeLocationEvent")]
-    pub lost_mode_location_event: ::core::option::Option<LostModeLocationEvent>,
-    /// An outgoing phone call has been made when a device in lost mode.
-    #[serde(default, rename = "lostModeOutgoingPhoneCallEvent")]
-    pub lost_mode_outgoing_phone_call_event: ::core::option::Option<serde_json::Value>,
-    /// Removable media was mounted. Part of SECURITY_LOGS.
-    #[serde(default, rename = "mediaMountEvent")]
-    pub media_mount_event: ::core::option::Option<MediaMountEvent>,
-    /// Removable media was unmounted. Part of SECURITY_LOGS.
-    #[serde(default, rename = "mediaUnmountEvent")]
-    pub media_unmount_event: ::core::option::Option<MediaUnmountEvent>,
-    /// Device was shutdown. Part of SECURITY_LOGS.
-    #[serde(default, rename = "osShutdownEvent")]
-    pub os_shutdown_event: ::core::option::Option<serde_json::Value>,
-    /// Device was started. Part of SECURITY_LOGS.
-    #[serde(default, rename = "osStartupEvent")]
-    pub os_startup_event: ::core::option::Option<OsStartupEvent>,
-    /// The device or profile has been remotely locked via the LOCK command. Part of SECURITY_LOGS.
-    #[serde(default, rename = "remoteLockEvent")]
-    pub remote_lock_event: ::core::option::Option<RemoteLockEvent>,
-    /// An attempt to take a device out of lost mode.
-    #[serde(default, rename = "stopLostModeUserAttemptEvent")]
-    pub stop_lost_mode_user_attempt_event: ::core::option::Option<StopLostModeUserAttemptEvent>,
-    /// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Part of SECURITY_LOGS.
-    #[serde(default, rename = "wipeFailureEvent")]
-    pub wipe_failure_event: ::core::option::Option<serde_json::Value>,
+pub struct ApplicationSigningKeyCert {
+    /// Required. The SHA-256 hash value of the signing key certificate of the app. This must be a valid SHA-256 hash value, i.e. 32 bytes.
+    #[serde(default, rename = "signingKeyCertFingerprintSha256")]
+    pub signing_key_cert_fingerprint_sha256: ::core::option::Option<String>,
 }
 
-/// A user belonging to an enterprise.
+/// A compliance rule condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement. There can only be one rule with this type of condition per policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    /// A unique identifier you create for this user, such as user342 or asset#44418. This field must be set when the user is created and can''t be updated. This field must not contain personally identifiable information (PII). This identifier must be 1024 characters or less; otherwise, the update policy request will fail.
-    #[serde(default, rename = "accountIdentifier")]
-    pub account_identifier: ::core::option::Option<String>,
+pub struct ApiLevelCondition {
+    /// The minimum desired Android Framework API level. If the device doesn''t meet the minimum requirement, this condition is satisfied. Must be greater than zero.
+    #[serde(default, rename = "minApiLevel")]
+    pub min_api_level: ::core::option::Option<i32>,
+}
+
+/// A compliance rule condition which is satisfied if there exists any matching NonComplianceDetail for the device. A NonComplianceDetail matches a NonComplianceDetailCondition if all the fields which are set within the NonComplianceDetailCondition match the corresponding NonComplianceDetail fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NonComplianceDetailCondition {
+    /// The reason the device is not in compliance with the setting. If not set, then this condition matches any reason. // TODO: enum values: ["NON_COMPLIANCE_REASON_UNSPECIFIED", "API_LEVEL", "MANAGEMENT_MODE", "USER_ACTION", "INVALID_VALUE", "APP_NOT_INSTALLED", "UNSUPPORTED", "APP_INSTALLED", "PENDING", "APP_INCOMPATIBLE", "APP_NOT_UPDATED", "DEVICE_INCOMPATIBLE", "APP_SIGNING_CERT_MISMATCH", "PROJECT_NOT_PERMITTED"]
+    #[serde(default, rename = "nonComplianceReason")]
+    pub non_compliance_reason: ::core::option::Option<String>,
+    /// The package name of the app that''s out of compliance. If not set, then this condition matches any package name.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The name of the policy setting. This is the JSON field name of a top-level Policy field. If not set, then this condition matches any setting name.
+    #[serde(default, rename = "settingName")]
+    pub setting_name: ::core::option::Option<String>,
+}
+
+/// A list of package names.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PackageNameList {
+    /// A list of package names.
+    #[serde(default, rename = "packageNames")]
+    pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Information about the application to be set as the default.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultApplication {
+    /// Required. The package name that should be set as the default application. The policy is rejected if the package name is invalid.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnPolicy {
+    /// Optional. APN settings for override APNs. There must not be any conflict between any of APN settings provided, otherwise the policy will be rejected. Two ApnSettings are considered to conflict when all of the following fields match on both: numericOperatorId, apn, proxyAddress, proxyPort, mmsProxyAddress, mmsProxyPort, mmsc, mvnoType, protocol, roamingProtocol. If some of the APN settings result in non-compliance of INVALID_VALUE , they will be ignored. This can be set on fully managed devices on Android 10 and above. This can also be set on work profiles on Android 13 and above and only with ApnSetting''s with ENTERPRISE APN type. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with MANAGEMENT_MODE is reported for work profiles on Android versions less than 13.
+    #[serde(default, rename = "apnSettings")]
+    pub apn_settings: ::core::option::Option<::std::vec::Vec<ApnSetting>>,
+    /// Optional. Whether override APNs are disabled or enabled. See DevicePolicyManager.setOverrideApnsEnabled (https://developer.android.com/reference/android/app/admin/DevicePolicyManager#setOverrideApnsEnabled) for more details. // TODO: enum values: ["OVERRIDE_APNS_UNSPECIFIED", "OVERRIDE_APNS_DISABLED", "OVERRIDE_APNS_ENABLED"]
+    #[serde(default, rename = "overrideApns")]
+    pub override_apns: ::core::option::Option<String>,
+}
+
+/// Preferential network service settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreferentialNetworkServiceSettings {
+    /// Required. Default preferential network ID for the applications that are not in applications or if ApplicationPolicy.preferentialNetworkId is set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs, unless this is set to NO_PREFERENTIAL_NETWORK. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED or unset, this defaults to NO_PREFERENTIAL_NETWORK. Note: If the default preferential network is misconfigured, applications with no ApplicationPolicy.preferentialNetworkId set are not able to access the internet. This setting does not apply to the following critical apps: com.google.android.apps.work.clouddpc com.google.android.gmsApplicationPolicy.preferentialNetworkId can still be used to configure the preferential network for them. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
+    #[serde(default, rename = "defaultPreferentialNetworkId")]
+    pub default_preferential_network_id: ::core::option::Option<String>,
+    /// Required. Preferential network service configurations which enables having multiple enterprise slices. There must not be multiple configurations with the same preferentialNetworkId. If a configuration is not referenced by any application by setting ApplicationPolicy.preferentialNetworkId or by setting defaultPreferentialNetworkId, it will be ignored. For devices on 4G networks, enterprise APN needs to be configured additionally to set up data call for preferential network service. These APNs can be added using apnPolicy.
+    #[serde(default, rename = "preferentialNetworkServiceConfigs")]
+    pub preferential_network_service_configs:
+        ::core::option::Option<::std::vec::Vec<PreferentialNetworkServiceConfig>>,
+}
+
+/// Controls the device''s private DNS settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateDnsSettings {
+    /// Optional. The hostname of the DNS server. This must be set if and only if private_dns_mode is set to PRIVATE_DNS_SPECIFIED_HOST. Supported on Android 10 and above on fully managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported on other management modes. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with PENDING is reported if the device is not connected to a network. A NonComplianceDetail with nonComplianceReason INVALID_VALUE and specificNonComplianceReason PRIVATE_DNS_HOST_NOT_SERVING is reported if the specified host is not a DNS server or not supported on Android. A NonComplianceDetail with INVALID_VALUE is reported if applying this setting fails for any other reason.
+    #[serde(default, rename = "privateDnsHost")]
+    pub private_dns_host: ::core::option::Option<String>,
+    /// Optional. The configuration mode for device''s global private DNS settings. If this is set to PRIVATE_DNS_SPECIFIED_HOST, then private_dns_host must be set. // TODO: enum values: ["PRIVATE_DNS_MODE_UNSPECIFIED", "PRIVATE_DNS_USER_CHOICE", "PRIVATE_DNS_AUTOMATIC", "PRIVATE_DNS_SPECIFIED_HOST"]
+    #[serde(default, rename = "privateDnsMode")]
+    pub private_dns_mode: ::core::option::Option<String>,
+}
+
+/// Wi-Fi roaming policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WifiRoamingPolicy {
+    /// Optional. Wi-Fi roaming settings. SSIDs provided in this list must be unique, the policy will be rejected otherwise.
+    #[serde(default, rename = "wifiRoamingSettings")]
+    pub wifi_roaming_settings: ::core::option::Option<::std::vec::Vec<WifiRoamingSetting>>,
+}
+
+/// Restrictions on which Wi-Fi SSIDs the device can connect to. Note that this does not affect which networks can be configured on the device. Supported on company-owned devices running Android 13 and above.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WifiSsidPolicy {
+    /// Type of the Wi-Fi SSID policy to be applied. // TODO: enum values: ["WIFI_SSID_POLICY_TYPE_UNSPECIFIED", "WIFI_SSID_DENYLIST", "WIFI_SSID_ALLOWLIST"]
+    #[serde(default, rename = "wifiSsidPolicyType")]
+    pub wifi_ssid_policy_type: ::core::option::Option<String>,
+    /// Optional. List of Wi-Fi SSIDs that should be applied in the policy. This field must be non-empty when WifiSsidPolicyType is set to WIFI_SSID_ALLOWLIST. If this is set to a non-empty list, then a NonComplianceDetail detail with API_LEVEL is reported if the Android version is less than 13 and a NonComplianceDetail with MANAGEMENT_MODE is reported for non-company-owned devices.
+    #[serde(default, rename = "wifiSsids")]
+    pub wifi_ssids: ::core::option::Option<::std::vec::Vec<WifiSsid>>,
+}
+
+/// Controls for the screen brightness settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScreenBrightnessSettings {
+    /// Optional. The screen brightness between 1 and 255 where 1 is the lowest and 255 is the highest brightness. A value of 0 (default) means no screen brightness set. Any other value is rejected. screenBrightnessMode must be either BRIGHTNESS_AUTOMATIC or BRIGHTNESS_FIXED to set this. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
+    #[serde(default, rename = "screenBrightness")]
+    pub screen_brightness: ::core::option::Option<i32>,
+    /// Optional. Controls the screen brightness mode. // TODO: enum values: ["SCREEN_BRIGHTNESS_MODE_UNSPECIFIED", "BRIGHTNESS_USER_CHOICE", "BRIGHTNESS_AUTOMATIC", "BRIGHTNESS_FIXED"]
+    #[serde(default, rename = "screenBrightnessMode")]
+    pub screen_brightness_mode: ::core::option::Option<String>,
+}
+
+/// Controls the screen timeout settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScreenTimeoutSettings {
+    /// Optional. Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
+    #[serde(default, rename = "screenTimeout")]
+    pub screen_timeout: ::core::option::Option<String>,
+    /// Optional. Controls whether the user is allowed to configure the screen timeout. // TODO: enum values: ["SCREEN_TIMEOUT_MODE_UNSPECIFIED", "SCREEN_TIMEOUT_USER_CHOICE", "SCREEN_TIMEOUT_ENFORCED"]
+    #[serde(default, rename = "screenTimeoutMode")]
+    pub screen_timeout_mode: ::core::option::Option<String>,
+}
+
+/// This feature is not generally available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContentProviderEndpoint {
+    /// This feature is not generally available.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. This feature is not generally available.
+    #[serde(default, rename = "signingCertsSha256")]
+    pub signing_certs_sha256: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This feature is not generally available.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Policies for apps in the personal profile of a company-owned device with a work profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalApplicationPolicy {
+    /// The type of installation to perform. // TODO: enum values: ["INSTALL_TYPE_UNSPECIFIED", "BLOCKED", "AVAILABLE"]
+    #[serde(default, rename = "installType")]
+    pub install_type: ::core::option::Option<String>,
+    /// The package name of the application.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// An action to block access to apps and data on a fully managed device or in a work profile. This action also triggers a device or work profile to displays a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockAction {
+    /// Number of days the policy is non-compliant before the device or work profile is blocked. To block access immediately, set to 0. blockAfterDays must be less than wipeAfterDays.
+    #[serde(default, rename = "blockAfterDays")]
+    pub block_after_days: ::core::option::Option<i32>,
+    /// Specifies the scope of this BlockAction. Only applicable to devices that are company-owned. // TODO: enum values: ["BLOCK_SCOPE_UNSPECIFIED", "BLOCK_SCOPE_WORK_PROFILE", "BLOCK_SCOPE_DEVICE"]
+    #[serde(default, rename = "blockScope")]
+    pub block_scope: ::core::option::Option<String>,
+}
+
+/// An action to reset a company owned device or delete a work profile. Note: blockAction must also be specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WipeAction {
+    /// Whether the factory-reset protection data is preserved on the device. This setting doesn’t apply to work profiles.
+    #[serde(default, rename = "preserveFrp")]
+    pub preserve_frp: ::core::option::Option<bool>,
+    /// Number of days the policy is non-compliant before the device or work profile is wiped. wipeAfterDays must be greater than blockAfterDays.
+    #[serde(default, rename = "wipeAfterDays")]
+    pub wipe_after_days: ::core::option::Option<i32>,
+}
+
+/// An action to launch an app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchAppAction {
+    /// Package name of app to be launched
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Settings controlling the behavior of application reports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationReportingSettings {
+    /// Whether removed apps are included in application reports.
+    #[serde(default, rename = "includeRemovedApps")]
+    pub include_removed_apps: ::core::option::Option<bool>,
+}
+
+/// A system freeze period. When a device’s clock is within the freeze period, all incoming system updates (including security patches) are blocked and won’t be installed.When the device is outside any set freeze periods, the normal policy behavior (automatic, windowed, or postponed) applies.Leap years are ignored in freeze period calculations, in particular: If Feb. 29th is set as the start or end date of a freeze period, the freeze period will start or end on Feb. 28th instead. When a device’s system clock reads Feb. 29th, it’s treated as Feb. 28th. When calculating the number of days in a freeze period or the time between two freeze periods, Feb. 29th is ignored and not counted as a day.Note: For Freeze Periods to take effect, SystemUpdateType cannot be specified as SYSTEM_UPDATE_TYPE_UNSPECIFIED, because freeze periods require a defined policy to be specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreezePeriod {
+    /// The end date (inclusive) of the freeze period. Must be no later than 90 days from the start date. If the end date is earlier than the start date, the freeze period is considered wrapping year-end. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// The start date (inclusive) of the freeze period. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+}
+
+/// Additional context for non-compliance related to default application settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultApplicationContext {
+    /// Output only. The scope of non-compliant default application setting. // TODO: enum values: ["DEFAULT_APPLICATION_SCOPE_UNSPECIFIED", "SCOPE_FULLY_MANAGED", "SCOPE_WORK_PROFILE", "SCOPE_PERSONAL_PROFILE"]
+    #[serde(default, rename = "defaultApplicationScope")]
+    pub default_application_scope: ::core::option::Option<String>,
+}
+
+/// Additional context for non-compliance related to Wi-Fi configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OncWifiContext {
+    /// The GUID of non-compliant Wi-Fi configuration.
+    #[serde(default, rename = "wifiGuid")]
+    pub wifi_guid: ::core::option::Option<String>,
+}
+
+/// Additional context for non-compliance related to password policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PasswordPoliciesContext {
+    /// The scope of non-compliant password. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_DEVICE", "SCOPE_PROFILE"]
+    #[serde(default, rename = "passwordPolicyScope")]
+    pub password_policy_scope: ::core::option::Option<String>,
 }
 
 /// Provides a user-facing message with locale info. The maximum message length is 4096 characters.
@@ -2946,63 +2956,83 @@ pub struct UserFacingMessage {
     pub localized_messages: ::core::option::Option<serde_json::Value>,
 }
 
-/// A web app.
+/// An Access Point Name (APN) configuration for a carrier data connection. The APN provides configuration to connect a cellular network device to an IP data network. A carrier uses this setting to decide which IP address to assign, any security methods to apply, and how the device might be connected to private networks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebApp {
-    /// The display mode of the web app. // TODO: enum values: ["DISPLAY_MODE_UNSPECIFIED", "MINIMAL_UI", "STANDALONE", "FULL_SCREEN"]
-    #[serde(default, rename = "displayMode")]
-    pub display_mode: ::core::option::Option<String>,
-    /// A list of icons for the web app. Must have at least one element.
+pub struct ApnSetting {
+    /// Optional. Whether User Plane resources have to be activated during every transition from CM-IDLE mode to CM-CONNECTED state for this APN. See 3GPP TS 23.501 section 5.6.13. // TODO: enum values: ["ALWAYS_ON_SETTING_UNSPECIFIED", "NOT_ALWAYS_ON", "ALWAYS_ON"]
+    #[serde(default, rename = "alwaysOnSetting")]
+    pub always_on_setting: ::core::option::Option<String>,
+    /// Required. Name of the APN. Policy will be rejected if this field is empty.
     #[serde(default)]
-    pub icons: ::core::option::Option<::std::vec::Vec<WebAppIcon>>,
-    /// The name of the web app, which is generated by the server during creation in the form enterprises/{enterpriseId}/webApps/{packageName}.
+    pub apn: ::core::option::Option<String>,
+    /// Required. Usage categories for the APN. Policy will be rejected if this field is empty or contains APN_TYPE_UNSPECIFIED or duplicates. Multiple APN types can be set on fully managed devices. ENTERPRISE is the only allowed APN type on work profiles. A NonComplianceDetail with MANAGEMENT_MODE is reported for any other value on work profiles. APN types that are not supported on the device or management mode will be ignored. If this results in the empty list, the APN setting will be ignored, because apnTypes is a required field. A NonComplianceDetail with INVALID_VALUE is reported if none of the APN types are supported on the device or management mode.
+    #[serde(default, rename = "apnTypes")]
+    pub apn_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Authentication type of the APN. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "NONE", "PAP", "CHAP", "PAP_OR_CHAP"]
+    #[serde(default, rename = "authType")]
+    pub auth_type: ::core::option::Option<String>,
+    /// Optional. Carrier ID for the APN. A value of 0 (default) means not set and negative values are rejected.
+    #[serde(default, rename = "carrierId")]
+    pub carrier_id: ::core::option::Option<i32>,
+    /// Required. Human-readable name that describes the APN. Policy will be rejected if this field is empty.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. MMS (Multimedia Messaging Service) proxy address of the APN which can be an IP address or hostname (not a URL).
+    #[serde(default, rename = "mmsProxyAddress")]
+    pub mms_proxy_address: ::core::option::Option<String>,
+    /// Optional. MMS (Multimedia Messaging Service) proxy port of the APN. A value of 0 (default) means not set and negative values are rejected.
+    #[serde(default, rename = "mmsProxyPort")]
+    pub mms_proxy_port: ::core::option::Option<i32>,
+    /// Optional. MMSC (Multimedia Messaging Service Center) URI of the APN.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The start URL, i.e. the URL that should load when the user opens the application.
-    #[serde(default, rename = "startUrl")]
-    pub start_url: ::core::option::Option<String>,
-    /// The title of the web app as displayed to the user (e.g., amongst a list of other applications, or as a label for an icon).
+    pub mmsc: ::core::option::Option<String>,
+    /// Optional. The default MTU (Maximum Transmission Unit) size in bytes of the IPv4 routes brought up by this APN setting. A value of 0 (default) means not set and negative values are rejected. Supported on Android 13 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 13.
+    #[serde(default, rename = "mtuV4")]
+    pub mtu_v4: ::core::option::Option<i32>,
+    /// Optional. The MTU (Maximum Transmission Unit) size of the IPv6 mobile interface to which the APN connected. A value of 0 (default) means not set and negative values are rejected. Supported on Android 13 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 13.
+    #[serde(default, rename = "mtuV6")]
+    pub mtu_v6: ::core::option::Option<i32>,
+    /// Optional. MVNO match type for the APN. // TODO: enum values: ["MVNO_TYPE_UNSPECIFIED", "GID", "ICCID", "IMSI", "SPN"]
+    #[serde(default, rename = "mvnoType")]
+    pub mvno_type: ::core::option::Option<String>,
+    /// Optional. Radio technologies (network types) the APN may use. Policy will be rejected if this field contains NETWORK_TYPE_UNSPECIFIED or duplicates.
+    #[serde(default, rename = "networkTypes")]
+    pub network_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The numeric operator ID of the APN. Numeric operator ID is defined as MCC (Mobile Country Code) + MNC (Mobile Network Code).
+    #[serde(default, rename = "numericOperatorId")]
+    pub numeric_operator_id: ::core::option::Option<String>,
+    /// Optional. APN password of the APN.
     #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The current version of the app.Note that the version can automatically increase during the lifetime of the web app, while Google does internal housekeeping to keep the web app up-to-date.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<String>,
+    pub password: ::core::option::Option<String>,
+    /// Optional. The protocol to use to connect to this APN. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "IP", "IPV4V6", "IPV6", "NON_IP", "PPP", "UNSTRUCTURED"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// Optional. The proxy address of the APN.
+    #[serde(default, rename = "proxyAddress")]
+    pub proxy_address: ::core::option::Option<String>,
+    /// Optional. The proxy port of the APN. A value of 0 (default) means not set and negative values are rejected.
+    #[serde(default, rename = "proxyPort")]
+    pub proxy_port: ::core::option::Option<i32>,
+    /// Optional. The protocol to use to connect to this APN while the device is roaming. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "IP", "IPV4V6", "IPV6", "NON_IP", "PPP", "UNSTRUCTURED"]
+    #[serde(default, rename = "roamingProtocol")]
+    pub roaming_protocol: ::core::option::Option<String>,
+    /// Optional. APN username of the APN.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
 }
 
-/// An icon for a web app. Supported formats are: png, jpg and webp.
+/// Individual preferential network service configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebAppIcon {
-    /// The actual bytes of the image in a base64url encoded string (c.f. RFC4648, section 5 "Base 64 Encoding with URL and Filename Safe Alphabet"). - The image type can be png or jpg. - The image should ideally be square. - The image should ideally have a size of 512x512.
-    #[serde(default, rename = "imageData")]
-    pub image_data: ::core::option::Option<String>,
-}
-
-/// A web token used to access the managed Google Play iframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebToken {
-    /// The features to enable. Use this if you want to control exactly which feature(s) will be activated; leave empty to allow all features.Restrictions / things to note: - If no features are listed here, all features are enabled — this is the default behavior where you give access to all features to your admins. - This must not contain any FEATURE_UNSPECIFIED values. - Repeated values are ignored
-    #[serde(default, rename = "enabledFeatures")]
-    pub enabled_features: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the web token, which is generated by the server during creation in the form enterprises/{enterpriseId}/webTokens/{webTokenId}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The URL of the parent frame hosting the iframe with the embedded UI. To prevent XSS, the iframe may not be hosted at other URLs. The URL must use the https scheme.
-    #[serde(default, rename = "parentFrameUrl")]
-    pub parent_frame_url: ::core::option::Option<String>,
-    /// Permissions available to an admin in the embedded UI. An admin must have all of these permissions in order to view the UI. This field is deprecated.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The token value which is used in the hosting page to generate the iframe with the embedded UI. This is a read-only field generated by the server.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Wi-Fi roaming policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WifiRoamingPolicy {
-    /// Optional. Wi-Fi roaming settings. SSIDs provided in this list must be unique, the policy will be rejected otherwise.
-    #[serde(default, rename = "wifiRoamingSettings")]
-    pub wifi_roaming_settings: ::core::option::Option<::std::vec::Vec<WifiRoamingSetting>>,
+pub struct PreferentialNetworkServiceConfig {
+    /// Optional. Whether fallback to the device-wide default network is allowed. If this is set to FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED, then nonMatchingNetworks must not be set to NON_MATCHING_NETWORKS_DISALLOWED, the policy will be rejected otherwise. Note: If this is set to FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED, applications are not able to access the internet if the 5G slice is not available. // TODO: enum values: ["FALLBACK_TO_DEFAULT_CONNECTION_UNSPECIFIED", "FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED", "FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED"]
+    #[serde(default, rename = "fallbackToDefaultConnection")]
+    pub fallback_to_default_connection: ::core::option::Option<String>,
+    /// Optional. Whether apps this configuration applies to are blocked from using networks other than the preferential service. If this is set to NON_MATCHING_NETWORKS_DISALLOWED, then fallbackToDefaultConnection must be set to FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED. // TODO: enum values: ["NON_MATCHING_NETWORKS_UNSPECIFIED", "NON_MATCHING_NETWORKS_ALLOWED", "NON_MATCHING_NETWORKS_DISALLOWED"]
+    #[serde(default, rename = "nonMatchingNetworks")]
+    pub non_matching_networks: ::core::option::Option<String>,
+    /// Required. Preferential network identifier. This must not be set to NO_PREFERENTIAL_NETWORK or PREFERENTIAL_NETWORK_ID_UNSPECIFIED, the policy will be rejected otherwise. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
+    #[serde(default, rename = "preferentialNetworkId")]
+    pub preferential_network_id: ::core::option::Option<String>,
 }
 
 /// Wi-Fi roaming setting.
@@ -3024,46 +3054,16 @@ pub struct WifiSsid {
     pub wifi_ssid: ::core::option::Option<String>,
 }
 
-/// Restrictions on which Wi-Fi SSIDs the device can connect to. Note that this does not affect which networks can be configured on the device. Supported on company-owned devices running Android 13 and above.
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WifiSsidPolicy {
-    /// Type of the Wi-Fi SSID policy to be applied. // TODO: enum values: ["WIFI_SSID_POLICY_TYPE_UNSPECIFIED", "WIFI_SSID_DENYLIST", "WIFI_SSID_ALLOWLIST"]
-    #[serde(default, rename = "wifiSsidPolicyType")]
-    pub wifi_ssid_policy_type: ::core::option::Option<String>,
-    /// Optional. List of Wi-Fi SSIDs that should be applied in the policy. This field must be non-empty when WifiSsidPolicyType is set to WIFI_SSID_ALLOWLIST. If this is set to a non-empty list, then a NonComplianceDetail detail with API_LEVEL is reported if the Android version is less than 13 and a NonComplianceDetail with MANAGEMENT_MODE is reported for non-company-owned devices.
-    #[serde(default, rename = "wifiSsids")]
-    pub wifi_ssids: ::core::option::Option<::std::vec::Vec<WifiSsid>>,
-}
-
-/// An action to reset a company owned device or delete a work profile. Note: blockAction must also be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WipeAction {
-    /// Whether the factory-reset protection data is preserved on the device. This setting doesn’t apply to work profiles.
-    #[serde(default, rename = "preserveFrp")]
-    pub preserve_frp: ::core::option::Option<bool>,
-    /// Number of days the policy is non-compliant before the device or work profile is wiped. wipeAfterDays must be greater than blockAfterDays.
-    #[serde(default, rename = "wipeAfterDays")]
-    pub wipe_after_days: ::core::option::Option<i32>,
-}
-
-/// Parameters associated with the WIPE command to wipe the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WipeParams {
-    /// Optional. Flags to determine what data to wipe.
-    #[serde(default, rename = "wipeDataFlags")]
-    pub wipe_data_flags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A short message displayed to the user before wiping the work profile on personal devices. This has no effect on company owned devices. The maximum message length is 200 characters.
-    #[serde(default, rename = "wipeReason")]
-    pub wipe_reason: ::core::option::Option<UserFacingMessage>,
-}
-
-/// Controls the work account setup configuration, such as details of whether a Google authenticated account is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorkAccountSetupConfig {
-    /// Optional. The authentication type of the user on the device. // TODO: enum values: ["AUTHENTICATION_TYPE_UNSPECIFIED", "AUTHENTICATION_TYPE_NOT_ENFORCED", "GOOGLE_AUTHENTICATED"]
-    #[serde(default, rename = "authenticationType")]
-    pub authentication_type: ::core::option::Option<String>,
-    /// Optional. The specific google work account email address to be added. This field is only relevant if authenticationType is GOOGLE_AUTHENTICATED. This must be an enterprise account and not a consumer account. Once set and a Google authenticated account is added to the device, changing this field will have no effect, and thus recommended to be set only once.
-    #[serde(default, rename = "requiredAccountEmail")]
-    pub required_account_email: ::core::option::Option<String>,
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

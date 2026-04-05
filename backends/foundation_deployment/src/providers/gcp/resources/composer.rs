@@ -10,28 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The policy for airflow metadata database retention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AirflowMetadataRetentionPolicyConfig {
-    /// Optional. How many days data should be retained for.
-    #[serde(default, rename = "retentionDays")]
-    pub retention_days: ::core::option::Option<i32>,
-    /// Optional. Retention can be either enabled or disabled. // TODO: enum values: ["RETENTION_MODE_UNSPECIFIED", "RETENTION_MODE_ENABLED", "RETENTION_MODE_DISABLED"]
-    #[serde(default, rename = "retentionMode")]
-    pub retention_mode: ::core::option::Option<String>,
-}
-
-/// Allowed IP range with user-provided description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AllowedIpRange {
-    /// Optional. User-provided description. It must contain at most 300 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// IP address or range, defined using CIDR notation, of requests that this rule applies to. Examples: 192.168.1.1 or 192.168.0.0/16 or 2001:db8::/32 or 2001:0db8:0000:0042:0000:8a2e:0370:7334. IP range prefixes should be properly truncated. For example, 1.2.3.4/24 should be truncated to 1.2.3.0/24. Similarly, for IPv6, 2001:db8::1/32 should be truncated to 2001:db8::/32.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Request to check whether image upgrade will succeed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckUpgradeRequest {
@@ -61,223 +39,6 @@ pub struct CheckUpgradeResponse {
     /// Pypi dependencies specified in the environment configuration, at the time when the build was triggered.
     #[serde(default, rename = "pypiDependencies")]
     pub pypi_dependencies: ::core::option::Option<serde_json::Value>,
-}
-
-/// CIDR block with an optional name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CidrBlock {
-    /// CIDR block that must be specified in CIDR notation.
-    #[serde(default, rename = "cidrBlock")]
-    pub cidr_block: ::core::option::Option<String>,
-    /// User-defined name that identifies the CIDR block.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Configuration for Cloud Data Lineage integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudDataLineageIntegration {
-    /// Optional. Whether or not Cloud Data Lineage integration is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// Information about a single workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComposerWorkload {
-    /// Name of a workload.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Status of a workload.
-    #[serde(default)]
-    pub status: ::core::option::Option<ComposerWorkloadStatus>,
-    /// Type of a workload. // TODO: enum values: ["COMPOSER_WORKLOAD_TYPE_UNSPECIFIED", "CELERY_WORKER", "KUBERNETES_WORKER", "KUBERNETES_OPERATOR_POD", "SCHEDULER", "DAG_PROCESSOR", "TRIGGERER", "WEB_SERVER", "REDIS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Workload status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComposerWorkloadStatus {
-    /// Output only. Detailed message of the status.
-    #[serde(default, rename = "detailedStatusMessage")]
-    pub detailed_status_message: ::core::option::Option<String>,
-    /// Output only. Workload state. // TODO: enum values: ["COMPOSER_WORKLOAD_STATE_UNSPECIFIED", "PENDING", "OK", "WARNING", "ERROR", "SUCCEEDED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Text to provide more descriptive status.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-}
-
-/// Environment configuration conflict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigConflict {
-    /// Conflict message.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Conflict type. It can be blocking or non-blocking. // TODO: enum values: ["CONFLICT_TYPE_UNSPECIFIED", "BLOCKING", "NON_BLOCKING"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Configuration for resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DagProcessorResource {
-    /// Optional. The number of DAG processors. If not provided or set to 0, a single DAG processor instance will be created.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// Optional. CPU request and limit for a single Airflow DAG processor replica.
-    #[serde(default)]
-    pub cpu: ::core::option::Option<f32>,
-    /// Optional. Memory (GB) request and limit for a single Airflow DAG processor replica.
-    #[serde(default, rename = "memoryGb")]
-    pub memory_gb: ::core::option::Option<f32>,
-    /// Optional. Storage (GB) request and limit for a single Airflow DAG processor replica.
-    #[serde(default, rename = "storageGb")]
-    pub storage_gb: ::core::option::Option<f32>,
-}
-
-/// The configuration setting for Airflow database data retention mechanism.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataRetentionConfig {
-    /// Optional. The retention policy for airflow metadata database.
-    #[serde(default, rename = "airflowMetadataRetentionConfig")]
-    pub airflow_metadata_retention_config:
-        ::core::option::Option<AirflowMetadataRetentionPolicyConfig>,
-    /// Optional. The configuration settings for task logs retention
-    #[serde(default, rename = "taskLogsRetentionConfig")]
-    pub task_logs_retention_config: ::core::option::Option<TaskLogsRetentionConfig>,
-}
-
-/// The configuration of Cloud SQL instance that is used by the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseConfig {
-    /// Optional. Cloud SQL machine type used by Airflow database. It has to be one of: db-n1-standard-2, db-n1-standard-4, db-n1-standard-8 or db-n1-standard-16. If not specified, db-n1-standard-2 will be used. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Optional. The Compute Engine zone where the Airflow database is created. If zone is provided, it must be in the region selected for the environment. If zone is not provided, a zone is automatically selected. The zone can only be set during environment creation. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.*.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// The encryption options for the Cloud Composer environment and its dependencies.Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// Optional. Customer-managed Encryption Key available through Google''s Key Management Service. Cannot be updated. If not specified, Google-managed key will be used.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-}
-
-/// An environment for running orchestration tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Environment {
-    /// Optional. Configuration parameters for this environment.
-    #[serde(default)]
-    pub config: ::core::option::Option<EnvironmentConfig>,
-    /// Output only. The time at which this environment was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \p{Ll}\p{Lo}{0,62} * Values must conform to regexp: [\p{Ll}\p{Lo}\p{N}_-]{0,63} * Both keys and values are additionally constrained to be &lt;= 128 bytes in size.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the environment, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}" EnvironmentId must start with a lowercase letter followed by up to 63 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// The current state of the environment. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "RUNNING", "UPDATING", "DELETING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Storage configuration for this environment.
-    #[serde(default, rename = "storageConfig")]
-    pub storage_config: ::core::option::Option<StorageConfig>,
-    /// Output only. The time at which this environment was last modified.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. The UUID (Universally Unique IDentifier) associated with this environment. This value is generated when the environment is created.
-    #[serde(default)]
-    pub uuid: ::core::option::Option<String>,
-}
-
-/// Configuration information for an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentConfig {
-    /// Output only. The ''bring your own identity'' variant of the URI of the Apache Airflow Web UI hosted within this environment, to be accessed with external identities using workforce identity federation (see [Access environments with workforce identity federation](/composer/docs/composer-2/access-environments-with-workforce-identity-federation)).
-    #[serde(default, rename = "airflowByoidUri")]
-    pub airflow_byoid_uri: ::core::option::Option<String>,
-    /// Output only. The URI of the Apache Airflow Web UI hosted within this environment (see [Airflow web interface](/composer/docs/how-to/accessing/airflow-web-interface)).
-    #[serde(default, rename = "airflowUri")]
-    pub airflow_uri: ::core::option::Option<String>,
-    /// Output only. The Cloud Storage prefix of the DAGs for this environment. Although Cloud Storage objects reside in a flat namespace, a hierarchical file tree can be simulated using "/"-delimited object name prefixes. DAG objects for this environment reside in a simulated directory with the given prefix.
-    #[serde(default, rename = "dagGcsPrefix")]
-    pub dag_gcs_prefix: ::core::option::Option<String>,
-    /// Optional. The configuration setting for Airflow database data retention mechanism.
-    #[serde(default, rename = "dataRetentionConfig")]
-    pub data_retention_config: ::core::option::Option<DataRetentionConfig>,
-    /// Optional. The configuration settings for Cloud SQL instance used internally by Apache Airflow software.
-    #[serde(default, rename = "databaseConfig")]
-    pub database_config: ::core::option::Option<DatabaseConfig>,
-    /// Optional. The encryption options for the Cloud Composer environment and its dependencies. Cannot be updated.
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// Optional. The size of the Cloud Composer environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer. // TODO: enum values: ["ENVIRONMENT_SIZE_UNSPECIFIED", "ENVIRONMENT_SIZE_SMALL", "ENVIRONMENT_SIZE_MEDIUM", "ENVIRONMENT_SIZE_LARGE", "ENVIRONMENT_SIZE_EXTRA_LARGE"]
-    #[serde(default, rename = "environmentSize")]
-    pub environment_size: ::core::option::Option<String>,
-    /// Output only. The Kubernetes Engine cluster used to run this environment.
-    #[serde(default, rename = "gkeCluster")]
-    pub gke_cluster: ::core::option::Option<String>,
-    /// Optional. The maintenance window is the period when Cloud Composer components may undergo maintenance. It is defined so that maintenance is not executed during peak hours or critical time periods. The system will not be under maintenance for every occurrence of this window, but when maintenance is planned, it will be scheduled during the window. The maintenance window period must encompass at least 12 hours per week. This may be split into multiple chunks, each with a size of at least 4 hours. If this value is omitted, the default value for maintenance window is applied. By default, maintenance windows are from 00:00:00 to 04:00:00 (GMT) on Friday, Saturday, and Sunday every week.
-    #[serde(default, rename = "maintenanceWindow")]
-    pub maintenance_window: ::core::option::Option<MaintenanceWindow>,
-    /// Optional. The configuration options for GKE cluster master authorized networks. By default master authorized networks feature is: - in case of private environment: enabled with no external networks allowlisted. - in case of public environment: disabled.
-    #[serde(default, rename = "masterAuthorizedNetworksConfig")]
-    pub master_authorized_networks_config: ::core::option::Option<MasterAuthorizedNetworksConfig>,
-    /// Optional. The configuration used for the Kubernetes Engine cluster.
-    #[serde(default, rename = "nodeConfig")]
-    pub node_config: ::core::option::Option<NodeConfig>,
-    /// The number of nodes in the Kubernetes Engine cluster that will be used to run this environment. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default, rename = "nodeCount")]
-    pub node_count: ::core::option::Option<i32>,
-    /// Optional. The configuration used for the Private IP Cloud Composer environment.
-    #[serde(default, rename = "privateEnvironmentConfig")]
-    pub private_environment_config: ::core::option::Option<PrivateEnvironmentConfig>,
-    /// Optional. The Recovery settings configuration of an environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
-    #[serde(default, rename = "recoveryConfig")]
-    pub recovery_config: ::core::option::Option<RecoveryConfig>,
-    /// Optional. Resilience mode of the Cloud Composer Environment. This field is supported for Cloud Composer environments in versions composer-2.2.0-airflow-*.*.* and newer. // TODO: enum values: ["RESILIENCE_MODE_UNSPECIFIED", "HIGH_RESILIENCE"]
-    #[serde(default, rename = "resilienceMode")]
-    pub resilience_mode: ::core::option::Option<String>,
-    /// Optional. The configuration settings for software inside the environment.
-    #[serde(default, rename = "softwareConfig")]
-    pub software_config: ::core::option::Option<SoftwareConfig>,
-    /// Optional. The configuration settings for the Airflow web server App Engine instance.
-    #[serde(default, rename = "webServerConfig")]
-    pub web_server_config: ::core::option::Option<WebServerConfig>,
-    /// Optional. The network-level access control policy for the Airflow web server. If unspecified, no network-level access restrictions will be applied.
-    #[serde(default, rename = "webServerNetworkAccessControl")]
-    pub web_server_network_access_control: ::core::option::Option<WebServerNetworkAccessControl>,
-    /// Optional. The workloads configuration settings for the GKE cluster associated with the Cloud Composer environment. The GKE cluster runs Airflow scheduler, web server and workers workloads. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
-    #[serde(default, rename = "workloadsConfig")]
-    pub workloads_config: ::core::option::Option<WorkloadsConfig>,
 }
 
 /// Execute Airflow Command request.
@@ -311,17 +72,6 @@ pub struct ExecuteAirflowCommandResponse {
     pub pod_namespace: ::core::option::Option<String>,
 }
 
-/// Information about how a command ended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExitInfo {
-    /// Error message. Empty if there was no error.
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// The exit code from the command execution.
-    #[serde(default, rename = "exitCode")]
-    pub exit_code: ::core::option::Option<i32>,
-}
-
 /// Response for FetchDatabasePropertiesRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchDatabasePropertiesResponse {
@@ -334,60 +84,6 @@ pub struct FetchDatabasePropertiesResponse {
     /// The Compute Engine zone that the failover instance is currently serving from for a regional Cloud SQL instance.
     #[serde(default, rename = "secondaryGceZone")]
     pub secondary_gce_zone: ::core::option::Option<String>,
-}
-
-/// Configuration for controlling how IPs are allocated in the GKE cluster running the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IPAllocationPolicy {
-    /// Optional. The IP address range used to allocate IP addresses to pods in the GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true. Set to blank to have GKE choose a range with the default size. Set to /netmask (e.g. /14) to have GKE choose a range with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) from the RFC-1918 private networks (e.g. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to pick a specific range to use.
-    #[serde(default, rename = "clusterIpv4CidrBlock")]
-    pub cluster_ipv4_cidr_block: ::core::option::Option<String>,
-    /// Optional. The name of the GKE cluster''s secondary range used to allocate IP addresses to pods. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true.
-    #[serde(default, rename = "clusterSecondaryRangeName")]
-    pub cluster_secondary_range_name: ::core::option::Option<String>,
-    /// Optional. The IP address range of the services IP addresses in this GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true. Set to blank to have GKE choose a range with the default size. Set to /netmask (e.g. /14) to have GKE choose a range with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) from the RFC-1918 private networks (e.g. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to pick a specific range to use.
-    #[serde(default, rename = "servicesIpv4CidrBlock")]
-    pub services_ipv4_cidr_block: ::core::option::Option<String>,
-    /// Optional. The name of the services'' secondary range used to allocate IP addresses to the GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true.
-    #[serde(default, rename = "servicesSecondaryRangeName")]
-    pub services_secondary_range_name: ::core::option::Option<String>,
-    /// Optional. Whether or not to enable Alias IPs in the GKE cluster. If true, a VPC-native cluster is created. This field is only supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*. Environments in newer versions always use VPC-native GKE clusters.
-    #[serde(default, rename = "useIpAliases")]
-    pub use_ip_aliases: ::core::option::Option<bool>,
-}
-
-/// ImageVersion information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageVersion {
-    /// Whether it is impossible to create an environment with the image version.
-    #[serde(default, rename = "creationDisabled")]
-    pub creation_disabled: ::core::option::Option<bool>,
-    /// The string identifier of the ImageVersion, in the form: "composer-x.y.z-airflow-a.b.c"
-    #[serde(default, rename = "imageVersionId")]
-    pub image_version_id: ::core::option::Option<String>,
-    /// Whether this is the default ImageVersion used by Composer during environment creation if no input ImageVersion is specified.
-    #[serde(default, rename = "isDefault")]
-    pub is_default: ::core::option::Option<bool>,
-    /// The date of the version release.
-    #[serde(default, rename = "releaseDate")]
-    pub release_date: ::core::option::Option<Date>,
-    /// supported python versions
-    #[serde(default, rename = "supportedPythonVersions")]
-    pub supported_python_versions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether it is impossible to upgrade an environment running with the image version.
-    #[serde(default, rename = "upgradeDisabled")]
-    pub upgrade_disabled: ::core::option::Option<bool>,
-}
-
-/// Contains information about a single line from logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Line {
-    /// Text content of the log line.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Number of the line.
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<i32>,
 }
 
 /// The environments in a project and location.
@@ -479,100 +175,6 @@ pub struct LoadSnapshotRequest {
     pub snapshot_path: ::core::option::Option<String>,
 }
 
-/// The configuration settings for Cloud Composer maintenance window. The following example:  { "startTime":"2019-08-01T01:00:00Z" "endTime":"2019-08-01T07:00:00Z" "recurrence":"FREQ=WEEKLY;BYDAY=TU,WE" }  would define a maintenance window between 01 and 07 hours UTC during each Tuesday and Wednesday.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceWindow {
-    /// Required. Maintenance window end time. It is used only to calculate the duration of the maintenance window. The value for end-time must be in the future, relative to start_time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. Maintenance window recurrence. Format is a subset of [RFC-5545](https://tools.ietf.org/html/rfc5545) RRULE. The only allowed values for FREQ field are FREQ=DAILY and FREQ=WEEKLY;BYDAY=... Example values: FREQ=WEEKLY;BYDAY=TU,WE, FREQ=DAILY.
-    #[serde(default)]
-    pub recurrence: ::core::option::Option<String>,
-    /// Required. Start time of the first recurrence of the maintenance window.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MasterAuthorizedNetworksConfig {
-    /// Up to 50 external networks that could access Kubernetes master through HTTPS.
-    #[serde(default, rename = "cidrBlocks")]
-    pub cidr_blocks: ::core::option::Option<::std::vec::Vec<CidrBlock>>,
-    /// Optional. Whether or not master authorized networks feature is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// Configuration options for networking connections in the Composer 2 environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkingConfig {
-    /// Optional. Indicates the user requested specific connection type between Tenant and Customer projects. You cannot set networking connection type in public IP environment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "VPC_PEERING", "PRIVATE_SERVICE_CONNECT"]
-    #[serde(default, rename = "connectionType")]
-    pub connection_type: ::core::option::Option<String>,
-}
-
-/// The configuration information for the Kubernetes Engine nodes running the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeConfig {
-    /// Optional. The IP range in CIDR notation to use internally by Cloud Composer. IP addresses are not reserved - and the same range can be used by multiple Cloud Composer environments. In case of overlap, IPs from this range will not be accessible in the user''s VPC network. Cannot be updated. If not specified, the default value of ''100.64.128.0/20'' is used. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
-    #[serde(default, rename = "composerInternalIpv4CidrBlock")]
-    pub composer_internal_ipv4_cidr_block: ::core::option::Option<String>,
-    /// Optional. Network Attachment that Cloud Composer environment is connected to, which provides connectivity with a user''s VPC network. Takes precedence over network and subnetwork settings. If not provided, but network and subnetwork are defined during environment, it will be provisioned. If not provided and network and subnetwork are also empty, then connectivity to user''s VPC network is disabled. Network attachment must be provided in format projects/{project}/regions/{region}/networkAttachments/{networkAttachment}. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
-    #[serde(default, rename = "composerNetworkAttachment")]
-    pub composer_network_attachment: ::core::option::Option<String>,
-    /// Optional. The disk size in GB used for node VMs. Minimum size is 30GB. If unspecified, defaults to 100GB. Cannot be updated. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: ::core::option::Option<i32>,
-    /// Optional. Deploys ''ip-masq-agent'' daemon set in the GKE cluster and defines nonMasqueradeCIDRs equals to pod IP range so IP masquerading is used for all destination addresses, except between pods traffic. See: https://cloud.google.com/kubernetes-engine/docs/how-to/ip-masquerade-agent
-    #[serde(default, rename = "enableIpMasqAgent")]
-    pub enable_ip_masq_agent: ::core::option::Option<bool>,
-    /// Optional. The configuration for controlling how IPs are allocated in the GKE cluster.
-    #[serde(default, rename = "ipAllocationPolicy")]
-    pub ip_allocation_policy: ::core::option::Option<IPAllocationPolicy>,
-    /// Optional. The Compute Engine [zone](/compute/docs/regions-zones) in which to deploy the VMs used to run the Apache Airflow software, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}". This location must belong to the enclosing environment''s project and location. If both this field and nodeConfig.machineType are specified, nodeConfig.machineType must belong to this location; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If only one field (location or nodeConfig.machineType) is specified, the location information from the specified field will be propagated to the unspecified field. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. The Compute Engine [machine type](/compute/docs/machine-types) used for cluster instances, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}/machineTypes/{machineTypeId}". The machineType must belong to the enclosing environment''s project and location. If both this field and nodeConfig.location are specified, this machineType must belong to the nodeConfig.location; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If exactly one of this field and nodeConfig.location is specified, the location information from the specified field will be propagated to the unspecified field. The machineTypeId must not be a [shared-core machine type](/compute/docs/machine-types#sharedcore). If this field is unspecified, the machineTypeId defaults to "n1-standard-1". This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Optional. The Compute Engine network to be used for machine communications, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/global/networks/{networkId}". If unspecified, the "default" network ID in the environment''s project is used. If a [Custom Subnet Network](/vpc/docs/vpc#vpc_networks_and_subnets) is provided, nodeConfig.subnetwork must also be provided. For [Shared VPC](/vpc/docs/shared-vpc) subnetwork requirements, see nodeConfig.subnetwork.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Optional. The set of Google API scopes to be made available on all node VMs. If oauth_scopes is empty, defaults to ["https://www.googleapis.com/auth/cloud-platform"]. Cannot be updated. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-    #[serde(default, rename = "oauthScopes")]
-    pub oauth_scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The Google Cloud Platform Service Account to be used by the node VMs. If a service account is not specified, the "default" Compute Engine service account is used. Cannot be updated.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Optional. The Compute Engine subnetwork to be used for machine communications, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/regions/{regionId}/subnetworks/{subnetworkId}" If a subnetwork is provided, nodeConfig.network must also be provided, and the subnetwork must belong to the enclosing environment''s project and location.
-    #[serde(default)]
-    pub subnetwork: ::core::option::Option<String>,
-    /// Optional. The list of instance tags applied to all node VMs. Tags are used to identify valid sources or targets for network firewalls. Each tag within the list must comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt). Cannot be updated.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
 /// Metadata describing an operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadata {
@@ -627,18 +229,404 @@ pub struct PollAirflowCommandResponse {
     pub output_end: ::core::option::Option<bool>,
 }
 
-/// Configuration options for the private GKE cluster in a Cloud Composer environment.
+/// Request to create a snapshot of a Cloud Composer environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateClusterConfig {
-    /// Optional. If true, access to the public endpoint of the GKE cluster is denied.
-    #[serde(default, rename = "enablePrivateEndpoint")]
-    pub enable_private_endpoint: ::core::option::Option<bool>,
-    /// Optional. The CIDR block from which IPv4 range for GKE master will be reserved. If left blank, the default value of ''172.16.0.0/23'' is used.
-    #[serde(default, rename = "masterIpv4CidrBlock")]
-    pub master_ipv4_cidr_block: ::core::option::Option<String>,
-    /// Output only. The IP range in CIDR notation to use for the hosted master network. This range is used for assigning internal IP addresses to the GKE cluster master or set of masters and to the internal load balancer virtual IP. This range must not overlap with any other ranges in use within the cluster''s network.
-    #[serde(default, rename = "masterIpv4ReservedRange")]
-    pub master_ipv4_reserved_range: ::core::option::Option<String>,
+pub struct SaveSnapshotRequest {
+    /// Location in a Cloud Storage where the snapshot is going to be stored, e.g.: "gs://my-bucket/snapshots".
+    #[serde(default, rename = "snapshotLocation")]
+    pub snapshot_location: ::core::option::Option<String>,
+}
+
+/// Response to SaveSnapshotRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SaveSnapshotResponse {
+    /// The fully-resolved Cloud Storage path of the created snapshot, e.g.: "gs://my-bucket/snapshots/project_location_environment_timestamp". This field is populated only if the snapshot creation was successful.
+    #[serde(default, rename = "snapshotPath")]
+    pub snapshot_path: ::core::option::Option<String>,
+}
+
+/// Stop Airflow Command request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopAirflowCommandRequest {
+    /// The unique ID of the command execution.
+    #[serde(default, rename = "executionId")]
+    pub execution_id: ::core::option::Option<String>,
+    /// If true, the execution is terminated forcefully (SIGKILL). If false, the execution is stopped gracefully, giving it time for cleanup.
+    #[serde(default)]
+    pub force: ::core::option::Option<bool>,
+    /// The name of the pod where the command is executed.
+    #[serde(default)]
+    pub pod: ::core::option::Option<String>,
+    /// The namespace of the pod where the command is executed.
+    #[serde(default, rename = "podNamespace")]
+    pub pod_namespace: ::core::option::Option<String>,
+}
+
+/// Response to StopAirflowCommandRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopAirflowCommandResponse {
+    /// Whether the execution is still running.
+    #[serde(default, rename = "isDone")]
+    pub is_done: ::core::option::Option<bool>,
+    /// Output message from stopping execution request.
+    #[serde(default)]
+    pub output: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Environment configuration conflict.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigConflict {
+    /// Conflict message.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Conflict type. It can be blocking or non-blocking. // TODO: enum values: ["CONFLICT_TYPE_UNSPECIFIED", "BLOCKING", "NON_BLOCKING"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An environment for running orchestration tasks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Environment {
+    /// Optional. Configuration parameters for this environment.
+    #[serde(default)]
+    pub config: ::core::option::Option<EnvironmentConfig>,
+    /// Output only. The time at which this environment was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \p{Ll}\p{Lo}{0,62} * Values must conform to regexp: [\p{Ll}\p{Lo}\p{N}_-]{0,63} * Both keys and values are additionally constrained to be &lt;= 128 bytes in size.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the environment, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}" EnvironmentId must start with a lowercase letter followed by up to 63 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// The current state of the environment. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "RUNNING", "UPDATING", "DELETING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Storage configuration for this environment.
+    #[serde(default, rename = "storageConfig")]
+    pub storage_config: ::core::option::Option<StorageConfig>,
+    /// Output only. The time at which this environment was last modified.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. The UUID (Universally Unique IDentifier) associated with this environment. This value is generated when the environment is created.
+    #[serde(default)]
+    pub uuid: ::core::option::Option<String>,
+}
+
+/// ImageVersion information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageVersion {
+    /// Whether it is impossible to create an environment with the image version.
+    #[serde(default, rename = "creationDisabled")]
+    pub creation_disabled: ::core::option::Option<bool>,
+    /// The string identifier of the ImageVersion, in the form: "composer-x.y.z-airflow-a.b.c"
+    #[serde(default, rename = "imageVersionId")]
+    pub image_version_id: ::core::option::Option<String>,
+    /// Whether this is the default ImageVersion used by Composer during environment creation if no input ImageVersion is specified.
+    #[serde(default, rename = "isDefault")]
+    pub is_default: ::core::option::Option<bool>,
+    /// The date of the version release.
+    #[serde(default, rename = "releaseDate")]
+    pub release_date: ::core::option::Option<Date>,
+    /// supported python versions
+    #[serde(default, rename = "supportedPythonVersions")]
+    pub supported_python_versions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether it is impossible to upgrade an environment running with the image version.
+    #[serde(default, rename = "upgradeDisabled")]
+    pub upgrade_disabled: ::core::option::Option<bool>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// User workloads ConfigMap used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserWorkloadsConfigMap {
+    /// Optional. The "data" field of Kubernetes ConfigMap, organized in key-value pairs. For details see: https://kubernetes.io/docs/concepts/configuration/configmap/ Example: { "example_key": "example_value", "another_key": "another_value" }
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the ConfigMap, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapId}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// User workloads Secret used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserWorkloadsSecret {
+    /// Optional. The "data" field of Kubernetes Secret, organized in key-value pairs, which can contain sensitive values such as a password, a token, or a key. The values for all keys have to be base64-encoded strings. For details see: https://kubernetes.io/docs/concepts/configuration/secret/ Example: { "example": "ZXhhbXBsZV92YWx1ZQ==", "another-example": "YW5vdGhlcl9leGFtcGxlX3ZhbHVl" }
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the Secret, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}/userWorkloadsSecrets/{userWorkloadsSecretId}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Information about a single workload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComposerWorkload {
+    /// Name of a workload.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Status of a workload.
+    #[serde(default)]
+    pub status: ::core::option::Option<ComposerWorkloadStatus>,
+    /// Type of a workload. // TODO: enum values: ["COMPOSER_WORKLOAD_TYPE_UNSPECIFIED", "CELERY_WORKER", "KUBERNETES_WORKER", "KUBERNETES_OPERATOR_POD", "SCHEDULER", "DAG_PROCESSOR", "TRIGGERER", "WEB_SERVER", "REDIS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information about how a command ended.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExitInfo {
+    /// Error message. Empty if there was no error.
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// The exit code from the command execution.
+    #[serde(default, rename = "exitCode")]
+    pub exit_code: ::core::option::Option<i32>,
+}
+
+/// Contains information about a single line from logs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Line {
+    /// Text content of the log line.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Number of the line.
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<i32>,
+}
+
+/// Configuration information for an environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentConfig {
+    /// Output only. The ''bring your own identity'' variant of the URI of the Apache Airflow Web UI hosted within this environment, to be accessed with external identities using workforce identity federation (see [Access environments with workforce identity federation](/composer/docs/composer-2/access-environments-with-workforce-identity-federation)).
+    #[serde(default, rename = "airflowByoidUri")]
+    pub airflow_byoid_uri: ::core::option::Option<String>,
+    /// Output only. The URI of the Apache Airflow Web UI hosted within this environment (see [Airflow web interface](/composer/docs/how-to/accessing/airflow-web-interface)).
+    #[serde(default, rename = "airflowUri")]
+    pub airflow_uri: ::core::option::Option<String>,
+    /// Output only. The Cloud Storage prefix of the DAGs for this environment. Although Cloud Storage objects reside in a flat namespace, a hierarchical file tree can be simulated using "/"-delimited object name prefixes. DAG objects for this environment reside in a simulated directory with the given prefix.
+    #[serde(default, rename = "dagGcsPrefix")]
+    pub dag_gcs_prefix: ::core::option::Option<String>,
+    /// Optional. The configuration setting for Airflow database data retention mechanism.
+    #[serde(default, rename = "dataRetentionConfig")]
+    pub data_retention_config: ::core::option::Option<DataRetentionConfig>,
+    /// Optional. The configuration settings for Cloud SQL instance used internally by Apache Airflow software.
+    #[serde(default, rename = "databaseConfig")]
+    pub database_config: ::core::option::Option<DatabaseConfig>,
+    /// Optional. The encryption options for the Cloud Composer environment and its dependencies. Cannot be updated.
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// Optional. The size of the Cloud Composer environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer. // TODO: enum values: ["ENVIRONMENT_SIZE_UNSPECIFIED", "ENVIRONMENT_SIZE_SMALL", "ENVIRONMENT_SIZE_MEDIUM", "ENVIRONMENT_SIZE_LARGE", "ENVIRONMENT_SIZE_EXTRA_LARGE"]
+    #[serde(default, rename = "environmentSize")]
+    pub environment_size: ::core::option::Option<String>,
+    /// Output only. The Kubernetes Engine cluster used to run this environment.
+    #[serde(default, rename = "gkeCluster")]
+    pub gke_cluster: ::core::option::Option<String>,
+    /// Optional. The maintenance window is the period when Cloud Composer components may undergo maintenance. It is defined so that maintenance is not executed during peak hours or critical time periods. The system will not be under maintenance for every occurrence of this window, but when maintenance is planned, it will be scheduled during the window. The maintenance window period must encompass at least 12 hours per week. This may be split into multiple chunks, each with a size of at least 4 hours. If this value is omitted, the default value for maintenance window is applied. By default, maintenance windows are from 00:00:00 to 04:00:00 (GMT) on Friday, Saturday, and Sunday every week.
+    #[serde(default, rename = "maintenanceWindow")]
+    pub maintenance_window: ::core::option::Option<MaintenanceWindow>,
+    /// Optional. The configuration options for GKE cluster master authorized networks. By default master authorized networks feature is: - in case of private environment: enabled with no external networks allowlisted. - in case of public environment: disabled.
+    #[serde(default, rename = "masterAuthorizedNetworksConfig")]
+    pub master_authorized_networks_config: ::core::option::Option<MasterAuthorizedNetworksConfig>,
+    /// Optional. The configuration used for the Kubernetes Engine cluster.
+    #[serde(default, rename = "nodeConfig")]
+    pub node_config: ::core::option::Option<NodeConfig>,
+    /// The number of nodes in the Kubernetes Engine cluster that will be used to run this environment. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default, rename = "nodeCount")]
+    pub node_count: ::core::option::Option<i32>,
+    /// Optional. The configuration used for the Private IP Cloud Composer environment.
+    #[serde(default, rename = "privateEnvironmentConfig")]
+    pub private_environment_config: ::core::option::Option<PrivateEnvironmentConfig>,
+    /// Optional. The Recovery settings configuration of an environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
+    #[serde(default, rename = "recoveryConfig")]
+    pub recovery_config: ::core::option::Option<RecoveryConfig>,
+    /// Optional. Resilience mode of the Cloud Composer Environment. This field is supported for Cloud Composer environments in versions composer-2.2.0-airflow-*.*.* and newer. // TODO: enum values: ["RESILIENCE_MODE_UNSPECIFIED", "HIGH_RESILIENCE"]
+    #[serde(default, rename = "resilienceMode")]
+    pub resilience_mode: ::core::option::Option<String>,
+    /// Optional. The configuration settings for software inside the environment.
+    #[serde(default, rename = "softwareConfig")]
+    pub software_config: ::core::option::Option<SoftwareConfig>,
+    /// Optional. The configuration settings for the Airflow web server App Engine instance.
+    #[serde(default, rename = "webServerConfig")]
+    pub web_server_config: ::core::option::Option<WebServerConfig>,
+    /// Optional. The network-level access control policy for the Airflow web server. If unspecified, no network-level access restrictions will be applied.
+    #[serde(default, rename = "webServerNetworkAccessControl")]
+    pub web_server_network_access_control: ::core::option::Option<WebServerNetworkAccessControl>,
+    /// Optional. The workloads configuration settings for the GKE cluster associated with the Cloud Composer environment. The GKE cluster runs Airflow scheduler, web server and workers workloads. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
+    #[serde(default, rename = "workloadsConfig")]
+    pub workloads_config: ::core::option::Option<WorkloadsConfig>,
+}
+
+/// The configuration for data storage in the environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageConfig {
+    /// Optional. The name of the Cloud Storage bucket used by the environment. No gs:// prefix.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Workload status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComposerWorkloadStatus {
+    /// Output only. Detailed message of the status.
+    #[serde(default, rename = "detailedStatusMessage")]
+    pub detailed_status_message: ::core::option::Option<String>,
+    /// Output only. Workload state. // TODO: enum values: ["COMPOSER_WORKLOAD_STATE_UNSPECIFIED", "PENDING", "OK", "WARNING", "ERROR", "SUCCEEDED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Text to provide more descriptive status.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+}
+
+/// The configuration setting for Airflow database data retention mechanism.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataRetentionConfig {
+    /// Optional. The retention policy for airflow metadata database.
+    #[serde(default, rename = "airflowMetadataRetentionConfig")]
+    pub airflow_metadata_retention_config:
+        ::core::option::Option<AirflowMetadataRetentionPolicyConfig>,
+    /// Optional. The configuration settings for task logs retention
+    #[serde(default, rename = "taskLogsRetentionConfig")]
+    pub task_logs_retention_config: ::core::option::Option<TaskLogsRetentionConfig>,
+}
+
+/// The configuration of Cloud SQL instance that is used by the Apache Airflow software.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseConfig {
+    /// Optional. Cloud SQL machine type used by Airflow database. It has to be one of: db-n1-standard-2, db-n1-standard-4, db-n1-standard-8 or db-n1-standard-16. If not specified, db-n1-standard-2 will be used. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Optional. The Compute Engine zone where the Airflow database is created. If zone is provided, it must be in the region selected for the environment. If zone is not provided, a zone is automatically selected. The zone can only be set during environment creation. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.*.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// The encryption options for the Cloud Composer environment and its dependencies.Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// Optional. Customer-managed Encryption Key available through Google''s Key Management Service. Cannot be updated. If not specified, Google-managed key will be used.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
+/// The configuration settings for Cloud Composer maintenance window. The following example:  { "startTime":"2019-08-01T01:00:00Z" "endTime":"2019-08-01T07:00:00Z" "recurrence":"FREQ=WEEKLY;BYDAY=TU,WE" }  would define a maintenance window between 01 and 07 hours UTC during each Tuesday and Wednesday.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindow {
+    /// Required. Maintenance window end time. It is used only to calculate the duration of the maintenance window. The value for end-time must be in the future, relative to start_time.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. Maintenance window recurrence. Format is a subset of [RFC-5545](https://tools.ietf.org/html/rfc5545) RRULE. The only allowed values for FREQ field are FREQ=DAILY and FREQ=WEEKLY;BYDAY=... Example values: FREQ=WEEKLY;BYDAY=TU,WE, FREQ=DAILY.
+    #[serde(default)]
+    pub recurrence: ::core::option::Option<String>,
+    /// Required. Start time of the first recurrence of the maintenance window.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MasterAuthorizedNetworksConfig {
+    /// Up to 50 external networks that could access Kubernetes master through HTTPS.
+    #[serde(default, rename = "cidrBlocks")]
+    pub cidr_blocks: ::core::option::Option<::std::vec::Vec<CidrBlock>>,
+    /// Optional. Whether or not master authorized networks feature is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// The configuration information for the Kubernetes Engine nodes running the Apache Airflow software.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeConfig {
+    /// Optional. The IP range in CIDR notation to use internally by Cloud Composer. IP addresses are not reserved - and the same range can be used by multiple Cloud Composer environments. In case of overlap, IPs from this range will not be accessible in the user''s VPC network. Cannot be updated. If not specified, the default value of ''100.64.128.0/20'' is used. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
+    #[serde(default, rename = "composerInternalIpv4CidrBlock")]
+    pub composer_internal_ipv4_cidr_block: ::core::option::Option<String>,
+    /// Optional. Network Attachment that Cloud Composer environment is connected to, which provides connectivity with a user''s VPC network. Takes precedence over network and subnetwork settings. If not provided, but network and subnetwork are defined during environment, it will be provisioned. If not provided and network and subnetwork are also empty, then connectivity to user''s VPC network is disabled. Network attachment must be provided in format projects/{project}/regions/{region}/networkAttachments/{networkAttachment}. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
+    #[serde(default, rename = "composerNetworkAttachment")]
+    pub composer_network_attachment: ::core::option::Option<String>,
+    /// Optional. The disk size in GB used for node VMs. Minimum size is 30GB. If unspecified, defaults to 100GB. Cannot be updated. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default, rename = "diskSizeGb")]
+    pub disk_size_gb: ::core::option::Option<i32>,
+    /// Optional. Deploys ''ip-masq-agent'' daemon set in the GKE cluster and defines nonMasqueradeCIDRs equals to pod IP range so IP masquerading is used for all destination addresses, except between pods traffic. See: https://cloud.google.com/kubernetes-engine/docs/how-to/ip-masquerade-agent
+    #[serde(default, rename = "enableIpMasqAgent")]
+    pub enable_ip_masq_agent: ::core::option::Option<bool>,
+    /// Optional. The configuration for controlling how IPs are allocated in the GKE cluster.
+    #[serde(default, rename = "ipAllocationPolicy")]
+    pub ip_allocation_policy: ::core::option::Option<IPAllocationPolicy>,
+    /// Optional. The Compute Engine [zone](/compute/docs/regions-zones) in which to deploy the VMs used to run the Apache Airflow software, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}". This location must belong to the enclosing environment''s project and location. If both this field and nodeConfig.machineType are specified, nodeConfig.machineType must belong to this location; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If only one field (location or nodeConfig.machineType) is specified, the location information from the specified field will be propagated to the unspecified field. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. The Compute Engine [machine type](/compute/docs/machine-types) used for cluster instances, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}/machineTypes/{machineTypeId}". The machineType must belong to the enclosing environment''s project and location. If both this field and nodeConfig.location are specified, this machineType must belong to the nodeConfig.location; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If exactly one of this field and nodeConfig.location is specified, the location information from the specified field will be propagated to the unspecified field. The machineTypeId must not be a [shared-core machine type](/compute/docs/machine-types#sharedcore). If this field is unspecified, the machineTypeId defaults to "n1-standard-1". This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Optional. The Compute Engine network to be used for machine communications, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/global/networks/{networkId}". If unspecified, the "default" network ID in the environment''s project is used. If a [Custom Subnet Network](/vpc/docs/vpc#vpc_networks_and_subnets) is provided, nodeConfig.subnetwork must also be provided. For [Shared VPC](/vpc/docs/shared-vpc) subnetwork requirements, see nodeConfig.subnetwork.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Optional. The set of Google API scopes to be made available on all node VMs. If oauth_scopes is empty, defaults to ["https://www.googleapis.com/auth/cloud-platform"]. Cannot be updated. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
+    #[serde(default, rename = "oauthScopes")]
+    pub oauth_scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The Google Cloud Platform Service Account to be used by the node VMs. If a service account is not specified, the "default" Compute Engine service account is used. Cannot be updated.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Optional. The Compute Engine subnetwork to be used for machine communications, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/regions/{regionId}/subnetworks/{subnetworkId}" If a subnetwork is provided, nodeConfig.network must also be provided, and the subnetwork must belong to the enclosing environment''s project and location.
+    #[serde(default)]
+    pub subnetwork: ::core::option::Option<String>,
+    /// Optional. The list of instance tags applied to all node VMs. Tags are used to identify valid sources or targets for network firewalls. Each tag within the list must comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt). Cannot be updated.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The configuration information for configuring a Private IP Cloud Composer environment.
@@ -690,56 +678,6 @@ pub struct RecoveryConfig {
     pub scheduled_snapshots_config: ::core::option::Option<ScheduledSnapshotsConfig>,
 }
 
-/// Request to create a snapshot of a Cloud Composer environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SaveSnapshotRequest {
-    /// Location in a Cloud Storage where the snapshot is going to be stored, e.g.: "gs://my-bucket/snapshots".
-    #[serde(default, rename = "snapshotLocation")]
-    pub snapshot_location: ::core::option::Option<String>,
-}
-
-/// Response to SaveSnapshotRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SaveSnapshotResponse {
-    /// The fully-resolved Cloud Storage path of the created snapshot, e.g.: "gs://my-bucket/snapshots/project_location_environment_timestamp". This field is populated only if the snapshot creation was successful.
-    #[serde(default, rename = "snapshotPath")]
-    pub snapshot_path: ::core::option::Option<String>,
-}
-
-/// The configuration for scheduled snapshot creation mechanism.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScheduledSnapshotsConfig {
-    /// Optional. Whether scheduled snapshots creation is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. The cron expression representing the time when snapshots creation mechanism runs. This field is subject to additional validation around frequency of execution.
-    #[serde(default, rename = "snapshotCreationSchedule")]
-    pub snapshot_creation_schedule: ::core::option::Option<String>,
-    /// Optional. The Cloud Storage location for storing automatically created snapshots.
-    #[serde(default, rename = "snapshotLocation")]
-    pub snapshot_location: ::core::option::Option<String>,
-    /// Optional. Time zone that sets the context to interpret snapshot_creation_schedule.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-}
-
-/// Configuration for resources used by Airflow schedulers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchedulerResource {
-    /// Optional. The number of schedulers.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// Optional. CPU request and limit for a single Airflow scheduler replica.
-    #[serde(default)]
-    pub cpu: ::core::option::Option<f32>,
-    /// Optional. Memory (GB) request and limit for a single Airflow scheduler replica.
-    #[serde(default, rename = "memoryGb")]
-    pub memory_gb: ::core::option::Option<f32>,
-    /// Optional. Storage (GB) request and limit for a single Airflow scheduler replica.
-    #[serde(default, rename = "storageGb")]
-    pub storage_gb: ::core::option::Option<f32>,
-}
-
 /// Specifies the selection and configuration of software inside the environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SoftwareConfig {
@@ -769,100 +707,6 @@ pub struct SoftwareConfig {
     pub web_server_plugins_mode: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Stop Airflow Command request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopAirflowCommandRequest {
-    /// The unique ID of the command execution.
-    #[serde(default, rename = "executionId")]
-    pub execution_id: ::core::option::Option<String>,
-    /// If true, the execution is terminated forcefully (SIGKILL). If false, the execution is stopped gracefully, giving it time for cleanup.
-    #[serde(default)]
-    pub force: ::core::option::Option<bool>,
-    /// The name of the pod where the command is executed.
-    #[serde(default)]
-    pub pod: ::core::option::Option<String>,
-    /// The namespace of the pod where the command is executed.
-    #[serde(default, rename = "podNamespace")]
-    pub pod_namespace: ::core::option::Option<String>,
-}
-
-/// Response to StopAirflowCommandRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopAirflowCommandResponse {
-    /// Whether the execution is still running.
-    #[serde(default, rename = "isDone")]
-    pub is_done: ::core::option::Option<bool>,
-    /// Output message from stopping execution request.
-    #[serde(default)]
-    pub output: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The configuration for data storage in the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageConfig {
-    /// Optional. The name of the Cloud Storage bucket used by the environment. No gs:// prefix.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-}
-
-/// The configuration setting for Task Logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskLogsRetentionConfig {
-    /// Optional. The mode of storage for Airflow workers task logs. // TODO: enum values: ["TASK_LOGS_STORAGE_MODE_UNSPECIFIED", "CLOUD_LOGGING_AND_CLOUD_STORAGE", "CLOUD_LOGGING_ONLY"]
-    #[serde(default, rename = "storageMode")]
-    pub storage_mode: ::core::option::Option<String>,
-}
-
-/// Configuration for resources used by Airflow triggerers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggererResource {
-    /// Optional. The number of triggerers.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// Optional. CPU request and limit for a single Airflow triggerer replica.
-    #[serde(default)]
-    pub cpu: ::core::option::Option<f32>,
-    /// Optional. Memory (GB) request and limit for a single Airflow triggerer replica.
-    #[serde(default, rename = "memoryGb")]
-    pub memory_gb: ::core::option::Option<f32>,
-}
-
-/// User workloads ConfigMap used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserWorkloadsConfigMap {
-    /// Optional. The "data" field of Kubernetes ConfigMap, organized in key-value pairs. For details see: https://kubernetes.io/docs/concepts/configuration/configmap/ Example: { "example_key": "example_value", "another_key": "another_value" }
-    #[serde(default)]
-    pub data: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the ConfigMap, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapId}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// User workloads Secret used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserWorkloadsSecret {
-    /// Optional. The "data" field of Kubernetes Secret, organized in key-value pairs, which can contain sensitive values such as a password, a token, or a key. The values for all keys have to be base64-encoded strings. For details see: https://kubernetes.io/docs/concepts/configuration/secret/ Example: { "example": "ZXhhbXBsZV92YWx1ZQ==", "another-example": "YW5vdGhlcl9leGFtcGxlX3ZhbHVl" }
-    #[serde(default)]
-    pub data: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the Secret, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}/userWorkloadsSecrets/{userWorkloadsSecretId}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// The configuration settings for the Airflow web server App Engine instance. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebServerConfig {
@@ -877,6 +721,182 @@ pub struct WebServerNetworkAccessControl {
     /// A collection of allowed IP ranges with descriptions.
     #[serde(default, rename = "allowedIpRanges")]
     pub allowed_ip_ranges: ::core::option::Option<::std::vec::Vec<AllowedIpRange>>,
+}
+
+/// The Kubernetes workloads configuration for GKE cluster associated with the Cloud Composer environment. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkloadsConfig {
+    /// Optional. Resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
+    #[serde(default, rename = "dagProcessor")]
+    pub dag_processor: ::core::option::Option<DagProcessorResource>,
+    /// Optional. Resources used by Airflow schedulers.
+    #[serde(default)]
+    pub scheduler: ::core::option::Option<SchedulerResource>,
+    /// Optional. Resources used by Airflow triggerers.
+    #[serde(default)]
+    pub triggerer: ::core::option::Option<TriggererResource>,
+    /// Optional. Resources used by Airflow web server.
+    #[serde(default, rename = "webServer")]
+    pub web_server: ::core::option::Option<WebServerResource>,
+    /// Optional. Resources used by Airflow workers.
+    #[serde(default)]
+    pub worker: ::core::option::Option<WorkerResource>,
+}
+
+/// The policy for airflow metadata database retention.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AirflowMetadataRetentionPolicyConfig {
+    /// Optional. How many days data should be retained for.
+    #[serde(default, rename = "retentionDays")]
+    pub retention_days: ::core::option::Option<i32>,
+    /// Optional. Retention can be either enabled or disabled. // TODO: enum values: ["RETENTION_MODE_UNSPECIFIED", "RETENTION_MODE_ENABLED", "RETENTION_MODE_DISABLED"]
+    #[serde(default, rename = "retentionMode")]
+    pub retention_mode: ::core::option::Option<String>,
+}
+
+/// The configuration setting for Task Logs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskLogsRetentionConfig {
+    /// Optional. The mode of storage for Airflow workers task logs. // TODO: enum values: ["TASK_LOGS_STORAGE_MODE_UNSPECIFIED", "CLOUD_LOGGING_AND_CLOUD_STORAGE", "CLOUD_LOGGING_ONLY"]
+    #[serde(default, rename = "storageMode")]
+    pub storage_mode: ::core::option::Option<String>,
+}
+
+/// CIDR block with an optional name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CidrBlock {
+    /// CIDR block that must be specified in CIDR notation.
+    #[serde(default, rename = "cidrBlock")]
+    pub cidr_block: ::core::option::Option<String>,
+    /// User-defined name that identifies the CIDR block.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Configuration for controlling how IPs are allocated in the GKE cluster running the Apache Airflow software.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IPAllocationPolicy {
+    /// Optional. The IP address range used to allocate IP addresses to pods in the GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true. Set to blank to have GKE choose a range with the default size. Set to /netmask (e.g. /14) to have GKE choose a range with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) from the RFC-1918 private networks (e.g. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to pick a specific range to use.
+    #[serde(default, rename = "clusterIpv4CidrBlock")]
+    pub cluster_ipv4_cidr_block: ::core::option::Option<String>,
+    /// Optional. The name of the GKE cluster''s secondary range used to allocate IP addresses to pods. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true.
+    #[serde(default, rename = "clusterSecondaryRangeName")]
+    pub cluster_secondary_range_name: ::core::option::Option<String>,
+    /// Optional. The IP address range of the services IP addresses in this GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true. Set to blank to have GKE choose a range with the default size. Set to /netmask (e.g. /14) to have GKE choose a range with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) from the RFC-1918 private networks (e.g. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to pick a specific range to use.
+    #[serde(default, rename = "servicesIpv4CidrBlock")]
+    pub services_ipv4_cidr_block: ::core::option::Option<String>,
+    /// Optional. The name of the services'' secondary range used to allocate IP addresses to the GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true.
+    #[serde(default, rename = "servicesSecondaryRangeName")]
+    pub services_secondary_range_name: ::core::option::Option<String>,
+    /// Optional. Whether or not to enable Alias IPs in the GKE cluster. If true, a VPC-native cluster is created. This field is only supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*. Environments in newer versions always use VPC-native GKE clusters.
+    #[serde(default, rename = "useIpAliases")]
+    pub use_ip_aliases: ::core::option::Option<bool>,
+}
+
+/// Configuration options for networking connections in the Composer 2 environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkingConfig {
+    /// Optional. Indicates the user requested specific connection type between Tenant and Customer projects. You cannot set networking connection type in public IP environment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "VPC_PEERING", "PRIVATE_SERVICE_CONNECT"]
+    #[serde(default, rename = "connectionType")]
+    pub connection_type: ::core::option::Option<String>,
+}
+
+/// Configuration options for the private GKE cluster in a Cloud Composer environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateClusterConfig {
+    /// Optional. If true, access to the public endpoint of the GKE cluster is denied.
+    #[serde(default, rename = "enablePrivateEndpoint")]
+    pub enable_private_endpoint: ::core::option::Option<bool>,
+    /// Optional. The CIDR block from which IPv4 range for GKE master will be reserved. If left blank, the default value of ''172.16.0.0/23'' is used.
+    #[serde(default, rename = "masterIpv4CidrBlock")]
+    pub master_ipv4_cidr_block: ::core::option::Option<String>,
+    /// Output only. The IP range in CIDR notation to use for the hosted master network. This range is used for assigning internal IP addresses to the GKE cluster master or set of masters and to the internal load balancer virtual IP. This range must not overlap with any other ranges in use within the cluster''s network.
+    #[serde(default, rename = "masterIpv4ReservedRange")]
+    pub master_ipv4_reserved_range: ::core::option::Option<String>,
+}
+
+/// The configuration for scheduled snapshot creation mechanism.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScheduledSnapshotsConfig {
+    /// Optional. Whether scheduled snapshots creation is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. The cron expression representing the time when snapshots creation mechanism runs. This field is subject to additional validation around frequency of execution.
+    #[serde(default, rename = "snapshotCreationSchedule")]
+    pub snapshot_creation_schedule: ::core::option::Option<String>,
+    /// Optional. The Cloud Storage location for storing automatically created snapshots.
+    #[serde(default, rename = "snapshotLocation")]
+    pub snapshot_location: ::core::option::Option<String>,
+    /// Optional. Time zone that sets the context to interpret snapshot_creation_schedule.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+}
+
+/// Configuration for Cloud Data Lineage integration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudDataLineageIntegration {
+    /// Optional. Whether or not Cloud Data Lineage integration is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Allowed IP range with user-provided description.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AllowedIpRange {
+    /// Optional. User-provided description. It must contain at most 300 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// IP address or range, defined using CIDR notation, of requests that this rule applies to. Examples: 192.168.1.1 or 192.168.0.0/16 or 2001:db8::/32 or 2001:0db8:0000:0042:0000:8a2e:0370:7334. IP range prefixes should be properly truncated. For example, 1.2.3.4/24 should be truncated to 1.2.3.0/24. Similarly, for IPv6, 2001:db8::1/32 should be truncated to 2001:db8::/32.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Configuration for resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DagProcessorResource {
+    /// Optional. The number of DAG processors. If not provided or set to 0, a single DAG processor instance will be created.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// Optional. CPU request and limit for a single Airflow DAG processor replica.
+    #[serde(default)]
+    pub cpu: ::core::option::Option<f32>,
+    /// Optional. Memory (GB) request and limit for a single Airflow DAG processor replica.
+    #[serde(default, rename = "memoryGb")]
+    pub memory_gb: ::core::option::Option<f32>,
+    /// Optional. Storage (GB) request and limit for a single Airflow DAG processor replica.
+    #[serde(default, rename = "storageGb")]
+    pub storage_gb: ::core::option::Option<f32>,
+}
+
+/// Configuration for resources used by Airflow schedulers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchedulerResource {
+    /// Optional. The number of schedulers.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// Optional. CPU request and limit for a single Airflow scheduler replica.
+    #[serde(default)]
+    pub cpu: ::core::option::Option<f32>,
+    /// Optional. Memory (GB) request and limit for a single Airflow scheduler replica.
+    #[serde(default, rename = "memoryGb")]
+    pub memory_gb: ::core::option::Option<f32>,
+    /// Optional. Storage (GB) request and limit for a single Airflow scheduler replica.
+    #[serde(default, rename = "storageGb")]
+    pub storage_gb: ::core::option::Option<f32>,
+}
+
+/// Configuration for resources used by Airflow triggerers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggererResource {
+    /// Optional. The number of triggerers.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// Optional. CPU request and limit for a single Airflow triggerer replica.
+    #[serde(default)]
+    pub cpu: ::core::option::Option<f32>,
+    /// Optional. Memory (GB) request and limit for a single Airflow triggerer replica.
+    #[serde(default, rename = "memoryGb")]
+    pub memory_gb: ::core::option::Option<f32>,
 }
 
 /// Configuration for resources used by Airflow web server.
@@ -911,24 +931,4 @@ pub struct WorkerResource {
     /// Optional. Storage (GB) request and limit for a single Airflow worker replica.
     #[serde(default, rename = "storageGb")]
     pub storage_gb: ::core::option::Option<f32>,
-}
-
-/// The Kubernetes workloads configuration for GKE cluster associated with the Cloud Composer environment. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorkloadsConfig {
-    /// Optional. Resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
-    #[serde(default, rename = "dagProcessor")]
-    pub dag_processor: ::core::option::Option<DagProcessorResource>,
-    /// Optional. Resources used by Airflow schedulers.
-    #[serde(default)]
-    pub scheduler: ::core::option::Option<SchedulerResource>,
-    /// Optional. Resources used by Airflow triggerers.
-    #[serde(default)]
-    pub triggerer: ::core::option::Option<TriggererResource>,
-    /// Optional. Resources used by Airflow web server.
-    #[serde(default, rename = "webServer")]
-    pub web_server: ::core::option::Option<WebServerResource>,
-    /// Optional. Resources used by Airflow workers.
-    #[serde(default)]
-    pub worker: ::core::option::Option<WorkerResource>,
 }

@@ -71,26 +71,42 @@ pub struct AccessApprovalSettings {
     pub require_customer_visible_justification: ::core::option::Option<bool>,
 }
 
-/// Physical assigned office and physical location of the Google administrator performing the access.
+/// Request to approve an ApprovalRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessLocations {
-    /// The "home office" location of the Google administrator. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
-    #[serde(default, rename = "principalOfficeCountry")]
-    pub principal_office_country: ::core::option::Option<String>,
-    /// Physical location of the Google administrator at the time of the access. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
-    #[serde(default, rename = "principalPhysicalLocationCountry")]
-    pub principal_physical_location_country: ::core::option::Option<String>,
+pub struct ApproveApprovalRequestMessage {
+    /// The expiration time of this approval.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
 }
 
-/// AccessReason resource type.
+/// Response to listing of ApprovalRequest objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessReason {
-    /// More detail about certain reason types. See comments for each type above.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// Type of access reason. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+pub struct ListApprovalRequestsResponse {
+    /// Approval request details.
+    #[serde(default, rename = "approvalRequests")]
+    pub approval_requests: ::core::option::Option<::std::vec::Vec<ApprovalRequest>>,
+    /// Token to retrieve the next page of results, or empty if there are no more.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Represents the enrollment of a cloud resource into a specific service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrolledService {
+    /// The product for which Access Approval will be enrolled. Allowed values are listed below (case-sensitive): * all * GA * Access Context Manager * Anthos Identity Service * AlloyDB for PostgreSQL * Apigee * Application Integration * App Hub * Artifact Registry * Anthos Service Mesh * Access Transparency * BigQuery * Certificate Authority Service * Cloud Bigtable * CCAI Assist and Knowledge * Cloud Dataflow * Cloud Dataproc * CEP Security Gateway * Compliance Evaluation Service * Cloud Firestore * Cloud Healthcare API * Chronicle * Cloud AI Companion Gateway - Titan * Google Cloud Armor * Cloud Asset Inventory * Cloud Asset Search * Cloud Deploy * Cloud DNS * Cloud Latency * Cloud Memorystore for Redis * CloudNet Control * Cloud Riptide * Cloud Tasks * Cloud Trace * Cloud Data Transfer * Cloud Composer * Integration Connectors * Contact Center AI Insights * Cloud Pub/Sub * Cloud Run * Resource Manager * Cloud Spanner * Database Center * Cloud Dataform * Cloud Data Fusion * Dataplex * Dialogflow Customer Experience Edition * Cloud DLP * Document AI * Edge Container * Edge Network * Cloud EKM * Eventarc * Firebase Data Connect * Firebase Rules * App Engine * Cloud Build * Compute Engine * Cloud Functions (2nd Gen) * Cloud Filestore * Cloud Interconnect * Cloud NetApp Volumes * Cloud Storage * Generative AI App Builder * Google Kubernetes Engine * Backup for GKE API * GKE Connect * GKE Hub * Hoverboard * Cloud HSM * Cloud Identity and Access Management * Cloud Identity-Aware Proxy * Infrastructure Manager * Identity Storage Service * Key Access Justifications * Cloud Key Management Service * Cloud Logging * Looker (Google Cloud core) * Looker Studio * Management Hub * Model Armor * Cloud Monitoring * Cloud NAT * Connectivity Hub * External passthrough Network Load Balancer * OIDC One * Organization Policy Service * Org Lifecycle * Persistent Disk * Parameter Manager * Private Services Access * Regional Internal Application Load Balancer * Storage Batch Operations * Cloud Security Command Center * Secure Source Manager * Seeker * Service Provisioning * Speaker ID * Secret Manager * Cloud SQL * Cloud Speech-to-Text * Traffic Director * Cloud Text-to-Speech * USPS Andromeda * Vertex AI * Virtual Private Cloud (VPC) * VPC Access * VPC Service Controls Troubleshooter * VPC virtnet * Cloud Workstations * Web Risk Note: These values are supported as input for legacy purposes, but will not be returned from the API. * all * ga-only * appengine.googleapis.com * artifactregistry.googleapis.com * bigquery.googleapis.com * bigtable.googleapis.com * container.googleapis.com * cloudkms.googleapis.com * cloudresourcemanager.googleapis.com * cloudsql.googleapis.com * compute.googleapis.com * dataflow.googleapis.com * dataproc.googleapis.com * dlp.googleapis.com * iam.googleapis.com * logging.googleapis.com * orgpolicy.googleapis.com * pubsub.googleapis.com * spanner.googleapis.com * secretmanager.googleapis.com * speakerid.googleapis.com * storage.googleapis.com Calls to UpdateAccessApprovalSettings using ''all'' or any of the XXX.googleapis.com will be translated to the associated product name (''all'', ''App Engine'', etc.). Note: ''all'' will enroll the resource in all products supported at both ''GA'' and ''Preview'' levels. More information about levels of support is available at https://cloud.google.com/access-approval/docs/supported-services
+    #[serde(default, rename = "cloudProduct")]
+    pub cloud_product: ::core::option::Option<String>,
+    /// The enrollment level of the service. // TODO: enum values: ["ENROLLMENT_LEVEL_UNSPECIFIED", "BLOCK_ALL"]
+    #[serde(default, rename = "enrollmentLevel")]
+    pub enrollment_level: ::core::option::Option<String>,
+}
+
+/// Represents all the policies that can be set for Customer Approval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerApprovalApprovalPolicy {
+    /// Optional. Policy for approval based on the justification given. // TODO: enum values: ["JUSTIFICATION_BASED_APPROVAL_POLICY_UNSPECIFIED", "JUSTIFICATION_BASED_APPROVAL_ENABLED_ALL", "JUSTIFICATION_BASED_APPROVAL_ENABLED_EXTERNAL_JUSTIFICATIONS", "JUSTIFICATION_BASED_APPROVAL_NOT_ENABLED", "JUSTIFICATION_BASED_APPROVAL_INHERITED"]
+    #[serde(default, rename = "justificationBasedApprovalPolicy")]
+    pub justification_based_approval_policy: ::core::option::Option<String>,
 }
 
 /// A request for the customer to approve access to a resource.
@@ -131,14 +147,6 @@ pub struct ApprovalRequest {
     pub requested_resource_properties: ::core::option::Option<ResourceProperties>,
 }
 
-/// Request to approve an ApprovalRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApproveApprovalRequestMessage {
-    /// The expiration time of this approval.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-}
-
 /// A decision that has been made to approve access to a resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApproveDecision {
@@ -162,22 +170,6 @@ pub struct ApproveDecision {
     pub signature_info: ::core::option::Option<SignatureInfo>,
 }
 
-/// This field contains the augmented information of the request. Requires augmented administrative access to be enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AugmentedInfo {
-    /// For command-line tools, the full command-line exactly as entered by the actor without adding any additional characters (such as quotation marks).
-    #[serde(default)]
-    pub command: ::core::option::Option<String>,
-}
-
-/// Represents all the policies that can be set for Customer Approval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerApprovalApprovalPolicy {
-    /// Optional. Policy for approval based on the justification given. // TODO: enum values: ["JUSTIFICATION_BASED_APPROVAL_POLICY_UNSPECIFIED", "JUSTIFICATION_BASED_APPROVAL_ENABLED_ALL", "JUSTIFICATION_BASED_APPROVAL_ENABLED_EXTERNAL_JUSTIFICATIONS", "JUSTIFICATION_BASED_APPROVAL_NOT_ENABLED", "JUSTIFICATION_BASED_APPROVAL_INHERITED"]
-    #[serde(default, rename = "justificationBasedApprovalPolicy")]
-    pub justification_based_approval_policy: ::core::option::Option<String>,
-}
-
 /// A decision that has been made to dismiss an approval request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DismissDecision {
@@ -189,26 +181,34 @@ pub struct DismissDecision {
     pub implicit: ::core::option::Option<bool>,
 }
 
-/// Represents the enrollment of a cloud resource into a specific service.
+/// This field contains the augmented information of the request. Requires augmented administrative access to be enabled.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnrolledService {
-    /// The product for which Access Approval will be enrolled. Allowed values are listed below (case-sensitive): * all * GA * Access Context Manager * Anthos Identity Service * AlloyDB for PostgreSQL * Apigee * Application Integration * App Hub * Artifact Registry * Anthos Service Mesh * Access Transparency * BigQuery * Certificate Authority Service * Cloud Bigtable * CCAI Assist and Knowledge * Cloud Dataflow * Cloud Dataproc * CEP Security Gateway * Compliance Evaluation Service * Cloud Firestore * Cloud Healthcare API * Chronicle * Cloud AI Companion Gateway - Titan * Google Cloud Armor * Cloud Asset Inventory * Cloud Asset Search * Cloud Deploy * Cloud DNS * Cloud Latency * Cloud Memorystore for Redis * CloudNet Control * Cloud Riptide * Cloud Tasks * Cloud Trace * Cloud Data Transfer * Cloud Composer * Integration Connectors * Contact Center AI Insights * Cloud Pub/Sub * Cloud Run * Resource Manager * Cloud Spanner * Database Center * Cloud Dataform * Cloud Data Fusion * Dataplex * Dialogflow Customer Experience Edition * Cloud DLP * Document AI * Edge Container * Edge Network * Cloud EKM * Eventarc * Firebase Data Connect * Firebase Rules * App Engine * Cloud Build * Compute Engine * Cloud Functions (2nd Gen) * Cloud Filestore * Cloud Interconnect * Cloud NetApp Volumes * Cloud Storage * Generative AI App Builder * Google Kubernetes Engine * Backup for GKE API * GKE Connect * GKE Hub * Hoverboard * Cloud HSM * Cloud Identity and Access Management * Cloud Identity-Aware Proxy * Infrastructure Manager * Identity Storage Service * Key Access Justifications * Cloud Key Management Service * Cloud Logging * Looker (Google Cloud core) * Looker Studio * Management Hub * Model Armor * Cloud Monitoring * Cloud NAT * Connectivity Hub * External passthrough Network Load Balancer * OIDC One * Organization Policy Service * Org Lifecycle * Persistent Disk * Parameter Manager * Private Services Access * Regional Internal Application Load Balancer * Storage Batch Operations * Cloud Security Command Center * Secure Source Manager * Seeker * Service Provisioning * Speaker ID * Secret Manager * Cloud SQL * Cloud Speech-to-Text * Traffic Director * Cloud Text-to-Speech * USPS Andromeda * Vertex AI * Virtual Private Cloud (VPC) * VPC Access * VPC Service Controls Troubleshooter * VPC virtnet * Cloud Workstations * Web Risk Note: These values are supported as input for legacy purposes, but will not be returned from the API. * all * ga-only * appengine.googleapis.com * artifactregistry.googleapis.com * bigquery.googleapis.com * bigtable.googleapis.com * container.googleapis.com * cloudkms.googleapis.com * cloudresourcemanager.googleapis.com * cloudsql.googleapis.com * compute.googleapis.com * dataflow.googleapis.com * dataproc.googleapis.com * dlp.googleapis.com * iam.googleapis.com * logging.googleapis.com * orgpolicy.googleapis.com * pubsub.googleapis.com * spanner.googleapis.com * secretmanager.googleapis.com * speakerid.googleapis.com * storage.googleapis.com Calls to UpdateAccessApprovalSettings using ''all'' or any of the XXX.googleapis.com will be translated to the associated product name (''all'', ''App Engine'', etc.). Note: ''all'' will enroll the resource in all products supported at both ''GA'' and ''Preview'' levels. More information about levels of support is available at https://cloud.google.com/access-approval/docs/supported-services
-    #[serde(default, rename = "cloudProduct")]
-    pub cloud_product: ::core::option::Option<String>,
-    /// The enrollment level of the service. // TODO: enum values: ["ENROLLMENT_LEVEL_UNSPECIFIED", "BLOCK_ALL"]
-    #[serde(default, rename = "enrollmentLevel")]
-    pub enrollment_level: ::core::option::Option<String>,
+pub struct AugmentedInfo {
+    /// For command-line tools, the full command-line exactly as entered by the actor without adding any additional characters (such as quotation marks).
+    #[serde(default)]
+    pub command: ::core::option::Option<String>,
 }
 
-/// Response to listing of ApprovalRequest objects.
+/// Physical assigned office and physical location of the Google administrator performing the access.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListApprovalRequestsResponse {
-    /// Approval request details.
-    #[serde(default, rename = "approvalRequests")]
-    pub approval_requests: ::core::option::Option<::std::vec::Vec<ApprovalRequest>>,
-    /// Token to retrieve the next page of results, or empty if there are no more.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+pub struct AccessLocations {
+    /// The "home office" location of the Google administrator. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
+    #[serde(default, rename = "principalOfficeCountry")]
+    pub principal_office_country: ::core::option::Option<String>,
+    /// Physical location of the Google administrator at the time of the access. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
+    #[serde(default, rename = "principalPhysicalLocationCountry")]
+    pub principal_physical_location_country: ::core::option::Option<String>,
+}
+
+/// AccessReason resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessReason {
+    /// More detail about certain reason types. See comments for each type above.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// Type of access reason. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The properties associated with the resource of the request.

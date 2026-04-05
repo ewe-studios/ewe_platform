@@ -23,6 +23,814 @@ pub struct AbuseReport {
     pub subject: ::core::option::Option<Entity>,
 }
 
+/// ActivityListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Activity>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#activityListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// CaptionListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CaptionListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of captions that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Caption>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#captionListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// A channel banner returned as the response to a channel_banner.insert call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelBannerResource {
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelBannerResource".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The URL of this banner image.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// ChannelListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Channel>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// ChannelSectionListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSectionListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of ChannelSections that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<ChannelSection>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelSectionListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// CommentListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of comments that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Comment>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// CommentThreadListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentThreadListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of comment threads that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<CommentThread>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentThreadListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// Note that there may be a 5-second end-point resolution issue. For instance, if a cuepoint comes in for 22:03:27, we may stuff the cuepoint into 22:03:25 or 22:03:30, depending. This is an artifact of HLS.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cuepoint {
+    /// TODO: enum values: ["cueTypeUnspecified", "cueTypeAd"]
+    #[serde(default, rename = "cueType")]
+    pub cue_type: ::core::option::Option<String>,
+    /// The duration of this cuepoint.
+    #[serde(default, rename = "durationSecs")]
+    pub duration_secs: ::core::option::Option<i64>,
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The identifier for cuepoint resource.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The time when the cuepoint should be inserted by offset to the broadcast actual start time.
+    #[serde(default, rename = "insertionOffsetTimeMs")]
+    pub insertion_offset_time_ms: ::core::option::Option<String>,
+    /// The wall clock time at which the cuepoint should be inserted. Only one of insertion_offset_time_ms and walltime_ms may be set at a time.
+    #[serde(default, rename = "walltimeMs")]
+    pub walltime_ms: ::core::option::Option<String>,
+}
+
+/// I18nLanguageListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nLanguageListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of supported i18n languages. In this map, the i18n language ID is the map key, and its value is the corresponding i18nLanguage resource.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<I18nLanguage>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nLanguageListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// I18nRegionListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nRegionListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of regions where YouTube is available. In this map, the i18n region ID is the map key, and its value is the corresponding i18nRegion resource.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<I18nRegion>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nRegionListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// Describes an invideo branding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvideoBranding {
+    /// The bytes the uploaded image. Only used in api to youtube communication.
+    #[serde(default, rename = "imageBytes")]
+    pub image_bytes: ::core::option::Option<String>,
+    /// The url of the uploaded image. Only used in apiary to api communication.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// The spatial position within the video where the branding watermark will be displayed.
+    #[serde(default)]
+    pub position: ::core::option::Option<InvideoPosition>,
+    /// The channel to which this branding links. If not present it defaults to the current channel.
+    #[serde(default, rename = "targetChannelId")]
+    pub target_channel_id: ::core::option::Option<String>,
+    /// The temporal position within the video where watermark will be displayed.
+    #[serde(default)]
+    pub timing: ::core::option::Option<InvideoTiming>,
+}
+
+/// LiveBroadcastListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of broadcasts that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<LiveBroadcast>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveBroadcastListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// A __liveChatBan__ resource represents a ban for a YouTube live chat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatBan {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the ban.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatBan".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the ban.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<LiveChatBanSnippet>,
+}
+
+/// LiveChatMessageListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessageListResponse {
+    /// Set when there is an active poll.
+    #[serde(default, rename = "activePollItem")]
+    pub active_poll_item: ::core::option::Option<LiveChatMessage>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<LiveChatMessage>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatMessageListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The date and time when the underlying stream went offline.
+    #[serde(default, rename = "offlineAt")]
+    pub offline_at: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The amount of time the client should wait before polling again.
+    #[serde(default, rename = "pollingIntervalMillis")]
+    pub polling_interval_millis: ::core::option::Option<i64>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// LiveChatModeratorListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatModeratorListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of moderators that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<LiveChatModerator>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatModeratorListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// LiveStreamListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of live streams that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<LiveStream>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveStreamListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// LocalizedString resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalizedString {
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// MemberListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of members that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Member>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#memberListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// MembershipsLevelListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsLevelListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of pricing levels offered by a creator to the fans.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<MembershipsLevel>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#membershipsLevelListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// PlaylistImageListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistImageListResponse {
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<PlaylistImage>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistImageListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+}
+
+/// PlaylistItemListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistItemListResponse {
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of playlist items that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<PlaylistItem>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistItemListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// PlaylistListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of playlists that match the request criteria
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Playlist>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// SearchListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Pagination information for token pagination.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<SearchResult>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#searchListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// SubscriptionListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of subscriptions that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Subscription>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#subscriptionListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// SuperChatEventListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperChatEventListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of Super Chat purchases that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<SuperChatEvent>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#superChatEventListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// TestItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestItem {
+    /// Etag for the resource. See https://en.wikipedia.org/wiki/HTTP_ETag.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    #[serde(default, rename = "featuredPart")]
+    pub featured_part: ::core::option::Option<bool>,
+    #[serde(default)]
+    pub gaia: ::core::option::Option<String>,
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub snippet: ::core::option::Option<serde_json::Value>,
+}
+
+/// ThirdPartyLinkListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyLinkListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<ThirdPartyLink>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thirdPartyLinkListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ThumbnailSetResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThumbnailSetResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of thumbnails.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<ThumbnailDetails>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thumbnailSetResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// VideoAbuseReport resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoAbuseReport {
+    /// Additional comments regarding the abuse report.
+    #[serde(default)]
+    pub comments: ::core::option::Option<String>,
+    /// The language that the content was viewed in.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The high-level, or primary, reason that the content is abusive. The value is an abuse report reason ID.
+    #[serde(default, rename = "reasonId")]
+    pub reason_id: ::core::option::Option<String>,
+    /// The specific, or secondary, reason that this content is abusive (if available). The value is an abuse report reason ID that is a valid secondary reason for the primary reason.
+    #[serde(default, rename = "secondaryReasonId")]
+    pub secondary_reason_id: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the video.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+}
+
+/// VideoAbuseReportReasonListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoAbuseReportReasonListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of valid abuse reasons that are used with video.ReportAbuse.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<VideoAbuseReportReason>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoAbuseReportReasonListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// VideoCategoryListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoCategoryListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of video categories that can be associated with YouTube videos. In this map, the video category ID is the map key, and its value is the corresponding videoCategory resource.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<VideoCategory>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoCategoryListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// VideoGetRatingResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoGetRatingResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// A list of ratings that match the request criteria.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<VideoRating>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoGetRatingResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// VideoListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoListResponse {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Serialized EventId of the request which produced this response.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Video>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
+    #[serde(default, rename = "prevPageToken")]
+    pub prev_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    /// The visitorId identifies the visitor.
+    #[serde(default, rename = "visitorId")]
+    pub visitor_id: ::core::option::Option<String>,
+}
+
+/// Specifies who is allowed to train on the video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoTrainability {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoTrainability".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Specifies who is allowed to train on the video. Valid values are: - a single string "all" - a single string "none" - a list of allowed parties
+    #[serde(default)]
+    pub permitted: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The ID of the video.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+}
+
 /// AbuseType resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AbuseType {
@@ -30,15 +838,11 @@ pub struct AbuseType {
     pub id: ::core::option::Option<String>,
 }
 
-/// Rights management policy for YouTube resources.
+/// RelatedEntity resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessPolicy {
-    /// The value of allowed indicates whether the access to the policy is allowed or denied by default.
+pub struct RelatedEntity {
     #[serde(default)]
-    pub allowed: ::core::option::Option<bool>,
-    /// A list of region codes that identify countries where the default policy do not apply.
-    #[serde(default)]
-    pub exception: ::core::option::Option<::std::vec::Vec<String>>,
+    pub entity: ::core::option::Option<Entity>,
 }
 
 /// An *activity* resource contains information about an action that a particular channel, or user, has taken on YouTube.The actions reported in activity feeds include rating a video, sharing a video, marking a video as a favorite, commenting on a video, uploading a video, and so forth. Each activity resource identifies the type of action, the channel associated with the action, and the resource(s) associated with the action, such as the video that was rated or uploaded.
@@ -59,6 +863,581 @@ pub struct Activity {
     /// The snippet object contains basic details about the activity, including the activity''s type and group ID.
     #[serde(default)]
     pub snippet: ::core::option::Option<ActivitySnippet>,
+}
+
+/// A *caption* resource represents a YouTube caption track. A caption track is associated with exactly one YouTube video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Caption {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the caption track.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#caption".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the caption.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<CaptionSnippet>,
+}
+
+/// A *channel* resource contains information about a YouTube channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Channel {
+    /// The auditionDetails object encapsulates channel data that is relevant for YouTube Partners during the audition process.
+    #[serde(default, rename = "auditDetails")]
+    pub audit_details: ::core::option::Option<ChannelAuditDetails>,
+    /// The brandingSettings object encapsulates information about the branding of the channel.
+    #[serde(default, rename = "brandingSettings")]
+    pub branding_settings: ::core::option::Option<ChannelBrandingSettings>,
+    /// The contentDetails object encapsulates information about the channel''s content.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<ChannelContentDetails>,
+    /// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
+    #[serde(default, rename = "contentOwnerDetails")]
+    pub content_owner_details: ::core::option::Option<ChannelContentOwnerDetails>,
+    /// The conversionPings object encapsulates information about conversion pings that need to be respected by the channel.
+    #[serde(default, rename = "conversionPings")]
+    pub conversion_pings: ::core::option::Option<ChannelConversionPings>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the channel.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channel".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localizations for different languages
+    #[serde(default)]
+    pub localizations: ::core::option::Option<serde_json::Value>,
+    /// The snippet object contains basic details about the channel, such as its title, description, and thumbnail images.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<ChannelSnippet>,
+    /// The statistics object encapsulates statistics for the channel.
+    #[serde(default)]
+    pub statistics: ::core::option::Option<ChannelStatistics>,
+    /// The status object encapsulates information about the privacy status of the channel.
+    #[serde(default)]
+    pub status: ::core::option::Option<ChannelStatus>,
+    /// The topicDetails object encapsulates information about Freebase topics associated with the channel.
+    #[serde(default, rename = "topicDetails")]
+    pub topic_details: ::core::option::Option<ChannelTopicDetails>,
+}
+
+/// ChannelSection resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSection {
+    /// The contentDetails object contains details about the channel section content, such as a list of playlists or channels featured in the section.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<ChannelSectionContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the channel section.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelSection".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localizations for different languages
+    #[serde(default)]
+    pub localizations: ::core::option::Option<serde_json::Value>,
+    /// The snippet object contains basic details about the channel section, such as its type, style and title.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<ChannelSectionSnippet>,
+    /// The targeting object contains basic targeting settings about the channel section.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<ChannelSectionTargeting>,
+}
+
+/// A *comment thread* represents information that applies to a top level comment and all its replies. It can also include the top level comment itself and some of the replies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentThread {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the comment thread.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentThread".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The replies object contains a limited number of replies (if any) to the top level comment found in the snippet.
+    #[serde(default)]
+    pub replies: ::core::option::Option<CommentThreadReplies>,
+    /// The snippet object contains basic details about the comment thread and also the top level comment.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<CommentThreadSnippet>,
+}
+
+/// An *i18nLanguage* resource identifies a UI language currently supported by YouTube.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nLanguage {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the i18n language.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nLanguage".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the i18n language, such as language code and human-readable name.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<I18nLanguageSnippet>,
+}
+
+/// A *i18nRegion* resource identifies a region where YouTube is available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nRegion {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the i18n region.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nRegion".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the i18n region, such as region code and human-readable name.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<I18nRegionSnippet>,
+}
+
+/// Describes the spatial position of a visual widget inside a video. It is a union of various position types, out of which only will be set one.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvideoPosition {
+    /// Describes in which corner of the video the visual widget will appear. // TODO: enum values: ["topLeft", "topRight", "bottomLeft", "bottomRight"]
+    #[serde(default, rename = "cornerPosition")]
+    pub corner_position: ::core::option::Option<String>,
+    /// Defines the position type. // TODO: enum values: ["corner"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Describes a temporal position of a visual widget inside a video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvideoTiming {
+    /// Defines the duration in milliseconds for which the promotion should be displayed. If missing, the client should use the default.
+    #[serde(default, rename = "durationMs")]
+    pub duration_ms: ::core::option::Option<String>,
+    /// Defines the time at which the promotion will appear. Depending on the value of type the value of the offsetMs field will represent a time offset from the start or from the end of the video, expressed in milliseconds.
+    #[serde(default, rename = "offsetMs")]
+    pub offset_ms: ::core::option::Option<String>,
+    /// Describes a timing type. If the value is offsetFromStart, then the offsetMs field represents an offset from the start of the video. If the value is offsetFromEnd, then the offsetMs field represents an offset from the end of the video. // TODO: enum values: ["offsetFromStart", "offsetFromEnd"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A *liveBroadcast* resource represents an event that will be streamed, via live video, on YouTube.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcast {
+    /// The contentDetails object contains information about the event''s video content, such as whether the content can be shown in an embedded video player or if it will be archived and therefore available for viewing after the event has concluded.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<LiveBroadcastContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the broadcast.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveBroadcast".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The monetizationDetails object contains information about the event''s monetization details.
+    #[serde(default, rename = "monetizationDetails")]
+    pub monetization_details: ::core::option::Option<LiveBroadcastMonetizationDetails>,
+    /// The snippet object contains basic details about the event, including its title, description, start time, and end time.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<LiveBroadcastSnippet>,
+    /// The statistics object contains info about the event''s current stats. These include concurrent viewers and total chat count. Statistics can change (in either direction) during the lifetime of an event. Statistics are only returned while the event is live.
+    #[serde(default)]
+    pub statistics: ::core::option::Option<LiveBroadcastStatistics>,
+    /// The status object contains information about the event''s status.
+    #[serde(default)]
+    pub status: ::core::option::Option<LiveBroadcastStatus>,
+}
+
+/// LiveChatBanSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatBanSnippet {
+    /// The duration of a ban, only filled if the ban has type TEMPORARY.
+    #[serde(default, rename = "banDurationSeconds")]
+    pub ban_duration_seconds: ::core::option::Option<String>,
+    #[serde(default, rename = "bannedUserDetails")]
+    pub banned_user_details: ::core::option::Option<ChannelProfileDetails>,
+    /// The chat this ban is pertinent to.
+    #[serde(default, rename = "liveChatId")]
+    pub live_chat_id: ::core::option::Option<String>,
+    /// The type of ban. // TODO: enum values: ["liveChatBanTypeUnspecified", "permanent", "temporary"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A *liveChatMessage* resource represents a chat message in a YouTube Live Chat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessage {
+    /// The authorDetails object contains basic details about the user that posted this message.
+    #[serde(default, rename = "authorDetails")]
+    pub author_details: ::core::option::Option<LiveChatMessageAuthorDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the message.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatMessage".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the message.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<LiveChatMessageSnippet>,
+}
+
+/// A *liveChatModerator* resource represents a moderator for a YouTube live chat. A chat moderator has the ability to ban/unban users from a chat, remove message, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatModerator {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the moderator.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatModerator".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the moderator.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<LiveChatModeratorSnippet>,
+}
+
+/// A live stream describes a live ingestion point.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStream {
+    /// The cdn object defines the live stream''s content delivery network (CDN) settings. These settings provide details about the manner in which you stream your content to YouTube.
+    #[serde(default)]
+    pub cdn: ::core::option::Option<CdnSettings>,
+    /// The content_details object contains information about the stream, including the closed captions ingestion URL.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<LiveStreamContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the stream.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveStream".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the stream, including its channel, title, and description.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<LiveStreamSnippet>,
+    /// The status object contains information about live stream''s status.
+    #[serde(default)]
+    pub status: ::core::option::Option<LiveStreamStatus>,
+}
+
+/// A *member* resource represents a member for a YouTube channel. A member provides recurring monetary support to a creator and receives special benefits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Member {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#member".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the member.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<MemberSnippet>,
+}
+
+/// A *membershipsLevel* resource represents an offer made by YouTube creators for their fans. Users can become members of the channel by joining one of the available levels. They will provide recurring monetary support and receives special benefits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsLevel {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the memberships level.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#membershipsLevelListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the level.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<MembershipsLevelSnippet>,
+}
+
+/// PlaylistImage resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistImage {
+    /// Identifies this resource (playlist id and image type).
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistImages".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    #[serde(default)]
+    pub snippet: ::core::option::Option<PlaylistImageSnippet>,
+}
+
+/// A *playlistItem* resource identifies another resource, such as a video, that is included in a playlist. In addition, the playlistItem resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods. For example, if a user gives a positive rating to a video, you would insert that video into the liked videos playlist for that user''s channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistItem {
+    /// The contentDetails object is included in the resource if the included item is a YouTube video. The object contains additional information about the video.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<PlaylistItemContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the playlist item.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistItem".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the playlist item, such as its title and position in the playlist.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<PlaylistItemSnippet>,
+    /// The status object contains information about the playlist item''s privacy status.
+    #[serde(default)]
+    pub status: ::core::option::Option<PlaylistItemStatus>,
+}
+
+/// A *playlist* resource represents a YouTube playlist. A playlist is a collection of videos that can be viewed sequentially and shared with other users. A playlist can contain up to 200 videos, and YouTube does not limit the number of playlists that each user creates. By default, playlists are publicly visible to other users, but playlists can be public or private. YouTube also uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Playlist {
+    /// The contentDetails object contains information like video count.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<PlaylistContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the playlist.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlist".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localizations for different languages
+    #[serde(default)]
+    pub localizations: ::core::option::Option<serde_json::Value>,
+    /// The player object contains information that you would use to play the playlist in an embedded player.
+    #[serde(default)]
+    pub player: ::core::option::Option<PlaylistPlayer>,
+    /// The snippet object contains basic details about the playlist, such as its title and description.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<PlaylistSnippet>,
+    /// The status object contains status information for the playlist.
+    #[serde(default)]
+    pub status: ::core::option::Option<PlaylistStatus>,
+}
+
+/// A search result contains information about a YouTube video, channel, or playlist that matches the search parameters specified in an API request. While a search result points to a uniquely identifiable resource, like a video, it does not have its own persistent data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResult {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The id object contains information that can be used to uniquely identify the resource that matches the search request.
+    #[serde(default)]
+    pub id: ::core::option::Option<ResourceId>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#searchResult".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about a search result, such as its title or description. For example, if the search result is a video, then the title will be the video''s title and the description will be the video''s description.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<SearchResultSnippet>,
+}
+
+/// A *subscription* resource contains information about a YouTube user subscription. A subscription notifies a user when new videos are added to a channel or when another user takes one of several actions on YouTube, such as uploading a video, rating a video, or commenting on a video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subscription {
+    /// The contentDetails object contains basic statistics about the subscription.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<SubscriptionContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the subscription.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#subscription".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the subscription, including its title and the channel that the user subscribed to.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<SubscriptionSnippet>,
+    /// The subscriberSnippet object contains basic details about the subscriber.
+    #[serde(default, rename = "subscriberSnippet")]
+    pub subscriber_snippet: ::core::option::Option<SubscriptionSubscriberSnippet>,
+}
+
+/// A __superChatEvent__ resource represents a Super Chat purchase on a YouTube channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperChatEvent {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube assigns to uniquely identify the Super Chat event.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#superChatEvent".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the Super Chat event.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<SuperChatEventSnippet>,
+}
+
+/// A *third party account link* resource represents a link between a YouTube account or a channel and an account on a third-party service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyLink {
+    /// Etag of this resource
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thirdPartyLink".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The linking_token identifies a YouTube account and channel with which the third party account is linked.
+    #[serde(default, rename = "linkingToken")]
+    pub linking_token: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the third- party account link.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<ThirdPartyLinkSnippet>,
+    /// The status object contains information about the status of the link.
+    #[serde(default)]
+    pub status: ::core::option::Option<ThirdPartyLinkStatus>,
+}
+
+/// A __videoAbuseReportReason__ resource identifies a reason that a video could be reported as abusive. Video abuse report reasons are used with video.ReportAbuse.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoAbuseReportReason {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID of this abuse report reason.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoAbuseReportReason".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the abuse report reason.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<VideoAbuseReportReasonSnippet>,
+}
+
+/// A *videoCategory* resource identifies a category that has been or could be associated with uploaded videos.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoCategory {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the video category.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoCategory".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the video category, including its title.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<VideoCategorySnippet>,
+}
+
+/// Basic details about rating of a video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoRating {
+    /// Rating of a video. // TODO: enum values: ["none", "like", "dislike"]
+    #[serde(default)]
+    pub rating: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the video.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+}
+
+/// A *video* resource represents a YouTube video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Video {
+    /// Age restriction details related to a video. This data can only be retrieved by the video owner.
+    #[serde(default, rename = "ageGating")]
+    pub age_gating: ::core::option::Option<VideoAgeGating>,
+    /// The contentDetails object contains information about the video content, including the length of the video and its aspect ratio.
+    #[serde(default, rename = "contentDetails")]
+    pub content_details: ::core::option::Option<VideoContentDetails>,
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The fileDetails object encapsulates information about the video file that was uploaded to YouTube, including the file''s resolution, duration, audio and video codecs, stream bitrates, and more. This data can only be retrieved by the video owner.
+    #[serde(default, rename = "fileDetails")]
+    pub file_details: ::core::option::Option<VideoFileDetails>,
+    /// The ID that YouTube uses to uniquely identify the video.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#video".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The liveStreamingDetails object contains metadata about a live video broadcast. The object will only be present in a video resource if the video is an upcoming, live, or completed live broadcast.
+    #[serde(default, rename = "liveStreamingDetails")]
+    pub live_streaming_details: ::core::option::Option<VideoLiveStreamingDetails>,
+    /// The localizations object contains localized versions of the basic details about the video, such as its title and description.
+    #[serde(default)]
+    pub localizations: ::core::option::Option<serde_json::Value>,
+    /// The monetizationDetails object encapsulates information about the monetization status of the video.
+    #[serde(default, rename = "monetizationDetails")]
+    pub monetization_details: ::core::option::Option<VideoMonetizationDetails>,
+    #[serde(default, rename = "paidProductPlacementDetails")]
+    pub paid_product_placement_details: ::core::option::Option<VideoPaidProductPlacementDetails>,
+    /// The player object contains information that you would use to play the video in an embedded player.
+    #[serde(default)]
+    pub player: ::core::option::Option<VideoPlayer>,
+    /// The processingDetails object encapsulates information about YouTube''s progress in processing the uploaded video file. The properties in the object identify the current processing status and an estimate of the time remaining until YouTube finishes processing the video. This part also indicates whether different types of data or content, such as file details or thumbnail images, are available for the video. The processingProgress object is designed to be polled so that the video uploaded can track the progress that YouTube has made in processing the uploaded video file. This data can only be retrieved by the video owner.
+    #[serde(default, rename = "processingDetails")]
+    pub processing_details: ::core::option::Option<VideoProcessingDetails>,
+    /// The projectDetails object contains information about the project specific video metadata. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
+    #[serde(default, rename = "projectDetails")]
+    pub project_details: ::core::option::Option<serde_json::Value>,
+    /// The recordingDetails object encapsulates information about the location, date and address where the video was recorded.
+    #[serde(default, rename = "recordingDetails")]
+    pub recording_details: ::core::option::Option<VideoRecordingDetails>,
+    /// The snippet object contains basic details about the video, such as its title, description, and category.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<VideoSnippet>,
+    /// The statistics object contains statistics about the video.
+    #[serde(default)]
+    pub statistics: ::core::option::Option<VideoStatistics>,
+    /// The status object contains information about the video''s uploading, processing, and privacy statuses.
+    #[serde(default)]
+    pub status: ::core::option::Option<VideoStatus>,
+    /// The suggestions object encapsulates suggestions that identify opportunities to improve the video quality or the metadata for the uploaded video. This data can only be retrieved by the video owner.
+    #[serde(default)]
+    pub suggestions: ::core::option::Option<VideoSuggestions>,
+    /// The topicDetails object encapsulates information about Freebase topics associated with the video.
+    #[serde(default, rename = "topicDetails")]
+    pub topic_details: ::core::option::Option<VideoTopicDetails>,
+}
+
+/// Paging details for lists of resources, including total number of items available and number of resources returned in a single page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PageInfo {
+    /// The number of results included in the API response.
+    #[serde(default, rename = "resultsPerPage")]
+    pub results_per_page: ::core::option::Option<i32>,
+    /// The total number of results in the result set.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+}
+
+/// Entity resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    #[serde(default, rename = "typeId")]
+    pub type_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
 }
 
 /// Details about the content of an activity: the video that was shared, the channel that was subscribed to, etc.
@@ -97,6 +1476,1244 @@ pub struct ActivityContentDetails {
     /// The upload object contains information about the uploaded video. This property is only present if the snippet.type is upload.
     #[serde(default)]
     pub upload: ::core::option::Option<ActivityContentDetailsUpload>,
+}
+
+/// Basic details about an activity, including title, description, thumbnails, activity type and group. Next ID: 12
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivitySnippet {
+    /// The ID that YouTube uses to uniquely identify the channel associated with the activity.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// Channel title for the channel responsible for this activity
+    #[serde(default, rename = "channelTitle")]
+    pub channel_title: ::core::option::Option<String>,
+    /// The description of the resource primarily associated with the activity. @mutable youtube.activities.insert
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The group ID associated with the activity. A group ID identifies user events that are associated with the same user and resource. For example, if a user rates a video and marks the same video as a favorite, the entries for those events would have the same group ID in the user''s activity feed. In your user interface, you can avoid repetition by grouping events with the same groupId value.
+    #[serde(default, rename = "groupId")]
+    pub group_id: ::core::option::Option<String>,
+    /// The date and time that the video was uploaded.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// A map of thumbnail images associated with the resource that is primarily associated with the activity. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The title of the resource primarily associated with the activity.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The type of activity that the resource describes. // TODO: enum values: ["typeUnspecified", "upload", "like", "favorite", "comment", "subscription", "playlistItem", "recommendation", "bulletin", "social", "channelItem", "promotedItem"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Basic details about a caption track, such as its language and name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CaptionSnippet {
+    /// The type of audio track associated with the caption track. // TODO: enum values: ["unknown", "primary", "commentary", "descriptive"]
+    #[serde(default, rename = "audioTrackType")]
+    pub audio_track_type: ::core::option::Option<String>,
+    /// The reason that YouTube failed to process the caption track. This property is only present if the state property''s value is failed. // TODO: enum values: ["unknownFormat", "unsupportedFormat", "processingFailed"]
+    #[serde(default, rename = "failureReason")]
+    pub failure_reason: ::core::option::Option<String>,
+    /// Indicates whether YouTube synchronized the caption track to the audio track in the video. The value will be true if a sync was explicitly requested when the caption track was uploaded. For example, when calling the captions.insert or captions.update methods, you can set the sync parameter to true to instruct YouTube to sync the uploaded track to the video. If the value is false, YouTube uses the time codes in the uploaded caption track to determine when to display captions.
+    #[serde(default, rename = "isAutoSynced")]
+    pub is_auto_synced: ::core::option::Option<bool>,
+    /// Indicates whether the track contains closed captions for the deaf and hard of hearing. The default value is false.
+    #[serde(default, rename = "isCC")]
+    pub is_c_c: ::core::option::Option<bool>,
+    /// Indicates whether the caption track is a draft. If the value is true, then the track is not publicly visible. The default value is false. @mutable youtube.captions.insert youtube.captions.update
+    #[serde(default, rename = "isDraft")]
+    pub is_draft: ::core::option::Option<bool>,
+    /// Indicates whether caption track is formatted for "easy reader," meaning it is at a third-grade level for language learners. The default value is false.
+    #[serde(default, rename = "isEasyReader")]
+    pub is_easy_reader: ::core::option::Option<bool>,
+    /// Indicates whether the caption track uses large text for the vision-impaired. The default value is false.
+    #[serde(default, rename = "isLarge")]
+    pub is_large: ::core::option::Option<bool>,
+    /// The language of the caption track. The property value is a BCP-47 language tag.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The date and time when the caption track was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// The name of the caption track. The name is intended to be visible to the user as an option during playback.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The caption track''s status. // TODO: enum values: ["serving", "syncing", "failed"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The caption track''s type. // TODO: enum values: ["standard", "ASR", "forced"]
+    #[serde(default, rename = "trackKind")]
+    pub track_kind: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the video associated with the caption track. @mutable youtube.captions.insert
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+}
+
+/// The auditDetails object encapsulates channel data that is relevant for YouTube Partners during the audit process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelAuditDetails {
+    /// Whether or not the channel respects the community guidelines.
+    #[serde(default, rename = "communityGuidelinesGoodStanding")]
+    pub community_guidelines_good_standing: ::core::option::Option<bool>,
+    /// Whether or not the channel has any unresolved claims.
+    #[serde(default, rename = "contentIdClaimsGoodStanding")]
+    pub content_id_claims_good_standing: ::core::option::Option<bool>,
+    /// Whether or not the channel has any copyright strikes.
+    #[serde(default, rename = "copyrightStrikesGoodStanding")]
+    pub copyright_strikes_good_standing: ::core::option::Option<bool>,
+}
+
+/// Branding properties of a YouTube channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelBrandingSettings {
+    /// Branding properties for the channel view.
+    #[serde(default)]
+    pub channel: ::core::option::Option<ChannelSettings>,
+    /// Additional experimental branding properties.
+    #[serde(default)]
+    pub hints: ::core::option::Option<::std::vec::Vec<PropertyValue>>,
+    /// Branding properties for branding images.
+    #[serde(default)]
+    pub image: ::core::option::Option<ImageSettings>,
+    /// Branding properties for the watch page.
+    #[serde(default)]
+    pub watch: ::core::option::Option<WatchSettings>,
+}
+
+/// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelContentOwnerDetails {
+    /// The ID of the content owner linked to the channel.
+    #[serde(default, rename = "contentOwner")]
+    pub content_owner: ::core::option::Option<String>,
+    /// The date and time when the channel was linked to the content owner.
+    #[serde(default, rename = "timeLinked")]
+    pub time_linked: ::core::option::Option<String>,
+}
+
+/// The conversionPings object encapsulates information about conversion pings that need to be respected by the channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelConversionPings {
+    /// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
+    #[serde(default)]
+    pub pings: ::core::option::Option<::std::vec::Vec<ChannelConversionPing>>,
+}
+
+/// Basic details about a channel, including title, description and thumbnails.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSnippet {
+    /// The country of the channel.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The custom url of the channel.
+    #[serde(default, rename = "customUrl")]
+    pub custom_url: ::core::option::Option<String>,
+    /// The language of the channel''s default title and description.
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<String>,
+    /// The description of the channel.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Localized title and description, read-only.
+    #[serde(default)]
+    pub localized: ::core::option::Option<ChannelLocalization>,
+    /// The date and time that the channel was created.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The channel''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Statistics about a channel: number of subscribers, number of videos in the channel, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelStatistics {
+    /// The number of comments for the channel.
+    #[serde(default, rename = "commentCount")]
+    pub comment_count: ::core::option::Option<String>,
+    /// Whether or not the number of subscribers is shown for this user.
+    #[serde(default, rename = "hiddenSubscriberCount")]
+    pub hidden_subscriber_count: ::core::option::Option<bool>,
+    /// The number of subscribers that the channel has.
+    #[serde(default, rename = "subscriberCount")]
+    pub subscriber_count: ::core::option::Option<String>,
+    /// The number of videos uploaded to the channel.
+    #[serde(default, rename = "videoCount")]
+    pub video_count: ::core::option::Option<String>,
+    /// The number of times the channel has been viewed.
+    #[serde(default, rename = "viewCount")]
+    pub view_count: ::core::option::Option<String>,
+}
+
+/// JSON template for the status part of a channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelStatus {
+    /// Whether the channel is considered ypp monetization enabled. See go/yppornot for more details.
+    #[serde(default, rename = "isChannelMonetizationEnabled")]
+    pub is_channel_monetization_enabled: ::core::option::Option<bool>,
+    /// If true, then the user is linked to either a YouTube username or G+ account. Otherwise, the user doesn''t have a public YouTube identity.
+    #[serde(default, rename = "isLinked")]
+    pub is_linked: ::core::option::Option<bool>,
+    /// The long uploads status of this channel. See https://support.google.com/youtube/answer/71673 for more information. // TODO: enum values: ["longUploadsUnspecified", "allowed", "eligible", "disallowed"]
+    #[serde(default, rename = "longUploadsStatus")]
+    pub long_uploads_status: ::core::option::Option<String>,
+    #[serde(default, rename = "madeForKids")]
+    pub made_for_kids: ::core::option::Option<bool>,
+    /// Privacy status of the channel. // TODO: enum values: ["public", "unlisted", "private"]
+    #[serde(default, rename = "privacyStatus")]
+    pub privacy_status: ::core::option::Option<String>,
+    #[serde(default, rename = "selfDeclaredMadeForKids")]
+    pub self_declared_made_for_kids: ::core::option::Option<bool>,
+}
+
+/// Freebase topic information related to the channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelTopicDetails {
+    /// A list of Wikipedia URLs that describe the channel''s content.
+    #[serde(default, rename = "topicCategories")]
+    pub topic_categories: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.
+    #[serde(default, rename = "topicIds")]
+    pub topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Details about a channelsection, including playlists and channels.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSectionContentDetails {
+    /// The channel ids for type multiple_channels.
+    #[serde(default)]
+    pub channels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The playlist ids for type single_playlist and multiple_playlists. For singlePlaylist, only one playlistId is allowed.
+    #[serde(default)]
+    pub playlists: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Basic details about a channel section, including title, style and position.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSectionSnippet {
+    /// The ID that YouTube uses to uniquely identify the channel that published the channel section.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The language of the channel section''s default title and description.
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<String>,
+    /// Localized title, read-only.
+    #[serde(default)]
+    pub localized: ::core::option::Option<ChannelSectionLocalization>,
+    /// The position of the channel section in the channel.
+    #[serde(default)]
+    pub position: ::core::option::Option<i64>,
+    /// The style of the channel section. // TODO: enum values: ["channelsectionStyleUnspecified", "horizontalRow", "verticalList"]
+    #[serde(default)]
+    pub style: ::core::option::Option<String>,
+    /// The channel section''s title for multiple_playlists and multiple_channels.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The type of the channel section. // TODO: enum values: ["channelsectionTypeUndefined", "singlePlaylist", "multiplePlaylists", "popularUploads", "recentUploads", "likes", "allPlaylists", "likedPlaylists", "recentPosts", "recentActivity", "liveEvents", "upcomingEvents", "completedEvents", "multipleChannels", "postedVideos", "postedPlaylists", "subscriptions"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// ChannelSection targeting setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelSectionTargeting {
+    /// The country the channel section is targeting.
+    #[serde(default)]
+    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The language the channel section is targeting.
+    #[serde(default)]
+    pub languages: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The region the channel section is targeting.
+    #[serde(default)]
+    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Comments written in (direct or indirect) reply to the top level comment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentThreadReplies {
+    /// A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.
+    #[serde(default)]
+    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
+}
+
+/// Basic details about a comment thread.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentThreadSnippet {
+    /// Whether the current viewer of the thread can reply to it. This is viewer specific - other viewers may see a different value for this field.
+    #[serde(default, rename = "canReply")]
+    pub can_reply: ::core::option::Option<bool>,
+    /// The YouTube channel the comments in the thread refer to or the channel with the video the comments refer to. If neither video_id nor post_id is set the comments refer to the channel itself.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// Whether the thread (and therefore all its comments) is visible to all YouTube users.
+    #[serde(default, rename = "isPublic")]
+    pub is_public: ::core::option::Option<bool>,
+    /// The ID of the post the comments refer to, if any.
+    #[serde(default, rename = "postId")]
+    pub post_id: ::core::option::Option<String>,
+    /// The top level comment of this thread.
+    #[serde(default, rename = "topLevelComment")]
+    pub top_level_comment: ::core::option::Option<Comment>,
+    /// The total number of replies (not including the top level comment).
+    #[serde(default, rename = "totalReplyCount")]
+    pub total_reply_count: ::core::option::Option<i64>,
+    /// The ID of the video the comments refer to, if any.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+}
+
+/// Basic details about an i18n language, such as language code and human-readable name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nLanguageSnippet {
+    /// A short BCP-47 code that uniquely identifies a language.
+    #[serde(default)]
+    pub hl: ::core::option::Option<String>,
+    /// The human-readable name of the language in the language itself.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Basic details about an i18n region, such as region code and human-readable name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18nRegionSnippet {
+    /// The region code as a 2-letter ISO country code.
+    #[serde(default)]
+    pub gl: ::core::option::Option<String>,
+    /// The human-readable name of the region.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Detailed settings of a broadcast.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastContentDetails {
+    /// This value uniquely identifies the live stream bound to the broadcast.
+    #[serde(default, rename = "boundStreamId")]
+    pub bound_stream_id: ::core::option::Option<String>,
+    /// The date and time that the live stream referenced by boundStreamId was last updated.
+    #[serde(default, rename = "boundStreamLastUpdateTimeMs")]
+    pub bound_stream_last_update_time_ms: ::core::option::Option<String>,
+    /// TODO: enum values: ["closedCaptionsTypeUnspecified", "closedCaptionsDisabled", "closedCaptionsHttpPost", "closedCaptionsEmbedded"]
+    #[serde(default, rename = "closedCaptionsType")]
+    pub closed_captions_type: ::core::option::Option<String>,
+    /// This setting indicates whether auto start is enabled for this broadcast. The default value for this property is false. This setting can only be used by Events.
+    #[serde(default, rename = "enableAutoStart")]
+    pub enable_auto_start: ::core::option::Option<bool>,
+    /// This setting indicates whether auto stop is enabled for this broadcast. The default value for this property is false. This setting can only be used by Events.
+    #[serde(default, rename = "enableAutoStop")]
+    pub enable_auto_stop: ::core::option::Option<bool>,
+    /// This setting indicates whether HTTP POST closed captioning is enabled for this broadcast. The ingestion URL of the closed captions is returned through the liveStreams API. This is mutually exclusive with using the closed_captions_type property, and is equivalent to setting closed_captions_type to CLOSED_CAPTIONS_HTTP_POST.
+    #[serde(default, rename = "enableClosedCaptions")]
+    pub enable_closed_captions: ::core::option::Option<bool>,
+    /// This setting indicates whether YouTube should enable content encryption for the broadcast.
+    #[serde(default, rename = "enableContentEncryption")]
+    pub enable_content_encryption: ::core::option::Option<bool>,
+    /// This setting determines whether viewers can access DVR controls while watching the video. DVR controls enable the viewer to control the video playback experience by pausing, rewinding, or fast forwarding content. The default value for this property is true. *Important:* You must set the value to true and also set the enableArchive property''s value to true if you want to make playback available immediately after the broadcast ends.
+    #[serde(default, rename = "enableDvr")]
+    pub enable_dvr: ::core::option::Option<bool>,
+    /// This setting indicates whether the broadcast video can be played in an embedded player. If you choose to archive the video (using the enableArchive property), this setting will also apply to the archived video.
+    #[serde(default, rename = "enableEmbed")]
+    pub enable_embed: ::core::option::Option<bool>,
+    /// Indicates whether this broadcast has low latency enabled.
+    #[serde(default, rename = "enableLowLatency")]
+    pub enable_low_latency: ::core::option::Option<bool>,
+    /// If both this and enable_low_latency are set, they must match. LATENCY_NORMAL should match enable_low_latency=false LATENCY_LOW should match enable_low_latency=true LATENCY_ULTRA_LOW should have enable_low_latency omitted. // TODO: enum values: ["latencyPreferenceUnspecified", "normal", "low", "ultraLow"]
+    #[serde(default, rename = "latencyPreference")]
+    pub latency_preference: ::core::option::Option<String>,
+    /// The mesh for projecting the video if projection is mesh. The mesh value must be a UTF-8 string containing the base-64 encoding of 3D mesh data that follows the Spherical Video V2 RFC specification for an mshp box, excluding the box size and type but including the following four reserved zero bytes for the version and flags.
+    #[serde(default)]
+    pub mesh: ::core::option::Option<String>,
+    /// The monitorStream object contains information about the monitor stream, which the broadcaster can use to review the event content before the broadcast stream is shown publicly.
+    #[serde(default, rename = "monitorStream")]
+    pub monitor_stream: ::core::option::Option<MonitorStreamInfo>,
+    /// The projection format of this broadcast. This defaults to rectangular. // TODO: enum values: ["projectionUnspecified", "rectangular", "360", "mesh"]
+    #[serde(default)]
+    pub projection: ::core::option::Option<String>,
+    /// Automatically start recording after the event goes live. The default value for this property is true. *Important:* You must also set the enableDvr property''s value to true if you want the playback to be available immediately after the broadcast ends. If you set this property''s value to true but do not also set the enableDvr property to true, there may be a delay of around one day before the archived video will be available for playback.
+    #[serde(default, rename = "recordFromStart")]
+    pub record_from_start: ::core::option::Option<bool>,
+    /// This setting indicates whether the broadcast should automatically begin with an in-stream slate when you update the broadcast''s status to live. After updating the status, you then need to send a liveCuepoints.insert request that sets the cuepoint''s eventState to end to remove the in-stream slate and make your broadcast stream visible to viewers.
+    #[serde(default, rename = "startWithSlate")]
+    pub start_with_slate: ::core::option::Option<bool>,
+    /// The 3D stereo layout of this broadcast. This defaults to mono. // TODO: enum values: ["stereoLayoutUnspecified", "mono", "leftRight", "topBottom"]
+    #[serde(default, rename = "stereoLayout")]
+    pub stereo_layout: ::core::option::Option<String>,
+}
+
+/// Monetization settings of a broadcast.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastMonetizationDetails {
+    #[serde(default, rename = "cuepointSchedule")]
+    pub cuepoint_schedule: ::core::option::Option<CuepointSchedule>,
+}
+
+/// Basic broadcast information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastSnippet {
+    /// The date and time that the broadcast actually ended. This information is only available once the broadcast''s state is complete.
+    #[serde(default, rename = "actualEndTime")]
+    pub actual_end_time: ::core::option::Option<String>,
+    /// The date and time that the broadcast actually started. This information is only available once the broadcast''s state is live.
+    #[serde(default, rename = "actualStartTime")]
+    pub actual_start_time: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the channel that is publishing the broadcast.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The broadcast''s description. As with the title, you can set this field by modifying the broadcast resource or by setting the description field of the corresponding video resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Indicates whether this broadcast is the default broadcast. Internal only.
+    #[serde(default, rename = "isDefaultBroadcast")]
+    pub is_default_broadcast: ::core::option::Option<bool>,
+    /// The id of the live chat for this broadcast.
+    #[serde(default, rename = "liveChatId")]
+    pub live_chat_id: ::core::option::Option<String>,
+    /// The date and time that the broadcast was added to YouTube''s live broadcast schedule.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// The date and time that the broadcast is scheduled to end.
+    #[serde(default, rename = "scheduledEndTime")]
+    pub scheduled_end_time: ::core::option::Option<String>,
+    /// The date and time that the broadcast is scheduled to start.
+    #[serde(default, rename = "scheduledStartTime")]
+    pub scheduled_start_time: ::core::option::Option<String>,
+    /// A map of thumbnail images associated with the broadcast. For each nested object in this object, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The broadcast''s title. Note that the broadcast represents exactly one YouTube video. You can set this field by modifying the broadcast resource or by setting the title field of the corresponding video resource.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Statistics about the live broadcast. These represent a snapshot of the values at the time of the request. Statistics are only returned for live broadcasts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastStatistics {
+    /// The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.
+    #[serde(default, rename = "concurrentViewers")]
+    pub concurrent_viewers: ::core::option::Option<String>,
+}
+
+/// Live broadcast state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveBroadcastStatus {
+    /// The broadcast''s status. The status can be updated using the API''s liveBroadcasts.transition method. // TODO: enum values: ["lifeCycleStatusUnspecified", "created", "ready", "testing", "live", "complete", "revoked", "testStarting", "liveStarting"]
+    #[serde(default, rename = "lifeCycleStatus")]
+    pub life_cycle_status: ::core::option::Option<String>,
+    /// Priority of the live broadcast event (internal state). // TODO: enum values: ["liveBroadcastPriorityUnspecified", "low", "normal", "high"]
+    #[serde(default, rename = "liveBroadcastPriority")]
+    pub live_broadcast_priority: ::core::option::Option<String>,
+    /// Whether the broadcast is made for kids or not, decided by YouTube instead of the creator. This field is read only.
+    #[serde(default, rename = "madeForKids")]
+    pub made_for_kids: ::core::option::Option<bool>,
+    /// The broadcast''s privacy status. Note that the broadcast represents exactly one YouTube video, so the privacy settings are identical to those supported for videos. In addition, you can set this field by modifying the broadcast resource or by setting the privacyStatus field of the corresponding video resource. // TODO: enum values: ["public", "unlisted", "private"]
+    #[serde(default, rename = "privacyStatus")]
+    pub privacy_status: ::core::option::Option<String>,
+    /// The broadcast''s recording status. // TODO: enum values: ["liveBroadcastRecordingStatusUnspecified", "notRecording", "recording", "recorded"]
+    #[serde(default, rename = "recordingStatus")]
+    pub recording_status: ::core::option::Option<String>,
+    /// This field will be set to True if the creator declares the broadcast to be kids only: go/live-cw-work.
+    #[serde(default, rename = "selfDeclaredMadeForKids")]
+    pub self_declared_made_for_kids: ::core::option::Option<bool>,
+}
+
+/// LiveChatMessageAuthorDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessageAuthorDetails {
+    /// The YouTube channel ID.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The channel''s URL.
+    #[serde(default, rename = "channelUrl")]
+    pub channel_url: ::core::option::Option<String>,
+    /// The channel''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Whether the author is a moderator of the live chat.
+    #[serde(default, rename = "isChatModerator")]
+    pub is_chat_moderator: ::core::option::Option<bool>,
+    /// Whether the author is the owner of the live chat.
+    #[serde(default, rename = "isChatOwner")]
+    pub is_chat_owner: ::core::option::Option<bool>,
+    /// Whether the author is a sponsor of the live chat.
+    #[serde(default, rename = "isChatSponsor")]
+    pub is_chat_sponsor: ::core::option::Option<bool>,
+    /// Whether the author''s identity has been verified by YouTube.
+    #[serde(default, rename = "isVerified")]
+    pub is_verified: ::core::option::Option<bool>,
+    /// The channels''s avatar URL.
+    #[serde(default, rename = "profileImageUrl")]
+    pub profile_image_url: ::core::option::Option<String>,
+}
+
+/// Next ID: 35
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessageSnippet {
+    /// The ID of the user that authored this message, this field is not always filled. textMessageEvent - the user that wrote the message fanFundingEvent - the user that funded the broadcast newSponsorEvent - the user that just became a sponsor memberMilestoneChatEvent - the member that sent the message membershipGiftingEvent - the user that made the purchase giftMembershipReceivedEvent - the user that received the gift membership messageDeletedEvent - the moderator that took the action messageRetractedEvent - the author that retracted their message userBannedEvent - the moderator that took the action superChatEvent - the user that made the purchase superStickerEvent - the user that made the purchase pollEvent - the user that created the poll
+    #[serde(default, rename = "authorChannelId")]
+    pub author_channel_id: ::core::option::Option<String>,
+    /// Contains a string that can be displayed to the user. If this field is not present the message is silent, at the moment only messages of type TOMBSTONE and CHAT_ENDED_EVENT are silent.
+    #[serde(default, rename = "displayMessage")]
+    pub display_message: ::core::option::Option<String>,
+    /// Details about the funding event, this is only set if the type is ''fanFundingEvent''.
+    #[serde(default, rename = "fanFundingEventDetails")]
+    pub fan_funding_event_details: ::core::option::Option<LiveChatFanFundingEventDetails>,
+    /// Details about the gift event, this is only set if the type is ''giftEvent''.
+    #[serde(default, rename = "giftDetails")]
+    pub gift_details: ::core::option::Option<LiveChatGiftDetails>,
+    /// Details about the Gift Membership Received event, this is only set if the type is ''giftMembershipReceivedEvent''.
+    #[serde(default, rename = "giftMembershipReceivedDetails")]
+    pub gift_membership_received_details:
+        ::core::option::Option<LiveChatGiftMembershipReceivedDetails>,
+    /// Whether the message has display content that should be displayed to users.
+    #[serde(default, rename = "hasDisplayContent")]
+    pub has_display_content: ::core::option::Option<bool>,
+    #[serde(default, rename = "liveChatId")]
+    pub live_chat_id: ::core::option::Option<String>,
+    /// Details about the Member Milestone Chat event, this is only set if the type is ''memberMilestoneChatEvent''.
+    #[serde(default, rename = "memberMilestoneChatDetails")]
+    pub member_milestone_chat_details: ::core::option::Option<LiveChatMemberMilestoneChatDetails>,
+    /// Details about the Membership Gifting event, this is only set if the type is ''membershipGiftingEvent''.
+    #[serde(default, rename = "membershipGiftingDetails")]
+    pub membership_gifting_details: ::core::option::Option<LiveChatMembershipGiftingDetails>,
+    #[serde(default, rename = "messageDeletedDetails")]
+    pub message_deleted_details: ::core::option::Option<LiveChatMessageDeletedDetails>,
+    #[serde(default, rename = "messageRetractedDetails")]
+    pub message_retracted_details: ::core::option::Option<LiveChatMessageRetractedDetails>,
+    /// Details about the New Member Announcement event, this is only set if the type is ''newSponsorEvent''. Please note that "member" is the new term for "sponsor".
+    #[serde(default, rename = "newSponsorDetails")]
+    pub new_sponsor_details: ::core::option::Option<LiveChatNewSponsorDetails>,
+    /// Details about the poll event, this is only set if the type is ''pollEvent''.
+    #[serde(default, rename = "pollDetails")]
+    pub poll_details: ::core::option::Option<LiveChatPollDetails>,
+    /// The date and time when the message was orignally published.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// Details about the Super Chat event, this is only set if the type is ''superChatEvent''.
+    #[serde(default, rename = "superChatDetails")]
+    pub super_chat_details: ::core::option::Option<LiveChatSuperChatDetails>,
+    /// Details about the Super Sticker event, this is only set if the type is ''superStickerEvent''.
+    #[serde(default, rename = "superStickerDetails")]
+    pub super_sticker_details: ::core::option::Option<LiveChatSuperStickerDetails>,
+    /// Details about the text message, this is only set if the type is ''textMessageEvent''.
+    #[serde(default, rename = "textMessageDetails")]
+    pub text_message_details: ::core::option::Option<LiveChatTextMessageDetails>,
+    /// The type of message, this will always be present, it determines the contents of the message as well as which fields will be present. // TODO: enum values: ["invalidType", "textMessageEvent", "tombstone", "fanFundingEvent", "chatEndedEvent", "sponsorOnlyModeStartedEvent", "sponsorOnlyModeEndedEvent", "newSponsorEvent", "memberMilestoneChatEvent", "membershipGiftingEvent", "giftMembershipReceivedEvent", "messageDeletedEvent", "messageRetractedEvent", "userBannedEvent", "superChatEvent", "superStickerEvent", "pollEvent", "giftEvent"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    #[serde(default, rename = "userBannedDetails")]
+    pub user_banned_details: ::core::option::Option<LiveChatUserBannedMessageDetails>,
+}
+
+/// LiveChatModeratorSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatModeratorSnippet {
+    /// The ID of the live chat this moderator can act on.
+    #[serde(default, rename = "liveChatId")]
+    pub live_chat_id: ::core::option::Option<String>,
+    /// Details about the moderator.
+    #[serde(default, rename = "moderatorDetails")]
+    pub moderator_details: ::core::option::Option<ChannelProfileDetails>,
+}
+
+/// Brief description of the live stream cdn settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CdnSettings {
+    /// The format of the video stream that you are sending to Youtube.
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// The frame rate of the inbound video data. // TODO: enum values: ["30fps", "60fps", "variable"]
+    #[serde(default, rename = "frameRate")]
+    pub frame_rate: ::core::option::Option<String>,
+    /// The ingestionInfo object contains information that YouTube provides that you need to transmit your RTMP or HTTP stream to YouTube.
+    #[serde(default, rename = "ingestionInfo")]
+    pub ingestion_info: ::core::option::Option<IngestionInfo>,
+    ///  The method or protocol used to transmit the video stream. // TODO: enum values: ["rtmp", "dash", "webrtc", "hls"]
+    #[serde(default, rename = "ingestionType")]
+    pub ingestion_type: ::core::option::Option<String>,
+    /// The resolution of the inbound video data. // TODO: enum values: ["240p", "360p", "480p", "720p", "1080p", "1440p", "2160p", "variable"]
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+}
+
+/// Detailed settings of a stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamContentDetails {
+    /// The ingestion URL where the closed captions of this stream are sent.
+    #[serde(default, rename = "closedCaptionsIngestionUrl")]
+    pub closed_captions_ingestion_url: ::core::option::Option<String>,
+    /// Indicates whether the stream is reusable, which means that it can be bound to multiple broadcasts. It is common for broadcasters to reuse the same stream for many different broadcasts if those broadcasts occur at different times. If you set this value to false, then the stream will not be reusable, which means that it can only be bound to one broadcast. Non-reusable streams differ from reusable streams in the following ways: - A non-reusable stream can only be bound to one broadcast. - A non-reusable stream might be deleted by an automated process after the broadcast ends. - The liveStreams.list method does not list non-reusable streams if you call the method and set the mine parameter to true. The only way to use that method to retrieve the resource for a non-reusable stream is to use the id parameter to identify the stream.
+    #[serde(default, rename = "isReusable")]
+    pub is_reusable: ::core::option::Option<bool>,
+}
+
+/// LiveStreamSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamSnippet {
+    /// The ID that YouTube uses to uniquely identify the channel that is transmitting the stream.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The stream''s description. The value cannot be longer than 10000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    #[serde(default, rename = "isDefaultStream")]
+    pub is_default_stream: ::core::option::Option<bool>,
+    /// The date and time that the stream was created.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// The stream''s title. The value must be between 1 and 128 characters long.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Brief description of the live stream status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamStatus {
+    /// The health status of the stream.
+    #[serde(default, rename = "healthStatus")]
+    pub health_status: ::core::option::Option<LiveStreamHealthStatus>,
+    /// TODO: enum values: ["created", "ready", "active", "inactive", "error"]
+    #[serde(default, rename = "streamStatus")]
+    pub stream_status: ::core::option::Option<String>,
+}
+
+/// MemberSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberSnippet {
+    /// The id of the channel that''s offering memberships.
+    #[serde(default, rename = "creatorChannelId")]
+    pub creator_channel_id: ::core::option::Option<String>,
+    /// Details about the member.
+    #[serde(default, rename = "memberDetails")]
+    pub member_details: ::core::option::Option<ChannelProfileDetails>,
+    /// Details about the user''s membership.
+    #[serde(default, rename = "membershipsDetails")]
+    pub memberships_details: ::core::option::Option<MembershipsDetails>,
+}
+
+/// MembershipsLevelSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsLevelSnippet {
+    /// The id of the channel that''s offering channel memberships.
+    #[serde(default, rename = "creatorChannelId")]
+    pub creator_channel_id: ::core::option::Option<String>,
+    /// Details about the pricing level.
+    #[serde(default, rename = "levelDetails")]
+    pub level_details: ::core::option::Option<LevelDetails>,
+}
+
+/// A *playlistImage* resource identifies another resource, such as a image, that is associated with a playlist. In addition, the playlistImage resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistImages.list method to retrieve image data for any of those playlists. You can also add or remove images from those lists by calling the playlistImages.insert and playlistImages.delete methods.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistImageSnippet {
+    /// The image height.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// The Playlist ID of the playlist this image is associated with.
+    #[serde(default, rename = "playlistId")]
+    pub playlist_id: ::core::option::Option<String>,
+    /// The image type. // TODO: enum values: ["hero"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The image width.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// PlaylistItemContentDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistItemContentDetails {
+    /// The time, measured in seconds from the start of the video, when the video should stop playing. (The playlist owner can specify the times when the video should start and stop playing when the video is played in the context of the playlist.) By default, assume that the video.endTime is the end of the video.
+    #[serde(default, rename = "endAt")]
+    pub end_at: ::core::option::Option<String>,
+    /// A user-generated note for this item.
+    #[serde(default)]
+    pub note: ::core::option::Option<String>,
+    /// The time, measured in seconds from the start of the video, when the video should start playing. (The playlist owner can specify the times when the video should start and stop playing when the video is played in the context of the playlist.) The default value is 0.
+    #[serde(default, rename = "startAt")]
+    pub start_at: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify a video. To retrieve the video resource, set the id query parameter to this value in your API request.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+    /// The date and time that the video was published to YouTube.
+    #[serde(default, rename = "videoPublishedAt")]
+    pub video_published_at: ::core::option::Option<String>,
+}
+
+/// Basic details about a playlist, including title, description and thumbnails. Basic details of a YouTube Playlist item provided by the author. Next ID: 15
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistItemSnippet {
+    /// The ID that YouTube uses to uniquely identify the user that added the item to the playlist.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// Channel title for the channel that the playlist item belongs to.
+    #[serde(default, rename = "channelTitle")]
+    pub channel_title: ::core::option::Option<String>,
+    /// The item''s description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify thGe playlist that the playlist item is in.
+    #[serde(default, rename = "playlistId")]
+    pub playlist_id: ::core::option::Option<String>,
+    /// The order in which the item appears in the playlist. The value uses a zero-based index, so the first item has a position of 0, the second item has a position of 1, and so forth.
+    #[serde(default)]
+    pub position: ::core::option::Option<i64>,
+    /// The date and time that the item was added to the playlist.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// The id object contains information that can be used to uniquely identify the resource that is included in the playlist as the playlist item.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<ResourceId>,
+    /// A map of thumbnail images associated with the playlist item. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The item''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Channel id for the channel this video belongs to.
+    #[serde(default, rename = "videoOwnerChannelId")]
+    pub video_owner_channel_id: ::core::option::Option<String>,
+    /// Channel title for the channel this video belongs to.
+    #[serde(default, rename = "videoOwnerChannelTitle")]
+    pub video_owner_channel_title: ::core::option::Option<String>,
+}
+
+/// Information about the playlist item''s privacy status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistItemStatus {
+    /// This resource''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
+    #[serde(default, rename = "privacyStatus")]
+    pub privacy_status: ::core::option::Option<String>,
+}
+
+/// PlaylistContentDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistContentDetails {
+    /// The number of videos in the playlist.
+    #[serde(default, rename = "itemCount")]
+    pub item_count: ::core::option::Option<i64>,
+}
+
+/// PlaylistPlayer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistPlayer {
+    /// An &lt;iframe&gt; tag that embeds a player that will play the playlist.
+    #[serde(default, rename = "embedHtml")]
+    pub embed_html: ::core::option::Option<String>,
+}
+
+/// Basic details about a playlist, including title, description and thumbnails.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistSnippet {
+    /// The ID that YouTube uses to uniquely identify the channel that published the playlist.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The channel title of the channel that the video belongs to.
+    #[serde(default, rename = "channelTitle")]
+    pub channel_title: ::core::option::Option<String>,
+    /// The language of the playlist''s default title and description.
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<String>,
+    /// The playlist''s description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Localized title and description, read-only.
+    #[serde(default)]
+    pub localized: ::core::option::Option<PlaylistLocalization>,
+    /// The date and time that the playlist was created.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// Keyword tags associated with the playlist.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Note: if the playlist has a custom thumbnail, this field will not be populated. The video id selected by the user that will be used as the thumbnail of this playlist. This field defaults to the first publicly viewable video in the playlist, if: 1. The user has never selected a video to be the thumbnail of the playlist. 2. The user selects a video to be the thumbnail, and then removes that video from the playlist. 3. The user selects a non-owned video to be the thumbnail, but that video becomes private, or gets deleted.
+    #[serde(default, rename = "thumbnailVideoId")]
+    pub thumbnail_video_id: ::core::option::Option<String>,
+    /// A map of thumbnail images associated with the playlist. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The playlist''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// PlaylistStatus resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistStatus {
+    /// The playlist''s podcast status. // TODO: enum values: ["enabled", "disabled"]
+    #[serde(default, rename = "podcastStatus")]
+    pub podcast_status: ::core::option::Option<String>,
+    /// The playlist''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
+    #[serde(default, rename = "privacyStatus")]
+    pub privacy_status: ::core::option::Option<String>,
+}
+
+/// Basic details about a search result, including title, description and thumbnails of the item referenced by the search result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResultSnippet {
+    /// The value that YouTube uses to uniquely identify the channel that published the resource that the search result identifies.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The title of the channel that published the resource that the search result identifies.
+    #[serde(default, rename = "channelTitle")]
+    pub channel_title: ::core::option::Option<String>,
+    /// A description of the search result.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// It indicates if the resource (video or channel) has upcoming/active live broadcast content. Or it''s "none" if there is not any upcoming/active live broadcasts. // TODO: enum values: ["none", "upcoming", "live", "completed"]
+    #[serde(default, rename = "liveBroadcastContent")]
+    pub live_broadcast_content: ::core::option::Option<String>,
+    /// The creation date and time of the resource that the search result identifies.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// A map of thumbnail images associated with the search result. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The title of the search result.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Details about the content to witch a subscription refers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionContentDetails {
+    /// The type of activity this subscription is for (only uploads, everything). // TODO: enum values: ["subscriptionActivityTypeUnspecified", "all", "uploads"]
+    #[serde(default, rename = "activityType")]
+    pub activity_type: ::core::option::Option<String>,
+    /// The number of new items in the subscription since its content was last read.
+    #[serde(default, rename = "newItemCount")]
+    pub new_item_count: ::core::option::Option<i64>,
+    /// The approximate number of items that the subscription points to.
+    #[serde(default, rename = "totalItemCount")]
+    pub total_item_count: ::core::option::Option<i64>,
+}
+
+/// Basic details about a subscription, including title, description and thumbnails of the subscribed item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionSnippet {
+    /// The ID that YouTube uses to uniquely identify the subscriber''s channel.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The subscription''s details.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The date and time that the subscription was created.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// The id object contains information about the channel that the user subscribed to.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<ResourceId>,
+    /// A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The subscription''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Basic details about a subscription''s subscriber including title, description, channel ID and thumbnails.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionSubscriberSnippet {
+    /// The channel ID of the subscriber.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The description of the subscriber.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Thumbnails for this subscriber.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The title of the subscriber.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// SuperChatEventSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperChatEventSnippet {
+    /// The purchase amount, in micros of the purchase currency. e.g., 1 is represented as 1000000.
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// Channel id where the event occurred.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The text contents of the comment left by the user.
+    #[serde(default, rename = "commentText")]
+    pub comment_text: ::core::option::Option<String>,
+    /// The date and time when the event occurred.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// The currency in which the purchase was made. ISO 4217.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// A rendered string that displays the purchase amount and currency (e.g., "$1.00"). The string is rendered for the given language.
+    #[serde(default, rename = "displayString")]
+    pub display_string: ::core::option::Option<String>,
+    /// True if this event is a Super Sticker event.
+    #[serde(default, rename = "isSuperStickerEvent")]
+    pub is_super_sticker_event: ::core::option::Option<bool>,
+    /// The tier for the paid message, which is based on the amount of money spent to purchase the message.
+    #[serde(default, rename = "messageType")]
+    pub message_type: ::core::option::Option<i64>,
+    /// If this event is a Super Sticker event, this field will contain metadata about the Super Sticker.
+    #[serde(default, rename = "superStickerMetadata")]
+    pub super_sticker_metadata: ::core::option::Option<SuperStickerMetadata>,
+    /// Details about the supporter.
+    #[serde(default, rename = "supporterDetails")]
+    pub supporter_details: ::core::option::Option<ChannelProfileDetails>,
+}
+
+/// Basic information about a third party account link, including its type and type-specific information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyLinkSnippet {
+    /// Information specific to a link between a channel and a store on a merchandising platform.
+    #[serde(default, rename = "channelToStoreLink")]
+    pub channel_to_store_link: ::core::option::Option<ChannelToStoreLinkDetails>,
+    /// Type of the link named after the entities that are being linked. // TODO: enum values: ["linkUnspecified", "channelToStoreLink"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The third-party link status object contains information about the status of the link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyLinkStatus {
+    /// TODO: enum values: ["unknown", "failed", "pending", "linked"]
+    #[serde(default, rename = "linkStatus")]
+    pub link_status: ::core::option::Option<String>,
+}
+
+/// Basic details about a video category, such as its localized title.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoAbuseReportReasonSnippet {
+    /// The localized label belonging to this abuse report reason.
+    #[serde(default)]
+    pub label: ::core::option::Option<String>,
+    /// The secondary reasons associated with this reason, if any are available. (There might be 0 or more.)
+    #[serde(default, rename = "secondaryReasons")]
+    pub secondary_reasons: ::core::option::Option<::std::vec::Vec<VideoAbuseReportSecondaryReason>>,
+}
+
+/// Basic details about a video category, such as its localized title.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoCategorySnippet {
+    #[serde(default)]
+    pub assignable: ::core::option::Option<bool>,
+    /// The YouTube channel that created the video category.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The video category''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// VideoAgeGating resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoAgeGating {
+    /// Indicates whether or not the video has alcoholic beverage content. Only users of legal purchasing age in a particular country, as identified by ICAP, can view the content.
+    #[serde(default, rename = "alcoholContent")]
+    pub alcohol_content: ::core::option::Option<bool>,
+    /// Age-restricted trailers. For redband trailers and adult-rated video-games. Only users aged 18+ can view the content. The the field is true the content is restricted to viewers aged 18+. Otherwise The field won''t be present.
+    #[serde(default)]
+    pub restricted: ::core::option::Option<bool>,
+    /// Video game rating, if any. // TODO: enum values: ["anyone", "m15Plus", "m16Plus", "m17Plus"]
+    #[serde(default, rename = "videoGameRating")]
+    pub video_game_rating: ::core::option::Option<String>,
+}
+
+/// Details about the content of a YouTube Video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoContentDetails {
+    /// The value of captions indicates whether the video has captions or not. // TODO: enum values: ["true", "false"]
+    #[serde(default)]
+    pub caption: ::core::option::Option<String>,
+    /// Specifies the ratings that the video received under various rating schemes.
+    #[serde(default, rename = "contentRating")]
+    pub content_rating: ::core::option::Option<ContentRating>,
+    /// The countryRestriction object contains information about the countries where a video is (or is not) viewable.
+    #[serde(default, rename = "countryRestriction")]
+    pub country_restriction: ::core::option::Option<AccessPolicy>,
+    /// The value of definition indicates whether the video is available in high definition or only in standard definition. // TODO: enum values: ["sd", "hd"]
+    #[serde(default)]
+    pub definition: ::core::option::Option<String>,
+    /// The value of dimension indicates whether the video is available in 3D or in 2D.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// The length of the video. The tag value is an ISO 8601 duration in the format PT#M#S, in which the letters PT indicate that the value specifies a period of time, and the letters M and S refer to length in minutes and seconds, respectively. The # characters preceding the M and S letters are both integers that specify the number of minutes (or seconds) of the video. For example, a value of PT15M51S indicates that the video is 15 minutes and 51 seconds long.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Indicates whether the video uploader has provided a custom thumbnail image for the video. This property is only visible to the video uploader.
+    #[serde(default, rename = "hasCustomThumbnail")]
+    pub has_custom_thumbnail: ::core::option::Option<bool>,
+    /// The value of is_license_content indicates whether the video is licensed content.
+    #[serde(default, rename = "licensedContent")]
+    pub licensed_content: ::core::option::Option<bool>,
+    /// Specifies the projection format of the video. // TODO: enum values: ["rectangular", "360"]
+    #[serde(default)]
+    pub projection: ::core::option::Option<String>,
+    /// The regionRestriction object contains information about the countries where a video is (or is not) viewable. The object will contain either the contentDetails.regionRestriction.allowed property or the contentDetails.regionRestriction.blocked property.
+    #[serde(default, rename = "regionRestriction")]
+    pub region_restriction: ::core::option::Option<VideoContentDetailsRegionRestriction>,
+}
+
+/// Describes original video file properties, including technical details about audio and video streams, but also metadata information like content length, digitization time, or geotagging information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoFileDetails {
+    /// A list of audio streams contained in the uploaded video file. Each item in the list contains detailed metadata about an audio stream.
+    #[serde(default, rename = "audioStreams")]
+    pub audio_streams: ::core::option::Option<::std::vec::Vec<VideoFileDetailsAudioStream>>,
+    /// The uploaded video file''s combined (video and audio) bitrate in bits per second.
+    #[serde(default, rename = "bitrateBps")]
+    pub bitrate_bps: ::core::option::Option<String>,
+    /// The uploaded video file''s container format.
+    #[serde(default)]
+    pub container: ::core::option::Option<String>,
+    /// The date and time when the uploaded video file was created. The value is specified in ISO 8601 format. Currently, the following ISO 8601 formats are supported: - Date only: YYYY-MM-DD - Naive time: YYYY-MM-DDTHH:MM:SS - Time with timezone: YYYY-MM-DDTHH:MM:SS+HH:MM
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// The length of the uploaded video in milliseconds.
+    #[serde(default, rename = "durationMs")]
+    pub duration_ms: ::core::option::Option<String>,
+    /// The uploaded file''s name. This field is present whether a video file or another type of file was uploaded.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// The uploaded file''s size in bytes. This field is present whether a video file or another type of file was uploaded.
+    #[serde(default, rename = "fileSize")]
+    pub file_size: ::core::option::Option<String>,
+    /// The uploaded file''s type as detected by YouTube''s video processing engine. Currently, YouTube only processes video files, but this field is present whether a video file or another type of file was uploaded. // TODO: enum values: ["video", "audio", "image", "archive", "document", "project", "other"]
+    #[serde(default, rename = "fileType")]
+    pub file_type: ::core::option::Option<String>,
+    /// A list of video streams contained in the uploaded video file. Each item in the list contains detailed metadata about a video stream.
+    #[serde(default, rename = "videoStreams")]
+    pub video_streams: ::core::option::Option<::std::vec::Vec<VideoFileDetailsVideoStream>>,
+}
+
+/// Details about the live streaming metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoLiveStreamingDetails {
+    /// The ID of the currently active live chat attached to this video. This field is filled only if the video is a currently live broadcast that has live chat. Once the broadcast transitions to complete this field will be removed and the live chat closed down. For persistent broadcasts that live chat id will no longer be tied to this video but rather to the new video being displayed at the persistent page.
+    #[serde(default, rename = "activeLiveChatId")]
+    pub active_live_chat_id: ::core::option::Option<String>,
+    /// The time that the broadcast actually ended. This value will not be available until the broadcast is over.
+    #[serde(default, rename = "actualEndTime")]
+    pub actual_end_time: ::core::option::Option<String>,
+    /// The time that the broadcast actually started. This value will not be available until the broadcast begins.
+    #[serde(default, rename = "actualStartTime")]
+    pub actual_start_time: ::core::option::Option<String>,
+    /// The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.
+    #[serde(default, rename = "concurrentViewers")]
+    pub concurrent_viewers: ::core::option::Option<String>,
+    /// The time that the broadcast is scheduled to end. If the value is empty or the property is not present, then the broadcast is scheduled to continue indefinitely.
+    #[serde(default, rename = "scheduledEndTime")]
+    pub scheduled_end_time: ::core::option::Option<String>,
+    /// The time that the broadcast is scheduled to begin.
+    #[serde(default, rename = "scheduledStartTime")]
+    pub scheduled_start_time: ::core::option::Option<String>,
+}
+
+/// Details about monetization of a YouTube Video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoMonetizationDetails {
+    /// The value of access indicates whether the video can be monetized or not.
+    #[serde(default)]
+    pub access: ::core::option::Option<AccessPolicy>,
+}
+
+/// Details about paid content, such as paid product placement, sponsorships or endorsement, contained in a YouTube video and a method to inform viewers of paid promotion. This data can only be retrieved by the video owner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoPaidProductPlacementDetails {
+    /// This boolean represents whether the video contains Paid Product Placement, Studio equivalent: https://screenshot.googleplex.com/4Me79DE6AfT2ktp.png
+    #[serde(default, rename = "hasPaidProductPlacement")]
+    pub has_paid_product_placement: ::core::option::Option<bool>,
+}
+
+/// Player to be used for a video playback.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoPlayer {
+    #[serde(default, rename = "embedHeight")]
+    pub embed_height: ::core::option::Option<String>,
+    /// An &lt;iframe&gt; tag that embeds a player that will play the video.
+    #[serde(default, rename = "embedHtml")]
+    pub embed_html: ::core::option::Option<String>,
+    /// The embed width
+    #[serde(default, rename = "embedWidth")]
+    pub embed_width: ::core::option::Option<String>,
+}
+
+/// Describes processing status and progress and availability of some other Video resource parts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoProcessingDetails {
+    /// This value indicates whether video editing suggestions, which might improve video quality or the playback experience, are available for the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
+    #[serde(default, rename = "editorSuggestionsAvailability")]
+    pub editor_suggestions_availability: ::core::option::Option<String>,
+    /// This value indicates whether file details are available for the uploaded video. You can retrieve a video''s file details by requesting the fileDetails part in your videos.list() request.
+    #[serde(default, rename = "fileDetailsAvailability")]
+    pub file_details_availability: ::core::option::Option<String>,
+    /// The reason that YouTube failed to process the video. This property will only have a value if the processingStatus property''s value is failed. // TODO: enum values: ["uploadFailed", "transcodeFailed", "streamingFailed", "other"]
+    #[serde(default, rename = "processingFailureReason")]
+    pub processing_failure_reason: ::core::option::Option<String>,
+    /// This value indicates whether the video processing engine has generated suggestions that might improve YouTube''s ability to process the the video, warnings that explain video processing problems, or errors that cause video processing problems. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
+    #[serde(default, rename = "processingIssuesAvailability")]
+    pub processing_issues_availability: ::core::option::Option<String>,
+    /// The processingProgress object contains information about the progress YouTube has made in processing the video. The values are really only relevant if the video''s processing status is processing.
+    #[serde(default, rename = "processingProgress")]
+    pub processing_progress: ::core::option::Option<VideoProcessingDetailsProcessingProgress>,
+    /// The video''s processing status. This value indicates whether YouTube was able to process the video or if the video is still being processed. // TODO: enum values: ["processing", "succeeded", "failed", "terminated"]
+    #[serde(default, rename = "processingStatus")]
+    pub processing_status: ::core::option::Option<String>,
+    /// This value indicates whether keyword (tag) suggestions are available for the video. Tags can be added to a video''s metadata to make it easier for other users to find the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
+    #[serde(default, rename = "tagSuggestionsAvailability")]
+    pub tag_suggestions_availability: ::core::option::Option<String>,
+    /// This value indicates whether thumbnail images have been generated for the video.
+    #[serde(default, rename = "thumbnailsAvailability")]
+    pub thumbnails_availability: ::core::option::Option<String>,
+}
+
+/// Recording information associated with the video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoRecordingDetails {
+    /// The geolocation information associated with the video.
+    #[serde(default)]
+    pub location: ::core::option::Option<GeoPoint>,
+    /// The text description of the location where the video was recorded.
+    #[serde(default, rename = "locationDescription")]
+    pub location_description: ::core::option::Option<String>,
+    /// The date and time when the video was recorded.
+    #[serde(default, rename = "recordingDate")]
+    pub recording_date: ::core::option::Option<String>,
+}
+
+/// Basic details about a video, including title, description, uploader, thumbnails and category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoSnippet {
+    /// The YouTube video category associated with the video.
+    #[serde(default, rename = "categoryId")]
+    pub category_id: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the channel that the video was uploaded to.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// Channel title for the channel that the video belongs to.
+    #[serde(default, rename = "channelTitle")]
+    pub channel_title: ::core::option::Option<String>,
+    /// The default_audio_language property specifies the language spoken in the video''s default audio track.
+    #[serde(default, rename = "defaultAudioLanguage")]
+    pub default_audio_language: ::core::option::Option<String>,
+    /// The language of the videos''s default snippet.
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<String>,
+    /// The video''s description. @mutable youtube.videos.insert youtube.videos.update
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Indicates if the video is an upcoming/active live broadcast. Or it''s "none" if the video is not an upcoming/active live broadcast. // TODO: enum values: ["none", "upcoming", "live", "completed"]
+    #[serde(default, rename = "liveBroadcastContent")]
+    pub live_broadcast_content: ::core::option::Option<String>,
+    /// Localized snippet selected with the hl parameter. If no such localization exists, this field is populated with the default snippet. (Read-only)
+    #[serde(default)]
+    pub localized: ::core::option::Option<VideoLocalization>,
+    /// The date and time when the video was uploaded.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// A list of keyword tags associated with the video. Tags may contain spaces.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
+    #[serde(default)]
+    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
+    /// The video''s title. @mutable youtube.videos.insert youtube.videos.update
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Statistics about the video, such as the number of times the video was viewed or liked.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoStatistics {
+    /// The number of comments for the video.
+    #[serde(default, rename = "commentCount")]
+    pub comment_count: ::core::option::Option<String>,
+    /// The number of users who have indicated that they disliked the video by giving it a negative rating.
+    #[serde(default, rename = "dislikeCount")]
+    pub dislike_count: ::core::option::Option<String>,
+    /// The number of users who currently have the video marked as a favorite video.
+    #[serde(default, rename = "favoriteCount")]
+    pub favorite_count: ::core::option::Option<String>,
+    /// The number of users who have indicated that they liked the video by giving it a positive rating.
+    #[serde(default, rename = "likeCount")]
+    pub like_count: ::core::option::Option<String>,
+    /// The number of times the video has been viewed.
+    #[serde(default, rename = "viewCount")]
+    pub view_count: ::core::option::Option<String>,
+}
+
+/// Basic details about a video category, such as its localized title. Next Id: 19
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoStatus {
+    /// Indicates if the video contains altered or synthetic media.
+    #[serde(default, rename = "containsSyntheticMedia")]
+    pub contains_synthetic_media: ::core::option::Option<bool>,
+    /// This value indicates if the video can be embedded on another website. @mutable youtube.videos.insert youtube.videos.update
+    #[serde(default)]
+    pub embeddable: ::core::option::Option<bool>,
+    /// This value explains why a video failed to upload. This property is only present if the uploadStatus property indicates that the upload failed. // TODO: enum values: ["conversion", "invalidFile", "emptyFile", "tooSmall", "codec", "uploadAborted"]
+    #[serde(default, rename = "failureReason")]
+    pub failure_reason: ::core::option::Option<String>,
+    /// The video''s license. @mutable youtube.videos.insert youtube.videos.update // TODO: enum values: ["youtube", "creativeCommon"]
+    #[serde(default)]
+    pub license: ::core::option::Option<String>,
+    #[serde(default, rename = "madeForKids")]
+    pub made_for_kids: ::core::option::Option<bool>,
+    /// The video''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
+    #[serde(default, rename = "privacyStatus")]
+    pub privacy_status: ::core::option::Option<String>,
+    /// This value indicates if the extended video statistics on the watch page can be viewed by everyone. Note that the view count, likes, etc will still be visible if this is disabled. @mutable youtube.videos.insert youtube.videos.update
+    #[serde(default, rename = "publicStatsViewable")]
+    pub public_stats_viewable: ::core::option::Option<bool>,
+    /// The date and time when the video is scheduled to publish. It can be set only if the privacy status of the video is private..
+    #[serde(default, rename = "publishAt")]
+    pub publish_at: ::core::option::Option<String>,
+    /// This value explains why YouTube rejected an uploaded video. This property is only present if the uploadStatus property indicates that the upload was rejected. // TODO: enum values: ["copyright", "inappropriate", "duplicate", "termsOfUse", "uploaderAccountSuspended", "length", "claim", "uploaderAccountClosed", "trademark", "legal"]
+    #[serde(default, rename = "rejectionReason")]
+    pub rejection_reason: ::core::option::Option<String>,
+    #[serde(default, rename = "selfDeclaredMadeForKids")]
+    pub self_declared_made_for_kids: ::core::option::Option<bool>,
+    /// The status of the uploaded video. // TODO: enum values: ["uploaded", "processed", "failed", "rejected", "deleted"]
+    #[serde(default, rename = "uploadStatus")]
+    pub upload_status: ::core::option::Option<String>,
+}
+
+/// Specifies suggestions on how to improve video content, including encoding hints, tag suggestions, and editor suggestions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoSuggestions {
+    /// A list of video editing operations that might improve the video quality or playback experience of the uploaded video.
+    #[serde(default, rename = "editorSuggestions")]
+    pub editor_suggestions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of errors that will prevent YouTube from successfully processing the uploaded video video. These errors indicate that, regardless of the video''s current processing status, eventually, that status will almost certainly be failed.
+    #[serde(default, rename = "processingErrors")]
+    pub processing_errors: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of suggestions that may improve YouTube''s ability to process the video.
+    #[serde(default, rename = "processingHints")]
+    pub processing_hints: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of reasons why YouTube may have difficulty transcoding the uploaded video or that might result in an erroneous transcoding. These warnings are generated before YouTube actually processes the uploaded video file. In addition, they identify issues that are unlikely to cause the video processing to fail but that might cause problems such as sync issues, video artifacts, or a missing audio track.
+    #[serde(default, rename = "processingWarnings")]
+    pub processing_warnings: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of keyword tags that could be added to the video''s metadata to increase the likelihood that users will locate your video when searching or browsing on YouTube.
+    #[serde(default, rename = "tagSuggestions")]
+    pub tag_suggestions: ::core::option::Option<::std::vec::Vec<VideoSuggestionsTagSuggestion>>,
+}
+
+/// Freebase topic information related to the video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoTopicDetails {
+    /// Similar to topic_id, except that these topics are merely relevant to the video. These are topics that may be mentioned in, or appear in the video. You can retrieve information about each topic using Freebase Topic API.
+    #[serde(default, rename = "relevantTopicIds")]
+    pub relevant_topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of Wikipedia URLs that provide a high-level description of the video''s content.
+    #[serde(default, rename = "topicCategories")]
+    pub topic_categories: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of Freebase topic IDs that are centrally associated with the video. These are topics that are centrally featured in the video, and it can be said that the video is mainly about each of these. You can retrieve information about each topic using the &lt; a href="http://wiki.freebase.com/wiki/Topic_API"&gt;Freebase Topic API.
+    #[serde(default, rename = "topicIds")]
+    pub topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details about a channel bulletin post.
@@ -238,447 +2855,6 @@ pub struct ActivityContentDetailsUpload {
     pub video_id: ::core::option::Option<String>,
 }
 
-/// ActivityListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivityListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Activity>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#activityListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about an activity, including title, description, thumbnails, activity type and group. Next ID: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivitySnippet {
-    /// The ID that YouTube uses to uniquely identify the channel associated with the activity.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// Channel title for the channel responsible for this activity
-    #[serde(default, rename = "channelTitle")]
-    pub channel_title: ::core::option::Option<String>,
-    /// The description of the resource primarily associated with the activity. @mutable youtube.activities.insert
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The group ID associated with the activity. A group ID identifies user events that are associated with the same user and resource. For example, if a user rates a video and marks the same video as a favorite, the entries for those events would have the same group ID in the user''s activity feed. In your user interface, you can avoid repetition by grouping events with the same groupId value.
-    #[serde(default, rename = "groupId")]
-    pub group_id: ::core::option::Option<String>,
-    /// The date and time that the video was uploaded.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// A map of thumbnail images associated with the resource that is primarily associated with the activity. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The title of the resource primarily associated with the activity.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The type of activity that the resource describes. // TODO: enum values: ["typeUnspecified", "upload", "like", "favorite", "comment", "subscription", "playlistItem", "recommendation", "bulletin", "social", "channelItem", "promotedItem"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A *caption* resource represents a YouTube caption track. A caption track is associated with exactly one YouTube video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Caption {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the caption track.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#caption".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the caption.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<CaptionSnippet>,
-}
-
-/// CaptionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CaptionListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of captions that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Caption>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#captionListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a caption track, such as its language and name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CaptionSnippet {
-    /// The type of audio track associated with the caption track. // TODO: enum values: ["unknown", "primary", "commentary", "descriptive"]
-    #[serde(default, rename = "audioTrackType")]
-    pub audio_track_type: ::core::option::Option<String>,
-    /// The reason that YouTube failed to process the caption track. This property is only present if the state property''s value is failed. // TODO: enum values: ["unknownFormat", "unsupportedFormat", "processingFailed"]
-    #[serde(default, rename = "failureReason")]
-    pub failure_reason: ::core::option::Option<String>,
-    /// Indicates whether YouTube synchronized the caption track to the audio track in the video. The value will be true if a sync was explicitly requested when the caption track was uploaded. For example, when calling the captions.insert or captions.update methods, you can set the sync parameter to true to instruct YouTube to sync the uploaded track to the video. If the value is false, YouTube uses the time codes in the uploaded caption track to determine when to display captions.
-    #[serde(default, rename = "isAutoSynced")]
-    pub is_auto_synced: ::core::option::Option<bool>,
-    /// Indicates whether the track contains closed captions for the deaf and hard of hearing. The default value is false.
-    #[serde(default, rename = "isCC")]
-    pub is_c_c: ::core::option::Option<bool>,
-    /// Indicates whether the caption track is a draft. If the value is true, then the track is not publicly visible. The default value is false. @mutable youtube.captions.insert youtube.captions.update
-    #[serde(default, rename = "isDraft")]
-    pub is_draft: ::core::option::Option<bool>,
-    /// Indicates whether caption track is formatted for "easy reader," meaning it is at a third-grade level for language learners. The default value is false.
-    #[serde(default, rename = "isEasyReader")]
-    pub is_easy_reader: ::core::option::Option<bool>,
-    /// Indicates whether the caption track uses large text for the vision-impaired. The default value is false.
-    #[serde(default, rename = "isLarge")]
-    pub is_large: ::core::option::Option<bool>,
-    /// The language of the caption track. The property value is a BCP-47 language tag.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The date and time when the caption track was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// The name of the caption track. The name is intended to be visible to the user as an option during playback.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The caption track''s status. // TODO: enum values: ["serving", "syncing", "failed"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The caption track''s type. // TODO: enum values: ["standard", "ASR", "forced"]
-    #[serde(default, rename = "trackKind")]
-    pub track_kind: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the video associated with the caption track. @mutable youtube.captions.insert
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
-}
-
-/// Brief description of the live stream cdn settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CdnSettings {
-    /// The format of the video stream that you are sending to Youtube.
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// The frame rate of the inbound video data. // TODO: enum values: ["30fps", "60fps", "variable"]
-    #[serde(default, rename = "frameRate")]
-    pub frame_rate: ::core::option::Option<String>,
-    /// The ingestionInfo object contains information that YouTube provides that you need to transmit your RTMP or HTTP stream to YouTube.
-    #[serde(default, rename = "ingestionInfo")]
-    pub ingestion_info: ::core::option::Option<IngestionInfo>,
-    ///  The method or protocol used to transmit the video stream. // TODO: enum values: ["rtmp", "dash", "webrtc", "hls"]
-    #[serde(default, rename = "ingestionType")]
-    pub ingestion_type: ::core::option::Option<String>,
-    /// The resolution of the inbound video data. // TODO: enum values: ["240p", "360p", "480p", "720p", "1080p", "1440p", "2160p", "variable"]
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-}
-
-/// A *channel* resource contains information about a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Channel {
-    /// The auditionDetails object encapsulates channel data that is relevant for YouTube Partners during the audition process.
-    #[serde(default, rename = "auditDetails")]
-    pub audit_details: ::core::option::Option<ChannelAuditDetails>,
-    /// The brandingSettings object encapsulates information about the branding of the channel.
-    #[serde(default, rename = "brandingSettings")]
-    pub branding_settings: ::core::option::Option<ChannelBrandingSettings>,
-    /// The contentDetails object encapsulates information about the channel''s content.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<ChannelContentDetails>,
-    /// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
-    #[serde(default, rename = "contentOwnerDetails")]
-    pub content_owner_details: ::core::option::Option<ChannelContentOwnerDetails>,
-    /// The conversionPings object encapsulates information about conversion pings that need to be respected by the channel.
-    #[serde(default, rename = "conversionPings")]
-    pub conversion_pings: ::core::option::Option<ChannelConversionPings>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the channel.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channel".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localizations for different languages
-    #[serde(default)]
-    pub localizations: ::core::option::Option<serde_json::Value>,
-    /// The snippet object contains basic details about the channel, such as its title, description, and thumbnail images.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<ChannelSnippet>,
-    /// The statistics object encapsulates statistics for the channel.
-    #[serde(default)]
-    pub statistics: ::core::option::Option<ChannelStatistics>,
-    /// The status object encapsulates information about the privacy status of the channel.
-    #[serde(default)]
-    pub status: ::core::option::Option<ChannelStatus>,
-    /// The topicDetails object encapsulates information about Freebase topics associated with the channel.
-    #[serde(default, rename = "topicDetails")]
-    pub topic_details: ::core::option::Option<ChannelTopicDetails>,
-}
-
-/// The auditDetails object encapsulates channel data that is relevant for YouTube Partners during the audit process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelAuditDetails {
-    /// Whether or not the channel respects the community guidelines.
-    #[serde(default, rename = "communityGuidelinesGoodStanding")]
-    pub community_guidelines_good_standing: ::core::option::Option<bool>,
-    /// Whether or not the channel has any unresolved claims.
-    #[serde(default, rename = "contentIdClaimsGoodStanding")]
-    pub content_id_claims_good_standing: ::core::option::Option<bool>,
-    /// Whether or not the channel has any copyright strikes.
-    #[serde(default, rename = "copyrightStrikesGoodStanding")]
-    pub copyright_strikes_good_standing: ::core::option::Option<bool>,
-}
-
-/// A channel banner returned as the response to a channel_banner.insert call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelBannerResource {
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelBannerResource".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The URL of this banner image.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Branding properties of a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelBrandingSettings {
-    /// Branding properties for the channel view.
-    #[serde(default)]
-    pub channel: ::core::option::Option<ChannelSettings>,
-    /// Additional experimental branding properties.
-    #[serde(default)]
-    pub hints: ::core::option::Option<::std::vec::Vec<PropertyValue>>,
-    /// Branding properties for branding images.
-    #[serde(default)]
-    pub image: ::core::option::Option<ImageSettings>,
-    /// Branding properties for the watch page.
-    #[serde(default)]
-    pub watch: ::core::option::Option<WatchSettings>,
-}
-
-/// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelContentOwnerDetails {
-    /// The ID of the content owner linked to the channel.
-    #[serde(default, rename = "contentOwner")]
-    pub content_owner: ::core::option::Option<String>,
-    /// The date and time when the channel was linked to the content owner.
-    #[serde(default, rename = "timeLinked")]
-    pub time_linked: ::core::option::Option<String>,
-}
-
-/// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelConversionPing {
-    /// Defines the context of the ping. // TODO: enum values: ["subscribe", "unsubscribe", "cview"]
-    #[serde(default)]
-    pub context: ::core::option::Option<String>,
-    /// The url (without the schema) that the player shall send the ping to. It''s at caller''s descretion to decide which schema to use (http vs https) Example of a returned url: //googleads.g.doubleclick.net/pagead/ viewthroughconversion/962985656/?data=path%3DtHe_path%3Btype%3D cview%3Butuid%3DGISQtTNGYqaYl4sKxoVvKA&labe=default The caller must append biscotti authentication (ms param in case of mobile, for example) to this ping.
-    #[serde(default, rename = "conversionUrl")]
-    pub conversion_url: ::core::option::Option<String>,
-}
-
-/// The conversionPings object encapsulates information about conversion pings that need to be respected by the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelConversionPings {
-    /// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
-    #[serde(default)]
-    pub pings: ::core::option::Option<::std::vec::Vec<ChannelConversionPing>>,
-}
-
-/// ChannelListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Channel>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Channel localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelLocalization {
-    /// The localized strings for channel''s description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The localized strings for channel''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// ChannelProfileDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelProfileDetails {
-    /// The YouTube channel ID.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The channel''s URL.
-    #[serde(default, rename = "channelUrl")]
-    pub channel_url: ::core::option::Option<String>,
-    /// The channel''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The channels''s avatar URL.
-    #[serde(default, rename = "profileImageUrl")]
-    pub profile_image_url: ::core::option::Option<String>,
-}
-
-/// ChannelSection resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSection {
-    /// The contentDetails object contains details about the channel section content, such as a list of playlists or channels featured in the section.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<ChannelSectionContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the channel section.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelSection".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localizations for different languages
-    #[serde(default)]
-    pub localizations: ::core::option::Option<serde_json::Value>,
-    /// The snippet object contains basic details about the channel section, such as its type, style and title.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<ChannelSectionSnippet>,
-    /// The targeting object contains basic targeting settings about the channel section.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<ChannelSectionTargeting>,
-}
-
-/// Details about a channelsection, including playlists and channels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSectionContentDetails {
-    /// The channel ids for type multiple_channels.
-    #[serde(default)]
-    pub channels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The playlist ids for type single_playlist and multiple_playlists. For singlePlaylist, only one playlistId is allowed.
-    #[serde(default)]
-    pub playlists: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// ChannelSectionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSectionListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of ChannelSections that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ChannelSection>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#channelSectionListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// ChannelSection localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSectionLocalization {
-    /// The localized strings for channel section''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Basic details about a channel section, including title, style and position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSectionSnippet {
-    /// The ID that YouTube uses to uniquely identify the channel that published the channel section.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The language of the channel section''s default title and description.
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<String>,
-    /// Localized title, read-only.
-    #[serde(default)]
-    pub localized: ::core::option::Option<ChannelSectionLocalization>,
-    /// The position of the channel section in the channel.
-    #[serde(default)]
-    pub position: ::core::option::Option<i64>,
-    /// The style of the channel section. // TODO: enum values: ["channelsectionStyleUnspecified", "horizontalRow", "verticalList"]
-    #[serde(default)]
-    pub style: ::core::option::Option<String>,
-    /// The channel section''s title for multiple_playlists and multiple_channels.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The type of the channel section. // TODO: enum values: ["channelsectionTypeUndefined", "singlePlaylist", "multiplePlaylists", "popularUploads", "recentUploads", "likes", "allPlaylists", "likedPlaylists", "recentPosts", "recentActivity", "liveEvents", "upcomingEvents", "completedEvents", "multipleChannels", "postedVideos", "postedPlaylists", "subscriptions"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// ChannelSection targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSectionTargeting {
-    /// The country the channel section is targeting.
-    #[serde(default)]
-    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The language the channel section is targeting.
-    #[serde(default)]
-    pub languages: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The region the channel section is targeting.
-    #[serde(default)]
-    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Branding properties for the channel view.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChannelSettings {
@@ -725,74 +2901,433 @@ pub struct ChannelSettings {
     pub unsubscribed_trailer: ::core::option::Option<String>,
 }
 
-/// Basic details about a channel, including title, description and thumbnails.
+/// A pair Property / Value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelSnippet {
-    /// The country of the channel.
+pub struct PropertyValue {
+    /// A property.
     #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The custom url of the channel.
-    #[serde(default, rename = "customUrl")]
-    pub custom_url: ::core::option::Option<String>,
-    /// The language of the channel''s default title and description.
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<String>,
-    /// The description of the channel.
+    pub property: ::core::option::Option<String>,
+    /// The property''s value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Branding properties for images associated with the channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageSettings {
+    /// The URL for the background image shown on the video watch page. The image should be 1200px by 615px, with a maximum file size of 128k.
+    #[serde(default, rename = "backgroundImageUrl")]
+    pub background_image_url: ::core::option::Option<LocalizedProperty>,
+    /// This is generated when a ChannelBanner.Insert request has succeeded for the given channel.
+    #[serde(default, rename = "bannerExternalUrl")]
+    pub banner_external_url: ::core::option::Option<String>,
+    /// Banner image. Desktop size (1060x175).
+    #[serde(default, rename = "bannerImageUrl")]
+    pub banner_image_url: ::core::option::Option<String>,
+    /// Banner image. Mobile size high resolution (1440x395).
+    #[serde(default, rename = "bannerMobileExtraHdImageUrl")]
+    pub banner_mobile_extra_hd_image_url: ::core::option::Option<String>,
+    /// Banner image. Mobile size high resolution (1280x360).
+    #[serde(default, rename = "bannerMobileHdImageUrl")]
+    pub banner_mobile_hd_image_url: ::core::option::Option<String>,
+    /// Banner image. Mobile size (640x175).
+    #[serde(default, rename = "bannerMobileImageUrl")]
+    pub banner_mobile_image_url: ::core::option::Option<String>,
+    /// Banner image. Mobile size low resolution (320x88).
+    #[serde(default, rename = "bannerMobileLowImageUrl")]
+    pub banner_mobile_low_image_url: ::core::option::Option<String>,
+    /// Banner image. Mobile size medium/high resolution (960x263).
+    #[serde(default, rename = "bannerMobileMediumHdImageUrl")]
+    pub banner_mobile_medium_hd_image_url: ::core::option::Option<String>,
+    /// Banner image. Tablet size extra high resolution (2560x424).
+    #[serde(default, rename = "bannerTabletExtraHdImageUrl")]
+    pub banner_tablet_extra_hd_image_url: ::core::option::Option<String>,
+    /// Banner image. Tablet size high resolution (2276x377).
+    #[serde(default, rename = "bannerTabletHdImageUrl")]
+    pub banner_tablet_hd_image_url: ::core::option::Option<String>,
+    /// Banner image. Tablet size (1707x283).
+    #[serde(default, rename = "bannerTabletImageUrl")]
+    pub banner_tablet_image_url: ::core::option::Option<String>,
+    /// Banner image. Tablet size low resolution (1138x188).
+    #[serde(default, rename = "bannerTabletLowImageUrl")]
+    pub banner_tablet_low_image_url: ::core::option::Option<String>,
+    /// Banner image. TV size high resolution (1920x1080).
+    #[serde(default, rename = "bannerTvHighImageUrl")]
+    pub banner_tv_high_image_url: ::core::option::Option<String>,
+    /// Banner image. TV size extra high resolution (2120x1192).
+    #[serde(default, rename = "bannerTvImageUrl")]
+    pub banner_tv_image_url: ::core::option::Option<String>,
+    /// Banner image. TV size low resolution (854x480).
+    #[serde(default, rename = "bannerTvLowImageUrl")]
+    pub banner_tv_low_image_url: ::core::option::Option<String>,
+    /// Banner image. TV size medium resolution (1280x720).
+    #[serde(default, rename = "bannerTvMediumImageUrl")]
+    pub banner_tv_medium_image_url: ::core::option::Option<String>,
+    /// The image map script for the large banner image.
+    #[serde(default, rename = "largeBrandedBannerImageImapScript")]
+    pub large_branded_banner_image_imap_script: ::core::option::Option<LocalizedProperty>,
+    /// The URL for the 854px by 70px image that appears below the video player in the expanded video view of the video watch page.
+    #[serde(default, rename = "largeBrandedBannerImageUrl")]
+    pub large_branded_banner_image_url: ::core::option::Option<LocalizedProperty>,
+    /// The image map script for the small banner image.
+    #[serde(default, rename = "smallBrandedBannerImageImapScript")]
+    pub small_branded_banner_image_imap_script: ::core::option::Option<LocalizedProperty>,
+    /// The URL for the 640px by 70px banner image that appears below the video player in the default view of the video watch page. The URL for the image that appears above the top-left corner of the video player. This is a 25-pixel-high image with a flexible width that cannot exceed 170 pixels.
+    #[serde(default, rename = "smallBrandedBannerImageUrl")]
+    pub small_branded_banner_image_url: ::core::option::Option<LocalizedProperty>,
+    /// The URL for a 1px by 1px tracking pixel that can be used to collect statistics for views of the channel or video pages.
+    #[serde(default, rename = "trackingImageUrl")]
+    pub tracking_image_url: ::core::option::Option<String>,
+    #[serde(default, rename = "watchIconImageUrl")]
+    pub watch_icon_image_url: ::core::option::Option<String>,
+}
+
+/// Branding properties for the watch. All deprecated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchSettings {
+    /// The text color for the video watch page''s branded area.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<String>,
+    /// An ID that uniquely identifies a playlist that displays next to the video player.
+    #[serde(default, rename = "featuredPlaylistId")]
+    pub featured_playlist_id: ::core::option::Option<String>,
+    /// The background color for the video watch page''s branded area.
+    #[serde(default, rename = "textColor")]
+    pub text_color: ::core::option::Option<String>,
+}
+
+/// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelConversionPing {
+    /// Defines the context of the ping. // TODO: enum values: ["subscribe", "unsubscribe", "cview"]
+    #[serde(default)]
+    pub context: ::core::option::Option<String>,
+    /// The url (without the schema) that the player shall send the ping to. It''s at caller''s descretion to decide which schema to use (http vs https) Example of a returned url: //googleads.g.doubleclick.net/pagead/ viewthroughconversion/962985656/?data=path%3DtHe_path%3Btype%3D cview%3Butuid%3DGISQtTNGYqaYl4sKxoVvKA&labe=default The caller must append biscotti authentication (ms param in case of mobile, for example) to this ping.
+    #[serde(default, rename = "conversionUrl")]
+    pub conversion_url: ::core::option::Option<String>,
+}
+
+/// Channel localization setting
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelLocalization {
+    /// The localized strings for channel''s description.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Localized title and description, read-only.
-    #[serde(default)]
-    pub localized: ::core::option::Option<ChannelLocalization>,
-    /// The date and time that the channel was created.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The channel''s title.
+    /// The localized strings for channel''s title.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// Statistics about a channel: number of subscribers, number of videos in the channel, etc.
+/// ChannelSection localization setting
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelStatistics {
-    /// The number of comments for the channel.
-    #[serde(default, rename = "commentCount")]
-    pub comment_count: ::core::option::Option<String>,
-    /// Whether or not the number of subscribers is shown for this user.
-    #[serde(default, rename = "hiddenSubscriberCount")]
-    pub hidden_subscriber_count: ::core::option::Option<bool>,
-    /// The number of subscribers that the channel has.
-    #[serde(default, rename = "subscriberCount")]
-    pub subscriber_count: ::core::option::Option<String>,
-    /// The number of videos uploaded to the channel.
-    #[serde(default, rename = "videoCount")]
-    pub video_count: ::core::option::Option<String>,
-    /// The number of times the channel has been viewed.
-    #[serde(default, rename = "viewCount")]
-    pub view_count: ::core::option::Option<String>,
+pub struct ChannelSectionLocalization {
+    /// The localized strings for channel section''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
-/// JSON template for the status part of a channel.
+/// A *comment* represents a single YouTube comment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelStatus {
-    /// Whether the channel is considered ypp monetization enabled. See go/yppornot for more details.
-    #[serde(default, rename = "isChannelMonetizationEnabled")]
-    pub is_channel_monetization_enabled: ::core::option::Option<bool>,
-    /// If true, then the user is linked to either a YouTube username or G+ account. Otherwise, the user doesn''t have a public YouTube identity.
-    #[serde(default, rename = "isLinked")]
-    pub is_linked: ::core::option::Option<bool>,
-    /// The long uploads status of this channel. See https://support.google.com/youtube/answer/71673 for more information. // TODO: enum values: ["longUploadsUnspecified", "allowed", "eligible", "disallowed"]
-    #[serde(default, rename = "longUploadsStatus")]
-    pub long_uploads_status: ::core::option::Option<String>,
-    #[serde(default, rename = "madeForKids")]
-    pub made_for_kids: ::core::option::Option<bool>,
-    /// Privacy status of the channel. // TODO: enum values: ["public", "unlisted", "private"]
-    #[serde(default, rename = "privacyStatus")]
-    pub privacy_status: ::core::option::Option<String>,
-    #[serde(default, rename = "selfDeclaredMadeForKids")]
-    pub self_declared_made_for_kids: ::core::option::Option<bool>,
+pub struct Comment {
+    /// Etag of this resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the comment.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "youtube#comment".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The snippet object contains basic details about the comment.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<CommentSnippet>,
+}
+
+/// Settings and Info of the monitor stream
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonitorStreamInfo {
+    /// If you have set the enableMonitorStream property to true, then this property determines the length of the live broadcast delay.
+    #[serde(default, rename = "broadcastStreamDelayMs")]
+    pub broadcast_stream_delay_ms: ::core::option::Option<i64>,
+    /// HTML code that embeds a player that plays the monitor stream.
+    #[serde(default, rename = "embedHtml")]
+    pub embed_html: ::core::option::Option<String>,
+    /// This value determines whether the monitor stream is enabled for the broadcast. If the monitor stream is enabled, then YouTube will broadcast the event content on a special stream intended only for the broadcaster''s consumption. The broadcaster can use the stream to review the event content and also to identify the optimal times to insert cuepoints. You need to set this value to true if you intend to have a broadcast delay for your event. *Note:* This property cannot be updated once the broadcast is in the testing or live state.
+    #[serde(default, rename = "enableMonitorStream")]
+    pub enable_monitor_stream: ::core::option::Option<bool>,
+}
+
+/// Schedule to insert cuepoints into a broadcast by ads automator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CuepointSchedule {
+    /// This field is semantically required. If it is set false or not set, other fields in this message will be ignored.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// If set, automatic cuepoint insertion is paused until this timestamp ("No Ad Zone"). The value is specified in ISO 8601 format.
+    #[serde(default, rename = "pauseAdsUntil")]
+    pub pause_ads_until: ::core::option::Option<String>,
+    /// Interval frequency in seconds that api uses to insert cuepoints automatically.
+    #[serde(default, rename = "repeatIntervalSecs")]
+    pub repeat_interval_secs: ::core::option::Option<i32>,
+    /// The strategy to use when scheduling cuepoints. // TODO: enum values: ["scheduleStrategyUnspecified", "concurrent", "nonConcurrent"]
+    #[serde(default, rename = "scheduleStrategy")]
+    pub schedule_strategy: ::core::option::Option<String>,
+}
+
+/// LiveChatFanFundingEventDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatFanFundingEventDetails {
+    /// A rendered string that displays the fund amount and currency to the user.
+    #[serde(default, rename = "amountDisplayString")]
+    pub amount_display_string: ::core::option::Option<String>,
+    /// The amount of the fund.
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// The currency in which the fund was made.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// The comment added by the user to this fan funding event.
+    #[serde(default, rename = "userComment")]
+    pub user_comment: ::core::option::Option<String>,
+}
+
+/// Details about the gift event, this is only set if the type is ''giftEvent''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatGiftDetails {
+    /// The alternative text to be used for accessibility.
+    #[serde(default, rename = "altText")]
+    pub alt_text: ::core::option::Option<String>,
+    /// The number of times the gift has been sent in a row.
+    #[serde(default, rename = "comboCount")]
+    pub combo_count: ::core::option::Option<i32>,
+    /// The duration of the gift.
+    #[serde(default, rename = "giftDuration")]
+    pub gift_duration: ::core::option::Option<String>,
+    /// The name of the gift.
+    #[serde(default, rename = "giftName")]
+    pub gift_name: ::core::option::Option<String>,
+    /// The URL of the gift image.
+    #[serde(default, rename = "giftUrl")]
+    pub gift_url: ::core::option::Option<String>,
+    /// Whether the gift involves a visual effect.
+    #[serde(default, rename = "hasVisualEffect")]
+    pub has_visual_effect: ::core::option::Option<bool>,
+    /// The value of the gift in jewels.
+    #[serde(default, rename = "jewelsAmount")]
+    pub jewels_amount: ::core::option::Option<i32>,
+    /// The BCP-47 language code of the gift.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+}
+
+/// LiveChatGiftMembershipReceivedDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatGiftMembershipReceivedDetails {
+    /// The ID of the membership gifting message that is related to this gift membership. This ID will always refer to a message whose type is ''membershipGiftingEvent''.
+    #[serde(default, rename = "associatedMembershipGiftingMessageId")]
+    pub associated_membership_gifting_message_id: ::core::option::Option<String>,
+    /// The ID of the user that made the membership gifting purchase. This matches the snippet.authorChannelId of the associated membership gifting message.
+    #[serde(default, rename = "gifterChannelId")]
+    pub gifter_channel_id: ::core::option::Option<String>,
+    /// The name of the Level at which the viewer is a member. This matches the snippet.membershipGiftingDetails.giftMembershipsLevelName of the associated membership gifting message. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
+    #[serde(default, rename = "memberLevelName")]
+    pub member_level_name: ::core::option::Option<String>,
+}
+
+/// LiveChatMemberMilestoneChatDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMemberMilestoneChatDetails {
+    /// The name of the Level at which the viever is a member. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
+    #[serde(default, rename = "memberLevelName")]
+    pub member_level_name: ::core::option::Option<String>,
+    /// The total amount of months (rounded up) the viewer has been a member that granted them this Member Milestone Chat. This is the same number of months as is being displayed to YouTube users.
+    #[serde(default, rename = "memberMonth")]
+    pub member_month: ::core::option::Option<i64>,
+    /// The comment added by the member to this Member Milestone Chat. This field is empty for messages without a comment from the member.
+    #[serde(default, rename = "userComment")]
+    pub user_comment: ::core::option::Option<String>,
+}
+
+/// LiveChatMembershipGiftingDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMembershipGiftingDetails {
+    /// The number of gift memberships purchased by the user.
+    #[serde(default, rename = "giftMembershipsCount")]
+    pub gift_memberships_count: ::core::option::Option<i32>,
+    /// The name of the level of the gift memberships purchased by the user. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
+    #[serde(default, rename = "giftMembershipsLevelName")]
+    pub gift_memberships_level_name: ::core::option::Option<String>,
+}
+
+/// LiveChatMessageDeletedDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessageDeletedDetails {
+    #[serde(default, rename = "deletedMessageId")]
+    pub deleted_message_id: ::core::option::Option<String>,
+}
+
+/// LiveChatMessageRetractedDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatMessageRetractedDetails {
+    #[serde(default, rename = "retractedMessageId")]
+    pub retracted_message_id: ::core::option::Option<String>,
+}
+
+/// LiveChatNewSponsorDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatNewSponsorDetails {
+    /// If the viewer just had upgraded from a lower level. For viewers that were not members at the time of purchase, this field is false.
+    #[serde(default, rename = "isUpgrade")]
+    pub is_upgrade: ::core::option::Option<bool>,
+    /// The name of the Level that the viewer just had joined. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
+    #[serde(default, rename = "memberLevelName")]
+    pub member_level_name: ::core::option::Option<String>,
+}
+
+/// LiveChatPollDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatPollDetails {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<LiveChatPollDetailsPollMetadata>,
+    /// TODO: enum values: ["unknown", "active", "closed"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// LiveChatSuperChatDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatSuperChatDetails {
+    /// A rendered string that displays the fund amount and currency to the user.
+    #[serde(default, rename = "amountDisplayString")]
+    pub amount_display_string: ::core::option::Option<String>,
+    /// The amount purchased by the user, in micros (1,750,000 micros = 1.75).
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// The currency in which the purchase was made.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// The tier in which the amount belongs. Lower amounts belong to lower tiers. The lowest tier is 1.
+    #[serde(default)]
+    pub tier: ::core::option::Option<i64>,
+    /// The comment added by the user to this Super Chat event.
+    #[serde(default, rename = "userComment")]
+    pub user_comment: ::core::option::Option<String>,
+}
+
+/// LiveChatSuperStickerDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatSuperStickerDetails {
+    /// A rendered string that displays the fund amount and currency to the user.
+    #[serde(default, rename = "amountDisplayString")]
+    pub amount_display_string: ::core::option::Option<String>,
+    /// The amount purchased by the user, in micros (1,750,000 micros = 1.75).
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// The currency in which the purchase was made.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// Information about the Super Sticker.
+    #[serde(default, rename = "superStickerMetadata")]
+    pub super_sticker_metadata: ::core::option::Option<SuperStickerMetadata>,
+    /// The tier in which the amount belongs. Lower amounts belong to lower tiers. The lowest tier is 1.
+    #[serde(default)]
+    pub tier: ::core::option::Option<i64>,
+}
+
+/// LiveChatTextMessageDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatTextMessageDetails {
+    /// The user''s message.
+    #[serde(default, rename = "messageText")]
+    pub message_text: ::core::option::Option<String>,
+}
+
+/// LiveChatUserBannedMessageDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatUserBannedMessageDetails {
+    /// The duration of the ban. This property is only present if the banType is temporary.
+    #[serde(default, rename = "banDurationSeconds")]
+    pub ban_duration_seconds: ::core::option::Option<String>,
+    /// The type of ban. // TODO: enum values: ["permanent", "temporary"]
+    #[serde(default, rename = "banType")]
+    pub ban_type: ::core::option::Option<String>,
+    /// The details of the user that was banned.
+    #[serde(default, rename = "bannedUserDetails")]
+    pub banned_user_details: ::core::option::Option<ChannelProfileDetails>,
+}
+
+/// Describes information necessary for ingesting an RTMP, HTTP, or SRT stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngestionInfo {
+    /// The backup ingestion URL that you should use to stream video to YouTube. You have the option of simultaneously streaming the content that you are sending to the ingestionAddress to this URL.
+    #[serde(default, rename = "backupIngestionAddress")]
+    pub backup_ingestion_address: ::core::option::Option<String>,
+    /// The primary ingestion URL that you should use to stream video to YouTube. You must stream video to this URL. Depending on which application or tool you use to encode your video stream, you may need to enter the stream URL and stream name separately or you may need to concatenate them in the following format: *STREAM_URL/STREAM_NAME*
+    #[serde(default, rename = "ingestionAddress")]
+    pub ingestion_address: ::core::option::Option<String>,
+    /// This ingestion url may be used instead of backupIngestionAddress in order to stream via RTMPS. Not applicable to non-RTMP streams.
+    #[serde(default, rename = "rtmpsBackupIngestionAddress")]
+    pub rtmps_backup_ingestion_address: ::core::option::Option<String>,
+    /// This ingestion url may be used instead of ingestionAddress in order to stream via RTMPS. Not applicable to non-RTMP streams.
+    #[serde(default, rename = "rtmpsIngestionAddress")]
+    pub rtmps_ingestion_address: ::core::option::Option<String>,
+    /// The stream name that YouTube assigns to the video stream.
+    #[serde(default, rename = "streamName")]
+    pub stream_name: ::core::option::Option<String>,
+}
+
+/// LiveStreamHealthStatus resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamHealthStatus {
+    /// The configurations issues on this stream
+    #[serde(default, rename = "configurationIssues")]
+    pub configuration_issues: ::core::option::Option<::std::vec::Vec<LiveStreamConfigurationIssue>>,
+    /// The last time this status was updated (in seconds)
+    #[serde(default, rename = "lastUpdateTimeSeconds")]
+    pub last_update_time_seconds: ::core::option::Option<String>,
+    /// The status code of this stream // TODO: enum values: ["good", "ok", "bad", "noData", "revoked"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// MembershipsDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsDetails {
+    /// Ids of all levels that the user has access to. This includes the currently active level and all other levels that are included because of a higher purchase.
+    #[serde(default, rename = "accessibleLevels")]
+    pub accessible_levels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Id of the highest level that the user has access to at the moment.
+    #[serde(default, rename = "highestAccessibleLevel")]
+    pub highest_accessible_level: ::core::option::Option<String>,
+    /// Display name for the highest level that the user has access to at the moment.
+    #[serde(default, rename = "highestAccessibleLevelDisplayName")]
+    pub highest_accessible_level_display_name: ::core::option::Option<String>,
+    /// Data about memberships duration without taking into consideration pricing levels.
+    #[serde(default, rename = "membershipsDuration")]
+    pub memberships_duration: ::core::option::Option<MembershipsDuration>,
+    /// Data about memberships duration on particular pricing levels.
+    #[serde(default, rename = "membershipsDurationAtLevels")]
+    pub memberships_duration_at_levels:
+        ::core::option::Option<::std::vec::Vec<MembershipsDurationAtLevel>>,
+}
+
+/// LevelDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LevelDetails {
+    /// The name that should be used when referring to this level.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Playlist localization setting
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaylistLocalization {
+    /// The localized strings for playlist''s description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The localized strings for playlist''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// Information specific to a store on a merchandising platform linked to a YouTube channel.
@@ -816,218 +3351,15 @@ pub struct ChannelToStoreLinkDetails {
     pub store_url: ::core::option::Option<String>,
 }
 
-/// Information specific to billing.
+/// VideoAbuseReportSecondaryReason resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelToStoreLinkDetailsBillingDetails {
-    /// The current billing profile status. // TODO: enum values: ["billingStatusUnspecified", "billingStatusPending", "billingStatusActive", "billingStatusInactive"]
-    #[serde(default, rename = "billingStatus")]
-    pub billing_status: ::core::option::Option<String>,
-}
-
-/// Information specific to merchant affiliate program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
-    /// The current merchant affiliate program status. // TODO: enum values: ["merchantAffiliateProgramStatusUnspecified", "merchantAffiliateProgramStatusEligible", "merchantAffiliateProgramStatusActive", "merchantAffiliateProgramStatusPaused"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Freebase topic information related to the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelTopicDetails {
-    /// A list of Wikipedia URLs that describe the channel''s content.
-    #[serde(default, rename = "topicCategories")]
-    pub topic_categories: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.
-    #[serde(default, rename = "topicIds")]
-    pub topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A *comment* represents a single YouTube comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Comment {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the comment.
+pub struct VideoAbuseReportSecondaryReason {
+    /// The ID of this abuse report secondary reason.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#comment".
+    /// The localized label for this abuse report secondary reason.
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the comment.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<CommentSnippet>,
-}
-
-/// CommentListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of comments that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Comment>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a comment, such as its author and text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentSnippet {
-    #[serde(default, rename = "authorChannelId")]
-    pub author_channel_id: ::core::option::Option<CommentSnippetAuthorChannelId>,
-    /// Link to the author''s YouTube channel, if any.
-    #[serde(default, rename = "authorChannelUrl")]
-    pub author_channel_url: ::core::option::Option<String>,
-    /// The name of the user who posted the comment.
-    #[serde(default, rename = "authorDisplayName")]
-    pub author_display_name: ::core::option::Option<String>,
-    /// The URL for the avatar of the user who posted the comment.
-    #[serde(default, rename = "authorProfileImageUrl")]
-    pub author_profile_image_url: ::core::option::Option<String>,
-    /// Whether the current viewer can rate this comment.
-    #[serde(default, rename = "canRate")]
-    pub can_rate: ::core::option::Option<bool>,
-    /// The id of the corresponding YouTube channel. In case of a channel comment this is the channel the comment refers to. In case of a video or post comment it''s the video/post''s channel.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The total number of likes this comment has received.
-    #[serde(default, rename = "likeCount")]
-    pub like_count: ::core::option::Option<i64>,
-    /// The comment''s moderation status. Will not be set if the comments were requested through the id filter. // TODO: enum values: ["published", "heldForReview", "likelySpam", "rejected"]
-    #[serde(default, rename = "moderationStatus")]
-    pub moderation_status: ::core::option::Option<String>,
-    /// The unique id of the top-level comment, only set for replies.
-    #[serde(default, rename = "parentId")]
-    pub parent_id: ::core::option::Option<String>,
-    /// The ID of the post the comment refers to, if any.
-    #[serde(default, rename = "postId")]
-    pub post_id: ::core::option::Option<String>,
-    /// The date and time when the comment was originally published.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// The comment''s text. The format is either plain text or HTML dependent on what has been requested. Even the plain text representation may differ from the text originally posted in that it may replace video links with video titles etc.
-    #[serde(default, rename = "textDisplay")]
-    pub text_display: ::core::option::Option<String>,
-    /// The comment''s original raw text as initially posted or last updated. The original text will only be returned if it is accessible to the viewer, which is only guaranteed if the viewer is the comment''s author.
-    #[serde(default, rename = "textOriginal")]
-    pub text_original: ::core::option::Option<String>,
-    /// The date and time when the comment was last updated.
-    #[serde(default, rename = "updatedAt")]
-    pub updated_at: ::core::option::Option<String>,
-    /// The ID of the video the comment refers to, if any.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
-    /// The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future. // TODO: enum values: ["none", "like", "dislike"]
-    #[serde(default, rename = "viewerRating")]
-    pub viewer_rating: ::core::option::Option<String>,
-}
-
-/// Contains the id of the author''s YouTube channel, if any.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentSnippetAuthorChannelId {
-    /// The id of the author''s YouTube channel.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A *comment thread* represents information that applies to a top level comment and all its replies. It can also include the top level comment itself and some of the replies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentThread {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the comment thread.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentThread".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The replies object contains a limited number of replies (if any) to the top level comment found in the snippet.
-    #[serde(default)]
-    pub replies: ::core::option::Option<CommentThreadReplies>,
-    /// The snippet object contains basic details about the comment thread and also the top level comment.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<CommentThreadSnippet>,
-}
-
-/// CommentThreadListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentThreadListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of comment threads that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<CommentThread>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#commentThreadListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Comments written in (direct or indirect) reply to the top level comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentThreadReplies {
-    /// A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.
-    #[serde(default)]
-    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
-}
-
-/// Basic details about a comment thread.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentThreadSnippet {
-    /// Whether the current viewer of the thread can reply to it. This is viewer specific - other viewers may see a different value for this field.
-    #[serde(default, rename = "canReply")]
-    pub can_reply: ::core::option::Option<bool>,
-    /// The YouTube channel the comments in the thread refer to or the channel with the video the comments refer to. If neither video_id nor post_id is set the comments refer to the channel itself.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// Whether the thread (and therefore all its comments) is visible to all YouTube users.
-    #[serde(default, rename = "isPublic")]
-    pub is_public: ::core::option::Option<bool>,
-    /// The ID of the post the comments refer to, if any.
-    #[serde(default, rename = "postId")]
-    pub post_id: ::core::option::Option<String>,
-    /// The top level comment of this thread.
-    #[serde(default, rename = "topLevelComment")]
-    pub top_level_comment: ::core::option::Option<Comment>,
-    /// The total number of replies (not including the top level comment).
-    #[serde(default, rename = "totalReplyCount")]
-    pub total_reply_count: ::core::option::Option<i64>,
-    /// The ID of the video the comments refer to, if any.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
+    pub label: ::core::option::Option<String>,
 }
 
 /// Ratings schemes. The country-specific ratings are mostly for movies and shows. LINT.IfChange
@@ -1248,2251 +3580,6 @@ pub struct ContentRating {
     pub yt_rating: ::core::option::Option<String>,
 }
 
-/// Note that there may be a 5-second end-point resolution issue. For instance, if a cuepoint comes in for 22:03:27, we may stuff the cuepoint into 22:03:25 or 22:03:30, depending. This is an artifact of HLS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cuepoint {
-    /// TODO: enum values: ["cueTypeUnspecified", "cueTypeAd"]
-    #[serde(default, rename = "cueType")]
-    pub cue_type: ::core::option::Option<String>,
-    /// The duration of this cuepoint.
-    #[serde(default, rename = "durationSecs")]
-    pub duration_secs: ::core::option::Option<i64>,
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The identifier for cuepoint resource.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The time when the cuepoint should be inserted by offset to the broadcast actual start time.
-    #[serde(default, rename = "insertionOffsetTimeMs")]
-    pub insertion_offset_time_ms: ::core::option::Option<String>,
-    /// The wall clock time at which the cuepoint should be inserted. Only one of insertion_offset_time_ms and walltime_ms may be set at a time.
-    #[serde(default, rename = "walltimeMs")]
-    pub walltime_ms: ::core::option::Option<String>,
-}
-
-/// Schedule to insert cuepoints into a broadcast by ads automator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CuepointSchedule {
-    /// This field is semantically required. If it is set false or not set, other fields in this message will be ignored.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// If set, automatic cuepoint insertion is paused until this timestamp ("No Ad Zone"). The value is specified in ISO 8601 format.
-    #[serde(default, rename = "pauseAdsUntil")]
-    pub pause_ads_until: ::core::option::Option<String>,
-    /// Interval frequency in seconds that api uses to insert cuepoints automatically.
-    #[serde(default, rename = "repeatIntervalSecs")]
-    pub repeat_interval_secs: ::core::option::Option<i32>,
-    /// The strategy to use when scheduling cuepoints. // TODO: enum values: ["scheduleStrategyUnspecified", "concurrent", "nonConcurrent"]
-    #[serde(default, rename = "scheduleStrategy")]
-    pub schedule_strategy: ::core::option::Option<String>,
-}
-
-/// Entity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entity {
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    #[serde(default, rename = "typeId")]
-    pub type_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Geographical coordinates of a point, in WGS84.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeoPoint {
-    /// Altitude above the reference ellipsoid, in meters.
-    #[serde(default)]
-    pub altitude: ::core::option::Option<f64>,
-    /// Latitude in degrees.
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// Longitude in degrees.
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// An *i18nLanguage* resource identifies a UI language currently supported by YouTube.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nLanguage {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the i18n language.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nLanguage".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the i18n language, such as language code and human-readable name.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<I18nLanguageSnippet>,
-}
-
-/// I18nLanguageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nLanguageListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of supported i18n languages. In this map, the i18n language ID is the map key, and its value is the corresponding i18nLanguage resource.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<I18nLanguage>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nLanguageListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about an i18n language, such as language code and human-readable name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nLanguageSnippet {
-    /// A short BCP-47 code that uniquely identifies a language.
-    #[serde(default)]
-    pub hl: ::core::option::Option<String>,
-    /// The human-readable name of the language in the language itself.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A *i18nRegion* resource identifies a region where YouTube is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nRegion {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the i18n region.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nRegion".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the i18n region, such as region code and human-readable name.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<I18nRegionSnippet>,
-}
-
-/// I18nRegionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nRegionListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of regions where YouTube is available. In this map, the i18n region ID is the map key, and its value is the corresponding i18nRegion resource.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<I18nRegion>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#i18nRegionListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about an i18n region, such as region code and human-readable name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18nRegionSnippet {
-    /// The region code as a 2-letter ISO country code.
-    #[serde(default)]
-    pub gl: ::core::option::Option<String>,
-    /// The human-readable name of the region.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Branding properties for images associated with the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageSettings {
-    /// The URL for the background image shown on the video watch page. The image should be 1200px by 615px, with a maximum file size of 128k.
-    #[serde(default, rename = "backgroundImageUrl")]
-    pub background_image_url: ::core::option::Option<LocalizedProperty>,
-    /// This is generated when a ChannelBanner.Insert request has succeeded for the given channel.
-    #[serde(default, rename = "bannerExternalUrl")]
-    pub banner_external_url: ::core::option::Option<String>,
-    /// Banner image. Desktop size (1060x175).
-    #[serde(default, rename = "bannerImageUrl")]
-    pub banner_image_url: ::core::option::Option<String>,
-    /// Banner image. Mobile size high resolution (1440x395).
-    #[serde(default, rename = "bannerMobileExtraHdImageUrl")]
-    pub banner_mobile_extra_hd_image_url: ::core::option::Option<String>,
-    /// Banner image. Mobile size high resolution (1280x360).
-    #[serde(default, rename = "bannerMobileHdImageUrl")]
-    pub banner_mobile_hd_image_url: ::core::option::Option<String>,
-    /// Banner image. Mobile size (640x175).
-    #[serde(default, rename = "bannerMobileImageUrl")]
-    pub banner_mobile_image_url: ::core::option::Option<String>,
-    /// Banner image. Mobile size low resolution (320x88).
-    #[serde(default, rename = "bannerMobileLowImageUrl")]
-    pub banner_mobile_low_image_url: ::core::option::Option<String>,
-    /// Banner image. Mobile size medium/high resolution (960x263).
-    #[serde(default, rename = "bannerMobileMediumHdImageUrl")]
-    pub banner_mobile_medium_hd_image_url: ::core::option::Option<String>,
-    /// Banner image. Tablet size extra high resolution (2560x424).
-    #[serde(default, rename = "bannerTabletExtraHdImageUrl")]
-    pub banner_tablet_extra_hd_image_url: ::core::option::Option<String>,
-    /// Banner image. Tablet size high resolution (2276x377).
-    #[serde(default, rename = "bannerTabletHdImageUrl")]
-    pub banner_tablet_hd_image_url: ::core::option::Option<String>,
-    /// Banner image. Tablet size (1707x283).
-    #[serde(default, rename = "bannerTabletImageUrl")]
-    pub banner_tablet_image_url: ::core::option::Option<String>,
-    /// Banner image. Tablet size low resolution (1138x188).
-    #[serde(default, rename = "bannerTabletLowImageUrl")]
-    pub banner_tablet_low_image_url: ::core::option::Option<String>,
-    /// Banner image. TV size high resolution (1920x1080).
-    #[serde(default, rename = "bannerTvHighImageUrl")]
-    pub banner_tv_high_image_url: ::core::option::Option<String>,
-    /// Banner image. TV size extra high resolution (2120x1192).
-    #[serde(default, rename = "bannerTvImageUrl")]
-    pub banner_tv_image_url: ::core::option::Option<String>,
-    /// Banner image. TV size low resolution (854x480).
-    #[serde(default, rename = "bannerTvLowImageUrl")]
-    pub banner_tv_low_image_url: ::core::option::Option<String>,
-    /// Banner image. TV size medium resolution (1280x720).
-    #[serde(default, rename = "bannerTvMediumImageUrl")]
-    pub banner_tv_medium_image_url: ::core::option::Option<String>,
-    /// The image map script for the large banner image.
-    #[serde(default, rename = "largeBrandedBannerImageImapScript")]
-    pub large_branded_banner_image_imap_script: ::core::option::Option<LocalizedProperty>,
-    /// The URL for the 854px by 70px image that appears below the video player in the expanded video view of the video watch page.
-    #[serde(default, rename = "largeBrandedBannerImageUrl")]
-    pub large_branded_banner_image_url: ::core::option::Option<LocalizedProperty>,
-    /// The image map script for the small banner image.
-    #[serde(default, rename = "smallBrandedBannerImageImapScript")]
-    pub small_branded_banner_image_imap_script: ::core::option::Option<LocalizedProperty>,
-    /// The URL for the 640px by 70px banner image that appears below the video player in the default view of the video watch page. The URL for the image that appears above the top-left corner of the video player. This is a 25-pixel-high image with a flexible width that cannot exceed 170 pixels.
-    #[serde(default, rename = "smallBrandedBannerImageUrl")]
-    pub small_branded_banner_image_url: ::core::option::Option<LocalizedProperty>,
-    /// The URL for a 1px by 1px tracking pixel that can be used to collect statistics for views of the channel or video pages.
-    #[serde(default, rename = "trackingImageUrl")]
-    pub tracking_image_url: ::core::option::Option<String>,
-    #[serde(default, rename = "watchIconImageUrl")]
-    pub watch_icon_image_url: ::core::option::Option<String>,
-}
-
-/// Describes information necessary for ingesting an RTMP, HTTP, or SRT stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IngestionInfo {
-    /// The backup ingestion URL that you should use to stream video to YouTube. You have the option of simultaneously streaming the content that you are sending to the ingestionAddress to this URL.
-    #[serde(default, rename = "backupIngestionAddress")]
-    pub backup_ingestion_address: ::core::option::Option<String>,
-    /// The primary ingestion URL that you should use to stream video to YouTube. You must stream video to this URL. Depending on which application or tool you use to encode your video stream, you may need to enter the stream URL and stream name separately or you may need to concatenate them in the following format: *STREAM_URL/STREAM_NAME*
-    #[serde(default, rename = "ingestionAddress")]
-    pub ingestion_address: ::core::option::Option<String>,
-    /// This ingestion url may be used instead of backupIngestionAddress in order to stream via RTMPS. Not applicable to non-RTMP streams.
-    #[serde(default, rename = "rtmpsBackupIngestionAddress")]
-    pub rtmps_backup_ingestion_address: ::core::option::Option<String>,
-    /// This ingestion url may be used instead of ingestionAddress in order to stream via RTMPS. Not applicable to non-RTMP streams.
-    #[serde(default, rename = "rtmpsIngestionAddress")]
-    pub rtmps_ingestion_address: ::core::option::Option<String>,
-    /// The stream name that YouTube assigns to the video stream.
-    #[serde(default, rename = "streamName")]
-    pub stream_name: ::core::option::Option<String>,
-}
-
-/// Describes an invideo branding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvideoBranding {
-    /// The bytes the uploaded image. Only used in api to youtube communication.
-    #[serde(default, rename = "imageBytes")]
-    pub image_bytes: ::core::option::Option<String>,
-    /// The url of the uploaded image. Only used in apiary to api communication.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// The spatial position within the video where the branding watermark will be displayed.
-    #[serde(default)]
-    pub position: ::core::option::Option<InvideoPosition>,
-    /// The channel to which this branding links. If not present it defaults to the current channel.
-    #[serde(default, rename = "targetChannelId")]
-    pub target_channel_id: ::core::option::Option<String>,
-    /// The temporal position within the video where watermark will be displayed.
-    #[serde(default)]
-    pub timing: ::core::option::Option<InvideoTiming>,
-}
-
-/// Describes the spatial position of a visual widget inside a video. It is a union of various position types, out of which only will be set one.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvideoPosition {
-    /// Describes in which corner of the video the visual widget will appear. // TODO: enum values: ["topLeft", "topRight", "bottomLeft", "bottomRight"]
-    #[serde(default, rename = "cornerPosition")]
-    pub corner_position: ::core::option::Option<String>,
-    /// Defines the position type. // TODO: enum values: ["corner"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Describes a temporal position of a visual widget inside a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvideoTiming {
-    /// Defines the duration in milliseconds for which the promotion should be displayed. If missing, the client should use the default.
-    #[serde(default, rename = "durationMs")]
-    pub duration_ms: ::core::option::Option<String>,
-    /// Defines the time at which the promotion will appear. Depending on the value of type the value of the offsetMs field will represent a time offset from the start or from the end of the video, expressed in milliseconds.
-    #[serde(default, rename = "offsetMs")]
-    pub offset_ms: ::core::option::Option<String>,
-    /// Describes a timing type. If the value is offsetFromStart, then the offsetMs field represents an offset from the start of the video. If the value is offsetFromEnd, then the offsetMs field represents an offset from the end of the video. // TODO: enum values: ["offsetFromStart", "offsetFromEnd"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// LanguageTag resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LanguageTag {
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// LevelDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LevelDetails {
-    /// The name that should be used when referring to this level.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// A *liveBroadcast* resource represents an event that will be streamed, via live video, on YouTube.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcast {
-    /// The contentDetails object contains information about the event''s video content, such as whether the content can be shown in an embedded video player or if it will be archived and therefore available for viewing after the event has concluded.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<LiveBroadcastContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the broadcast.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveBroadcast".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The monetizationDetails object contains information about the event''s monetization details.
-    #[serde(default, rename = "monetizationDetails")]
-    pub monetization_details: ::core::option::Option<LiveBroadcastMonetizationDetails>,
-    /// The snippet object contains basic details about the event, including its title, description, start time, and end time.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<LiveBroadcastSnippet>,
-    /// The statistics object contains info about the event''s current stats. These include concurrent viewers and total chat count. Statistics can change (in either direction) during the lifetime of an event. Statistics are only returned while the event is live.
-    #[serde(default)]
-    pub statistics: ::core::option::Option<LiveBroadcastStatistics>,
-    /// The status object contains information about the event''s status.
-    #[serde(default)]
-    pub status: ::core::option::Option<LiveBroadcastStatus>,
-}
-
-/// Detailed settings of a broadcast.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastContentDetails {
-    /// This value uniquely identifies the live stream bound to the broadcast.
-    #[serde(default, rename = "boundStreamId")]
-    pub bound_stream_id: ::core::option::Option<String>,
-    /// The date and time that the live stream referenced by boundStreamId was last updated.
-    #[serde(default, rename = "boundStreamLastUpdateTimeMs")]
-    pub bound_stream_last_update_time_ms: ::core::option::Option<String>,
-    /// TODO: enum values: ["closedCaptionsTypeUnspecified", "closedCaptionsDisabled", "closedCaptionsHttpPost", "closedCaptionsEmbedded"]
-    #[serde(default, rename = "closedCaptionsType")]
-    pub closed_captions_type: ::core::option::Option<String>,
-    /// This setting indicates whether auto start is enabled for this broadcast. The default value for this property is false. This setting can only be used by Events.
-    #[serde(default, rename = "enableAutoStart")]
-    pub enable_auto_start: ::core::option::Option<bool>,
-    /// This setting indicates whether auto stop is enabled for this broadcast. The default value for this property is false. This setting can only be used by Events.
-    #[serde(default, rename = "enableAutoStop")]
-    pub enable_auto_stop: ::core::option::Option<bool>,
-    /// This setting indicates whether HTTP POST closed captioning is enabled for this broadcast. The ingestion URL of the closed captions is returned through the liveStreams API. This is mutually exclusive with using the closed_captions_type property, and is equivalent to setting closed_captions_type to CLOSED_CAPTIONS_HTTP_POST.
-    #[serde(default, rename = "enableClosedCaptions")]
-    pub enable_closed_captions: ::core::option::Option<bool>,
-    /// This setting indicates whether YouTube should enable content encryption for the broadcast.
-    #[serde(default, rename = "enableContentEncryption")]
-    pub enable_content_encryption: ::core::option::Option<bool>,
-    /// This setting determines whether viewers can access DVR controls while watching the video. DVR controls enable the viewer to control the video playback experience by pausing, rewinding, or fast forwarding content. The default value for this property is true. *Important:* You must set the value to true and also set the enableArchive property''s value to true if you want to make playback available immediately after the broadcast ends.
-    #[serde(default, rename = "enableDvr")]
-    pub enable_dvr: ::core::option::Option<bool>,
-    /// This setting indicates whether the broadcast video can be played in an embedded player. If you choose to archive the video (using the enableArchive property), this setting will also apply to the archived video.
-    #[serde(default, rename = "enableEmbed")]
-    pub enable_embed: ::core::option::Option<bool>,
-    /// Indicates whether this broadcast has low latency enabled.
-    #[serde(default, rename = "enableLowLatency")]
-    pub enable_low_latency: ::core::option::Option<bool>,
-    /// If both this and enable_low_latency are set, they must match. LATENCY_NORMAL should match enable_low_latency=false LATENCY_LOW should match enable_low_latency=true LATENCY_ULTRA_LOW should have enable_low_latency omitted. // TODO: enum values: ["latencyPreferenceUnspecified", "normal", "low", "ultraLow"]
-    #[serde(default, rename = "latencyPreference")]
-    pub latency_preference: ::core::option::Option<String>,
-    /// The mesh for projecting the video if projection is mesh. The mesh value must be a UTF-8 string containing the base-64 encoding of 3D mesh data that follows the Spherical Video V2 RFC specification for an mshp box, excluding the box size and type but including the following four reserved zero bytes for the version and flags.
-    #[serde(default)]
-    pub mesh: ::core::option::Option<String>,
-    /// The monitorStream object contains information about the monitor stream, which the broadcaster can use to review the event content before the broadcast stream is shown publicly.
-    #[serde(default, rename = "monitorStream")]
-    pub monitor_stream: ::core::option::Option<MonitorStreamInfo>,
-    /// The projection format of this broadcast. This defaults to rectangular. // TODO: enum values: ["projectionUnspecified", "rectangular", "360", "mesh"]
-    #[serde(default)]
-    pub projection: ::core::option::Option<String>,
-    /// Automatically start recording after the event goes live. The default value for this property is true. *Important:* You must also set the enableDvr property''s value to true if you want the playback to be available immediately after the broadcast ends. If you set this property''s value to true but do not also set the enableDvr property to true, there may be a delay of around one day before the archived video will be available for playback.
-    #[serde(default, rename = "recordFromStart")]
-    pub record_from_start: ::core::option::Option<bool>,
-    /// This setting indicates whether the broadcast should automatically begin with an in-stream slate when you update the broadcast''s status to live. After updating the status, you then need to send a liveCuepoints.insert request that sets the cuepoint''s eventState to end to remove the in-stream slate and make your broadcast stream visible to viewers.
-    #[serde(default, rename = "startWithSlate")]
-    pub start_with_slate: ::core::option::Option<bool>,
-    /// The 3D stereo layout of this broadcast. This defaults to mono. // TODO: enum values: ["stereoLayoutUnspecified", "mono", "leftRight", "topBottom"]
-    #[serde(default, rename = "stereoLayout")]
-    pub stereo_layout: ::core::option::Option<String>,
-}
-
-/// LiveBroadcastListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of broadcasts that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<LiveBroadcast>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveBroadcastListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Monetization settings of a broadcast.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastMonetizationDetails {
-    #[serde(default, rename = "cuepointSchedule")]
-    pub cuepoint_schedule: ::core::option::Option<CuepointSchedule>,
-}
-
-/// Basic broadcast information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastSnippet {
-    /// The date and time that the broadcast actually ended. This information is only available once the broadcast''s state is complete.
-    #[serde(default, rename = "actualEndTime")]
-    pub actual_end_time: ::core::option::Option<String>,
-    /// The date and time that the broadcast actually started. This information is only available once the broadcast''s state is live.
-    #[serde(default, rename = "actualStartTime")]
-    pub actual_start_time: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the channel that is publishing the broadcast.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The broadcast''s description. As with the title, you can set this field by modifying the broadcast resource or by setting the description field of the corresponding video resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Indicates whether this broadcast is the default broadcast. Internal only.
-    #[serde(default, rename = "isDefaultBroadcast")]
-    pub is_default_broadcast: ::core::option::Option<bool>,
-    /// The id of the live chat for this broadcast.
-    #[serde(default, rename = "liveChatId")]
-    pub live_chat_id: ::core::option::Option<String>,
-    /// The date and time that the broadcast was added to YouTube''s live broadcast schedule.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// The date and time that the broadcast is scheduled to end.
-    #[serde(default, rename = "scheduledEndTime")]
-    pub scheduled_end_time: ::core::option::Option<String>,
-    /// The date and time that the broadcast is scheduled to start.
-    #[serde(default, rename = "scheduledStartTime")]
-    pub scheduled_start_time: ::core::option::Option<String>,
-    /// A map of thumbnail images associated with the broadcast. For each nested object in this object, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The broadcast''s title. Note that the broadcast represents exactly one YouTube video. You can set this field by modifying the broadcast resource or by setting the title field of the corresponding video resource.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Statistics about the live broadcast. These represent a snapshot of the values at the time of the request. Statistics are only returned for live broadcasts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastStatistics {
-    /// The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.
-    #[serde(default, rename = "concurrentViewers")]
-    pub concurrent_viewers: ::core::option::Option<String>,
-}
-
-/// Live broadcast state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveBroadcastStatus {
-    /// The broadcast''s status. The status can be updated using the API''s liveBroadcasts.transition method. // TODO: enum values: ["lifeCycleStatusUnspecified", "created", "ready", "testing", "live", "complete", "revoked", "testStarting", "liveStarting"]
-    #[serde(default, rename = "lifeCycleStatus")]
-    pub life_cycle_status: ::core::option::Option<String>,
-    /// Priority of the live broadcast event (internal state). // TODO: enum values: ["liveBroadcastPriorityUnspecified", "low", "normal", "high"]
-    #[serde(default, rename = "liveBroadcastPriority")]
-    pub live_broadcast_priority: ::core::option::Option<String>,
-    /// Whether the broadcast is made for kids or not, decided by YouTube instead of the creator. This field is read only.
-    #[serde(default, rename = "madeForKids")]
-    pub made_for_kids: ::core::option::Option<bool>,
-    /// The broadcast''s privacy status. Note that the broadcast represents exactly one YouTube video, so the privacy settings are identical to those supported for videos. In addition, you can set this field by modifying the broadcast resource or by setting the privacyStatus field of the corresponding video resource. // TODO: enum values: ["public", "unlisted", "private"]
-    #[serde(default, rename = "privacyStatus")]
-    pub privacy_status: ::core::option::Option<String>,
-    /// The broadcast''s recording status. // TODO: enum values: ["liveBroadcastRecordingStatusUnspecified", "notRecording", "recording", "recorded"]
-    #[serde(default, rename = "recordingStatus")]
-    pub recording_status: ::core::option::Option<String>,
-    /// This field will be set to True if the creator declares the broadcast to be kids only: go/live-cw-work.
-    #[serde(default, rename = "selfDeclaredMadeForKids")]
-    pub self_declared_made_for_kids: ::core::option::Option<bool>,
-}
-
-/// A __liveChatBan__ resource represents a ban for a YouTube live chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatBan {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the ban.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatBan".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the ban.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<LiveChatBanSnippet>,
-}
-
-/// LiveChatBanSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatBanSnippet {
-    /// The duration of a ban, only filled if the ban has type TEMPORARY.
-    #[serde(default, rename = "banDurationSeconds")]
-    pub ban_duration_seconds: ::core::option::Option<String>,
-    #[serde(default, rename = "bannedUserDetails")]
-    pub banned_user_details: ::core::option::Option<ChannelProfileDetails>,
-    /// The chat this ban is pertinent to.
-    #[serde(default, rename = "liveChatId")]
-    pub live_chat_id: ::core::option::Option<String>,
-    /// The type of ban. // TODO: enum values: ["liveChatBanTypeUnspecified", "permanent", "temporary"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// LiveChatFanFundingEventDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatFanFundingEventDetails {
-    /// A rendered string that displays the fund amount and currency to the user.
-    #[serde(default, rename = "amountDisplayString")]
-    pub amount_display_string: ::core::option::Option<String>,
-    /// The amount of the fund.
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// The currency in which the fund was made.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// The comment added by the user to this fan funding event.
-    #[serde(default, rename = "userComment")]
-    pub user_comment: ::core::option::Option<String>,
-}
-
-/// Details about the gift event, this is only set if the type is ''giftEvent''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatGiftDetails {
-    /// The alternative text to be used for accessibility.
-    #[serde(default, rename = "altText")]
-    pub alt_text: ::core::option::Option<String>,
-    /// The number of times the gift has been sent in a row.
-    #[serde(default, rename = "comboCount")]
-    pub combo_count: ::core::option::Option<i32>,
-    /// The duration of the gift.
-    #[serde(default, rename = "giftDuration")]
-    pub gift_duration: ::core::option::Option<String>,
-    /// The name of the gift.
-    #[serde(default, rename = "giftName")]
-    pub gift_name: ::core::option::Option<String>,
-    /// The URL of the gift image.
-    #[serde(default, rename = "giftUrl")]
-    pub gift_url: ::core::option::Option<String>,
-    /// Whether the gift involves a visual effect.
-    #[serde(default, rename = "hasVisualEffect")]
-    pub has_visual_effect: ::core::option::Option<bool>,
-    /// The value of the gift in jewels.
-    #[serde(default, rename = "jewelsAmount")]
-    pub jewels_amount: ::core::option::Option<i32>,
-    /// The BCP-47 language code of the gift.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-}
-
-/// LiveChatGiftMembershipReceivedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatGiftMembershipReceivedDetails {
-    /// The ID of the membership gifting message that is related to this gift membership. This ID will always refer to a message whose type is ''membershipGiftingEvent''.
-    #[serde(default, rename = "associatedMembershipGiftingMessageId")]
-    pub associated_membership_gifting_message_id: ::core::option::Option<String>,
-    /// The ID of the user that made the membership gifting purchase. This matches the snippet.authorChannelId of the associated membership gifting message.
-    #[serde(default, rename = "gifterChannelId")]
-    pub gifter_channel_id: ::core::option::Option<String>,
-    /// The name of the Level at which the viewer is a member. This matches the snippet.membershipGiftingDetails.giftMembershipsLevelName of the associated membership gifting message. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
-    #[serde(default, rename = "memberLevelName")]
-    pub member_level_name: ::core::option::Option<String>,
-}
-
-/// LiveChatMemberMilestoneChatDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMemberMilestoneChatDetails {
-    /// The name of the Level at which the viever is a member. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
-    #[serde(default, rename = "memberLevelName")]
-    pub member_level_name: ::core::option::Option<String>,
-    /// The total amount of months (rounded up) the viewer has been a member that granted them this Member Milestone Chat. This is the same number of months as is being displayed to YouTube users.
-    #[serde(default, rename = "memberMonth")]
-    pub member_month: ::core::option::Option<i64>,
-    /// The comment added by the member to this Member Milestone Chat. This field is empty for messages without a comment from the member.
-    #[serde(default, rename = "userComment")]
-    pub user_comment: ::core::option::Option<String>,
-}
-
-/// LiveChatMembershipGiftingDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMembershipGiftingDetails {
-    /// The number of gift memberships purchased by the user.
-    #[serde(default, rename = "giftMembershipsCount")]
-    pub gift_memberships_count: ::core::option::Option<i32>,
-    /// The name of the level of the gift memberships purchased by the user. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
-    #[serde(default, rename = "giftMembershipsLevelName")]
-    pub gift_memberships_level_name: ::core::option::Option<String>,
-}
-
-/// A *liveChatMessage* resource represents a chat message in a YouTube Live Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessage {
-    /// The authorDetails object contains basic details about the user that posted this message.
-    #[serde(default, rename = "authorDetails")]
-    pub author_details: ::core::option::Option<LiveChatMessageAuthorDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the message.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatMessage".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the message.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<LiveChatMessageSnippet>,
-}
-
-/// LiveChatMessageAuthorDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessageAuthorDetails {
-    /// The YouTube channel ID.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The channel''s URL.
-    #[serde(default, rename = "channelUrl")]
-    pub channel_url: ::core::option::Option<String>,
-    /// The channel''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Whether the author is a moderator of the live chat.
-    #[serde(default, rename = "isChatModerator")]
-    pub is_chat_moderator: ::core::option::Option<bool>,
-    /// Whether the author is the owner of the live chat.
-    #[serde(default, rename = "isChatOwner")]
-    pub is_chat_owner: ::core::option::Option<bool>,
-    /// Whether the author is a sponsor of the live chat.
-    #[serde(default, rename = "isChatSponsor")]
-    pub is_chat_sponsor: ::core::option::Option<bool>,
-    /// Whether the author''s identity has been verified by YouTube.
-    #[serde(default, rename = "isVerified")]
-    pub is_verified: ::core::option::Option<bool>,
-    /// The channels''s avatar URL.
-    #[serde(default, rename = "profileImageUrl")]
-    pub profile_image_url: ::core::option::Option<String>,
-}
-
-/// LiveChatMessageDeletedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessageDeletedDetails {
-    #[serde(default, rename = "deletedMessageId")]
-    pub deleted_message_id: ::core::option::Option<String>,
-}
-
-/// LiveChatMessageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessageListResponse {
-    /// Set when there is an active poll.
-    #[serde(default, rename = "activePollItem")]
-    pub active_poll_item: ::core::option::Option<LiveChatMessage>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<LiveChatMessage>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatMessageListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The date and time when the underlying stream went offline.
-    #[serde(default, rename = "offlineAt")]
-    pub offline_at: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The amount of time the client should wait before polling again.
-    #[serde(default, rename = "pollingIntervalMillis")]
-    pub polling_interval_millis: ::core::option::Option<i64>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// LiveChatMessageRetractedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessageRetractedDetails {
-    #[serde(default, rename = "retractedMessageId")]
-    pub retracted_message_id: ::core::option::Option<String>,
-}
-
-/// Next ID: 35
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatMessageSnippet {
-    /// The ID of the user that authored this message, this field is not always filled. textMessageEvent - the user that wrote the message fanFundingEvent - the user that funded the broadcast newSponsorEvent - the user that just became a sponsor memberMilestoneChatEvent - the member that sent the message membershipGiftingEvent - the user that made the purchase giftMembershipReceivedEvent - the user that received the gift membership messageDeletedEvent - the moderator that took the action messageRetractedEvent - the author that retracted their message userBannedEvent - the moderator that took the action superChatEvent - the user that made the purchase superStickerEvent - the user that made the purchase pollEvent - the user that created the poll
-    #[serde(default, rename = "authorChannelId")]
-    pub author_channel_id: ::core::option::Option<String>,
-    /// Contains a string that can be displayed to the user. If this field is not present the message is silent, at the moment only messages of type TOMBSTONE and CHAT_ENDED_EVENT are silent.
-    #[serde(default, rename = "displayMessage")]
-    pub display_message: ::core::option::Option<String>,
-    /// Details about the funding event, this is only set if the type is ''fanFundingEvent''.
-    #[serde(default, rename = "fanFundingEventDetails")]
-    pub fan_funding_event_details: ::core::option::Option<LiveChatFanFundingEventDetails>,
-    /// Details about the gift event, this is only set if the type is ''giftEvent''.
-    #[serde(default, rename = "giftDetails")]
-    pub gift_details: ::core::option::Option<LiveChatGiftDetails>,
-    /// Details about the Gift Membership Received event, this is only set if the type is ''giftMembershipReceivedEvent''.
-    #[serde(default, rename = "giftMembershipReceivedDetails")]
-    pub gift_membership_received_details:
-        ::core::option::Option<LiveChatGiftMembershipReceivedDetails>,
-    /// Whether the message has display content that should be displayed to users.
-    #[serde(default, rename = "hasDisplayContent")]
-    pub has_display_content: ::core::option::Option<bool>,
-    #[serde(default, rename = "liveChatId")]
-    pub live_chat_id: ::core::option::Option<String>,
-    /// Details about the Member Milestone Chat event, this is only set if the type is ''memberMilestoneChatEvent''.
-    #[serde(default, rename = "memberMilestoneChatDetails")]
-    pub member_milestone_chat_details: ::core::option::Option<LiveChatMemberMilestoneChatDetails>,
-    /// Details about the Membership Gifting event, this is only set if the type is ''membershipGiftingEvent''.
-    #[serde(default, rename = "membershipGiftingDetails")]
-    pub membership_gifting_details: ::core::option::Option<LiveChatMembershipGiftingDetails>,
-    #[serde(default, rename = "messageDeletedDetails")]
-    pub message_deleted_details: ::core::option::Option<LiveChatMessageDeletedDetails>,
-    #[serde(default, rename = "messageRetractedDetails")]
-    pub message_retracted_details: ::core::option::Option<LiveChatMessageRetractedDetails>,
-    /// Details about the New Member Announcement event, this is only set if the type is ''newSponsorEvent''. Please note that "member" is the new term for "sponsor".
-    #[serde(default, rename = "newSponsorDetails")]
-    pub new_sponsor_details: ::core::option::Option<LiveChatNewSponsorDetails>,
-    /// Details about the poll event, this is only set if the type is ''pollEvent''.
-    #[serde(default, rename = "pollDetails")]
-    pub poll_details: ::core::option::Option<LiveChatPollDetails>,
-    /// The date and time when the message was orignally published.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// Details about the Super Chat event, this is only set if the type is ''superChatEvent''.
-    #[serde(default, rename = "superChatDetails")]
-    pub super_chat_details: ::core::option::Option<LiveChatSuperChatDetails>,
-    /// Details about the Super Sticker event, this is only set if the type is ''superStickerEvent''.
-    #[serde(default, rename = "superStickerDetails")]
-    pub super_sticker_details: ::core::option::Option<LiveChatSuperStickerDetails>,
-    /// Details about the text message, this is only set if the type is ''textMessageEvent''.
-    #[serde(default, rename = "textMessageDetails")]
-    pub text_message_details: ::core::option::Option<LiveChatTextMessageDetails>,
-    /// The type of message, this will always be present, it determines the contents of the message as well as which fields will be present. // TODO: enum values: ["invalidType", "textMessageEvent", "tombstone", "fanFundingEvent", "chatEndedEvent", "sponsorOnlyModeStartedEvent", "sponsorOnlyModeEndedEvent", "newSponsorEvent", "memberMilestoneChatEvent", "membershipGiftingEvent", "giftMembershipReceivedEvent", "messageDeletedEvent", "messageRetractedEvent", "userBannedEvent", "superChatEvent", "superStickerEvent", "pollEvent", "giftEvent"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    #[serde(default, rename = "userBannedDetails")]
-    pub user_banned_details: ::core::option::Option<LiveChatUserBannedMessageDetails>,
-}
-
-/// A *liveChatModerator* resource represents a moderator for a YouTube live chat. A chat moderator has the ability to ban/unban users from a chat, remove message, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatModerator {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the moderator.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatModerator".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the moderator.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<LiveChatModeratorSnippet>,
-}
-
-/// LiveChatModeratorListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatModeratorListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of moderators that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<LiveChatModerator>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveChatModeratorListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// LiveChatModeratorSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatModeratorSnippet {
-    /// The ID of the live chat this moderator can act on.
-    #[serde(default, rename = "liveChatId")]
-    pub live_chat_id: ::core::option::Option<String>,
-    /// Details about the moderator.
-    #[serde(default, rename = "moderatorDetails")]
-    pub moderator_details: ::core::option::Option<ChannelProfileDetails>,
-}
-
-/// LiveChatNewSponsorDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatNewSponsorDetails {
-    /// If the viewer just had upgraded from a lower level. For viewers that were not members at the time of purchase, this field is false.
-    #[serde(default, rename = "isUpgrade")]
-    pub is_upgrade: ::core::option::Option<bool>,
-    /// The name of the Level that the viewer just had joined. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
-    #[serde(default, rename = "memberLevelName")]
-    pub member_level_name: ::core::option::Option<String>,
-}
-
-/// LiveChatPollDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatPollDetails {
-    #[serde(default)]
-    pub metadata: ::core::option::Option<LiveChatPollDetailsPollMetadata>,
-    /// TODO: enum values: ["unknown", "active", "closed"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// LiveChatPollDetailsPollMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatPollDetailsPollMetadata {
-    /// The options will be returned in the order that is displayed in 1P
-    #[serde(default)]
-    pub options: ::core::option::Option<::std::vec::Vec<LiveChatPollDetailsPollMetadataPollOption>>,
-    #[serde(default, rename = "questionText")]
-    pub question_text: ::core::option::Option<String>,
-}
-
-/// LiveChatPollDetailsPollMetadataPollOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatPollDetailsPollMetadataPollOption {
-    #[serde(default, rename = "optionText")]
-    pub option_text: ::core::option::Option<String>,
-    #[serde(default)]
-    pub tally: ::core::option::Option<String>,
-}
-
-/// LiveChatSuperChatDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatSuperChatDetails {
-    /// A rendered string that displays the fund amount and currency to the user.
-    #[serde(default, rename = "amountDisplayString")]
-    pub amount_display_string: ::core::option::Option<String>,
-    /// The amount purchased by the user, in micros (1,750,000 micros = 1.75).
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// The currency in which the purchase was made.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// The tier in which the amount belongs. Lower amounts belong to lower tiers. The lowest tier is 1.
-    #[serde(default)]
-    pub tier: ::core::option::Option<i64>,
-    /// The comment added by the user to this Super Chat event.
-    #[serde(default, rename = "userComment")]
-    pub user_comment: ::core::option::Option<String>,
-}
-
-/// LiveChatSuperStickerDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatSuperStickerDetails {
-    /// A rendered string that displays the fund amount and currency to the user.
-    #[serde(default, rename = "amountDisplayString")]
-    pub amount_display_string: ::core::option::Option<String>,
-    /// The amount purchased by the user, in micros (1,750,000 micros = 1.75).
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// The currency in which the purchase was made.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// Information about the Super Sticker.
-    #[serde(default, rename = "superStickerMetadata")]
-    pub super_sticker_metadata: ::core::option::Option<SuperStickerMetadata>,
-    /// The tier in which the amount belongs. Lower amounts belong to lower tiers. The lowest tier is 1.
-    #[serde(default)]
-    pub tier: ::core::option::Option<i64>,
-}
-
-/// LiveChatTextMessageDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatTextMessageDetails {
-    /// The user''s message.
-    #[serde(default, rename = "messageText")]
-    pub message_text: ::core::option::Option<String>,
-}
-
-/// LiveChatUserBannedMessageDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveChatUserBannedMessageDetails {
-    /// The duration of the ban. This property is only present if the banType is temporary.
-    #[serde(default, rename = "banDurationSeconds")]
-    pub ban_duration_seconds: ::core::option::Option<String>,
-    /// The type of ban. // TODO: enum values: ["permanent", "temporary"]
-    #[serde(default, rename = "banType")]
-    pub ban_type: ::core::option::Option<String>,
-    /// The details of the user that was banned.
-    #[serde(default, rename = "bannedUserDetails")]
-    pub banned_user_details: ::core::option::Option<ChannelProfileDetails>,
-}
-
-/// A live stream describes a live ingestion point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStream {
-    /// The cdn object defines the live stream''s content delivery network (CDN) settings. These settings provide details about the manner in which you stream your content to YouTube.
-    #[serde(default)]
-    pub cdn: ::core::option::Option<CdnSettings>,
-    /// The content_details object contains information about the stream, including the closed captions ingestion URL.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<LiveStreamContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the stream.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveStream".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the stream, including its channel, title, and description.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<LiveStreamSnippet>,
-    /// The status object contains information about live stream''s status.
-    #[serde(default)]
-    pub status: ::core::option::Option<LiveStreamStatus>,
-}
-
-/// LiveStreamConfigurationIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamConfigurationIssue {
-    /// The long-form description of the issue and how to resolve it.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The short-form reason for this issue.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// How severe this issue is to the stream. // TODO: enum values: ["info", "warning", "error"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// The kind of error happening. // TODO: enum values: ["gopSizeOver", "gopSizeLong", "gopSizeShort", "openGop", "badContainer", "audioBitrateHigh", "audioBitrateLow", "audioSampleRate", "bitrateHigh", "bitrateLow", "audioCodec", "videoCodec", "noAudioStream", "noVideoStream", "multipleVideoStreams", "multipleAudioStreams", "audioTooManyChannels", "interlacedVideo", "frameRateHigh", "resolutionMismatch", "videoCodecMismatch", "videoInterlaceMismatch", "videoProfileMismatch", "videoBitrateMismatch", "framerateMismatch", "gopMismatch", "audioSampleRateMismatch", "audioStereoMismatch", "audioCodecMismatch", "audioBitrateMismatch", "videoResolutionSuboptimal", "videoResolutionUnsupported", "videoIngestionStarved", "videoIngestionFasterThanRealtime"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Detailed settings of a stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamContentDetails {
-    /// The ingestion URL where the closed captions of this stream are sent.
-    #[serde(default, rename = "closedCaptionsIngestionUrl")]
-    pub closed_captions_ingestion_url: ::core::option::Option<String>,
-    /// Indicates whether the stream is reusable, which means that it can be bound to multiple broadcasts. It is common for broadcasters to reuse the same stream for many different broadcasts if those broadcasts occur at different times. If you set this value to false, then the stream will not be reusable, which means that it can only be bound to one broadcast. Non-reusable streams differ from reusable streams in the following ways: - A non-reusable stream can only be bound to one broadcast. - A non-reusable stream might be deleted by an automated process after the broadcast ends. - The liveStreams.list method does not list non-reusable streams if you call the method and set the mine parameter to true. The only way to use that method to retrieve the resource for a non-reusable stream is to use the id parameter to identify the stream.
-    #[serde(default, rename = "isReusable")]
-    pub is_reusable: ::core::option::Option<bool>,
-}
-
-/// LiveStreamHealthStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamHealthStatus {
-    /// The configurations issues on this stream
-    #[serde(default, rename = "configurationIssues")]
-    pub configuration_issues: ::core::option::Option<::std::vec::Vec<LiveStreamConfigurationIssue>>,
-    /// The last time this status was updated (in seconds)
-    #[serde(default, rename = "lastUpdateTimeSeconds")]
-    pub last_update_time_seconds: ::core::option::Option<String>,
-    /// The status code of this stream // TODO: enum values: ["good", "ok", "bad", "noData", "revoked"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// LiveStreamListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of live streams that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<LiveStream>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#liveStreamListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// LiveStreamSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamSnippet {
-    /// The ID that YouTube uses to uniquely identify the channel that is transmitting the stream.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The stream''s description. The value cannot be longer than 10000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    #[serde(default, rename = "isDefaultStream")]
-    pub is_default_stream: ::core::option::Option<bool>,
-    /// The date and time that the stream was created.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// The stream''s title. The value must be between 1 and 128 characters long.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Brief description of the live stream status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveStreamStatus {
-    /// The health status of the stream.
-    #[serde(default, rename = "healthStatus")]
-    pub health_status: ::core::option::Option<LiveStreamHealthStatus>,
-    /// TODO: enum values: ["created", "ready", "active", "inactive", "error"]
-    #[serde(default, rename = "streamStatus")]
-    pub stream_status: ::core::option::Option<String>,
-}
-
-/// LocalizedProperty resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizedProperty {
-    #[serde(default)]
-    pub default: ::core::option::Option<String>,
-    /// The language of the default property.
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<LanguageTag>,
-    #[serde(default)]
-    pub localized: ::core::option::Option<::std::vec::Vec<LocalizedString>>,
-}
-
-/// LocalizedString resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizedString {
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A *member* resource represents a member for a YouTube channel. A member provides recurring monetary support to a creator and receives special benefits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Member {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#member".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the member.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<MemberSnippet>,
-}
-
-/// MemberListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemberListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of members that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Member>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#memberListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// MemberSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemberSnippet {
-    /// The id of the channel that''s offering memberships.
-    #[serde(default, rename = "creatorChannelId")]
-    pub creator_channel_id: ::core::option::Option<String>,
-    /// Details about the member.
-    #[serde(default, rename = "memberDetails")]
-    pub member_details: ::core::option::Option<ChannelProfileDetails>,
-    /// Details about the user''s membership.
-    #[serde(default, rename = "membershipsDetails")]
-    pub memberships_details: ::core::option::Option<MembershipsDetails>,
-}
-
-/// MembershipsDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsDetails {
-    /// Ids of all levels that the user has access to. This includes the currently active level and all other levels that are included because of a higher purchase.
-    #[serde(default, rename = "accessibleLevels")]
-    pub accessible_levels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Id of the highest level that the user has access to at the moment.
-    #[serde(default, rename = "highestAccessibleLevel")]
-    pub highest_accessible_level: ::core::option::Option<String>,
-    /// Display name for the highest level that the user has access to at the moment.
-    #[serde(default, rename = "highestAccessibleLevelDisplayName")]
-    pub highest_accessible_level_display_name: ::core::option::Option<String>,
-    /// Data about memberships duration without taking into consideration pricing levels.
-    #[serde(default, rename = "membershipsDuration")]
-    pub memberships_duration: ::core::option::Option<MembershipsDuration>,
-    /// Data about memberships duration on particular pricing levels.
-    #[serde(default, rename = "membershipsDurationAtLevels")]
-    pub memberships_duration_at_levels:
-        ::core::option::Option<::std::vec::Vec<MembershipsDurationAtLevel>>,
-}
-
-/// MembershipsDuration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsDuration {
-    /// The date and time when the user became a continuous member across all levels.
-    #[serde(default, rename = "memberSince")]
-    pub member_since: ::core::option::Option<String>,
-    /// The cumulative time the user has been a member across all levels in complete months (the time is rounded down to the nearest integer).
-    #[serde(default, rename = "memberTotalDurationMonths")]
-    pub member_total_duration_months: ::core::option::Option<i32>,
-}
-
-/// MembershipsDurationAtLevel resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsDurationAtLevel {
-    /// Pricing level ID.
-    #[serde(default)]
-    pub level: ::core::option::Option<String>,
-    /// The date and time when the user became a continuous member for the given level.
-    #[serde(default, rename = "memberSince")]
-    pub member_since: ::core::option::Option<String>,
-    /// The cumulative time the user has been a member for the given level in complete months (the time is rounded down to the nearest integer).
-    #[serde(default, rename = "memberTotalDurationMonths")]
-    pub member_total_duration_months: ::core::option::Option<i32>,
-}
-
-/// A *membershipsLevel* resource represents an offer made by YouTube creators for their fans. Users can become members of the channel by joining one of the available levels. They will provide recurring monetary support and receives special benefits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsLevel {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the memberships level.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#membershipsLevelListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the level.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<MembershipsLevelSnippet>,
-}
-
-/// MembershipsLevelListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsLevelListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of pricing levels offered by a creator to the fans.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<MembershipsLevel>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#membershipsLevelListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// MembershipsLevelSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipsLevelSnippet {
-    /// The id of the channel that''s offering channel memberships.
-    #[serde(default, rename = "creatorChannelId")]
-    pub creator_channel_id: ::core::option::Option<String>,
-    /// Details about the pricing level.
-    #[serde(default, rename = "levelDetails")]
-    pub level_details: ::core::option::Option<LevelDetails>,
-}
-
-/// Settings and Info of the monitor stream
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MonitorStreamInfo {
-    /// If you have set the enableMonitorStream property to true, then this property determines the length of the live broadcast delay.
-    #[serde(default, rename = "broadcastStreamDelayMs")]
-    pub broadcast_stream_delay_ms: ::core::option::Option<i64>,
-    /// HTML code that embeds a player that plays the monitor stream.
-    #[serde(default, rename = "embedHtml")]
-    pub embed_html: ::core::option::Option<String>,
-    /// This value determines whether the monitor stream is enabled for the broadcast. If the monitor stream is enabled, then YouTube will broadcast the event content on a special stream intended only for the broadcaster''s consumption. The broadcaster can use the stream to review the event content and also to identify the optimal times to insert cuepoints. You need to set this value to true if you intend to have a broadcast delay for your event. *Note:* This property cannot be updated once the broadcast is in the testing or live state.
-    #[serde(default, rename = "enableMonitorStream")]
-    pub enable_monitor_stream: ::core::option::Option<bool>,
-}
-
-/// Paging details for lists of resources, including total number of items available and number of resources returned in a single page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PageInfo {
-    /// The number of results included in the API response.
-    #[serde(default, rename = "resultsPerPage")]
-    pub results_per_page: ::core::option::Option<i32>,
-    /// The total number of results in the result set.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-}
-
-/// A *playlist* resource represents a YouTube playlist. A playlist is a collection of videos that can be viewed sequentially and shared with other users. A playlist can contain up to 200 videos, and YouTube does not limit the number of playlists that each user creates. By default, playlists are publicly visible to other users, but playlists can be public or private. YouTube also uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Playlist {
-    /// The contentDetails object contains information like video count.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<PlaylistContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the playlist.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlist".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localizations for different languages
-    #[serde(default)]
-    pub localizations: ::core::option::Option<serde_json::Value>,
-    /// The player object contains information that you would use to play the playlist in an embedded player.
-    #[serde(default)]
-    pub player: ::core::option::Option<PlaylistPlayer>,
-    /// The snippet object contains basic details about the playlist, such as its title and description.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<PlaylistSnippet>,
-    /// The status object contains status information for the playlist.
-    #[serde(default)]
-    pub status: ::core::option::Option<PlaylistStatus>,
-}
-
-/// PlaylistContentDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistContentDetails {
-    /// The number of videos in the playlist.
-    #[serde(default, rename = "itemCount")]
-    pub item_count: ::core::option::Option<i64>,
-}
-
-/// PlaylistImage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistImage {
-    /// Identifies this resource (playlist id and image type).
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistImages".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    #[serde(default)]
-    pub snippet: ::core::option::Option<PlaylistImageSnippet>,
-}
-
-/// PlaylistImageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistImageListResponse {
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<PlaylistImage>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistImageListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-}
-
-/// A *playlistImage* resource identifies another resource, such as a image, that is associated with a playlist. In addition, the playlistImage resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistImages.list method to retrieve image data for any of those playlists. You can also add or remove images from those lists by calling the playlistImages.insert and playlistImages.delete methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistImageSnippet {
-    /// The image height.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// The Playlist ID of the playlist this image is associated with.
-    #[serde(default, rename = "playlistId")]
-    pub playlist_id: ::core::option::Option<String>,
-    /// The image type. // TODO: enum values: ["hero"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The image width.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// A *playlistItem* resource identifies another resource, such as a video, that is included in a playlist. In addition, the playlistItem resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods. For example, if a user gives a positive rating to a video, you would insert that video into the liked videos playlist for that user''s channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistItem {
-    /// The contentDetails object is included in the resource if the included item is a YouTube video. The object contains additional information about the video.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<PlaylistItemContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the playlist item.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistItem".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the playlist item, such as its title and position in the playlist.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<PlaylistItemSnippet>,
-    /// The status object contains information about the playlist item''s privacy status.
-    #[serde(default)]
-    pub status: ::core::option::Option<PlaylistItemStatus>,
-}
-
-/// PlaylistItemContentDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistItemContentDetails {
-    /// The time, measured in seconds from the start of the video, when the video should stop playing. (The playlist owner can specify the times when the video should start and stop playing when the video is played in the context of the playlist.) By default, assume that the video.endTime is the end of the video.
-    #[serde(default, rename = "endAt")]
-    pub end_at: ::core::option::Option<String>,
-    /// A user-generated note for this item.
-    #[serde(default)]
-    pub note: ::core::option::Option<String>,
-    /// The time, measured in seconds from the start of the video, when the video should start playing. (The playlist owner can specify the times when the video should start and stop playing when the video is played in the context of the playlist.) The default value is 0.
-    #[serde(default, rename = "startAt")]
-    pub start_at: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify a video. To retrieve the video resource, set the id query parameter to this value in your API request.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
-    /// The date and time that the video was published to YouTube.
-    #[serde(default, rename = "videoPublishedAt")]
-    pub video_published_at: ::core::option::Option<String>,
-}
-
-/// PlaylistItemListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistItemListResponse {
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of playlist items that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<PlaylistItem>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistItemListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a playlist, including title, description and thumbnails. Basic details of a YouTube Playlist item provided by the author. Next ID: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistItemSnippet {
-    /// The ID that YouTube uses to uniquely identify the user that added the item to the playlist.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// Channel title for the channel that the playlist item belongs to.
-    #[serde(default, rename = "channelTitle")]
-    pub channel_title: ::core::option::Option<String>,
-    /// The item''s description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify thGe playlist that the playlist item is in.
-    #[serde(default, rename = "playlistId")]
-    pub playlist_id: ::core::option::Option<String>,
-    /// The order in which the item appears in the playlist. The value uses a zero-based index, so the first item has a position of 0, the second item has a position of 1, and so forth.
-    #[serde(default)]
-    pub position: ::core::option::Option<i64>,
-    /// The date and time that the item was added to the playlist.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// The id object contains information that can be used to uniquely identify the resource that is included in the playlist as the playlist item.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<ResourceId>,
-    /// A map of thumbnail images associated with the playlist item. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The item''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Channel id for the channel this video belongs to.
-    #[serde(default, rename = "videoOwnerChannelId")]
-    pub video_owner_channel_id: ::core::option::Option<String>,
-    /// Channel title for the channel this video belongs to.
-    #[serde(default, rename = "videoOwnerChannelTitle")]
-    pub video_owner_channel_title: ::core::option::Option<String>,
-}
-
-/// Information about the playlist item''s privacy status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistItemStatus {
-    /// This resource''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
-    #[serde(default, rename = "privacyStatus")]
-    pub privacy_status: ::core::option::Option<String>,
-}
-
-/// PlaylistListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of playlists that match the request criteria
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Playlist>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#playlistListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Playlist localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistLocalization {
-    /// The localized strings for playlist''s description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The localized strings for playlist''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// PlaylistPlayer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistPlayer {
-    /// An &lt;iframe&gt; tag that embeds a player that will play the playlist.
-    #[serde(default, rename = "embedHtml")]
-    pub embed_html: ::core::option::Option<String>,
-}
-
-/// Basic details about a playlist, including title, description and thumbnails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistSnippet {
-    /// The ID that YouTube uses to uniquely identify the channel that published the playlist.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The channel title of the channel that the video belongs to.
-    #[serde(default, rename = "channelTitle")]
-    pub channel_title: ::core::option::Option<String>,
-    /// The language of the playlist''s default title and description.
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<String>,
-    /// The playlist''s description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Localized title and description, read-only.
-    #[serde(default)]
-    pub localized: ::core::option::Option<PlaylistLocalization>,
-    /// The date and time that the playlist was created.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// Keyword tags associated with the playlist.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Note: if the playlist has a custom thumbnail, this field will not be populated. The video id selected by the user that will be used as the thumbnail of this playlist. This field defaults to the first publicly viewable video in the playlist, if: 1. The user has never selected a video to be the thumbnail of the playlist. 2. The user selects a video to be the thumbnail, and then removes that video from the playlist. 3. The user selects a non-owned video to be the thumbnail, but that video becomes private, or gets deleted.
-    #[serde(default, rename = "thumbnailVideoId")]
-    pub thumbnail_video_id: ::core::option::Option<String>,
-    /// A map of thumbnail images associated with the playlist. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The playlist''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// PlaylistStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaylistStatus {
-    /// The playlist''s podcast status. // TODO: enum values: ["enabled", "disabled"]
-    #[serde(default, rename = "podcastStatus")]
-    pub podcast_status: ::core::option::Option<String>,
-    /// The playlist''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
-    #[serde(default, rename = "privacyStatus")]
-    pub privacy_status: ::core::option::Option<String>,
-}
-
-/// A pair Property / Value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyValue {
-    /// A property.
-    #[serde(default)]
-    pub property: ::core::option::Option<String>,
-    /// The property''s value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// RelatedEntity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RelatedEntity {
-    #[serde(default)]
-    pub entity: ::core::option::Option<Entity>,
-}
-
-/// A resource id is a generic reference that points to another YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceId {
-    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a channel. This property is only present if the resourceId.kind value is youtube#channel.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The type of the API resource.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a playlist. This property is only present if the resourceId.kind value is youtube#playlist.
-    #[serde(default, rename = "playlistId")]
-    pub playlist_id: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a video. This property is only present if the resourceId.kind value is youtube#video.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
-}
-
-/// SearchListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Pagination information for token pagination.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<SearchResult>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#searchListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// A search result contains information about a YouTube video, channel, or playlist that matches the search parameters specified in an API request. While a search result points to a uniquely identifiable resource, like a video, it does not have its own persistent data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResult {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The id object contains information that can be used to uniquely identify the resource that matches the search request.
-    #[serde(default)]
-    pub id: ::core::option::Option<ResourceId>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#searchResult".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about a search result, such as its title or description. For example, if the search result is a video, then the title will be the video''s title and the description will be the video''s description.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<SearchResultSnippet>,
-}
-
-/// Basic details about a search result, including title, description and thumbnails of the item referenced by the search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResultSnippet {
-    /// The value that YouTube uses to uniquely identify the channel that published the resource that the search result identifies.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The title of the channel that published the resource that the search result identifies.
-    #[serde(default, rename = "channelTitle")]
-    pub channel_title: ::core::option::Option<String>,
-    /// A description of the search result.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// It indicates if the resource (video or channel) has upcoming/active live broadcast content. Or it''s "none" if there is not any upcoming/active live broadcasts. // TODO: enum values: ["none", "upcoming", "live", "completed"]
-    #[serde(default, rename = "liveBroadcastContent")]
-    pub live_broadcast_content: ::core::option::Option<String>,
-    /// The creation date and time of the resource that the search result identifies.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// A map of thumbnail images associated with the search result. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The title of the search result.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A *subscription* resource contains information about a YouTube user subscription. A subscription notifies a user when new videos are added to a channel or when another user takes one of several actions on YouTube, such as uploading a video, rating a video, or commenting on a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscription {
-    /// The contentDetails object contains basic statistics about the subscription.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<SubscriptionContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the subscription.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#subscription".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the subscription, including its title and the channel that the user subscribed to.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<SubscriptionSnippet>,
-    /// The subscriberSnippet object contains basic details about the subscriber.
-    #[serde(default, rename = "subscriberSnippet")]
-    pub subscriber_snippet: ::core::option::Option<SubscriptionSubscriberSnippet>,
-}
-
-/// Details about the content to witch a subscription refers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionContentDetails {
-    /// The type of activity this subscription is for (only uploads, everything). // TODO: enum values: ["subscriptionActivityTypeUnspecified", "all", "uploads"]
-    #[serde(default, rename = "activityType")]
-    pub activity_type: ::core::option::Option<String>,
-    /// The number of new items in the subscription since its content was last read.
-    #[serde(default, rename = "newItemCount")]
-    pub new_item_count: ::core::option::Option<i64>,
-    /// The approximate number of items that the subscription points to.
-    #[serde(default, rename = "totalItemCount")]
-    pub total_item_count: ::core::option::Option<i64>,
-}
-
-/// SubscriptionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of subscriptions that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Subscription>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#subscriptionListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a subscription, including title, description and thumbnails of the subscribed item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionSnippet {
-    /// The ID that YouTube uses to uniquely identify the subscriber''s channel.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The subscription''s details.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The date and time that the subscription was created.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// The id object contains information about the channel that the user subscribed to.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<ResourceId>,
-    /// A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The subscription''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Basic details about a subscription''s subscriber including title, description, channel ID and thumbnails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionSubscriberSnippet {
-    /// The channel ID of the subscriber.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The description of the subscriber.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Thumbnails for this subscriber.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The title of the subscriber.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A __superChatEvent__ resource represents a Super Chat purchase on a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperChatEvent {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube assigns to uniquely identify the Super Chat event.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#superChatEvent".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the Super Chat event.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<SuperChatEventSnippet>,
-}
-
-/// SuperChatEventListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperChatEventListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of Super Chat purchases that match the request criteria.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<SuperChatEvent>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#superChatEventListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// SuperChatEventSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperChatEventSnippet {
-    /// The purchase amount, in micros of the purchase currency. e.g., 1 is represented as 1000000.
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// Channel id where the event occurred.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The text contents of the comment left by the user.
-    #[serde(default, rename = "commentText")]
-    pub comment_text: ::core::option::Option<String>,
-    /// The date and time when the event occurred.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// The currency in which the purchase was made. ISO 4217.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// A rendered string that displays the purchase amount and currency (e.g., "$1.00"). The string is rendered for the given language.
-    #[serde(default, rename = "displayString")]
-    pub display_string: ::core::option::Option<String>,
-    /// True if this event is a Super Sticker event.
-    #[serde(default, rename = "isSuperStickerEvent")]
-    pub is_super_sticker_event: ::core::option::Option<bool>,
-    /// The tier for the paid message, which is based on the amount of money spent to purchase the message.
-    #[serde(default, rename = "messageType")]
-    pub message_type: ::core::option::Option<i64>,
-    /// If this event is a Super Sticker event, this field will contain metadata about the Super Sticker.
-    #[serde(default, rename = "superStickerMetadata")]
-    pub super_sticker_metadata: ::core::option::Option<SuperStickerMetadata>,
-    /// Details about the supporter.
-    #[serde(default, rename = "supporterDetails")]
-    pub supporter_details: ::core::option::Option<ChannelProfileDetails>,
-}
-
-/// SuperStickerMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperStickerMetadata {
-    /// Internationalized alt text that describes the sticker image and any animation associated with it.
-    #[serde(default, rename = "altText")]
-    pub alt_text: ::core::option::Option<String>,
-    /// Specifies the localization language in which the alt text is returned.
-    #[serde(default, rename = "altTextLanguage")]
-    pub alt_text_language: ::core::option::Option<String>,
-    /// Unique identifier of the Super Sticker. This is a shorter form of the alt_text that includes pack name and a recognizable characteristic of the sticker.
-    #[serde(default, rename = "stickerId")]
-    pub sticker_id: ::core::option::Option<String>,
-}
-
-/// TestItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestItem {
-    /// Etag for the resource. See https://en.wikipedia.org/wiki/HTTP_ETag.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    #[serde(default, rename = "featuredPart")]
-    pub featured_part: ::core::option::Option<bool>,
-    #[serde(default)]
-    pub gaia: ::core::option::Option<String>,
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub snippet: ::core::option::Option<serde_json::Value>,
-}
-
-/// A *third party account link* resource represents a link between a YouTube account or a channel and an account on a third-party service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThirdPartyLink {
-    /// Etag of this resource
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thirdPartyLink".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The linking_token identifies a YouTube account and channel with which the third party account is linked.
-    #[serde(default, rename = "linkingToken")]
-    pub linking_token: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the third- party account link.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<ThirdPartyLinkSnippet>,
-    /// The status object contains information about the status of the link.
-    #[serde(default)]
-    pub status: ::core::option::Option<ThirdPartyLinkStatus>,
-}
-
-/// ThirdPartyLinkListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThirdPartyLinkListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ThirdPartyLink>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thirdPartyLinkListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// Basic information about a third party account link, including its type and type-specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThirdPartyLinkSnippet {
-    /// Information specific to a link between a channel and a store on a merchandising platform.
-    #[serde(default, rename = "channelToStoreLink")]
-    pub channel_to_store_link: ::core::option::Option<ChannelToStoreLinkDetails>,
-    /// Type of the link named after the entities that are being linked. // TODO: enum values: ["linkUnspecified", "channelToStoreLink"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The third-party link status object contains information about the status of the link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThirdPartyLinkStatus {
-    /// TODO: enum values: ["unknown", "failed", "pending", "linked"]
-    #[serde(default, rename = "linkStatus")]
-    pub link_status: ::core::option::Option<String>,
-}
-
-/// A thumbnail is an image representing a YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thumbnail {
-    /// (Optional) Height of the thumbnail image.
-    #[serde(default)]
-    pub height: ::core::option::Option<i64>,
-    /// The thumbnail image''s URL.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// (Optional) Width of the thumbnail image.
-    #[serde(default)]
-    pub width: ::core::option::Option<i64>,
-}
-
-/// Internal representation of thumbnails for a YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThumbnailDetails {
-    /// The default image for this resource.
-    #[serde(default)]
-    pub default: ::core::option::Option<Thumbnail>,
-    /// The high quality image for this resource.
-    #[serde(default)]
-    pub high: ::core::option::Option<Thumbnail>,
-    /// The maximum resolution quality image for this resource.
-    #[serde(default)]
-    pub maxres: ::core::option::Option<Thumbnail>,
-    /// The medium quality image for this resource.
-    #[serde(default)]
-    pub medium: ::core::option::Option<Thumbnail>,
-    /// The standard quality image for this resource.
-    #[serde(default)]
-    pub standard: ::core::option::Option<Thumbnail>,
-}
-
-/// ThumbnailSetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThumbnailSetResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of thumbnails.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ThumbnailDetails>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#thumbnailSetResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// A *video* resource represents a YouTube video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Video {
-    /// Age restriction details related to a video. This data can only be retrieved by the video owner.
-    #[serde(default, rename = "ageGating")]
-    pub age_gating: ::core::option::Option<VideoAgeGating>,
-    /// The contentDetails object contains information about the video content, including the length of the video and its aspect ratio.
-    #[serde(default, rename = "contentDetails")]
-    pub content_details: ::core::option::Option<VideoContentDetails>,
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The fileDetails object encapsulates information about the video file that was uploaded to YouTube, including the file''s resolution, duration, audio and video codecs, stream bitrates, and more. This data can only be retrieved by the video owner.
-    #[serde(default, rename = "fileDetails")]
-    pub file_details: ::core::option::Option<VideoFileDetails>,
-    /// The ID that YouTube uses to uniquely identify the video.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#video".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The liveStreamingDetails object contains metadata about a live video broadcast. The object will only be present in a video resource if the video is an upcoming, live, or completed live broadcast.
-    #[serde(default, rename = "liveStreamingDetails")]
-    pub live_streaming_details: ::core::option::Option<VideoLiveStreamingDetails>,
-    /// The localizations object contains localized versions of the basic details about the video, such as its title and description.
-    #[serde(default)]
-    pub localizations: ::core::option::Option<serde_json::Value>,
-    /// The monetizationDetails object encapsulates information about the monetization status of the video.
-    #[serde(default, rename = "monetizationDetails")]
-    pub monetization_details: ::core::option::Option<VideoMonetizationDetails>,
-    #[serde(default, rename = "paidProductPlacementDetails")]
-    pub paid_product_placement_details: ::core::option::Option<VideoPaidProductPlacementDetails>,
-    /// The player object contains information that you would use to play the video in an embedded player.
-    #[serde(default)]
-    pub player: ::core::option::Option<VideoPlayer>,
-    /// The processingDetails object encapsulates information about YouTube''s progress in processing the uploaded video file. The properties in the object identify the current processing status and an estimate of the time remaining until YouTube finishes processing the video. This part also indicates whether different types of data or content, such as file details or thumbnail images, are available for the video. The processingProgress object is designed to be polled so that the video uploaded can track the progress that YouTube has made in processing the uploaded video file. This data can only be retrieved by the video owner.
-    #[serde(default, rename = "processingDetails")]
-    pub processing_details: ::core::option::Option<VideoProcessingDetails>,
-    /// The projectDetails object contains information about the project specific video metadata. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
-    #[serde(default, rename = "projectDetails")]
-    pub project_details: ::core::option::Option<serde_json::Value>,
-    /// The recordingDetails object encapsulates information about the location, date and address where the video was recorded.
-    #[serde(default, rename = "recordingDetails")]
-    pub recording_details: ::core::option::Option<VideoRecordingDetails>,
-    /// The snippet object contains basic details about the video, such as its title, description, and category.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<VideoSnippet>,
-    /// The statistics object contains statistics about the video.
-    #[serde(default)]
-    pub statistics: ::core::option::Option<VideoStatistics>,
-    /// The status object contains information about the video''s uploading, processing, and privacy statuses.
-    #[serde(default)]
-    pub status: ::core::option::Option<VideoStatus>,
-    /// The suggestions object encapsulates suggestions that identify opportunities to improve the video quality or the metadata for the uploaded video. This data can only be retrieved by the video owner.
-    #[serde(default)]
-    pub suggestions: ::core::option::Option<VideoSuggestions>,
-    /// The topicDetails object encapsulates information about Freebase topics associated with the video.
-    #[serde(default, rename = "topicDetails")]
-    pub topic_details: ::core::option::Option<VideoTopicDetails>,
-}
-
-/// VideoAbuseReport resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAbuseReport {
-    /// Additional comments regarding the abuse report.
-    #[serde(default)]
-    pub comments: ::core::option::Option<String>,
-    /// The language that the content was viewed in.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The high-level, or primary, reason that the content is abusive. The value is an abuse report reason ID.
-    #[serde(default, rename = "reasonId")]
-    pub reason_id: ::core::option::Option<String>,
-    /// The specific, or secondary, reason that this content is abusive (if available). The value is an abuse report reason ID that is a valid secondary reason for the primary reason.
-    #[serde(default, rename = "secondaryReasonId")]
-    pub secondary_reason_id: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the video.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
-}
-
-/// A __videoAbuseReportReason__ resource identifies a reason that a video could be reported as abusive. Video abuse report reasons are used with video.ReportAbuse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAbuseReportReason {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID of this abuse report reason.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoAbuseReportReason".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the abuse report reason.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<VideoAbuseReportReasonSnippet>,
-}
-
-/// VideoAbuseReportReasonListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAbuseReportReasonListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of valid abuse reasons that are used with video.ReportAbuse.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<VideoAbuseReportReason>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoAbuseReportReasonListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a video category, such as its localized title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAbuseReportReasonSnippet {
-    /// The localized label belonging to this abuse report reason.
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-    /// The secondary reasons associated with this reason, if any are available. (There might be 0 or more.)
-    #[serde(default, rename = "secondaryReasons")]
-    pub secondary_reasons: ::core::option::Option<::std::vec::Vec<VideoAbuseReportSecondaryReason>>,
-}
-
-/// VideoAbuseReportSecondaryReason resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAbuseReportSecondaryReason {
-    /// The ID of this abuse report secondary reason.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The localized label for this abuse report secondary reason.
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-}
-
-/// VideoAgeGating resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoAgeGating {
-    /// Indicates whether or not the video has alcoholic beverage content. Only users of legal purchasing age in a particular country, as identified by ICAP, can view the content.
-    #[serde(default, rename = "alcoholContent")]
-    pub alcohol_content: ::core::option::Option<bool>,
-    /// Age-restricted trailers. For redband trailers and adult-rated video-games. Only users aged 18+ can view the content. The the field is true the content is restricted to viewers aged 18+. Otherwise The field won''t be present.
-    #[serde(default)]
-    pub restricted: ::core::option::Option<bool>,
-    /// Video game rating, if any. // TODO: enum values: ["anyone", "m15Plus", "m16Plus", "m17Plus"]
-    #[serde(default, rename = "videoGameRating")]
-    pub video_game_rating: ::core::option::Option<String>,
-}
-
-/// A *videoCategory* resource identifies a category that has been or could be associated with uploaded videos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoCategory {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the video category.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoCategory".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The snippet object contains basic details about the video category, including its title.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<VideoCategorySnippet>,
-}
-
-/// VideoCategoryListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoCategoryListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of video categories that can be associated with YouTube videos. In this map, the video category ID is the map key, and its value is the corresponding videoCategory resource.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<VideoCategory>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoCategoryListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Basic details about a video category, such as its localized title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoCategorySnippet {
-    #[serde(default)]
-    pub assignable: ::core::option::Option<bool>,
-    /// The YouTube channel that created the video category.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// The video category''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Details about the content of a YouTube Video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoContentDetails {
-    /// The value of captions indicates whether the video has captions or not. // TODO: enum values: ["true", "false"]
-    #[serde(default)]
-    pub caption: ::core::option::Option<String>,
-    /// Specifies the ratings that the video received under various rating schemes.
-    #[serde(default, rename = "contentRating")]
-    pub content_rating: ::core::option::Option<ContentRating>,
-    /// The countryRestriction object contains information about the countries where a video is (or is not) viewable.
-    #[serde(default, rename = "countryRestriction")]
-    pub country_restriction: ::core::option::Option<AccessPolicy>,
-    /// The value of definition indicates whether the video is available in high definition or only in standard definition. // TODO: enum values: ["sd", "hd"]
-    #[serde(default)]
-    pub definition: ::core::option::Option<String>,
-    /// The value of dimension indicates whether the video is available in 3D or in 2D.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// The length of the video. The tag value is an ISO 8601 duration in the format PT#M#S, in which the letters PT indicate that the value specifies a period of time, and the letters M and S refer to length in minutes and seconds, respectively. The # characters preceding the M and S letters are both integers that specify the number of minutes (or seconds) of the video. For example, a value of PT15M51S indicates that the video is 15 minutes and 51 seconds long.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Indicates whether the video uploader has provided a custom thumbnail image for the video. This property is only visible to the video uploader.
-    #[serde(default, rename = "hasCustomThumbnail")]
-    pub has_custom_thumbnail: ::core::option::Option<bool>,
-    /// The value of is_license_content indicates whether the video is licensed content.
-    #[serde(default, rename = "licensedContent")]
-    pub licensed_content: ::core::option::Option<bool>,
-    /// Specifies the projection format of the video. // TODO: enum values: ["rectangular", "360"]
-    #[serde(default)]
-    pub projection: ::core::option::Option<String>,
-    /// The regionRestriction object contains information about the countries where a video is (or is not) viewable. The object will contain either the contentDetails.regionRestriction.allowed property or the contentDetails.regionRestriction.blocked property.
-    #[serde(default, rename = "regionRestriction")]
-    pub region_restriction: ::core::option::Option<VideoContentDetailsRegionRestriction>,
-}
-
 /// DEPRECATED Region restriction of the video.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VideoContentDetailsRegionRestriction {
@@ -3502,38 +3589,6 @@ pub struct VideoContentDetailsRegionRestriction {
     /// A list of region codes that identify countries where the video is blocked. If this property is present and a country is not listed in its value, then the video is viewable in that country. If this property is present and contains an empty list, the video is viewable in all countries.
     #[serde(default)]
     pub blocked: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Describes original video file properties, including technical details about audio and video streams, but also metadata information like content length, digitization time, or geotagging information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoFileDetails {
-    /// A list of audio streams contained in the uploaded video file. Each item in the list contains detailed metadata about an audio stream.
-    #[serde(default, rename = "audioStreams")]
-    pub audio_streams: ::core::option::Option<::std::vec::Vec<VideoFileDetailsAudioStream>>,
-    /// The uploaded video file''s combined (video and audio) bitrate in bits per second.
-    #[serde(default, rename = "bitrateBps")]
-    pub bitrate_bps: ::core::option::Option<String>,
-    /// The uploaded video file''s container format.
-    #[serde(default)]
-    pub container: ::core::option::Option<String>,
-    /// The date and time when the uploaded video file was created. The value is specified in ISO 8601 format. Currently, the following ISO 8601 formats are supported: - Date only: YYYY-MM-DD - Naive time: YYYY-MM-DDTHH:MM:SS - Time with timezone: YYYY-MM-DDTHH:MM:SS+HH:MM
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// The length of the uploaded video in milliseconds.
-    #[serde(default, rename = "durationMs")]
-    pub duration_ms: ::core::option::Option<String>,
-    /// The uploaded file''s name. This field is present whether a video file or another type of file was uploaded.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// The uploaded file''s size in bytes. This field is present whether a video file or another type of file was uploaded.
-    #[serde(default, rename = "fileSize")]
-    pub file_size: ::core::option::Option<String>,
-    /// The uploaded file''s type as detected by YouTube''s video processing engine. Currently, YouTube only processes video files, but this field is present whether a video file or another type of file was uploaded. // TODO: enum values: ["video", "audio", "image", "archive", "document", "project", "other"]
-    #[serde(default, rename = "fileType")]
-    pub file_type: ::core::option::Option<String>,
-    /// A list of video streams contained in the uploaded video file. Each item in the list contains detailed metadata about a video stream.
-    #[serde(default, rename = "videoStreams")]
-    pub video_streams: ::core::option::Option<::std::vec::Vec<VideoFileDetailsVideoStream>>,
 }
 
 /// Information about an audio stream.
@@ -3582,146 +3637,15 @@ pub struct VideoFileDetailsVideoStream {
     pub width_pixels: ::core::option::Option<i64>,
 }
 
-/// VideoGetRatingResponse resource type.
+/// Rights management policy for YouTube resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoGetRatingResponse {
-    /// Etag of this resource.
+pub struct AccessPolicy {
+    /// The value of allowed indicates whether the access to the policy is allowed or denied by default.
     #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// A list of ratings that match the request criteria.
+    pub allowed: ::core::option::Option<bool>,
+    /// A list of region codes that identify countries where the default policy do not apply.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<VideoRating>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoGetRatingResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// VideoListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoListResponse {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Serialized EventId of the request which produced this response.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Video>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the next page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// The token that can be used as the value of the pageToken parameter to retrieve the previous page in the result set.
-    #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
-    /// The visitorId identifies the visitor.
-    #[serde(default, rename = "visitorId")]
-    pub visitor_id: ::core::option::Option<String>,
-}
-
-/// Details about the live streaming metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoLiveStreamingDetails {
-    /// The ID of the currently active live chat attached to this video. This field is filled only if the video is a currently live broadcast that has live chat. Once the broadcast transitions to complete this field will be removed and the live chat closed down. For persistent broadcasts that live chat id will no longer be tied to this video but rather to the new video being displayed at the persistent page.
-    #[serde(default, rename = "activeLiveChatId")]
-    pub active_live_chat_id: ::core::option::Option<String>,
-    /// The time that the broadcast actually ended. This value will not be available until the broadcast is over.
-    #[serde(default, rename = "actualEndTime")]
-    pub actual_end_time: ::core::option::Option<String>,
-    /// The time that the broadcast actually started. This value will not be available until the broadcast begins.
-    #[serde(default, rename = "actualStartTime")]
-    pub actual_start_time: ::core::option::Option<String>,
-    /// The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.
-    #[serde(default, rename = "concurrentViewers")]
-    pub concurrent_viewers: ::core::option::Option<String>,
-    /// The time that the broadcast is scheduled to end. If the value is empty or the property is not present, then the broadcast is scheduled to continue indefinitely.
-    #[serde(default, rename = "scheduledEndTime")]
-    pub scheduled_end_time: ::core::option::Option<String>,
-    /// The time that the broadcast is scheduled to begin.
-    #[serde(default, rename = "scheduledStartTime")]
-    pub scheduled_start_time: ::core::option::Option<String>,
-}
-
-/// Localized versions of certain video properties (e.g. title).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoLocalization {
-    /// Localized version of the video''s description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Localized version of the video''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Details about monetization of a YouTube Video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoMonetizationDetails {
-    /// The value of access indicates whether the video can be monetized or not.
-    #[serde(default)]
-    pub access: ::core::option::Option<AccessPolicy>,
-}
-
-/// Details about paid content, such as paid product placement, sponsorships or endorsement, contained in a YouTube video and a method to inform viewers of paid promotion. This data can only be retrieved by the video owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoPaidProductPlacementDetails {
-    /// This boolean represents whether the video contains Paid Product Placement, Studio equivalent: https://screenshot.googleplex.com/4Me79DE6AfT2ktp.png
-    #[serde(default, rename = "hasPaidProductPlacement")]
-    pub has_paid_product_placement: ::core::option::Option<bool>,
-}
-
-/// Player to be used for a video playback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoPlayer {
-    #[serde(default, rename = "embedHeight")]
-    pub embed_height: ::core::option::Option<String>,
-    /// An &lt;iframe&gt; tag that embeds a player that will play the video.
-    #[serde(default, rename = "embedHtml")]
-    pub embed_html: ::core::option::Option<String>,
-    /// The embed width
-    #[serde(default, rename = "embedWidth")]
-    pub embed_width: ::core::option::Option<String>,
-}
-
-/// Describes processing status and progress and availability of some other Video resource parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoProcessingDetails {
-    /// This value indicates whether video editing suggestions, which might improve video quality or the playback experience, are available for the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
-    #[serde(default, rename = "editorSuggestionsAvailability")]
-    pub editor_suggestions_availability: ::core::option::Option<String>,
-    /// This value indicates whether file details are available for the uploaded video. You can retrieve a video''s file details by requesting the fileDetails part in your videos.list() request.
-    #[serde(default, rename = "fileDetailsAvailability")]
-    pub file_details_availability: ::core::option::Option<String>,
-    /// The reason that YouTube failed to process the video. This property will only have a value if the processingStatus property''s value is failed. // TODO: enum values: ["uploadFailed", "transcodeFailed", "streamingFailed", "other"]
-    #[serde(default, rename = "processingFailureReason")]
-    pub processing_failure_reason: ::core::option::Option<String>,
-    /// This value indicates whether the video processing engine has generated suggestions that might improve YouTube''s ability to process the the video, warnings that explain video processing problems, or errors that cause video processing problems. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
-    #[serde(default, rename = "processingIssuesAvailability")]
-    pub processing_issues_availability: ::core::option::Option<String>,
-    /// The processingProgress object contains information about the progress YouTube has made in processing the video. The values are really only relevant if the video''s processing status is processing.
-    #[serde(default, rename = "processingProgress")]
-    pub processing_progress: ::core::option::Option<VideoProcessingDetailsProcessingProgress>,
-    /// The video''s processing status. This value indicates whether YouTube was able to process the video or if the video is still being processed. // TODO: enum values: ["processing", "succeeded", "failed", "terminated"]
-    #[serde(default, rename = "processingStatus")]
-    pub processing_status: ::core::option::Option<String>,
-    /// This value indicates whether keyword (tag) suggestions are available for the video. Tags can be added to a video''s metadata to make it easier for other users to find the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
-    #[serde(default, rename = "tagSuggestionsAvailability")]
-    pub tag_suggestions_availability: ::core::option::Option<String>,
-    /// This value indicates whether thumbnail images have been generated for the video.
-    #[serde(default, rename = "thumbnailsAvailability")]
-    pub thumbnails_availability: ::core::option::Option<String>,
+    pub exception: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Video processing progress and completion time estimate.
@@ -3738,146 +3662,49 @@ pub struct VideoProcessingDetailsProcessingProgress {
     pub time_left_ms: ::core::option::Option<String>,
 }
 
-/// Basic details about rating of a video.
+/// Geographical coordinates of a point, in WGS84.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoRating {
-    /// Rating of a video. // TODO: enum values: ["none", "like", "dislike"]
+pub struct GeoPoint {
+    /// Altitude above the reference ellipsoid, in meters.
     #[serde(default)]
-    pub rating: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the video.
-    #[serde(default, rename = "videoId")]
-    pub video_id: ::core::option::Option<String>,
+    pub altitude: ::core::option::Option<f64>,
+    /// Latitude in degrees.
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// Longitude in degrees.
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
 }
 
-/// Recording information associated with the video.
+/// Localized versions of certain video properties (e.g. title).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoRecordingDetails {
-    /// The geolocation information associated with the video.
-    #[serde(default)]
-    pub location: ::core::option::Option<GeoPoint>,
-    /// The text description of the location where the video was recorded.
-    #[serde(default, rename = "locationDescription")]
-    pub location_description: ::core::option::Option<String>,
-    /// The date and time when the video was recorded.
-    #[serde(default, rename = "recordingDate")]
-    pub recording_date: ::core::option::Option<String>,
-}
-
-/// Basic details about a video, including title, description, uploader, thumbnails and category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoSnippet {
-    /// The YouTube video category associated with the video.
-    #[serde(default, rename = "categoryId")]
-    pub category_id: ::core::option::Option<String>,
-    /// The ID that YouTube uses to uniquely identify the channel that the video was uploaded to.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// Channel title for the channel that the video belongs to.
-    #[serde(default, rename = "channelTitle")]
-    pub channel_title: ::core::option::Option<String>,
-    /// The default_audio_language property specifies the language spoken in the video''s default audio track.
-    #[serde(default, rename = "defaultAudioLanguage")]
-    pub default_audio_language: ::core::option::Option<String>,
-    /// The language of the videos''s default snippet.
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<String>,
-    /// The video''s description. @mutable youtube.videos.insert youtube.videos.update
+pub struct VideoLocalization {
+    /// Localized version of the video''s description.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Indicates if the video is an upcoming/active live broadcast. Or it''s "none" if the video is not an upcoming/active live broadcast. // TODO: enum values: ["none", "upcoming", "live", "completed"]
-    #[serde(default, rename = "liveBroadcastContent")]
-    pub live_broadcast_content: ::core::option::Option<String>,
-    /// Localized snippet selected with the hl parameter. If no such localization exists, this field is populated with the default snippet. (Read-only)
-    #[serde(default)]
-    pub localized: ::core::option::Option<VideoLocalization>,
-    /// The date and time when the video was uploaded.
-    #[serde(default, rename = "publishedAt")]
-    pub published_at: ::core::option::Option<String>,
-    /// A list of keyword tags associated with the video. Tags may contain spaces.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.
-    #[serde(default)]
-    pub thumbnails: ::core::option::Option<ThumbnailDetails>,
-    /// The video''s title. @mutable youtube.videos.insert youtube.videos.update
+    /// Localized version of the video''s title.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// Statistics about the video, such as the number of times the video was viewed or liked.
+/// Internal representation of thumbnails for a YouTube resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoStatistics {
-    /// The number of comments for the video.
-    #[serde(default, rename = "commentCount")]
-    pub comment_count: ::core::option::Option<String>,
-    /// The number of users who have indicated that they disliked the video by giving it a negative rating.
-    #[serde(default, rename = "dislikeCount")]
-    pub dislike_count: ::core::option::Option<String>,
-    /// The number of users who currently have the video marked as a favorite video.
-    #[serde(default, rename = "favoriteCount")]
-    pub favorite_count: ::core::option::Option<String>,
-    /// The number of users who have indicated that they liked the video by giving it a positive rating.
-    #[serde(default, rename = "likeCount")]
-    pub like_count: ::core::option::Option<String>,
-    /// The number of times the video has been viewed.
-    #[serde(default, rename = "viewCount")]
-    pub view_count: ::core::option::Option<String>,
-}
-
-/// Basic details about a video category, such as its localized title. Next Id: 19
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoStatus {
-    /// Indicates if the video contains altered or synthetic media.
-    #[serde(default, rename = "containsSyntheticMedia")]
-    pub contains_synthetic_media: ::core::option::Option<bool>,
-    /// This value indicates if the video can be embedded on another website. @mutable youtube.videos.insert youtube.videos.update
+pub struct ThumbnailDetails {
+    /// The default image for this resource.
     #[serde(default)]
-    pub embeddable: ::core::option::Option<bool>,
-    /// This value explains why a video failed to upload. This property is only present if the uploadStatus property indicates that the upload failed. // TODO: enum values: ["conversion", "invalidFile", "emptyFile", "tooSmall", "codec", "uploadAborted"]
-    #[serde(default, rename = "failureReason")]
-    pub failure_reason: ::core::option::Option<String>,
-    /// The video''s license. @mutable youtube.videos.insert youtube.videos.update // TODO: enum values: ["youtube", "creativeCommon"]
+    pub default: ::core::option::Option<Thumbnail>,
+    /// The high quality image for this resource.
     #[serde(default)]
-    pub license: ::core::option::Option<String>,
-    #[serde(default, rename = "madeForKids")]
-    pub made_for_kids: ::core::option::Option<bool>,
-    /// The video''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
-    #[serde(default, rename = "privacyStatus")]
-    pub privacy_status: ::core::option::Option<String>,
-    /// This value indicates if the extended video statistics on the watch page can be viewed by everyone. Note that the view count, likes, etc will still be visible if this is disabled. @mutable youtube.videos.insert youtube.videos.update
-    #[serde(default, rename = "publicStatsViewable")]
-    pub public_stats_viewable: ::core::option::Option<bool>,
-    /// The date and time when the video is scheduled to publish. It can be set only if the privacy status of the video is private..
-    #[serde(default, rename = "publishAt")]
-    pub publish_at: ::core::option::Option<String>,
-    /// This value explains why YouTube rejected an uploaded video. This property is only present if the uploadStatus property indicates that the upload was rejected. // TODO: enum values: ["copyright", "inappropriate", "duplicate", "termsOfUse", "uploaderAccountSuspended", "length", "claim", "uploaderAccountClosed", "trademark", "legal"]
-    #[serde(default, rename = "rejectionReason")]
-    pub rejection_reason: ::core::option::Option<String>,
-    #[serde(default, rename = "selfDeclaredMadeForKids")]
-    pub self_declared_made_for_kids: ::core::option::Option<bool>,
-    /// The status of the uploaded video. // TODO: enum values: ["uploaded", "processed", "failed", "rejected", "deleted"]
-    #[serde(default, rename = "uploadStatus")]
-    pub upload_status: ::core::option::Option<String>,
-}
-
-/// Specifies suggestions on how to improve video content, including encoding hints, tag suggestions, and editor suggestions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoSuggestions {
-    /// A list of video editing operations that might improve the video quality or playback experience of the uploaded video.
-    #[serde(default, rename = "editorSuggestions")]
-    pub editor_suggestions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of errors that will prevent YouTube from successfully processing the uploaded video video. These errors indicate that, regardless of the video''s current processing status, eventually, that status will almost certainly be failed.
-    #[serde(default, rename = "processingErrors")]
-    pub processing_errors: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of suggestions that may improve YouTube''s ability to process the video.
-    #[serde(default, rename = "processingHints")]
-    pub processing_hints: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of reasons why YouTube may have difficulty transcoding the uploaded video or that might result in an erroneous transcoding. These warnings are generated before YouTube actually processes the uploaded video file. In addition, they identify issues that are unlikely to cause the video processing to fail but that might cause problems such as sync issues, video artifacts, or a missing audio track.
-    #[serde(default, rename = "processingWarnings")]
-    pub processing_warnings: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of keyword tags that could be added to the video''s metadata to increase the likelihood that users will locate your video when searching or browsing on YouTube.
-    #[serde(default, rename = "tagSuggestions")]
-    pub tag_suggestions: ::core::option::Option<::std::vec::Vec<VideoSuggestionsTagSuggestion>>,
+    pub high: ::core::option::Option<Thumbnail>,
+    /// The maximum resolution quality image for this resource.
+    #[serde(default)]
+    pub maxres: ::core::option::Option<Thumbnail>,
+    /// The medium quality image for this resource.
+    #[serde(default)]
+    pub medium: ::core::option::Option<Thumbnail>,
+    /// The standard quality image for this resource.
+    #[serde(default)]
+    pub standard: ::core::option::Option<Thumbnail>,
 }
 
 /// A single tag suggestion with its relevance information.
@@ -3891,47 +3718,220 @@ pub struct VideoSuggestionsTagSuggestion {
     pub tag: ::core::option::Option<String>,
 }
 
-/// Freebase topic information related to the video.
+/// A resource id is a generic reference that points to another YouTube resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoTopicDetails {
-    /// Similar to topic_id, except that these topics are merely relevant to the video. These are topics that may be mentioned in, or appear in the video. You can retrieve information about each topic using Freebase Topic API.
-    #[serde(default, rename = "relevantTopicIds")]
-    pub relevant_topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of Wikipedia URLs that provide a high-level description of the video''s content.
-    #[serde(default, rename = "topicCategories")]
-    pub topic_categories: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of Freebase topic IDs that are centrally associated with the video. These are topics that are centrally featured in the video, and it can be said that the video is mainly about each of these. You can retrieve information about each topic using the &lt; a href="http://wiki.freebase.com/wiki/Topic_API"&gt;Freebase Topic API.
-    #[serde(default, rename = "topicIds")]
-    pub topic_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Specifies who is allowed to train on the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoTrainability {
-    /// Etag of this resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "youtube#videoTrainability".
+pub struct ResourceId {
+    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a channel. This property is only present if the resourceId.kind value is youtube#channel.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The type of the API resource.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// Specifies who is allowed to train on the video. Valid values are: - a single string "all" - a single string "none" - a list of allowed parties
-    #[serde(default)]
-    pub permitted: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The ID of the video.
+    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a playlist. This property is only present if the resourceId.kind value is youtube#playlist.
+    #[serde(default, rename = "playlistId")]
+    pub playlist_id: ::core::option::Option<String>,
+    /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a video. This property is only present if the resourceId.kind value is youtube#video.
     #[serde(default, rename = "videoId")]
     pub video_id: ::core::option::Option<String>,
 }
 
-/// Branding properties for the watch. All deprecated.
+/// LocalizedProperty resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WatchSettings {
-    /// The text color for the video watch page''s branded area.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<String>,
-    /// An ID that uniquely identifies a playlist that displays next to the video player.
-    #[serde(default, rename = "featuredPlaylistId")]
-    pub featured_playlist_id: ::core::option::Option<String>,
-    /// The background color for the video watch page''s branded area.
-    #[serde(default, rename = "textColor")]
-    pub text_color: ::core::option::Option<String>,
+pub struct LocalizedProperty {
+    #[serde(default)]
+    pub default: ::core::option::Option<String>,
+    /// The language of the default property.
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<LanguageTag>,
+    #[serde(default)]
+    pub localized: ::core::option::Option<::std::vec::Vec<LocalizedString>>,
+}
+
+/// Basic details about a comment, such as its author and text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentSnippet {
+    #[serde(default, rename = "authorChannelId")]
+    pub author_channel_id: ::core::option::Option<CommentSnippetAuthorChannelId>,
+    /// Link to the author''s YouTube channel, if any.
+    #[serde(default, rename = "authorChannelUrl")]
+    pub author_channel_url: ::core::option::Option<String>,
+    /// The name of the user who posted the comment.
+    #[serde(default, rename = "authorDisplayName")]
+    pub author_display_name: ::core::option::Option<String>,
+    /// The URL for the avatar of the user who posted the comment.
+    #[serde(default, rename = "authorProfileImageUrl")]
+    pub author_profile_image_url: ::core::option::Option<String>,
+    /// Whether the current viewer can rate this comment.
+    #[serde(default, rename = "canRate")]
+    pub can_rate: ::core::option::Option<bool>,
+    /// The id of the corresponding YouTube channel. In case of a channel comment this is the channel the comment refers to. In case of a video or post comment it''s the video/post''s channel.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The total number of likes this comment has received.
+    #[serde(default, rename = "likeCount")]
+    pub like_count: ::core::option::Option<i64>,
+    /// The comment''s moderation status. Will not be set if the comments were requested through the id filter. // TODO: enum values: ["published", "heldForReview", "likelySpam", "rejected"]
+    #[serde(default, rename = "moderationStatus")]
+    pub moderation_status: ::core::option::Option<String>,
+    /// The unique id of the top-level comment, only set for replies.
+    #[serde(default, rename = "parentId")]
+    pub parent_id: ::core::option::Option<String>,
+    /// The ID of the post the comment refers to, if any.
+    #[serde(default, rename = "postId")]
+    pub post_id: ::core::option::Option<String>,
+    /// The date and time when the comment was originally published.
+    #[serde(default, rename = "publishedAt")]
+    pub published_at: ::core::option::Option<String>,
+    /// The comment''s text. The format is either plain text or HTML dependent on what has been requested. Even the plain text representation may differ from the text originally posted in that it may replace video links with video titles etc.
+    #[serde(default, rename = "textDisplay")]
+    pub text_display: ::core::option::Option<String>,
+    /// The comment''s original raw text as initially posted or last updated. The original text will only be returned if it is accessible to the viewer, which is only guaranteed if the viewer is the comment''s author.
+    #[serde(default, rename = "textOriginal")]
+    pub text_original: ::core::option::Option<String>,
+    /// The date and time when the comment was last updated.
+    #[serde(default, rename = "updatedAt")]
+    pub updated_at: ::core::option::Option<String>,
+    /// The ID of the video the comment refers to, if any.
+    #[serde(default, rename = "videoId")]
+    pub video_id: ::core::option::Option<String>,
+    /// The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future. // TODO: enum values: ["none", "like", "dislike"]
+    #[serde(default, rename = "viewerRating")]
+    pub viewer_rating: ::core::option::Option<String>,
+}
+
+/// LiveChatPollDetailsPollMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatPollDetailsPollMetadata {
+    /// The options will be returned in the order that is displayed in 1P
+    #[serde(default)]
+    pub options: ::core::option::Option<::std::vec::Vec<LiveChatPollDetailsPollMetadataPollOption>>,
+    #[serde(default, rename = "questionText")]
+    pub question_text: ::core::option::Option<String>,
+}
+
+/// SuperStickerMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperStickerMetadata {
+    /// Internationalized alt text that describes the sticker image and any animation associated with it.
+    #[serde(default, rename = "altText")]
+    pub alt_text: ::core::option::Option<String>,
+    /// Specifies the localization language in which the alt text is returned.
+    #[serde(default, rename = "altTextLanguage")]
+    pub alt_text_language: ::core::option::Option<String>,
+    /// Unique identifier of the Super Sticker. This is a shorter form of the alt_text that includes pack name and a recognizable characteristic of the sticker.
+    #[serde(default, rename = "stickerId")]
+    pub sticker_id: ::core::option::Option<String>,
+}
+
+/// ChannelProfileDetails resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelProfileDetails {
+    /// The YouTube channel ID.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// The channel''s URL.
+    #[serde(default, rename = "channelUrl")]
+    pub channel_url: ::core::option::Option<String>,
+    /// The channel''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The channels''s avatar URL.
+    #[serde(default, rename = "profileImageUrl")]
+    pub profile_image_url: ::core::option::Option<String>,
+}
+
+/// LiveStreamConfigurationIssue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveStreamConfigurationIssue {
+    /// The long-form description of the issue and how to resolve it.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The short-form reason for this issue.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// How severe this issue is to the stream. // TODO: enum values: ["info", "warning", "error"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// The kind of error happening. // TODO: enum values: ["gopSizeOver", "gopSizeLong", "gopSizeShort", "openGop", "badContainer", "audioBitrateHigh", "audioBitrateLow", "audioSampleRate", "bitrateHigh", "bitrateLow", "audioCodec", "videoCodec", "noAudioStream", "noVideoStream", "multipleVideoStreams", "multipleAudioStreams", "audioTooManyChannels", "interlacedVideo", "frameRateHigh", "resolutionMismatch", "videoCodecMismatch", "videoInterlaceMismatch", "videoProfileMismatch", "videoBitrateMismatch", "framerateMismatch", "gopMismatch", "audioSampleRateMismatch", "audioStereoMismatch", "audioCodecMismatch", "audioBitrateMismatch", "videoResolutionSuboptimal", "videoResolutionUnsupported", "videoIngestionStarved", "videoIngestionFasterThanRealtime"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// MembershipsDuration resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsDuration {
+    /// The date and time when the user became a continuous member across all levels.
+    #[serde(default, rename = "memberSince")]
+    pub member_since: ::core::option::Option<String>,
+    /// The cumulative time the user has been a member across all levels in complete months (the time is rounded down to the nearest integer).
+    #[serde(default, rename = "memberTotalDurationMonths")]
+    pub member_total_duration_months: ::core::option::Option<i32>,
+}
+
+/// MembershipsDurationAtLevel resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipsDurationAtLevel {
+    /// Pricing level ID.
+    #[serde(default)]
+    pub level: ::core::option::Option<String>,
+    /// The date and time when the user became a continuous member for the given level.
+    #[serde(default, rename = "memberSince")]
+    pub member_since: ::core::option::Option<String>,
+    /// The cumulative time the user has been a member for the given level in complete months (the time is rounded down to the nearest integer).
+    #[serde(default, rename = "memberTotalDurationMonths")]
+    pub member_total_duration_months: ::core::option::Option<i32>,
+}
+
+/// Information specific to billing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelToStoreLinkDetailsBillingDetails {
+    /// The current billing profile status. // TODO: enum values: ["billingStatusUnspecified", "billingStatusPending", "billingStatusActive", "billingStatusInactive"]
+    #[serde(default, rename = "billingStatus")]
+    pub billing_status: ::core::option::Option<String>,
+}
+
+/// Information specific to merchant affiliate program.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
+    /// The current merchant affiliate program status. // TODO: enum values: ["merchantAffiliateProgramStatusUnspecified", "merchantAffiliateProgramStatusEligible", "merchantAffiliateProgramStatusActive", "merchantAffiliateProgramStatusPaused"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// A thumbnail is an image representing a YouTube resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Thumbnail {
+    /// (Optional) Height of the thumbnail image.
+    #[serde(default)]
+    pub height: ::core::option::Option<i64>,
+    /// The thumbnail image''s URL.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// (Optional) Width of the thumbnail image.
+    #[serde(default)]
+    pub width: ::core::option::Option<i64>,
+}
+
+/// LanguageTag resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanguageTag {
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Contains the id of the author''s YouTube channel, if any.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentSnippetAuthorChannelId {
+    /// The id of the author''s YouTube channel.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// LiveChatPollDetailsPollMetadataPollOption resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveChatPollDetailsPollMetadataPollOption {
+    #[serde(default, rename = "optionText")]
+    pub option_text: ::core::option::Option<String>,
+    #[serde(default)]
+    pub tally: ::core::option::Option<String>,
 }

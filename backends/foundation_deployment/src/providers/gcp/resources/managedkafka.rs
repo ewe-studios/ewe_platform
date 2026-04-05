@@ -10,54 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The configuration of access to the Kafka cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessConfig {
-    /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
-    #[serde(default, rename = "networkConfigs")]
-    pub network_configs: ::core::option::Option<::std::vec::Vec<NetworkConfig>>,
-}
-
-/// Represents the set of ACLs for a given Kafka Resource Pattern, which consists of resource_type, resource_name and pattern_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Acl {
-    /// Required. The ACL entries that apply to the resource pattern. The maximum number of allowed entries 100.
-    #[serde(default, rename = "aclEntries")]
-    pub acl_entries: ::core::option::Option<::std::vec::Vec<AclEntry>>,
-    /// Optional. etag is used for concurrency control. An etag is returned in the response to GetAcl and CreateAcl. Callers are required to put that etag in the request to UpdateAcl to ensure that their change will be applied to the same version of the acl that exists in the Kafka Cluster. A terminal ''T'' character in the etag indicates that the AclEntries were truncated; more entries for the Acl exist on the Kafka Cluster, but can''t be returned in the Acl due to repeated field limits.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifier. The name for the acl. Represents a single Resource Pattern. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/acls/{acl_id} The structure of acl_id defines the Resource Pattern (resource_type, resource_name, pattern_type) of the acl. acl_id is structured like one of the following: For acls on the cluster: cluster For acls on a single resource within the cluster: topic/{resource_name} consumerGroup/{resource_name} transactionalId/{resource_name} For acls on all resources that match a prefix: topicPrefixed/{resource_name} consumerGroupPrefixed/{resource_name} transactionalIdPrefixed/{resource_name} For acls on all resources of a given type (i.e. the wildcard literal "*"): allTopics (represents topic/*) allConsumerGroups (represents consumerGroup/*) allTransactionalIds (represents transactionalId/*)
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The ACL pattern type derived from the name. One of: LITERAL, PREFIXED.
-    #[serde(default, rename = "patternType")]
-    pub pattern_type: ::core::option::Option<String>,
-    /// Output only. The ACL resource name derived from the name. For cluster resource_type, this is always "kafka-cluster". Can be the wildcard literal "*".
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Output only. The ACL resource type derived from the name. One of: CLUSTER, TOPIC, GROUP, TRANSACTIONAL_ID.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// Represents the access granted for a given Resource Pattern in an ACL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AclEntry {
-    /// Required. The host. Must be set to "*" for Managed Service for Apache Kafka.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Required. The operation type. Allowed values are (case insensitive): ALL, READ, WRITE, CREATE, DELETE, ALTER, DESCRIBE, CLUSTER_ACTION, DESCRIBE_CONFIGS, ALTER_CONFIGS, and IDEMPOTENT_WRITE. See https://kafka.apache.org/documentation/#operations_resources_and_protocols for valid combinations of resource_type and operation for different Kafka API requests.
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// Required. The permission type. Accepted values are (case insensitive): ALLOW, DENY.
-    #[serde(default, rename = "permissionType")]
-    pub permission_type: ::core::option::Option<String>,
-    /// Required. The principal. Specified as Google Cloud account, with the Kafka StandardAuthorizer prefix "User:". For example: "User:test-kafka-client@test-project.iam.gserviceaccount.com". Can be the wildcard "User:*" to refer to all users.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-}
-
 /// Response for AddAclEntry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddAclEntryResponse {
@@ -67,39 +19,6 @@ pub struct AddAclEntryResponse {
     /// Whether the acl was created as a result of adding the acl entry.
     #[serde(default, rename = "aclCreated")]
     pub acl_created: ::core::option::Option<bool>,
-}
-
-/// Details of a broker in the Kafka cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BrokerDetails {
-    /// Output only. The index of the broker.
-    #[serde(default, rename = "brokerIndex")]
-    pub broker_index: ::core::option::Option<String>,
-    /// Output only. The node id of the broker.
-    #[serde(default, rename = "nodeId")]
-    pub node_id: ::core::option::Option<String>,
-    /// Output only. The rack of the broker.
-    #[serde(default)]
-    pub rack: ::core::option::Option<String>,
-}
-
-/// A capacity configuration of a Kafka cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CapacityConfig {
-    /// Required. The memory to provision for the cluster in bytes. The CPU:memory ratio (vCPU:GiB) must be between 1:1 and 1:8. Minimum: 3221225472 (3 GiB).
-    #[serde(default, rename = "memoryBytes")]
-    pub memory_bytes: ::core::option::Option<String>,
-    /// Required. The number of vCPUs to provision for the cluster. Minimum: 3.
-    #[serde(default, rename = "vcpuCount")]
-    pub vcpu_count: ::core::option::Option<String>,
-}
-
-/// A configuration for the Google Certificate Authority Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertificateAuthorityServiceConfig {
-    /// Required. The name of the CA pool to pull CA certificates from. Structured like: projects/{project}/locations/{location}/caPools/{ca_pool}. The CA pool does not need to be in the same project or location as the Kafka cluster.
-    #[serde(default, rename = "caPool")]
-    pub ca_pool: ::core::option::Option<String>,
 }
 
 /// Request for CheckCompatibility.
@@ -128,152 +47,6 @@ pub struct CheckCompatibilityResponse {
     /// Failure reasons if verbose = true.
     #[serde(default)]
     pub messages: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An Apache Kafka cluster deployed in a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cluster {
-    /// Output only. Only populated when FULL view is requested. Details of each broker in the cluster.
-    #[serde(default, rename = "brokerDetails")]
-    pub broker_details: ::core::option::Option<::std::vec::Vec<BrokerDetails>>,
-    /// Required. Capacity configuration for the Kafka cluster.
-    #[serde(default, rename = "capacityConfig")]
-    pub capacity_config: ::core::option::Option<CapacityConfig>,
-    /// Output only. The time when the cluster was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
-    #[serde(default, rename = "gcpConfig")]
-    pub gcp_config: ::core::option::Option<GcpConfig>,
-    /// Output only. Only populated when FULL view is requested. The Kafka version of the cluster.
-    #[serde(default, rename = "kafkaVersion")]
-    pub kafka_version: ::core::option::Option<String>,
-    /// Optional. Labels as key value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The name of the cluster. Structured like: projects/{project_number}/locations/{location}/clusters/{cluster_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Rebalance configuration for the Kafka cluster.
-    #[serde(default, rename = "rebalanceConfig")]
-    pub rebalance_config: ::core::option::Option<RebalanceConfig>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The current state of the cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. TLS configuration for the Kafka cluster.
-    #[serde(default, rename = "tlsConfig")]
-    pub tls_config: ::core::option::Option<TlsConfig>,
-    /// Optional. UpdateOptions represents options that control how updates to the cluster are applied.
-    #[serde(default, rename = "updateOptions")]
-    pub update_options: ::core::option::Option<UpdateOptions>,
-    /// Output only. The time when the cluster was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The configuration of access to the Kafka Connect cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectAccessConfig {
-    /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka Connect cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
-    #[serde(default, rename = "networkConfigs")]
-    pub network_configs: ::core::option::Option<::std::vec::Vec<ConnectNetworkConfig>>,
-}
-
-/// An Apache Kafka Connect cluster deployed in a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectCluster {
-    /// Required. Capacity configuration for the Kafka Connect cluster.
-    #[serde(default, rename = "capacityConfig")]
-    pub capacity_config: ::core::option::Option<CapacityConfig>,
-    /// Optional. Configurations for the worker that are overridden from the defaults. The key of the map is a Kafka Connect worker property name, for example: exactly.once.source.support.
-    #[serde(default)]
-    pub config: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the cluster was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
-    #[serde(default, rename = "gcpConfig")]
-    pub gcp_config: ::core::option::Option<ConnectGcpConfig>,
-    /// Required. Immutable. The name of the Kafka cluster this Kafka Connect cluster is attached to. Structured like: projects/{project}/locations/{location}/clusters/{cluster}
-    #[serde(default, rename = "kafkaCluster")]
-    pub kafka_cluster: ::core::option::Option<String>,
-    /// Optional. Labels as key value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The name of the Kafka Connect cluster. Structured like: projects/{project_number}/locations/{location}/connectClusters/{connect_cluster_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The current state of the Kafka Connect cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "DETACHED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time when the cluster was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectGcpConfig {
-    /// Required. Access configuration for the Kafka Connect cluster.
-    #[serde(default, rename = "accessConfig")]
-    pub access_config: ::core::option::Option<ConnectAccessConfig>,
-    /// Optional. Secrets to load into workers. Exact SecretVersions from Secret Manager must be provided -- aliases are not supported. Up to 32 secrets may be loaded into one cluster. Format: projects//secrets//versions/
-    #[serde(default, rename = "secretPaths")]
-    pub secret_paths: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka Connect cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectNetworkConfig {
-    /// Optional. Deprecated: Managed Kafka Connect clusters can now reach any endpoint accessible from the primary subnet without the need to define additional subnets. Please see https://cloud.google.com/managed-service-for-apache-kafka/docs/connect-cluster/create-connect-cluster#worker-subnet for more information.
-    #[serde(default, rename = "additionalSubnets")]
-    pub additional_subnets: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Additional DNS domain names from the subnet''s network to be made visible to the Connect Cluster. When using MirrorMaker2, it''s necessary to add the bootstrap address''s dns domain name of the target cluster to make it visible to the connector. For example: my-kafka-cluster.us-central1.managedkafka.my-project.cloud.goog
-    #[serde(default, rename = "dnsDomainNames")]
-    pub dns_domain_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. VPC subnet to make available to the Kafka Connect cluster. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} It is used to create a Private Service Connect (PSC) interface for the Kafka Connect workers. It must be located in the same region as the Kafka Connect cluster. The CIDR range of the subnet must be within the IPv4 address ranges for private networks, as specified in RFC 1918. The primary subnet CIDR range must have a minimum size of /22 (1024 addresses).
-    #[serde(default, rename = "primarySubnet")]
-    pub primary_subnet: ::core::option::Option<String>,
-}
-
-/// A Kafka Connect connector in a given ConnectCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Connector {
-    /// Optional. Connector config as keys/values. The keys of the map are connector property names, for example: connector.class, tasks.max, key.converter.
-    #[serde(default)]
-    pub configs: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The name of the connector. Structured like: projects/{project}/locations/{location}/connectClusters/{connect_cluster}/connectors/{connector}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The current state of the connector. // TODO: enum values: ["STATE_UNSPECIFIED", "UNASSIGNED", "RUNNING", "PAUSED", "FAILED", "RESTARTING", "STOPPED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Restarts the individual tasks of a Connector.
-    #[serde(default, rename = "taskRestartPolicy")]
-    pub task_restart_policy: ::core::option::Option<TaskRetryPolicy>,
-}
-
-/// A Kafka consumer group in a given cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConsumerGroup {
-    /// Identifier. The name of the consumer group. The consumer_group segment is used when connecting directly to the cluster. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/consumerGroups/{consumer_group}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Metadata for this consumer group for all topics it has metadata for. The key of the map is a topic name, structured like: projects/{project}/locations/{location}/clusters/{cluster}/topics/{topic}
-    #[serde(default)]
-    pub topics: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for a consumer group corresponding to a specific partition.
@@ -338,17 +111,6 @@ pub struct CreateVersionResponse {
     /// The unique identifier of the schema created.
     #[serde(default)]
     pub id: ::core::option::Option<i32>,
-}
-
-/// Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcpConfig {
-    /// Required. Access configuration for the Kafka cluster.
-    #[serde(default, rename = "accessConfig")]
-    pub access_config: ::core::option::Option<AccessConfig>,
-    /// Optional. Immutable. The Cloud KMS Key name to use for encryption. The key must be located in the same region as the cluster and cannot be changed. Structured like: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
-    #[serde(default, rename = "kmsKey")]
-    pub kms_key: ::core::option::Option<String>,
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
@@ -470,26 +232,6 @@ pub struct ListTopicsResponse {
     pub topics: ::core::option::Option<::std::vec::Vec<Topic>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Request for LookupVersion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LookupVersionRequest {
@@ -508,34 +250,6 @@ pub struct LookupVersionRequest {
     /// Optional. The schema type of the schema. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
     pub schema_type: ::core::option::Option<String>,
-}
-
-/// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfig {
-    /// Required. Name of the VPC subnet in which to create Private Service Connect (PSC) endpoints for the Kafka brokers and bootstrap address. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} The subnet must be located in the same region as the Kafka cluster. The project may differ. Multiple subnets from the same parent network must not be specified.
-    #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -562,14 +276,6 @@ pub struct OperationMetadata {
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
-}
-
-/// Defines rebalancing behavior of a Kafka cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RebalanceConfig {
-    /// Optional. The rebalance behavior for the cluster. When not specified, defaults to NO_REBALANCE. // TODO: enum values: ["MODE_UNSPECIFIED", "NO_REBALANCE", "AUTO_REBALANCE_ON_SCALE_UP"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
 }
 
 /// Response for RemoveAclEntry.
@@ -619,31 +325,6 @@ pub struct SchemaMode {
     pub mode: ::core::option::Option<String>,
 }
 
-/// SchemaReference is a reference to a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchemaReference {
-    /// Required. The name of the reference.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The subject of the reference.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// Required. The version of the reference.
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// SchemaRegistry is a schema registry instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchemaRegistry {
-    /// Output only. The contexts of the schema registry instance.
-    #[serde(default)]
-    pub contexts: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifier. The name of the schema registry instance. Structured like: projects/{project}/locations/{location}/schemaRegistries/{schema_registry} The instance name {schema_registry} can contain the following: * Up to 255 characters. * Letters (uppercase or lowercase), numbers, and underscores.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Version of a schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SchemaVersion {
@@ -667,43 +348,187 @@ pub struct SchemaVersion {
     pub version: ::core::option::Option<i32>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Request for updating schema config. On a SchemaSubject-level SchemaConfig, an unset field will be removed from the SchemaConfig.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct UpdateSchemaConfigRequest {
+    /// Required. The compatibility type of the schemas. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the compatibility field for the SchemaConfig. // TODO: enum values: ["NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE"]
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub compatibility: ::core::option::Option<String>,
+    /// Optional. If true, the schema will be normalized before being stored or looked up. The default is false. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the normalize field for the SchemaConfig.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub normalize: ::core::option::Option<bool>,
 }
 
-/// Task Retry Policy is implemented on a best-effort basis. The default policy retries tasks with a minimum_backoff of 60 seconds, and a maximum_backoff of 12 hours. You can disable the policy by setting the task_retry_disabled field to true. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. Note that the delay between consecutive task restarts may not always precisely match the configured settings. This can happen when the ConnectCluster is in rebalancing state or if the ConnectCluster is unresponsive etc. The default values for minimum and maximum backoffs are 60 seconds and 12 hours respectively.
+/// Request for updating schema registry or subject mode.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskRetryPolicy {
-    /// Optional. The maximum amount of time to wait before retrying a failed task. This sets an upper bound for the backoff delay.
-    #[serde(default, rename = "maximumBackoff")]
-    pub maximum_backoff: ::core::option::Option<String>,
-    /// Optional. The minimum amount of time to wait before retrying a failed task. This sets a lower bound for the backoff delay.
-    #[serde(default, rename = "minimumBackoff")]
-    pub minimum_backoff: ::core::option::Option<String>,
-    /// Optional. If true, task retry is disabled.
-    #[serde(default, rename = "taskRetryDisabled")]
-    pub task_retry_disabled: ::core::option::Option<bool>,
+pub struct UpdateSchemaModeRequest {
+    /// Required. The mode type. // TODO: enum values: ["NONE", "READONLY", "READWRITE", "IMPORT"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
 }
 
-/// The TLS configuration for the Kafka cluster.
+/// An Apache Kafka cluster deployed in a location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsConfig {
-    /// Optional. A list of rules for mapping from SSL principal names to short names. These are applied in order by Kafka. Refer to the Apache Kafka documentation for ssl.principal.mapping.rules for the precise formatting details and syntax. Example: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1@example.com/,DEFAULT" This is a static Kafka broker configuration. Setting or modifying this field will trigger a rolling restart of the Kafka brokers to apply the change. An empty string means no rules are applied (Kafka default).
-    #[serde(default, rename = "sslPrincipalMappingRules")]
-    pub ssl_principal_mapping_rules: ::core::option::Option<String>,
-    /// Optional. The configuration of the broker truststore. If specified, clients can use mTLS for authentication.
-    #[serde(default, rename = "trustConfig")]
-    pub trust_config: ::core::option::Option<TrustConfig>,
+pub struct Cluster {
+    /// Output only. Only populated when FULL view is requested. Details of each broker in the cluster.
+    #[serde(default, rename = "brokerDetails")]
+    pub broker_details: ::core::option::Option<::std::vec::Vec<BrokerDetails>>,
+    /// Required. Capacity configuration for the Kafka cluster.
+    #[serde(default, rename = "capacityConfig")]
+    pub capacity_config: ::core::option::Option<CapacityConfig>,
+    /// Output only. The time when the cluster was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
+    #[serde(default, rename = "gcpConfig")]
+    pub gcp_config: ::core::option::Option<GcpConfig>,
+    /// Output only. Only populated when FULL view is requested. The Kafka version of the cluster.
+    #[serde(default, rename = "kafkaVersion")]
+    pub kafka_version: ::core::option::Option<String>,
+    /// Optional. Labels as key value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The name of the cluster. Structured like: projects/{project_number}/locations/{location}/clusters/{cluster_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Rebalance configuration for the Kafka cluster.
+    #[serde(default, rename = "rebalanceConfig")]
+    pub rebalance_config: ::core::option::Option<RebalanceConfig>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The current state of the cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. TLS configuration for the Kafka cluster.
+    #[serde(default, rename = "tlsConfig")]
+    pub tls_config: ::core::option::Option<TlsConfig>,
+    /// Optional. UpdateOptions represents options that control how updates to the cluster are applied.
+    #[serde(default, rename = "updateOptions")]
+    pub update_options: ::core::option::Option<UpdateOptions>,
+    /// Output only. The time when the cluster was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An Apache Kafka Connect cluster deployed in a location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectCluster {
+    /// Required. Capacity configuration for the Kafka Connect cluster.
+    #[serde(default, rename = "capacityConfig")]
+    pub capacity_config: ::core::option::Option<CapacityConfig>,
+    /// Optional. Configurations for the worker that are overridden from the defaults. The key of the map is a Kafka Connect worker property name, for example: exactly.once.source.support.
+    #[serde(default)]
+    pub config: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the cluster was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
+    #[serde(default, rename = "gcpConfig")]
+    pub gcp_config: ::core::option::Option<ConnectGcpConfig>,
+    /// Required. Immutable. The name of the Kafka cluster this Kafka Connect cluster is attached to. Structured like: projects/{project}/locations/{location}/clusters/{cluster}
+    #[serde(default, rename = "kafkaCluster")]
+    pub kafka_cluster: ::core::option::Option<String>,
+    /// Optional. Labels as key value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The name of the Kafka Connect cluster. Structured like: projects/{project_number}/locations/{location}/connectClusters/{connect_cluster_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The current state of the Kafka Connect cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "DETACHED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time when the cluster was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A Kafka Connect connector in a given ConnectCluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Connector {
+    /// Optional. Connector config as keys/values. The keys of the map are connector property names, for example: connector.class, tasks.max, key.converter.
+    #[serde(default)]
+    pub configs: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The name of the connector. Structured like: projects/{project}/locations/{location}/connectClusters/{connect_cluster}/connectors/{connector}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current state of the connector. // TODO: enum values: ["STATE_UNSPECIFIED", "UNASSIGNED", "RUNNING", "PAUSED", "FAILED", "RESTARTING", "STOPPED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Restarts the individual tasks of a Connector.
+    #[serde(default, rename = "taskRestartPolicy")]
+    pub task_restart_policy: ::core::option::Option<TaskRetryPolicy>,
+}
+
+/// A Kafka consumer group in a given cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsumerGroup {
+    /// Identifier. The name of the consumer group. The consumer_group segment is used when connecting directly to the cluster. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/consumerGroups/{consumer_group}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Metadata for this consumer group for all topics it has metadata for. The key of the map is a topic name, structured like: projects/{project}/locations/{location}/clusters/{cluster}/topics/{topic}
+    #[serde(default)]
+    pub topics: ::core::option::Option<serde_json::Value>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// SchemaRegistry is a schema registry instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaRegistry {
+    /// Output only. The contexts of the schema registry instance.
+    #[serde(default)]
+    pub contexts: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifier. The name of the schema registry instance. Structured like: projects/{project}/locations/{location}/schemaRegistries/{schema_registry} The instance name {schema_registry} can contain the following: * Up to 255 characters. * Letters (uppercase or lowercase), numbers, and underscores.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A Kafka topic in a given cluster.
@@ -723,12 +548,85 @@ pub struct Topic {
     pub replication_factor: ::core::option::Option<i32>,
 }
 
-/// Sources of CA certificates to install in the broker''s truststore.
+/// Represents the set of ACLs for a given Kafka Resource Pattern, which consists of resource_type, resource_name and pattern_type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrustConfig {
-    /// Optional. Configuration for the Google Certificate Authority Service. Maximum 10.
-    #[serde(default, rename = "casConfigs")]
-    pub cas_configs: ::core::option::Option<::std::vec::Vec<CertificateAuthorityServiceConfig>>,
+pub struct Acl {
+    /// Required. The ACL entries that apply to the resource pattern. The maximum number of allowed entries 100.
+    #[serde(default, rename = "aclEntries")]
+    pub acl_entries: ::core::option::Option<::std::vec::Vec<AclEntry>>,
+    /// Optional. etag is used for concurrency control. An etag is returned in the response to GetAcl and CreateAcl. Callers are required to put that etag in the request to UpdateAcl to ensure that their change will be applied to the same version of the acl that exists in the Kafka Cluster. A terminal ''T'' character in the etag indicates that the AclEntries were truncated; more entries for the Acl exist on the Kafka Cluster, but can''t be returned in the Acl due to repeated field limits.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifier. The name for the acl. Represents a single Resource Pattern. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/acls/{acl_id} The structure of acl_id defines the Resource Pattern (resource_type, resource_name, pattern_type) of the acl. acl_id is structured like one of the following: For acls on the cluster: cluster For acls on a single resource within the cluster: topic/{resource_name} consumerGroup/{resource_name} transactionalId/{resource_name} For acls on all resources that match a prefix: topicPrefixed/{resource_name} consumerGroupPrefixed/{resource_name} transactionalIdPrefixed/{resource_name} For acls on all resources of a given type (i.e. the wildcard literal "*"): allTopics (represents topic/*) allConsumerGroups (represents consumerGroup/*) allTransactionalIds (represents transactionalId/*)
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The ACL pattern type derived from the name. One of: LITERAL, PREFIXED.
+    #[serde(default, rename = "patternType")]
+    pub pattern_type: ::core::option::Option<String>,
+    /// Output only. The ACL resource name derived from the name. For cluster resource_type, this is always "kafka-cluster". Can be the wildcard literal "*".
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Output only. The ACL resource type derived from the name. One of: CLUSTER, TOPIC, GROUP, TRANSACTIONAL_ID.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// SchemaReference is a reference to a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaReference {
+    /// Required. The name of the reference.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The subject of the reference.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// Required. The version of the reference.
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Details of a broker in the Kafka cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BrokerDetails {
+    /// Output only. The index of the broker.
+    #[serde(default, rename = "brokerIndex")]
+    pub broker_index: ::core::option::Option<String>,
+    /// Output only. The node id of the broker.
+    #[serde(default, rename = "nodeId")]
+    pub node_id: ::core::option::Option<String>,
+    /// Output only. The rack of the broker.
+    #[serde(default)]
+    pub rack: ::core::option::Option<String>,
+}
+
+/// Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcpConfig {
+    /// Required. Access configuration for the Kafka cluster.
+    #[serde(default, rename = "accessConfig")]
+    pub access_config: ::core::option::Option<AccessConfig>,
+    /// Optional. Immutable. The Cloud KMS Key name to use for encryption. The key must be located in the same region as the cluster and cannot be changed. Structured like: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
+    #[serde(default, rename = "kmsKey")]
+    pub kms_key: ::core::option::Option<String>,
+}
+
+/// Defines rebalancing behavior of a Kafka cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RebalanceConfig {
+    /// Optional. The rebalance behavior for the cluster. When not specified, defaults to NO_REBALANCE. // TODO: enum values: ["MODE_UNSPECIFIED", "NO_REBALANCE", "AUTO_REBALANCE_ON_SCALE_UP"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+}
+
+/// The TLS configuration for the Kafka cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsConfig {
+    /// Optional. A list of rules for mapping from SSL principal names to short names. These are applied in order by Kafka. Refer to the Apache Kafka documentation for ssl.principal.mapping.rules for the precise formatting details and syntax. Example: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1@example.com/,DEFAULT" This is a static Kafka broker configuration. Setting or modifying this field will trigger a rolling restart of the Kafka brokers to apply the change. An empty string means no rules are applied (Kafka default).
+    #[serde(default, rename = "sslPrincipalMappingRules")]
+    pub ssl_principal_mapping_rules: ::core::option::Option<String>,
+    /// Optional. The configuration of the broker truststore. If specified, clients can use mTLS for authentication.
+    #[serde(default, rename = "trustConfig")]
+    pub trust_config: ::core::option::Option<TrustConfig>,
 }
 
 /// UpdateOptions specifies options that influence how a cluster update is applied. These options control the behavior of the update process, rather than defining the desired end-state of a cluster.
@@ -739,21 +637,123 @@ pub struct UpdateOptions {
     pub allow_broker_downscale_on_cluster_upscale: ::core::option::Option<bool>,
 }
 
-/// Request for updating schema config. On a SchemaSubject-level SchemaConfig, an unset field will be removed from the SchemaConfig.
+/// A capacity configuration of a Kafka cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSchemaConfigRequest {
-    /// Required. The compatibility type of the schemas. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the compatibility field for the SchemaConfig. // TODO: enum values: ["NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE"]
-    #[serde(default)]
-    pub compatibility: ::core::option::Option<String>,
-    /// Optional. If true, the schema will be normalized before being stored or looked up. The default is false. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the normalize field for the SchemaConfig.
-    #[serde(default)]
-    pub normalize: ::core::option::Option<bool>,
+pub struct CapacityConfig {
+    /// Required. The memory to provision for the cluster in bytes. The CPU:memory ratio (vCPU:GiB) must be between 1:1 and 1:8. Minimum: 3221225472 (3 GiB).
+    #[serde(default, rename = "memoryBytes")]
+    pub memory_bytes: ::core::option::Option<String>,
+    /// Required. The number of vCPUs to provision for the cluster. Minimum: 3.
+    #[serde(default, rename = "vcpuCount")]
+    pub vcpu_count: ::core::option::Option<String>,
 }
 
-/// Request for updating schema registry or subject mode.
+/// Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSchemaModeRequest {
-    /// Required. The mode type. // TODO: enum values: ["NONE", "READONLY", "READWRITE", "IMPORT"]
+pub struct ConnectGcpConfig {
+    /// Required. Access configuration for the Kafka Connect cluster.
+    #[serde(default, rename = "accessConfig")]
+    pub access_config: ::core::option::Option<ConnectAccessConfig>,
+    /// Optional. Secrets to load into workers. Exact SecretVersions from Secret Manager must be provided -- aliases are not supported. Up to 32 secrets may be loaded into one cluster. Format: projects//secrets//versions/
+    #[serde(default, rename = "secretPaths")]
+    pub secret_paths: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Task Retry Policy is implemented on a best-effort basis. The default policy retries tasks with a minimum_backoff of 60 seconds, and a maximum_backoff of 12 hours. You can disable the policy by setting the task_retry_disabled field to true. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. Note that the delay between consecutive task restarts may not always precisely match the configured settings. This can happen when the ConnectCluster is in rebalancing state or if the ConnectCluster is unresponsive etc. The default values for minimum and maximum backoffs are 60 seconds and 12 hours respectively.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskRetryPolicy {
+    /// Optional. The maximum amount of time to wait before retrying a failed task. This sets an upper bound for the backoff delay.
+    #[serde(default, rename = "maximumBackoff")]
+    pub maximum_backoff: ::core::option::Option<String>,
+    /// Optional. The minimum amount of time to wait before retrying a failed task. This sets a lower bound for the backoff delay.
+    #[serde(default, rename = "minimumBackoff")]
+    pub minimum_backoff: ::core::option::Option<String>,
+    /// Optional. If true, task retry is disabled.
+    #[serde(default, rename = "taskRetryDisabled")]
+    pub task_retry_disabled: ::core::option::Option<bool>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub mode: ::core::option::Option<String>,
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Represents the access granted for a given Resource Pattern in an ACL.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AclEntry {
+    /// Required. The host. Must be set to "*" for Managed Service for Apache Kafka.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// Required. The operation type. Allowed values are (case insensitive): ALL, READ, WRITE, CREATE, DELETE, ALTER, DESCRIBE, CLUSTER_ACTION, DESCRIBE_CONFIGS, ALTER_CONFIGS, and IDEMPOTENT_WRITE. See https://kafka.apache.org/documentation/#operations_resources_and_protocols for valid combinations of resource_type and operation for different Kafka API requests.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// Required. The permission type. Accepted values are (case insensitive): ALLOW, DENY.
+    #[serde(default, rename = "permissionType")]
+    pub permission_type: ::core::option::Option<String>,
+    /// Required. The principal. Specified as Google Cloud account, with the Kafka StandardAuthorizer prefix "User:". For example: "User:test-kafka-client@test-project.iam.gserviceaccount.com". Can be the wildcard "User:*" to refer to all users.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+}
+
+/// The configuration of access to the Kafka cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessConfig {
+    /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
+    #[serde(default, rename = "networkConfigs")]
+    pub network_configs: ::core::option::Option<::std::vec::Vec<NetworkConfig>>,
+}
+
+/// Sources of CA certificates to install in the broker''s truststore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrustConfig {
+    /// Optional. Configuration for the Google Certificate Authority Service. Maximum 10.
+    #[serde(default, rename = "casConfigs")]
+    pub cas_configs: ::core::option::Option<::std::vec::Vec<CertificateAuthorityServiceConfig>>,
+}
+
+/// The configuration of access to the Kafka Connect cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectAccessConfig {
+    /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka Connect cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
+    #[serde(default, rename = "networkConfigs")]
+    pub network_configs: ::core::option::Option<::std::vec::Vec<ConnectNetworkConfig>>,
+}
+
+/// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    /// Required. Name of the VPC subnet in which to create Private Service Connect (PSC) endpoints for the Kafka brokers and bootstrap address. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} The subnet must be located in the same region as the Kafka cluster. The project may differ. Multiple subnets from the same parent network must not be specified.
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+}
+
+/// A configuration for the Google Certificate Authority Service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateAuthorityServiceConfig {
+    /// Required. The name of the CA pool to pull CA certificates from. Structured like: projects/{project}/locations/{location}/caPools/{ca_pool}. The CA pool does not need to be in the same project or location as the Kafka cluster.
+    #[serde(default, rename = "caPool")]
+    pub ca_pool: ::core::option::Option<String>,
+}
+
+/// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka Connect cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectNetworkConfig {
+    /// Optional. Deprecated: Managed Kafka Connect clusters can now reach any endpoint accessible from the primary subnet without the need to define additional subnets. Please see https://cloud.google.com/managed-service-for-apache-kafka/docs/connect-cluster/create-connect-cluster#worker-subnet for more information.
+    #[serde(default, rename = "additionalSubnets")]
+    pub additional_subnets: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Additional DNS domain names from the subnet''s network to be made visible to the Connect Cluster. When using MirrorMaker2, it''s necessary to add the bootstrap address''s dns domain name of the target cluster to make it visible to the connector. For example: my-kafka-cluster.us-central1.managedkafka.my-project.cloud.goog
+    #[serde(default, rename = "dnsDomainNames")]
+    pub dns_domain_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. VPC subnet to make available to the Kafka Connect cluster. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} It is used to create a Private Service Connect (PSC) interface for the Kafka Connect workers. It must be located in the same region as the Kafka Connect cluster. The CIDR range of the subnet must be within the IPv4 address ranges for private networks, as specified in RFC 1918. The primary subnet CIDR range must have a minimum size of /22 (1024 addresses).
+    #[serde(default, rename = "primarySubnet")]
+    pub primary_subnet: ::core::option::Option<String>,
 }

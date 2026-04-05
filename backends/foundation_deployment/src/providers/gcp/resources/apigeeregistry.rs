@@ -10,255 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A top-level description of an API. Produced by producers and are commitments to provide services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Api {
-    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// A user-definable description of the availability of this service. Format: free-form, but we expect single words that describe availability, e.g., "NONE", "TESTING", "PREVIEW", "GENERAL", "DEPRECATED", "SHUTDOWN".
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// Output only. Creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A detailed description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Human-meaningful name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores, and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The recommended deployment of the API. Format: projects/{project}/locations/{location}/apis/{api}/deployments/{deployment}
-    #[serde(default, rename = "recommendedDeployment")]
-    pub recommended_deployment: ::core::option::Option<String>,
-    /// The recommended version of the API. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}
-    #[serde(default, rename = "recommendedVersion")]
-    pub recommended_version: ::core::option::Option<String>,
-    /// Output only. Last update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Describes a service running at particular address that provides a particular version of an API. ApiDeployments have revisions which correspond to different configurations of a single deployment in time. Revision identifiers should be updated whenever the served API spec or endpoint address changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiDeployment {
-    /// Text briefly describing how to access the endpoint. Changes to this value will not affect the revision.
-    #[serde(default, rename = "accessGuidance")]
-    pub access_guidance: ::core::option::Option<String>,
-    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// The full resource name (including revision ID) of the spec of the API being served by the deployment. Changes to this value will update the revision. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec@revision}
-    #[serde(default, rename = "apiSpecRevision")]
-    pub api_spec_revision: ::core::option::Option<String>,
-    /// Output only. Creation timestamp; when the deployment resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A detailed description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Human-meaningful name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The address where the deployment is serving. Changes to this value will update the revision.
-    #[serde(default, rename = "endpointUri")]
-    pub endpoint_uri: ::core::option::Option<String>,
-    /// The address of the external channel of the API (e.g., the Developer Portal). Changes to this value will not affect the revision.
-    #[serde(default, rename = "externalChannelUri")]
-    pub external_channel_uri: ::core::option::Option<String>,
-    /// Text briefly identifying the intended audience of the API. Changes to this value will not affect the revision.
-    #[serde(default, rename = "intendedAudience")]
-    pub intended_audience: ::core::option::Option<String>,
-    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Revision creation timestamp; when the represented revision was created.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Output only. Immutable. The revision ID of the deployment. A new revision is committed whenever the deployment contents are changed. The format is an 8-character hexadecimal string.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. Last update timestamp: when the represented revision was last modified.
-    #[serde(default, rename = "revisionUpdateTime")]
-    pub revision_update_time: ::core::option::Option<String>,
-}
-
-/// Describes a version of an API in a structured way. ApiSpecs provide formal descriptions that consumers can use to use a version. ApiSpec resources are intended to be fully-resolved descriptions of an ApiVersion. When specs consist of multiple files, these should be bundled together (e.g., in a zip archive) and stored as a unit. Multiple specs can exist to provide representations in different API description formats. Synchronization of these representations would be provided by tooling and background services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiSpec {
-    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Input only. The contents of the spec. Provided by API callers when specs are created or updated. To access the contents of a spec, use GetApiSpecContents.
-    #[serde(default)]
-    pub contents: ::core::option::Option<String>,
-    /// Output only. Creation timestamp; when the spec resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A detailed description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A possibly-hierarchical name used to refer to the spec from other specs.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-    /// Output only. A SHA-256 hash of the spec''s contents. If the spec is gzipped, this is the hash of the uncompressed spec.
-    #[serde(default)]
-    pub hash: ::core::option::Option<String>,
-    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// A style (format) descriptor for this spec that is specified as a [Media Type](https://en.wikipedia.org/wiki/Media_type). Possible values include application/vnd.apigee.proto, application/vnd.apigee.openapi, and application/vnd.apigee.graphql, with possible suffixes representing compression types. These hypothetical names are defined in the vendor tree defined in RFC6838 (https://tools.ietf.org/html/rfc6838) and are not final. Content types can specify compression. Currently only GZip compression is supported (indicated with "+gzip").
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Revision creation timestamp; when the represented revision was created.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Output only. Immutable. The revision ID of the spec. A new revision is committed whenever the spec contents are changed. The format is an 8-character hexadecimal string.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. Last update timestamp: when the represented revision was last modified.
-    #[serde(default, rename = "revisionUpdateTime")]
-    pub revision_update_time: ::core::option::Option<String>,
-    /// Output only. The size of the spec file in bytes. If the spec is gzipped, this is the size of the uncompressed spec.
-    #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: ::core::option::Option<i32>,
-    /// The original source URI of the spec (if one exists). This is an external location that can be used for reference purposes but which may not be authoritative since this external resource may change after the spec is retrieved.
-    #[serde(default, rename = "sourceUri")]
-    pub source_uri: ::core::option::Option<String>,
-}
-
-/// Describes a particular version of an API. ApiVersions are what consumers actually use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiVersion {
-    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. Creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A detailed description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Human-meaningful name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The primary spec for this version. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}
-    #[serde(default, rename = "primarySpec")]
-    pub primary_spec: ::core::option::Option<String>,
-    /// A user-definable description of the lifecycle phase of this API version. Format: free-form, but we expect single words that describe API maturity, e.g., "CONCEPT", "DESIGN", "DEVELOPMENT", "STAGING", "PRODUCTION", "DEPRECATED", "RETIRED".
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Last update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Artifacts of resources. Artifacts are unique (single-value) per resource and are used to store metadata that is too large or numerous to be stored directly on the resource. Since artifacts are stored separately from parent resources, they should generally be used for metadata that is needed infrequently, i.e., not for display in primary views of the resource but perhaps displayed or downloaded upon request. The ListArtifacts method allows artifacts to be quickly enumerated and checked for presence without downloading their (potentially-large) contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Artifact {
-    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Input only. The contents of the artifact. Provided by API callers when artifacts are created or replaced. To access the contents of an artifact, use GetArtifactContents.
-    #[serde(default)]
-    pub contents: ::core::option::Option<String>,
-    /// Output only. Creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. A SHA-256 hash of the artifact''s contents. If the artifact is gzipped, this is the hash of the uncompressed artifact.
-    #[serde(default)]
-    pub hash: ::core::option::Option<String>,
-    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with "registry.googleapis.com/" and cannot be changed.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// A content type specifier for the artifact. Content type specifiers are Media Types (https://en.wikipedia.org/wiki/Media_type) with a possible "schema" parameter that specifies a schema for the stored information. Content types can specify compression. Currently only GZip compression is supported (indicated with "+gzip").
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The size of the artifact in bytes. If the artifact is gzipped, this is the size of the uncompressed artifact.
-    #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: ::core::option::Option<i32>,
-    /// Output only. Last update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Build information of the Instance if it''s in ACTIVE state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Build {
-    /// Output only. Commit ID of the latest commit in the build.
-    #[serde(default, rename = "commitId")]
-    pub commit_id: ::core::option::Option<String>,
-    /// Output only. Commit time of the latest commit in the build.
-    #[serde(default, rename = "commitTime")]
-    pub commit_time: ::core::option::Option<String>,
-    /// Output only. Path of the open source repository: github.com/apigee/registry.
-    #[serde(default)]
-    pub repo: ::core::option::Option<String>,
-}
-
-/// Available configurations to provision an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Config {
-    /// Required. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+), where the location must match InstanceConfig.location.
-    #[serde(default, rename = "cmekKeyName")]
-    pub cmek_key_name: ::core::option::Option<String>,
-    /// Output only. The GCP location where the Instance resides.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpBody {
@@ -398,6 +149,306 @@ pub struct ListOperationsResponse {
     pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
 }
 
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "cancellationRequested")]
+    pub cancellation_requested: ::core::option::Option<bool>,
+    /// The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request message for RollbackApiDeployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackApiDeploymentRequest {
+    /// Required. The revision ID to roll back to. It must be a revision of the same deployment. Example: c7cfa2a8
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Request message for RollbackApiSpec.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackApiSpecRequest {
+    /// Required. The revision ID to roll back to. It must be a revision of the same spec. Example: c7cfa2a8
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+}
+
+/// Request message for TagApiDeploymentRevision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagApiDeploymentRevisionRequest {
+    /// Required. The tag to apply. The tag should be at most 40 characters, and match a-z{3,39}.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+}
+
+/// Request message for TagApiSpecRevision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagApiSpecRevisionRequest {
+    /// Required. The tag to apply. The tag should be at most 40 characters, and match a-z{3,39}.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Build information of the Instance if it''s in ACTIVE state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Build {
+    /// Output only. Commit ID of the latest commit in the build.
+    #[serde(default, rename = "commitId")]
+    pub commit_id: ::core::option::Option<String>,
+    /// Output only. Commit time of the latest commit in the build.
+    #[serde(default, rename = "commitTime")]
+    pub commit_time: ::core::option::Option<String>,
+    /// Output only. Path of the open source repository: github.com/apigee/registry.
+    #[serde(default)]
+    pub repo: ::core::option::Option<String>,
+}
+
+/// Available configurations to provision an Instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Config {
+    /// Required. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+), where the location must match InstanceConfig.location.
+    #[serde(default, rename = "cmekKeyName")]
+    pub cmek_key_name: ::core::option::Option<String>,
+    /// Output only. The GCP location where the Instance resides.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+}
+
+/// Describes a service running at particular address that provides a particular version of an API. ApiDeployments have revisions which correspond to different configurations of a single deployment in time. Revision identifiers should be updated whenever the served API spec or endpoint address changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiDeployment {
+    /// Text briefly describing how to access the endpoint. Changes to this value will not affect the revision.
+    #[serde(default, rename = "accessGuidance")]
+    pub access_guidance: ::core::option::Option<String>,
+    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// The full resource name (including revision ID) of the spec of the API being served by the deployment. Changes to this value will update the revision. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec@revision}
+    #[serde(default, rename = "apiSpecRevision")]
+    pub api_spec_revision: ::core::option::Option<String>,
+    /// Output only. Creation timestamp; when the deployment resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A detailed description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Human-meaningful name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The address where the deployment is serving. Changes to this value will update the revision.
+    #[serde(default, rename = "endpointUri")]
+    pub endpoint_uri: ::core::option::Option<String>,
+    /// The address of the external channel of the API (e.g., the Developer Portal). Changes to this value will not affect the revision.
+    #[serde(default, rename = "externalChannelUri")]
+    pub external_channel_uri: ::core::option::Option<String>,
+    /// Text briefly identifying the intended audience of the API. Changes to this value will not affect the revision.
+    #[serde(default, rename = "intendedAudience")]
+    pub intended_audience: ::core::option::Option<String>,
+    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Revision creation timestamp; when the represented revision was created.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Output only. Immutable. The revision ID of the deployment. A new revision is committed whenever the deployment contents are changed. The format is an 8-character hexadecimal string.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. Last update timestamp: when the represented revision was last modified.
+    #[serde(default, rename = "revisionUpdateTime")]
+    pub revision_update_time: ::core::option::Option<String>,
+}
+
+/// Describes a version of an API in a structured way. ApiSpecs provide formal descriptions that consumers can use to use a version. ApiSpec resources are intended to be fully-resolved descriptions of an ApiVersion. When specs consist of multiple files, these should be bundled together (e.g., in a zip archive) and stored as a unit. Multiple specs can exist to provide representations in different API description formats. Synchronization of these representations would be provided by tooling and background services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiSpec {
+    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Input only. The contents of the spec. Provided by API callers when specs are created or updated. To access the contents of a spec, use GetApiSpecContents.
+    #[serde(default)]
+    pub contents: ::core::option::Option<String>,
+    /// Output only. Creation timestamp; when the spec resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A detailed description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A possibly-hierarchical name used to refer to the spec from other specs.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
+    /// Output only. A SHA-256 hash of the spec''s contents. If the spec is gzipped, this is the hash of the uncompressed spec.
+    #[serde(default)]
+    pub hash: ::core::option::Option<String>,
+    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// A style (format) descriptor for this spec that is specified as a [Media Type](https://en.wikipedia.org/wiki/Media_type). Possible values include application/vnd.apigee.proto, application/vnd.apigee.openapi, and application/vnd.apigee.graphql, with possible suffixes representing compression types. These hypothetical names are defined in the vendor tree defined in RFC6838 (https://tools.ietf.org/html/rfc6838) and are not final. Content types can specify compression. Currently only GZip compression is supported (indicated with "+gzip").
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Revision creation timestamp; when the represented revision was created.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Output only. Immutable. The revision ID of the spec. A new revision is committed whenever the spec contents are changed. The format is an 8-character hexadecimal string.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. Last update timestamp: when the represented revision was last modified.
+    #[serde(default, rename = "revisionUpdateTime")]
+    pub revision_update_time: ::core::option::Option<String>,
+    /// Output only. The size of the spec file in bytes. If the spec is gzipped, this is the size of the uncompressed spec.
+    #[serde(default, rename = "sizeBytes")]
+    pub size_bytes: ::core::option::Option<i32>,
+    /// The original source URI of the spec (if one exists). This is an external location that can be used for reference purposes but which may not be authoritative since this external resource may change after the spec is retrieved.
+    #[serde(default, rename = "sourceUri")]
+    pub source_uri: ::core::option::Option<String>,
+}
+
+/// Describes a particular version of an API. ApiVersions are what consumers actually use.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiVersion {
+    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. Creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A detailed description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Human-meaningful name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The primary spec for this version. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}
+    #[serde(default, rename = "primarySpec")]
+    pub primary_spec: ::core::option::Option<String>,
+    /// A user-definable description of the lifecycle phase of this API version. Format: free-form, but we expect single words that describe API maturity, e.g., "CONCEPT", "DESIGN", "DEVELOPMENT", "STAGING", "PRODUCTION", "DEPRECATED", "RETIRED".
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Last update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A top-level description of an API. Produced by producers and are commitments to provide services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Api {
+    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// A user-definable description of the availability of this service. Format: free-form, but we expect single words that describe availability, e.g., "NONE", "TESTING", "PREVIEW", "GENERAL", "DEPRECATED", "SHUTDOWN".
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// Output only. Creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A detailed description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Human-meaningful name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores, and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with apigeeregistry.googleapis.com/ and cannot be changed.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The recommended deployment of the API. Format: projects/{project}/locations/{location}/apis/{api}/deployments/{deployment}
+    #[serde(default, rename = "recommendedDeployment")]
+    pub recommended_deployment: ::core::option::Option<String>,
+    /// The recommended version of the API. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}
+    #[serde(default, rename = "recommendedVersion")]
+    pub recommended_version: ::core::option::Option<String>,
+    /// Output only. Last update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Artifacts of resources. Artifacts are unique (single-value) per resource and are used to store metadata that is too large or numerous to be stored directly on the resource. Since artifacts are stored separately from parent resources, they should generally be used for metadata that is needed infrequently, i.e., not for display in primary views of the resource but perhaps displayed or downloaded upon request. The ListArtifacts method allows artifacts to be quickly enumerated and checked for presence without downloading their (potentially-large) contents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Artifact {
+    /// Annotations attach non-identifying metadata to resources. Annotation keys and values are less restricted than those of labels, but should be generally used for small values of broad interest. Larger, topic- specific metadata should be stored in Artifacts.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Input only. The contents of the artifact. Provided by API callers when artifacts are created or replaced. To access the contents of an artifact, use GetArtifactContents.
+    #[serde(default)]
+    pub contents: ::core::option::Option<String>,
+    /// Output only. Creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. A SHA-256 hash of the artifact''s contents. If the artifact is gzipped, this is the hash of the uncompressed artifact.
+    #[serde(default)]
+    pub hash: ::core::option::Option<String>,
+    /// Labels attach identifying metadata to resources. Identifying metadata can be used to filter list operations. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. No more than 64 user labels can be associated with one resource (System labels are excluded). See https://goo.gl/xmQnxf for more information and examples of labels. System reserved label keys are prefixed with "registry.googleapis.com/" and cannot be changed.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// A content type specifier for the artifact. Content type specifiers are Media Types (https://en.wikipedia.org/wiki/Media_type) with a possible "schema" parameter that specifies a schema for the stored information. Content types can specify compression. Currently only GZip compression is supported (indicated with "+gzip").
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The size of the artifact in bytes. If the artifact is gzipped, this is the size of the uncompressed artifact.
+    #[serde(default, rename = "sizeBytes")]
+    pub size_bytes: ::core::option::Option<i32>,
+    /// Output only. Last update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -438,32 +489,6 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "cancellationRequested")]
-    pub cancellation_requested: ::core::option::Option<bool>,
-    /// The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Policy {
@@ -476,30 +501,6 @@ pub struct Policy {
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
     pub version: ::core::option::Option<i32>,
-}
-
-/// Request message for RollbackApiDeployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RollbackApiDeploymentRequest {
-    /// Required. The revision ID to roll back to. It must be a revision of the same deployment. Example: c7cfa2a8
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// Request message for RollbackApiSpec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RollbackApiSpecRequest {
-    /// Required. The revision ID to roll back to. It must be a revision of the same spec. Example: c7cfa2a8
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -516,34 +517,33 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Request message for TagApiDeploymentRevision.
+/// Associates members, or principals, with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TagApiDeploymentRevisionRequest {
-    /// Required. The tag to apply. The tag should be at most 40 characters, and match a-z{3,39}.
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub tag: ::core::option::Option<String>,
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
 }
 
-/// Request message for TagApiSpecRevision.
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TagApiSpecRevisionRequest {
-    /// Required. The tag to apply. The tag should be at most 40 characters, and match a-z{3,39}.
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }

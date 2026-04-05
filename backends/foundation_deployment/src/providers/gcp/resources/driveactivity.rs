@@ -10,6 +10,74 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for querying Drive activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryDriveActivityRequest {
+    /// Return activities for this Drive folder, plus all children and descendants. The format is items/ITEM_ID.
+    #[serde(default, rename = "ancestorName")]
+    pub ancestor_name: ::core::option::Option<String>,
+    /// Details on how to consolidate related actions that make up the activity. If not set, then related actions aren''t consolidated.
+    #[serde(default, rename = "consolidationStrategy")]
+    pub consolidation_strategy: ::core::option::Option<ConsolidationStrategy>,
+    /// The filtering for items returned from this query request. The format of the filter string is a sequence of expressions, joined by an optional "AND", where each expression is of the form "field operator value". Supported fields: - time: Uses numerical operators on date values either in terms of milliseconds since Jan 1, 1970 or in RFC 3339 format. Examples: - time &gt; 1452409200000 AND time &lt;= 1492812924310 - time &gt;= "2016-01-10T01:02:03-05:00" - detail.action_detail_case: Uses the "has" operator (:) and either a singular value or a list of allowed action types enclosed in parentheses, separated by a space. To exclude a result from the response, prepend a hyphen (-) to the beginning of the filter string. Examples: - detail.action_detail_case:RENAME - detail.action_detail_case:(CREATE RESTORE) - -detail.action_detail_case:MOVE
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Return activities for this Drive item. The format is items/ITEM_ID.
+    #[serde(default, rename = "itemName")]
+    pub item_name: ::core::option::Option<String>,
+    /// The minimum number of activities desired in the response; the server attempts to return at least this quantity. The server may also return fewer activities if it has a partial response ready before the request times out. If not set, a default value is used.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// The token identifies which page of results to return. Set this to the next_page_token value returned from a previous query to obtain the following page of results. If not set, the first page of results is returned.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+}
+
+/// Response message for querying Drive activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryDriveActivityResponse {
+    /// List of activity requested.
+    #[serde(default)]
+    pub activities: ::core::option::Option<::std::vec::Vec<DriveActivity>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsolidationStrategy {
+    /// The individual activities are consolidated using the legacy strategy.
+    #[serde(default)]
+    pub legacy: ::core::option::Option<serde_json::Value>,
+    /// The individual activities are not consolidated.
+    #[serde(default)]
+    pub none: ::core::option::Option<serde_json::Value>,
+}
+
+/// A single Drive activity comprising one or more Actions by one or more Actors on one or more Targets. Some Action groupings occur spontaneously, such as moving an item into a shared folder triggering a permission change. Other groupings of related Actions, such as multiple Actors editing one item or moving multiple files into a new folder, are controlled by the selection of a ConsolidationStrategy in the QueryDriveActivityRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveActivity {
+    /// Details on all actions in this activity.
+    #[serde(default)]
+    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
+    /// All actor(s) responsible for the activity.
+    #[serde(default)]
+    pub actors: ::core::option::Option<::std::vec::Vec<Actor>>,
+    /// Key information about the primary action for this activity. This is either representative, or the most important, of all actions in the activity, according to the ConsolidationStrategy in the request.
+    #[serde(default, rename = "primaryActionDetail")]
+    pub primary_action_detail: ::core::option::Option<ActionDetail>,
+    /// All Google Drive objects this activity is about (e.g. file, folder, drive). This represents the state of the target immediately after the actions occurred.
+    #[serde(default)]
+    pub targets: ::core::option::Option<::std::vec::Vec<Target>>,
+    /// The activity occurred over this time range.
+    #[serde(default, rename = "timeRange")]
+    pub time_range: ::core::option::Option<TimeRange>,
+    /// The activity occurred at this specific time.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
 /// Information about the action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Action {
@@ -28,6 +96,26 @@ pub struct Action {
     /// The action occurred at this specific time.
     #[serde(default)]
     pub timestamp: ::core::option::Option<String>,
+}
+
+/// The actor of a Drive activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Actor {
+    /// An administrator.
+    #[serde(default)]
+    pub administrator: ::core::option::Option<serde_json::Value>,
+    /// An anonymous user.
+    #[serde(default)]
+    pub anonymous: ::core::option::Option<serde_json::Value>,
+    /// An account acting on behalf of another.
+    #[serde(default)]
+    pub impersonation: ::core::option::Option<Impersonation>,
+    /// A non-user actor (i.e. system triggered).
+    #[serde(default)]
+    pub system: ::core::option::Option<SystemEvent>,
+    /// An end user.
+    #[serde(default)]
+    pub user: ::core::option::Option<User>,
 }
 
 /// Data describing the type and additional information of an action.
@@ -71,30 +159,46 @@ pub struct ActionDetail {
     pub settings_change: ::core::option::Option<SettingsChange>,
 }
 
-/// The actor of a Drive activity.
+/// Information about the target of activity. For more information on how activity history is shared with users, see [Activity history visibility](https://developers.google.com/workspace/drive/activity/v2#activityhistory).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Actor {
-    /// An administrator.
+pub struct Target {
+    /// The target is a shared drive.
     #[serde(default)]
-    pub administrator: ::core::option::Option<serde_json::Value>,
-    /// An anonymous user.
-    #[serde(default)]
-    pub anonymous: ::core::option::Option<serde_json::Value>,
-    /// An account acting on behalf of another.
-    #[serde(default)]
-    pub impersonation: ::core::option::Option<Impersonation>,
-    /// A non-user actor (i.e. system triggered).
-    #[serde(default)]
-    pub system: ::core::option::Option<SystemEvent>,
-    /// An end user.
-    #[serde(default)]
-    pub user: ::core::option::Option<User>,
+    pub drive: ::core::option::Option<Drive>,
+    /// The target is a Drive item.
+    #[serde(default, rename = "driveItem")]
+    pub drive_item: ::core::option::Option<DriveItem>,
+    /// The target is a comment on a Drive file.
+    #[serde(default, rename = "fileComment")]
+    pub file_comment: ::core::option::Option<FileComment>,
+    /// This field is deprecated; please use the drive field instead.
+    #[serde(default, rename = "teamDrive")]
+    pub team_drive: ::core::option::Option<TeamDrive>,
 }
 
-/// Activity in applications other than Drive.
+/// Information about time ranges.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationReference {
-    /// The reference type corresponding to this event. // TODO: enum values: ["UNSPECIFIED_REFERENCE_TYPE", "LINK", "DISCUSS"]
+pub struct TimeRange {
+    /// The end of the time range.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The start of the time range.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Information about an impersonation, where an admin acts on behalf of an end user. Information about the acting admin is not currently available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Impersonation {
+    /// The impersonated user.
+    #[serde(default, rename = "impersonatedUser")]
+    pub impersonated_user: ::core::option::Option<User>,
+}
+
+/// Event triggered by system operations instead of end users.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemEvent {
+    /// The type of the system event that may triggered activity. // TODO: enum values: ["TYPE_UNSPECIFIED", "USER_DELETION", "TRASH_AUTO_PURGE"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
@@ -105,6 +209,155 @@ pub struct AppliedLabelChange {
     /// Changes that were made to the Label on the Target.
     #[serde(default)]
     pub changes: ::core::option::Option<::std::vec::Vec<AppliedLabelChangeDetail>>,
+}
+
+/// A change about comments on an object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Comment {
+    /// A change on an assignment.
+    #[serde(default)]
+    pub assignment: ::core::option::Option<Assignment>,
+    /// Users who are mentioned in this comment.
+    #[serde(default, rename = "mentionedUsers")]
+    pub mentioned_users: ::core::option::Option<::std::vec::Vec<User>>,
+    /// A change on a regular posted comment.
+    #[serde(default)]
+    pub post: ::core::option::Option<Post>,
+    /// A change on a suggestion.
+    #[serde(default)]
+    pub suggestion: ::core::option::Option<Suggestion>,
+}
+
+/// An object was created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Create {
+    /// If present, indicates the object was created by copying an existing Drive object.
+    #[serde(default)]
+    pub copy: ::core::option::Option<Copy>,
+    /// If present, indicates the object was newly created (e.g. as a blank document), not derived from a Drive object or external object.
+    #[serde(default)]
+    pub new: ::core::option::Option<serde_json::Value>,
+    /// If present, indicates the object originated externally and was uploaded to Drive.
+    #[serde(default)]
+    pub upload: ::core::option::Option<serde_json::Value>,
+}
+
+/// An object was deleted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Delete {
+    /// The type of delete action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "TRASH", "PERMANENT_DELETE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A change in the object''s data leak prevention status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataLeakPreventionChange {
+    /// The type of Data Leak Prevention (DLP) change. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLAGGED", "CLEARED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An object was moved.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Move {
+    /// The added parent object(s).
+    #[serde(default, rename = "addedParents")]
+    pub added_parents: ::core::option::Option<::std::vec::Vec<TargetReference>>,
+    /// The removed parent object(s).
+    #[serde(default, rename = "removedParents")]
+    pub removed_parents: ::core::option::Option<::std::vec::Vec<TargetReference>>,
+}
+
+/// A change of the permission setting on an item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionChange {
+    /// The set of permissions added by this change.
+    #[serde(default, rename = "addedPermissions")]
+    pub added_permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
+    /// The set of permissions removed by this change.
+    #[serde(default, rename = "removedPermissions")]
+    pub removed_permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
+}
+
+/// Activity in applications other than Drive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationReference {
+    /// The reference type corresponding to this event. // TODO: enum values: ["UNSPECIFIED_REFERENCE_TYPE", "LINK", "DISCUSS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An object was renamed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Rename {
+    /// The new title of the drive object.
+    #[serde(default, rename = "newTitle")]
+    pub new_title: ::core::option::Option<String>,
+    /// The previous title of the drive object.
+    #[serde(default, rename = "oldTitle")]
+    pub old_title: ::core::option::Option<String>,
+}
+
+/// A deleted object was restored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Restore {
+    /// The type of restore action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "UNTRASH"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information about settings changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SettingsChange {
+    /// The set of changes made to restrictions.
+    #[serde(default, rename = "restrictionChanges")]
+    pub restriction_changes: ::core::option::Option<::std::vec::Vec<RestrictionChange>>,
+}
+
+/// Information about a shared drive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Drive {
+    /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The root of this shared drive.
+    #[serde(default)]
+    pub root: ::core::option::Option<DriveItem>,
+    /// The title of the shared drive.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A comment on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileComment {
+    /// The comment in the discussion thread. This identifier is an opaque string compatible with the Drive API; see https://developers.google.com/workspace/drive/v3/reference/comments/get
+    #[serde(default, rename = "legacyCommentId")]
+    pub legacy_comment_id: ::core::option::Option<String>,
+    /// The discussion thread to which the comment was added. This identifier is an opaque string compatible with the Drive API and references the first comment in a discussion; see https://developers.google.com/workspace/drive/v3/reference/comments/get
+    #[serde(default, rename = "legacyDiscussionId")]
+    pub legacy_discussion_id: ::core::option::Option<String>,
+    /// The link to the discussion thread containing this comment, for example, https://docs.google.com/DOCUMENT_ID/edit?disco=THREAD_ID.
+    #[serde(default, rename = "linkToDiscussion")]
+    pub link_to_discussion: ::core::option::Option<String>,
+    /// The Drive item containing this comment.
+    #[serde(default)]
+    pub parent: ::core::option::Option<DriveItem>,
+}
+
+/// This item is deprecated; please see Drive instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TeamDrive {
+    /// This field is deprecated; please see Drive.name instead.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// This field is deprecated; please see Drive.root instead.
+    #[serde(default)]
+    pub root: ::core::option::Option<DriveItem>,
+    /// This field is deprecated; please see Drive.title instead.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// A change made to a Label on the Target.
@@ -135,32 +388,20 @@ pub struct Assignment {
     pub subtype: ::core::option::Option<String>,
 }
 
-/// A change about comments on an object.
+/// A regular posted comment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Comment {
-    /// A change on an assignment.
+pub struct Post {
+    /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "RESOLVED", "REOPENED"]
     #[serde(default)]
-    pub assignment: ::core::option::Option<Assignment>,
-    /// Users who are mentioned in this comment.
-    #[serde(default, rename = "mentionedUsers")]
-    pub mentioned_users: ::core::option::Option<::std::vec::Vec<User>>,
-    /// A change on a regular posted comment.
-    #[serde(default)]
-    pub post: ::core::option::Option<Post>,
-    /// A change on a suggestion.
-    #[serde(default)]
-    pub suggestion: ::core::option::Option<Suggestion>,
+    pub subtype: ::core::option::Option<String>,
 }
 
-/// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
+/// A suggestion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConsolidationStrategy {
-    /// The individual activities are consolidated using the legacy strategy.
+pub struct Suggestion {
+    /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "ACCEPTED", "REJECTED", "ACCEPT_DELETED", "REJECT_DELETED"]
     #[serde(default)]
-    pub legacy: ::core::option::Option<serde_json::Value>,
-    /// The individual activities are not consolidated.
-    #[serde(default)]
-    pub none: ::core::option::Option<serde_json::Value>,
+    pub subtype: ::core::option::Option<String>,
 }
 
 /// An object was created by copying an existing object.
@@ -171,98 +412,38 @@ pub struct Copy {
     pub original_object: ::core::option::Option<TargetReference>,
 }
 
-/// An object was created.
+/// The permission setting of an object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Create {
-    /// If present, indicates the object was created by copying an existing Drive object.
+pub struct Permission {
+    /// If true, the item can be discovered (e.g. in the user''s "Shared with me" collection) without needing a link to the item.
+    #[serde(default, rename = "allowDiscovery")]
+    pub allow_discovery: ::core::option::Option<bool>,
+    /// If set, this permission applies to anyone, even logged out users.
     #[serde(default)]
-    pub copy: ::core::option::Option<Copy>,
-    /// If present, indicates the object was newly created (e.g. as a blank document), not derived from a Drive object or external object.
+    pub anyone: ::core::option::Option<serde_json::Value>,
+    /// The domain to whom this permission applies.
     #[serde(default)]
-    pub new: ::core::option::Option<serde_json::Value>,
-    /// If present, indicates the object originated externally and was uploaded to Drive.
+    pub domain: ::core::option::Option<Domain>,
+    /// The group to whom this permission applies.
     #[serde(default)]
-    pub upload: ::core::option::Option<serde_json::Value>,
+    pub group: ::core::option::Option<Group>,
+    /// Indicates the [Google Drive permissions role](https://developers.google.com/workspace/drive/web/manage-sharing#roles). The role determines a user''s ability to read, write, and comment on items. // TODO: enum values: ["ROLE_UNSPECIFIED", "OWNER", "ORGANIZER", "FILE_ORGANIZER", "EDITOR", "COMMENTER", "VIEWER", "PUBLISHED_VIEWER"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// The user to whom this permission applies.
+    #[serde(default)]
+    pub user: ::core::option::Option<User>,
 }
 
-/// A change in the object''s data leak prevention status.
+/// Information about restriction policy changes to a feature.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataLeakPreventionChange {
-    /// The type of Data Leak Prevention (DLP) change. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLAGGED", "CLEARED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Wrapper for Date Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Date value.
+pub struct RestrictionChange {
+    /// The feature which had a change in restriction policy. // TODO: enum values: ["FEATURE_UNSPECIFIED", "SHARING_OUTSIDE_DOMAIN", "DIRECT_SHARING", "ITEM_DUPLICATION", "DRIVE_FILE_STREAM", "FILE_ORGANIZER_CAN_SHARE_FOLDERS", "READERS_CAN_DOWNLOAD", "WRITERS_CAN_DOWNLOAD"]
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// An object was deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Delete {
-    /// The type of delete action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "TRASH", "PERMANENT_DELETE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information about a domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Domain {
-    /// An opaque string used to identify this domain.
-    #[serde(default, rename = "legacyId")]
-    pub legacy_id: ::core::option::Option<String>,
-    /// The name of the domain, e.g. google.com.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Information about a shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Drive {
-    /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The root of this shared drive.
-    #[serde(default)]
-    pub root: ::core::option::Option<DriveItem>,
-    /// The title of the shared drive.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A single Drive activity comprising one or more Actions by one or more Actors on one or more Targets. Some Action groupings occur spontaneously, such as moving an item into a shared folder triggering a permission change. Other groupings of related Actions, such as multiple Actors editing one item or moving multiple files into a new folder, are controlled by the selection of a ConsolidationStrategy in the QueryDriveActivityRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveActivity {
-    /// Details on all actions in this activity.
-    #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
-    /// All actor(s) responsible for the activity.
-    #[serde(default)]
-    pub actors: ::core::option::Option<::std::vec::Vec<Actor>>,
-    /// Key information about the primary action for this activity. This is either representative, or the most important, of all actions in the activity, according to the ConsolidationStrategy in the request.
-    #[serde(default, rename = "primaryActionDetail")]
-    pub primary_action_detail: ::core::option::Option<ActionDetail>,
-    /// All Google Drive objects this activity is about (e.g. file, folder, drive). This represents the state of the target immediately after the actions occurred.
-    #[serde(default)]
-    pub targets: ::core::option::Option<::std::vec::Vec<Target>>,
-    /// The activity occurred over this time range.
-    #[serde(default, rename = "timeRange")]
-    pub time_range: ::core::option::Option<TimeRange>,
-    /// The activity occurred at this specific time.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// A Drive item which is a folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveFolder {
-    /// The type of Drive folder. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "SHARED_DRIVE_ROOT", "STANDARD_FOLDER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+    pub feature: ::core::option::Option<String>,
+    /// The restriction in place after the change. // TODO: enum values: ["RESTRICTION_UNSPECIFIED", "UNRESTRICTED", "FULLY_RESTRICTED"]
+    #[serde(default, rename = "newRestriction")]
+    pub new_restriction: ::core::option::Option<String>,
 }
 
 /// A Drive item, such as a file or folder.
@@ -294,38 +475,63 @@ pub struct DriveItem {
     pub title: ::core::option::Option<String>,
 }
 
-/// A lightweight reference to a Drive item, such as a file or folder.
+/// Change to a Field value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveItemReference {
-    /// The Drive item is a file.
-    #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<serde_json::Value>,
-    /// The Drive item is a folder. Includes information about the type of folder.
-    #[serde(default, rename = "driveFolder")]
-    pub drive_folder: ::core::option::Option<DriveFolder>,
-    /// This field is deprecated; please use the driveFile field instead.
+pub struct FieldValueChange {
+    /// The human-readable display name for this field.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of this field. Field IDs are unique within a Label.
+    #[serde(default, rename = "fieldId")]
+    pub field_id: ::core::option::Option<String>,
+    /// The value that is now set on the field. If not present, the field was cleared. At least one of {old_value|new_value} is always set.
+    #[serde(default, rename = "newValue")]
+    pub new_value: ::core::option::Option<FieldValue>,
+    /// The value that was previously set on the field. If not present, the field was newly set. At least one of {old_value|new_value} is always set.
+    #[serde(default, rename = "oldValue")]
+    pub old_value: ::core::option::Option<FieldValue>,
+}
+
+/// A lightweight reference to the target of activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetReference {
+    /// The target is a shared drive.
     #[serde(default)]
-    pub file: ::core::option::Option<serde_json::Value>,
-    /// This field is deprecated; please use the driveFolder field instead.
+    pub drive: ::core::option::Option<DriveReference>,
+    /// The target is a Drive item.
+    #[serde(default, rename = "driveItem")]
+    pub drive_item: ::core::option::Option<DriveItemReference>,
+    /// This field is deprecated; please use the drive field instead.
+    #[serde(default, rename = "teamDrive")]
+    pub team_drive: ::core::option::Option<TeamDriveReference>,
+}
+
+/// Information about a group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Group {
+    /// The email address of the group.
     #[serde(default)]
-    pub folder: ::core::option::Option<Folder>,
-    /// The target Drive item. The format is items/ITEM_ID.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The title of the Drive item.
+    pub email: ::core::option::Option<String>,
+    /// The title of the group.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// A lightweight reference to a shared drive.
+/// Information about the owner of a Drive item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveReference {
-    /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
+pub struct Owner {
+    /// The domain of the Drive item owner.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The title of the shared drive.
+    pub domain: ::core::option::Option<Domain>,
+    /// The drive that owns the item.
     #[serde(default)]
-    pub title: ::core::option::Option<String>,
+    pub drive: ::core::option::Option<DriveReference>,
+    /// This field is deprecated; please use the drive field instead.
+    #[serde(default, rename = "teamDrive")]
+    pub team_drive: ::core::option::Option<TeamDriveReference>,
+    /// The user that owns the Drive item.
+    #[serde(default)]
+    pub user: ::core::option::Option<User>,
 }
 
 /// Contains a value of a Field.
@@ -357,312 +563,47 @@ pub struct FieldValue {
     pub user_list: ::core::option::Option<UserList>,
 }
 
-/// Change to a Field value.
+/// A lightweight reference to a Drive item, such as a file or folder.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldValueChange {
-    /// The human-readable display name for this field.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of this field. Field IDs are unique within a Label.
-    #[serde(default, rename = "fieldId")]
-    pub field_id: ::core::option::Option<String>,
-    /// The value that is now set on the field. If not present, the field was cleared. At least one of {old_value|new_value} is always set.
-    #[serde(default, rename = "newValue")]
-    pub new_value: ::core::option::Option<FieldValue>,
-    /// The value that was previously set on the field. If not present, the field was newly set. At least one of {old_value|new_value} is always set.
-    #[serde(default, rename = "oldValue")]
-    pub old_value: ::core::option::Option<FieldValue>,
-}
-
-/// A comment on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileComment {
-    /// The comment in the discussion thread. This identifier is an opaque string compatible with the Drive API; see https://developers.google.com/workspace/drive/v3/reference/comments/get
-    #[serde(default, rename = "legacyCommentId")]
-    pub legacy_comment_id: ::core::option::Option<String>,
-    /// The discussion thread to which the comment was added. This identifier is an opaque string compatible with the Drive API and references the first comment in a discussion; see https://developers.google.com/workspace/drive/v3/reference/comments/get
-    #[serde(default, rename = "legacyDiscussionId")]
-    pub legacy_discussion_id: ::core::option::Option<String>,
-    /// The link to the discussion thread containing this comment, for example, https://docs.google.com/DOCUMENT_ID/edit?disco=THREAD_ID.
-    #[serde(default, rename = "linkToDiscussion")]
-    pub link_to_discussion: ::core::option::Option<String>,
-    /// The Drive item containing this comment.
+pub struct DriveItemReference {
+    /// The Drive item is a file.
+    #[serde(default, rename = "driveFile")]
+    pub drive_file: ::core::option::Option<serde_json::Value>,
+    /// The Drive item is a folder. Includes information about the type of folder.
+    #[serde(default, rename = "driveFolder")]
+    pub drive_folder: ::core::option::Option<DriveFolder>,
+    /// This field is deprecated; please use the driveFile field instead.
     #[serde(default)]
-    pub parent: ::core::option::Option<DriveItem>,
-}
-
-/// This item is deprecated; please see DriveFolder instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Folder {
-    /// This field is deprecated; please see DriveFolder.type instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "TEAM_DRIVE_ROOT", "STANDARD_FOLDER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information about a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Group {
-    /// The email address of the group.
+    pub file: ::core::option::Option<serde_json::Value>,
+    /// This field is deprecated; please use the driveFolder field instead.
     #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// The title of the group.
+    pub folder: ::core::option::Option<Folder>,
+    /// The target Drive item. The format is items/ITEM_ID.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The title of the Drive item.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// Information about an impersonation, where an admin acts on behalf of an end user. Information about the acting admin is not currently available.
+/// Information about a domain.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Impersonation {
-    /// The impersonated user.
-    #[serde(default, rename = "impersonatedUser")]
-    pub impersonated_user: ::core::option::Option<User>,
-}
-
-/// Wrapper for Integer Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Integer {
-    /// Integer value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A known user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KnownUser {
-    /// True if this is the user making the request.
-    #[serde(default, rename = "isCurrentUser")]
-    pub is_current_user: ::core::option::Option<bool>,
-    /// The identifier for this user that can be used with the People API to get more information. The format is people/ACCOUNT_ID. See https://developers.google.com/people/.
-    #[serde(default, rename = "personName")]
-    pub person_name: ::core::option::Option<String>,
-}
-
-/// An object was moved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Move {
-    /// The added parent object(s).
-    #[serde(default, rename = "addedParents")]
-    pub added_parents: ::core::option::Option<::std::vec::Vec<TargetReference>>,
-    /// The removed parent object(s).
-    #[serde(default, rename = "removedParents")]
-    pub removed_parents: ::core::option::Option<::std::vec::Vec<TargetReference>>,
-}
-
-/// Information about the owner of a Drive item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Owner {
-    /// The domain of the Drive item owner.
-    #[serde(default)]
-    pub domain: ::core::option::Option<Domain>,
-    /// The drive that owns the item.
-    #[serde(default)]
-    pub drive: ::core::option::Option<DriveReference>,
-    /// This field is deprecated; please use the drive field instead.
-    #[serde(default, rename = "teamDrive")]
-    pub team_drive: ::core::option::Option<TeamDriveReference>,
-    /// The user that owns the Drive item.
-    #[serde(default)]
-    pub user: ::core::option::Option<User>,
-}
-
-/// The permission setting of an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Permission {
-    /// If true, the item can be discovered (e.g. in the user''s "Shared with me" collection) without needing a link to the item.
-    #[serde(default, rename = "allowDiscovery")]
-    pub allow_discovery: ::core::option::Option<bool>,
-    /// If set, this permission applies to anyone, even logged out users.
-    #[serde(default)]
-    pub anyone: ::core::option::Option<serde_json::Value>,
-    /// The domain to whom this permission applies.
-    #[serde(default)]
-    pub domain: ::core::option::Option<Domain>,
-    /// The group to whom this permission applies.
-    #[serde(default)]
-    pub group: ::core::option::Option<Group>,
-    /// Indicates the [Google Drive permissions role](https://developers.google.com/workspace/drive/web/manage-sharing#roles). The role determines a user''s ability to read, write, and comment on items. // TODO: enum values: ["ROLE_UNSPECIFIED", "OWNER", "ORGANIZER", "FILE_ORGANIZER", "EDITOR", "COMMENTER", "VIEWER", "PUBLISHED_VIEWER"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// The user to whom this permission applies.
-    #[serde(default)]
-    pub user: ::core::option::Option<User>,
-}
-
-/// A change of the permission setting on an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PermissionChange {
-    /// The set of permissions added by this change.
-    #[serde(default, rename = "addedPermissions")]
-    pub added_permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
-    /// The set of permissions removed by this change.
-    #[serde(default, rename = "removedPermissions")]
-    pub removed_permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
-}
-
-/// A regular posted comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Post {
-    /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "RESOLVED", "REOPENED"]
-    #[serde(default)]
-    pub subtype: ::core::option::Option<String>,
-}
-
-/// The request message for querying Drive activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryDriveActivityRequest {
-    /// Return activities for this Drive folder, plus all children and descendants. The format is items/ITEM_ID.
-    #[serde(default, rename = "ancestorName")]
-    pub ancestor_name: ::core::option::Option<String>,
-    /// Details on how to consolidate related actions that make up the activity. If not set, then related actions aren''t consolidated.
-    #[serde(default, rename = "consolidationStrategy")]
-    pub consolidation_strategy: ::core::option::Option<ConsolidationStrategy>,
-    /// The filtering for items returned from this query request. The format of the filter string is a sequence of expressions, joined by an optional "AND", where each expression is of the form "field operator value". Supported fields: - time: Uses numerical operators on date values either in terms of milliseconds since Jan 1, 1970 or in RFC 3339 format. Examples: - time &gt; 1452409200000 AND time &lt;= 1492812924310 - time &gt;= "2016-01-10T01:02:03-05:00" - detail.action_detail_case: Uses the "has" operator (:) and either a singular value or a list of allowed action types enclosed in parentheses, separated by a space. To exclude a result from the response, prepend a hyphen (-) to the beginning of the filter string. Examples: - detail.action_detail_case:RENAME - detail.action_detail_case:(CREATE RESTORE) - -detail.action_detail_case:MOVE
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Return activities for this Drive item. The format is items/ITEM_ID.
-    #[serde(default, rename = "itemName")]
-    pub item_name: ::core::option::Option<String>,
-    /// The minimum number of activities desired in the response; the server attempts to return at least this quantity. The server may also return fewer activities if it has a partial response ready before the request times out. If not set, a default value is used.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// The token identifies which page of results to return. Set this to the next_page_token value returned from a previous query to obtain the following page of results. If not set, the first page of results is returned.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-}
-
-/// Response message for querying Drive activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryDriveActivityResponse {
-    /// List of activity requested.
-    #[serde(default)]
-    pub activities: ::core::option::Option<::std::vec::Vec<DriveActivity>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// An object was renamed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Rename {
-    /// The new title of the drive object.
-    #[serde(default, rename = "newTitle")]
-    pub new_title: ::core::option::Option<String>,
-    /// The previous title of the drive object.
-    #[serde(default, rename = "oldTitle")]
-    pub old_title: ::core::option::Option<String>,
-}
-
-/// A deleted object was restored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Restore {
-    /// The type of restore action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "UNTRASH"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information about restriction policy changes to a feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestrictionChange {
-    /// The feature which had a change in restriction policy. // TODO: enum values: ["FEATURE_UNSPECIFIED", "SHARING_OUTSIDE_DOMAIN", "DIRECT_SHARING", "ITEM_DUPLICATION", "DRIVE_FILE_STREAM", "FILE_ORGANIZER_CAN_SHARE_FOLDERS", "READERS_CAN_DOWNLOAD", "WRITERS_CAN_DOWNLOAD"]
-    #[serde(default)]
-    pub feature: ::core::option::Option<String>,
-    /// The restriction in place after the change. // TODO: enum values: ["RESTRICTION_UNSPECIFIED", "UNRESTRICTED", "FULLY_RESTRICTED"]
-    #[serde(default, rename = "newRestriction")]
-    pub new_restriction: ::core::option::Option<String>,
-}
-
-/// Wrapper for Selection Field value as combined value/display_name pair for selected choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Selection {
-    /// Selection value as human-readable display string.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Selection value as Field Choice ID.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Wrapper for SelectionList Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelectionList {
-    /// Selection values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<Selection>>,
-}
-
-/// Information about settings changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SettingsChange {
-    /// The set of changes made to restrictions.
-    #[serde(default, rename = "restrictionChanges")]
-    pub restriction_changes: ::core::option::Option<::std::vec::Vec<RestrictionChange>>,
-}
-
-/// Wrapper for User Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SingleUser {
-    /// User value as email.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A suggestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Suggestion {
-    /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "ACCEPTED", "REJECTED", "ACCEPT_DELETED", "REJECT_DELETED"]
-    #[serde(default)]
-    pub subtype: ::core::option::Option<String>,
-}
-
-/// Event triggered by system operations instead of end users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemEvent {
-    /// The type of the system event that may triggered activity. // TODO: enum values: ["TYPE_UNSPECIFIED", "USER_DELETION", "TRASH_AUTO_PURGE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information about the target of activity. For more information on how activity history is shared with users, see [Activity history visibility](https://developers.google.com/workspace/drive/activity/v2#activityhistory).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Target {
-    /// The target is a shared drive.
-    #[serde(default)]
-    pub drive: ::core::option::Option<Drive>,
-    /// The target is a Drive item.
-    #[serde(default, rename = "driveItem")]
-    pub drive_item: ::core::option::Option<DriveItem>,
-    /// The target is a comment on a Drive file.
-    #[serde(default, rename = "fileComment")]
-    pub file_comment: ::core::option::Option<FileComment>,
-    /// This field is deprecated; please use the drive field instead.
-    #[serde(default, rename = "teamDrive")]
-    pub team_drive: ::core::option::Option<TeamDrive>,
-}
-
-/// A lightweight reference to the target of activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetReference {
-    /// The target is a shared drive.
-    #[serde(default)]
-    pub drive: ::core::option::Option<DriveReference>,
-    /// The target is a Drive item.
-    #[serde(default, rename = "driveItem")]
-    pub drive_item: ::core::option::Option<DriveItemReference>,
-    /// This field is deprecated; please use the drive field instead.
-    #[serde(default, rename = "teamDrive")]
-    pub team_drive: ::core::option::Option<TeamDriveReference>,
-}
-
-/// This item is deprecated; please see Drive instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TeamDrive {
-    /// This field is deprecated; please see Drive.name instead.
+pub struct Domain {
+    /// An opaque string used to identify this domain.
+    #[serde(default, rename = "legacyId")]
+    pub legacy_id: ::core::option::Option<String>,
+    /// The name of the domain, e.g. google.com.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// This field is deprecated; please see Drive.root instead.
+}
+
+/// A lightweight reference to a shared drive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveReference {
+    /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
     #[serde(default)]
-    pub root: ::core::option::Option<DriveItem>,
-    /// This field is deprecated; please see Drive.title instead.
+    pub name: ::core::option::Option<String>,
+    /// The title of the shared drive.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
@@ -676,33 +617,6 @@ pub struct TeamDriveReference {
     /// This field is deprecated; please see DriveReference.title instead.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
-}
-
-/// Wrapper for Text Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Text {
-    /// Value of Text Field.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Wrapper for Text List Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextList {
-    /// Text values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<Text>>,
-}
-
-/// Information about time ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeRange {
-    /// The end of the time range.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The start of the time range.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
 }
 
 /// Information about an end user.
@@ -719,10 +633,96 @@ pub struct User {
     pub unknown_user: ::core::option::Option<serde_json::Value>,
 }
 
+/// Wrapper for Date Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Date value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Wrapper for Integer Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Integer {
+    /// Integer value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Wrapper for SelectionList Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionList {
+    /// Selection values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<Selection>>,
+}
+
+/// Wrapper for Text List Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextList {
+    /// Text values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<Text>>,
+}
+
 /// Wrapper for UserList Field value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserList {
     /// User values.
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<SingleUser>>,
+}
+
+/// A Drive item which is a folder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveFolder {
+    /// The type of Drive folder. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "SHARED_DRIVE_ROOT", "STANDARD_FOLDER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// This item is deprecated; please see DriveFolder instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Folder {
+    /// This field is deprecated; please see DriveFolder.type instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "TEAM_DRIVE_ROOT", "STANDARD_FOLDER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A known user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnownUser {
+    /// True if this is the user making the request.
+    #[serde(default, rename = "isCurrentUser")]
+    pub is_current_user: ::core::option::Option<bool>,
+    /// The identifier for this user that can be used with the People API to get more information. The format is people/ACCOUNT_ID. See https://developers.google.com/people/.
+    #[serde(default, rename = "personName")]
+    pub person_name: ::core::option::Option<String>,
+}
+
+/// Wrapper for Selection Field value as combined value/display_name pair for selected choice.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Selection {
+    /// Selection value as human-readable display string.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Selection value as Field Choice ID.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Wrapper for Text Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Text {
+    /// Value of Text Field.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Wrapper for User Field value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SingleUser {
+    /// User value as email.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

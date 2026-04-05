@@ -10,74 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// App Engine HTTP request. The message defines the HTTP request that is sent to an App Engine app when the task is dispatched. Using AppEngineHttpRequest requires [appengine.applications.get](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: https://www.googleapis.com/auth/cloud-platform The task will be delivered to the App Engine app which belongs to the same project as the queue. For more information, see [How Requests are Routed](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and how routing is affected by [dispatch files](https://cloud.google.com/appengine/docs/python/config/dispatchref). Traffic is encrypted during transport and never leaves Google datacenters. Because this traffic is carried over a communication mechanism internal to Google, you cannot explicitly set the protocol (for example, HTTP or HTTPS). The request to the handler, however, will appear to have used the HTTP protocol. The AppEngineRouting used to construct the URL that the task is delivered to can be set at the queue-level or task-level: * If app_engine_routing_override is set on the queue, this value is used for all tasks in the queue, no matter what the setting is for the task-level app_engine_routing. The url that the task will be sent to is: * url = host + relative_uri Tasks can be dispatched to secure app handlers, unsecure app handlers, and URIs restricted with [login: admin](https://cloud.google.com/appengine/docs/standard/python/config/appref). Because tasks are not run as any user, they cannot be dispatched to URIs restricted with [login: required](https://cloud.google.com/appengine/docs/standard/python/config/appref) Task dispatches also do not follow redirects. The task attempt has succeeded if the app''s request handler returns an HTTP response code in the range [200 - 299]. The task attempt has failed if the app''s handler returns a non-2xx response code or Cloud Tasks does not receive response before the deadline. Failed tasks will be retried according to the retry configuration. 503 (Service Unavailable) is considered an App Engine system error instead of an application error and will cause Cloud Tasks'' traffic congestion control to temporarily throttle the queue''s dispatches. Unlike other types of task targets, a 429 (Too Many Requests) response from an app handler does not cause traffic congestion control to throttle the queue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppEngineHttpRequest {
-    /// Task-level setting for App Engine routing. * If app_engine_routing_override is set on the queue, this value is used for all tasks in the queue, no matter what the setting is for the task-level app_engine_routing.
-    #[serde(default, rename = "appEngineRouting")]
-    pub app_engine_routing: ::core::option::Option<AppEngineRouting>,
-    /// HTTP request body. A request body is allowed only if the HTTP method is POST or PUT. It is an error to set a body on a task with an incompatible HttpMethod.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the task is created. Repeated headers are not supported but a header value can contain commas. Cloud Tasks sets some headers to default values: * User-Agent: By default, this header is "AppEngine-Google; (+http://code.google.com/appengine)". This header can be modified, but Cloud Tasks will append "AppEngine-Google; (+http://code.google.com/appengine)" to the modified User-Agent. If the task has a body, Cloud Tasks sets the following headers: * Content-Type: By default, the Content-Type header is set to "application/octet-stream". The default can be overridden by explicitly setting Content-Type to a particular media type when the task is created. For example, Content-Type can be set to "application/json". * Content-Length: This is computed by Cloud Tasks. This value is output only. It cannot be changed. The headers below cannot be set or overridden: * Host * X-Google-* * X-AppEngine-* In addition, Cloud Tasks sets some headers when the task is dispatched, such as headers containing information about the task; see [request headers](https://cloud.google.com/tasks/docs/creating-appengine-handlers#reading_request_headers). These headers are set only when the task is dispatched, so they are not visible when the task is returned in a Cloud Tasks response. Although there is no specific limit for the maximum number of headers or the size, there is a limit on the maximum size of the Task. For more information, see the CreateTask documentation.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The HTTP method to use for the request. The default is POST. The app''s request handler for the task''s target URL must be able to handle HTTP requests with this http_method, otherwise the task attempt fails with error code 405 (Method Not Allowed). See [Writing a push task request handler](https://cloud.google.com/appengine/docs/java/taskqueue/push/creating-handlers#writing_a_push_task_request_handler) and the App Engine documentation for your runtime on [How Requests are Handled](https://cloud.google.com/appengine/docs/standard/python3/how-requests-are-handled). // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    #[serde(default, rename = "httpMethod")]
-    pub http_method: ::core::option::Option<String>,
-    /// The relative URI. The relative URI must begin with "/" and must be a valid HTTP relative URI. It can contain a path and query string arguments. If the relative URI is empty, then the root path "/" will be used. No spaces are allowed, and the maximum length allowed is 2083 characters.
-    #[serde(default, rename = "relativeUri")]
-    pub relative_uri: ::core::option::Option<String>,
-}
-
-/// App Engine Routing. Defines routing characteristics specific to App Engine - service, version, and instance. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed). Using AppEngineRouting requires [appengine.applications.get](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: https://www.googleapis.com/auth/cloud-platform
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppEngineRouting {
-    /// Output only. The host that the task is sent to. The host is constructed from the domain name of the app associated with the queue''s project ID (for example .appspot.com), and the service, version, and instance. Tasks which were created using the App Engine SDK might have a custom domain name. For more information, see [How Requests are Routed](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed).
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// App instance. By default, the task is sent to an instance which is available when the task is attempted. Requests can only be sent to a specific instance if [manual scaling is used in App Engine Standard](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine?hl=en_US#scaling_types_and_instance_classes). App Engine Flex does not support instances. For more information, see [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
-    #[serde(default)]
-    pub instance: ::core::option::Option<String>,
-    /// App service. By default, the task is sent to the service which is the default service when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// App version. By default, the task is sent to the version which is the default version when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// The status of a task attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attempt {
-    /// Output only. The time that this attempt was dispatched. dispatch_time will be truncated to the nearest microsecond.
-    #[serde(default, rename = "dispatchTime")]
-    pub dispatch_time: ::core::option::Option<String>,
-    /// Output only. The response from the worker for this attempt. If response_time is unset, then the task has not been attempted or is currently running and the response_status field is meaningless.
-    #[serde(default, rename = "responseStatus")]
-    pub response_status: ::core::option::Option<Status>,
-    /// Output only. The time that this attempt response was received. response_time will be truncated to the nearest microsecond.
-    #[serde(default, rename = "responseTime")]
-    pub response_time: ::core::option::Option<String>,
-    /// Output only. The time that this attempt was scheduled. schedule_time will be truncated to the nearest microsecond.
-    #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
 /// Request message for BufferTask.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BufferTaskRequest {
@@ -116,113 +48,12 @@ pub struct CreateTaskRequest {
     pub task: ::core::option::Option<Task>,
 }
 
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
     pub options: ::core::option::Option<GetPolicyOptions>,
-}
-
-/// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetPolicyOptions {
-    /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: ::core::option::Option<i32>,
-}
-
-/// Defines a header message. A header can have a key and a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Header {
-    /// The Key of the header.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// The Value of the header.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Wraps the Header object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeaderOverride {
-    /// Header embodying a key and a value. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).
-    #[serde(default)]
-    pub header: ::core::option::Option<Header>,
-}
-
-/// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpBody {
-    /// The HTTP Content-Type header value specifying the content type of the body.
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// The HTTP request/response body as raw binary.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Application specific response metadata. Must be set in the first response for streaming APIs.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// HTTP request. The task will be pushed to the worker as an HTTP request. If the worker or the redirected worker acknowledges the task by returning a successful HTTP response code ([200 - 299]), the task will be removed from the queue. If any other HTTP response code is returned or no response is received, the task will be retried according to the following: * User-specified throttling: retry configuration, rate limits, and the queue''s state. * System throttling: To prevent the worker from overloading, Cloud Tasks may temporarily reduce the queue''s effective rate. User-specified settings will not be changed. System throttling happens because: * Cloud Tasks backs off on all errors. Normally the backoff specified in rate limits will be used. But if the worker returns 429 (Too Many Requests), 503 (Service Unavailable), or the rate of errors is high, Cloud Tasks will use a higher backoff rate. The retry specified in the Retry-After HTTP response header is considered. * To prevent traffic spikes and to smooth sudden increases in traffic, dispatches ramp up slowly when the queue is newly created or idle and if large numbers of tasks suddenly become available to dispatch (due to spikes in create task rates, the queue being unpaused, or many tasks that are scheduled at the same time).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRequest {
-    /// HTTP request body. A request body is allowed only if the HTTP method is POST, PUT, or PATCH. It is an error to set body on a task with an incompatible HttpMethod.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the task is created. These headers represent a subset of the headers that will accompany the task''s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. * User-Agent: This will be set to "Google-Cloud-Tasks". * X-Google-*: Google use only. * X-AppEngine-*: Google use only. Content-Type won''t be set by Cloud Tasks. You can explicitly set Content-Type to a media type when the task is created. For example, Content-Type can be set to "application/octet-stream" or "application/json". Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The HTTP method to use for the request. The default is POST. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    #[serde(default, rename = "httpMethod")]
-    pub http_method: ::core::option::Option<String>,
-    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) will be generated and attached as an Authorization header in the HTTP request. This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
-    #[serde(default, rename = "oauthToken")]
-    pub oauth_token: ::core::option::Option<OAuthToken>,
-    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token will be generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
-    #[serde(default, rename = "oidcToken")]
-    pub oidc_token: ::core::option::Option<OidcToken>,
-    /// Required. The full url path that the request will be sent to. This string must begin with either "http://" or "https://". Some examples are: http://acme.com and https://acme.com/sales:8080. Cloud Tasks will encode some characters for safety and compatibility. The maximum allowed URL length is 2083 characters after encoding. The Location header response from a redirect response [300 - 399] may be followed. The redirect is not counted as a separate attempt.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// HTTP target. When specified as a Queue, all the tasks with [HttpRequest] will be overridden according to the target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpTarget {
-    /// HTTP target headers. This map contains the header field names and values. Headers will be set when running the CreateTask and/or BufferTask. These headers represent a subset of the headers that will be configured for the task''s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Several predefined headers, prefixed with "X-CloudTasks-", can be used to define properties of the task. * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. Content-Type won''t be set by Cloud Tasks. You can explicitly set Content-Type to a media type when the task is created. For example,Content-Type can be set to "application/octet-stream" or "application/json". The default value is set to "application/json". * User-Agent: This will be set to "Google-Cloud-Tasks". Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB. Queue-level headers to override headers of all the tasks in the queue. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).
-    #[serde(default, rename = "headerOverrides")]
-    pub header_overrides: ::core::option::Option<::std::vec::Vec<HeaderOverride>>,
-    /// The HTTP method to use for the request. When specified, it overrides HttpRequest for the task. Note that if the value is set to HttpMethod the HttpRequest of the task will be ignored at execution time. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    #[serde(default, rename = "httpMethod")]
-    pub http_method: ::core::option::Option<String>,
-    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) is generated and attached as the Authorization header in the HTTP request. This type of authorization should generally be used only when calling Google APIs hosted on *.googleapis.com. Note that both the service account email and the scope MUST be specified when using the queue-level authorization override.
-    #[serde(default, rename = "oauthToken")]
-    pub oauth_token: ::core::option::Option<OAuthToken>,
-    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token is generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself. Note that both the service account email and the audience MUST be specified when using the queue-level authorization override.
-    #[serde(default, rename = "oidcToken")]
-    pub oidc_token: ::core::option::Option<OidcToken>,
-    /// URI override. When specified, overrides the execution URI for all the tasks in the queue.
-    #[serde(default, rename = "uriOverride")]
-    pub uri_override: ::core::option::Option<UriOverride>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -258,6 +89,60 @@ pub struct ListTasksResponse {
     pub tasks: ::core::option::Option<::std::vec::Vec<Task>>,
 }
 
+/// Request message for forcing a task to run now using RunTask.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunTaskRequest {
+    /// The response_view specifies which subset of the Task will be returned. By default response_view is BASIC; not all information is retrieved by default because some data, such as payloads, might be desirable to return only when needed because of its large size or because of the sensitivity of data that it contains. Authorization for FULL requires cloudtasks.tasks.fullView [Google IAM](https://cloud.google.com/iam/) permission on the Task resource. // TODO: enum values: ["VIEW_UNSPECIFIED", "BASIC", "FULL"]
+    #[serde(default, rename = "responseView")]
+    pub response_view: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpBody {
+    /// The HTTP Content-Type header value specifying the content type of the body.
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// The HTTP request/response body as raw binary.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Application specific response metadata. Must be set in the first response for streaming APIs.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Encapsulates settings provided to GetIamPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetPolicyOptions {
+    /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default, rename = "requestedPolicyVersion")]
+    pub requested_policy_version: ::core::option::Option<i32>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -276,58 +161,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthToken {
-    /// OAuth scope to be used for generating OAuth access token. If not specified, "https://www.googleapis.com/auth/cloud-platform" will be used.
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-}
-
-/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OidcToken {
-    /// Audience to be used when generating OIDC token. If not specified, the URI specified in target will be used.
-    #[serde(default)]
-    pub audience: ::core::option::Option<String>,
-    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-}
-
-/// PathOverride. Path message defines path override for HTTP targets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PathOverride {
-    /// The URI path (e.g., /users/1234). Default is an empty string.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// QueryOverride. Query message defines query override for HTTP targets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryOverride {
-    /// The query parameters (e.g., qparam1=123&qparam2=456). Default is an empty string.
-    #[serde(default, rename = "queryParams")]
-    pub query_params: ::core::option::Option<String>,
 }
 
 /// A queue is a container of related tasks. Queues are configured to manage how those tasks are dispatched. Configurable properties include rate limits, retry options, queue types, and others.
@@ -357,78 +190,6 @@ pub struct Queue {
     /// Output only. The state of the queue. state can only be changed by calling PauseQueue, ResumeQueue, or uploading [queue.yaml/xml](https://cloud.google.com/appengine/docs/python/config/queueref). UpdateQueue cannot be used to change state. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "PAUSED", "DISABLED"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Rate limits. This message determines the maximum rate that tasks can be dispatched by a queue, regardless of whether the dispatch is a first task attempt or a retry. Note: The debugging command, RunTask, will run a task even if the queue has reached its RateLimits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RateLimits {
-    /// Output only. The max burst size. Max burst size limits how fast tasks in queue are processed when many tasks are in the queue and the rate is high. This field allows the queue to have a high rate so processing starts shortly after a task is enqueued, but still limits resource usage when many tasks are enqueued in a short period of time. The [token bucket](https://wikipedia.org/wiki/Token_Bucket) algorithm is used to control the rate of task dispatches. Each queue has a token bucket that holds tokens, up to the maximum specified by max_burst_size. Each time a task is dispatched, a token is removed from the bucket. Tasks will be dispatched until the queue''s bucket runs out of tokens. The bucket will be continuously refilled with new tokens based on max_dispatches_per_second. Cloud Tasks automatically sets an appropriate max_burst_size based on the value of max_dispatches_per_second. The value is dynamically optimized to ensure queue stability and throughput. It is generally at least equal to max_dispatches_per_second but might be higher to accommodate bursts of traffic. For queues that were created or updated using queue.yaml/xml, max_burst_size is equal to [bucket_size](https://cloud.google.com/appengine/docs/standard/python/config/queueref#bucket_size). Since max_burst_size is output only, if UpdateQueue is called on a queue created by queue.yaml/xml, max_burst_size will be reset based on the value of max_dispatches_per_second, regardless of whether max_dispatches_per_second is updated.
-    #[serde(default, rename = "maxBurstSize")]
-    pub max_burst_size: ::core::option::Option<i32>,
-    /// The maximum number of concurrent tasks that Cloud Tasks allows to be dispatched for this queue. After this threshold has been reached, Cloud Tasks stops dispatching tasks until the number of concurrent requests decreases. If unspecified when the queue is created, Cloud Tasks will pick the default. The maximum allowed value is 5,000. This field has the same meaning as [max_concurrent_requests in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#max_concurrent_requests).
-    #[serde(default, rename = "maxConcurrentDispatches")]
-    pub max_concurrent_dispatches: ::core::option::Option<i32>,
-    /// The maximum rate at which tasks are dispatched from this queue. If unspecified when the queue is created, Cloud Tasks will pick the default. * The maximum allowed value is 500. This field has the same meaning as [rate in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#rate).
-    #[serde(default, rename = "maxDispatchesPerSecond")]
-    pub max_dispatches_per_second: ::core::option::Option<f64>,
-}
-
-/// Retry config. These settings determine when a failed task attempt is retried.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetryConfig {
-    /// Number of attempts per task. Cloud Tasks will attempt the task max_attempts times (that is, if the first attempt fails, then there will be max_attempts - 1 retries). Must be &gt;= -1. If unspecified when the queue is created, Cloud Tasks will pick the default. -1 indicates unlimited attempts. This field has the same meaning as [task_retry_limit in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters). Note: Cloud Tasks stops retrying only when max_attempts and max_retry_duration are both satisfied. When the task has been attempted max_attempts times and when the max_retry_duration time has passed, no further attempts are made, and the task is deleted. If you want your task to retry infinitely, you must set max_attempts to -1 and max_retry_duration to 0.
-    #[serde(default, rename = "maxAttempts")]
-    pub max_attempts: ::core::option::Option<i32>,
-    /// A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue''s RetryConfig specifies that the task should be retried. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). max_backoff will be truncated to the nearest second. This field has the same meaning as [max_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
-    #[serde(default, rename = "maxBackoff")]
-    pub max_backoff: ::core::option::Option<String>,
-    /// The time between retries will double max_doublings times. A task''s retry interval starts at min_backoff, then doubles max_doublings times, then increases linearly, and finally retries at intervals of max_backoff up to max_attempts times. For example, if min_backoff is 10s, max_backoff is 300s, and max_doublings is 3, then the a task will first be retried in 10s. The retry interval will double three times, and then increase linearly by 2^3 * 10s. Finally, the task will retry at intervals of max_backoff until the task has been attempted max_attempts times. Thus, the requests will retry at 10s, 20s, 40s, 80s, 160s, 240s, 300s, 300s, .... If unspecified when the queue is created, Cloud Tasks will pick the default. This field has the same meaning as [max_doublings in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
-    #[serde(default, rename = "maxDoublings")]
-    pub max_doublings: ::core::option::Option<i32>,
-    /// If positive, max_retry_duration specifies the time limit for retrying a failed task, measured from when the task was first attempted. Once max_retry_duration time has passed *and* the task has been attempted max_attempts times, no further attempts will be made and the task will be deleted. If zero, then the task age is unlimited. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For the maximum possible value or the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). max_retry_duration will be truncated to the nearest second. This field has the same meaning as [task_age_limit in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
-    #[serde(default, rename = "maxRetryDuration")]
-    pub max_retry_duration: ::core::option::Option<String>,
-    /// A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue''s RetryConfig specifies that the task should be retried. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). min_backoff will be truncated to the nearest second. This field has the same meaning as [min_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
-    #[serde(default, rename = "minBackoff")]
-    pub min_backoff: ::core::option::Option<String>,
-}
-
-/// Request message for forcing a task to run now using RunTask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunTaskRequest {
-    /// The response_view specifies which subset of the Task will be returned. By default response_view is BASIC; not all information is retrieved by default because some data, such as payloads, might be desirable to return only when needed because of its large size or because of the sensitivity of data that it contains. Authorization for FULL requires cloudtasks.tasks.fullView [Google IAM](https://cloud.google.com/iam/) permission on the Task resource. // TODO: enum values: ["VIEW_UNSPECIFIED", "BASIC", "FULL"]
-    #[serde(default, rename = "responseView")]
-    pub response_view: ::core::option::Option<String>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-}
-
-/// Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackdriverLoggingConfig {
-    /// Specifies the fraction of operations to write to [Stackdriver Logging](https://cloud.google.com/logging/docs/). This field may contain any value between 0.0 and 1.0, inclusive. 0.0 is the default and means that no operations are logged.
-    #[serde(default, rename = "samplingRatio")]
-    pub sampling_ratio: ::core::option::Option<f64>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// A unit of scheduled work.
@@ -469,20 +230,162 @@ pub struct Task {
     pub view: ::core::option::Option<String>,
 }
 
-/// Request message for TestIamPermissions method.
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+pub struct Policy {
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
 }
 
-/// Response message for TestIamPermissions method.
+/// HTTP target. When specified as a Queue, all the tasks with [HttpRequest] will be overridden according to the target.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+pub struct HttpTarget {
+    /// HTTP target headers. This map contains the header field names and values. Headers will be set when running the CreateTask and/or BufferTask. These headers represent a subset of the headers that will be configured for the task''s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Several predefined headers, prefixed with "X-CloudTasks-", can be used to define properties of the task. * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. Content-Type won''t be set by Cloud Tasks. You can explicitly set Content-Type to a media type when the task is created. For example,Content-Type can be set to "application/octet-stream" or "application/json". The default value is set to "application/json". * User-Agent: This will be set to "Google-Cloud-Tasks". Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB. Queue-level headers to override headers of all the tasks in the queue. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).
+    #[serde(default, rename = "headerOverrides")]
+    pub header_overrides: ::core::option::Option<::std::vec::Vec<HeaderOverride>>,
+    /// The HTTP method to use for the request. When specified, it overrides HttpRequest for the task. Note that if the value is set to HttpMethod the HttpRequest of the task will be ignored at execution time. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    #[serde(default, rename = "httpMethod")]
+    pub http_method: ::core::option::Option<String>,
+    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) is generated and attached as the Authorization header in the HTTP request. This type of authorization should generally be used only when calling Google APIs hosted on *.googleapis.com. Note that both the service account email and the scope MUST be specified when using the queue-level authorization override.
+    #[serde(default, rename = "oauthToken")]
+    pub oauth_token: ::core::option::Option<OAuthToken>,
+    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token is generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself. Note that both the service account email and the audience MUST be specified when using the queue-level authorization override.
+    #[serde(default, rename = "oidcToken")]
+    pub oidc_token: ::core::option::Option<OidcToken>,
+    /// URI override. When specified, overrides the execution URI for all the tasks in the queue.
+    #[serde(default, rename = "uriOverride")]
+    pub uri_override: ::core::option::Option<UriOverride>,
+}
+
+/// Rate limits. This message determines the maximum rate that tasks can be dispatched by a queue, regardless of whether the dispatch is a first task attempt or a retry. Note: The debugging command, RunTask, will run a task even if the queue has reached its RateLimits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RateLimits {
+    /// Output only. The max burst size. Max burst size limits how fast tasks in queue are processed when many tasks are in the queue and the rate is high. This field allows the queue to have a high rate so processing starts shortly after a task is enqueued, but still limits resource usage when many tasks are enqueued in a short period of time. The [token bucket](https://wikipedia.org/wiki/Token_Bucket) algorithm is used to control the rate of task dispatches. Each queue has a token bucket that holds tokens, up to the maximum specified by max_burst_size. Each time a task is dispatched, a token is removed from the bucket. Tasks will be dispatched until the queue''s bucket runs out of tokens. The bucket will be continuously refilled with new tokens based on max_dispatches_per_second. Cloud Tasks automatically sets an appropriate max_burst_size based on the value of max_dispatches_per_second. The value is dynamically optimized to ensure queue stability and throughput. It is generally at least equal to max_dispatches_per_second but might be higher to accommodate bursts of traffic. For queues that were created or updated using queue.yaml/xml, max_burst_size is equal to [bucket_size](https://cloud.google.com/appengine/docs/standard/python/config/queueref#bucket_size). Since max_burst_size is output only, if UpdateQueue is called on a queue created by queue.yaml/xml, max_burst_size will be reset based on the value of max_dispatches_per_second, regardless of whether max_dispatches_per_second is updated.
+    #[serde(default, rename = "maxBurstSize")]
+    pub max_burst_size: ::core::option::Option<i32>,
+    /// The maximum number of concurrent tasks that Cloud Tasks allows to be dispatched for this queue. After this threshold has been reached, Cloud Tasks stops dispatching tasks until the number of concurrent requests decreases. If unspecified when the queue is created, Cloud Tasks will pick the default. The maximum allowed value is 5,000. This field has the same meaning as [max_concurrent_requests in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#max_concurrent_requests).
+    #[serde(default, rename = "maxConcurrentDispatches")]
+    pub max_concurrent_dispatches: ::core::option::Option<i32>,
+    /// The maximum rate at which tasks are dispatched from this queue. If unspecified when the queue is created, Cloud Tasks will pick the default. * The maximum allowed value is 500. This field has the same meaning as [rate in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#rate).
+    #[serde(default, rename = "maxDispatchesPerSecond")]
+    pub max_dispatches_per_second: ::core::option::Option<f64>,
+}
+
+/// Retry config. These settings determine when a failed task attempt is retried.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryConfig {
+    /// Number of attempts per task. Cloud Tasks will attempt the task max_attempts times (that is, if the first attempt fails, then there will be max_attempts - 1 retries). Must be &gt;= -1. If unspecified when the queue is created, Cloud Tasks will pick the default. -1 indicates unlimited attempts. This field has the same meaning as [task_retry_limit in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters). Note: Cloud Tasks stops retrying only when max_attempts and max_retry_duration are both satisfied. When the task has been attempted max_attempts times and when the max_retry_duration time has passed, no further attempts are made, and the task is deleted. If you want your task to retry infinitely, you must set max_attempts to -1 and max_retry_duration to 0.
+    #[serde(default, rename = "maxAttempts")]
+    pub max_attempts: ::core::option::Option<i32>,
+    /// A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue''s RetryConfig specifies that the task should be retried. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). max_backoff will be truncated to the nearest second. This field has the same meaning as [max_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
+    #[serde(default, rename = "maxBackoff")]
+    pub max_backoff: ::core::option::Option<String>,
+    /// The time between retries will double max_doublings times. A task''s retry interval starts at min_backoff, then doubles max_doublings times, then increases linearly, and finally retries at intervals of max_backoff up to max_attempts times. For example, if min_backoff is 10s, max_backoff is 300s, and max_doublings is 3, then the a task will first be retried in 10s. The retry interval will double three times, and then increase linearly by 2^3 * 10s. Finally, the task will retry at intervals of max_backoff until the task has been attempted max_attempts times. Thus, the requests will retry at 10s, 20s, 40s, 80s, 160s, 240s, 300s, 300s, .... If unspecified when the queue is created, Cloud Tasks will pick the default. This field has the same meaning as [max_doublings in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
+    #[serde(default, rename = "maxDoublings")]
+    pub max_doublings: ::core::option::Option<i32>,
+    /// If positive, max_retry_duration specifies the time limit for retrying a failed task, measured from when the task was first attempted. Once max_retry_duration time has passed *and* the task has been attempted max_attempts times, no further attempts will be made and the task will be deleted. If zero, then the task age is unlimited. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For the maximum possible value or the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). max_retry_duration will be truncated to the nearest second. This field has the same meaning as [task_age_limit in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
+    #[serde(default, rename = "maxRetryDuration")]
+    pub max_retry_duration: ::core::option::Option<String>,
+    /// A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue''s RetryConfig specifies that the task should be retried. If unspecified when the queue is created, Cloud Tasks will pick the default. The value must be given as a string that indicates the length of time (in seconds) followed by s (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). min_backoff will be truncated to the nearest second. This field has the same meaning as [min_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).
+    #[serde(default, rename = "minBackoff")]
+    pub min_backoff: ::core::option::Option<String>,
+}
+
+/// Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackdriverLoggingConfig {
+    /// Specifies the fraction of operations to write to [Stackdriver Logging](https://cloud.google.com/logging/docs/). This field may contain any value between 0.0 and 1.0, inclusive. 0.0 is the default and means that no operations are logged.
+    #[serde(default, rename = "samplingRatio")]
+    pub sampling_ratio: ::core::option::Option<f64>,
+}
+
+/// App Engine HTTP request. The message defines the HTTP request that is sent to an App Engine app when the task is dispatched. Using AppEngineHttpRequest requires [appengine.applications.get](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: https://www.googleapis.com/auth/cloud-platform The task will be delivered to the App Engine app which belongs to the same project as the queue. For more information, see [How Requests are Routed](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and how routing is affected by [dispatch files](https://cloud.google.com/appengine/docs/python/config/dispatchref). Traffic is encrypted during transport and never leaves Google datacenters. Because this traffic is carried over a communication mechanism internal to Google, you cannot explicitly set the protocol (for example, HTTP or HTTPS). The request to the handler, however, will appear to have used the HTTP protocol. The AppEngineRouting used to construct the URL that the task is delivered to can be set at the queue-level or task-level: * If app_engine_routing_override is set on the queue, this value is used for all tasks in the queue, no matter what the setting is for the task-level app_engine_routing. The url that the task will be sent to is: * url = host + relative_uri Tasks can be dispatched to secure app handlers, unsecure app handlers, and URIs restricted with [login: admin](https://cloud.google.com/appengine/docs/standard/python/config/appref). Because tasks are not run as any user, they cannot be dispatched to URIs restricted with [login: required](https://cloud.google.com/appengine/docs/standard/python/config/appref) Task dispatches also do not follow redirects. The task attempt has succeeded if the app''s request handler returns an HTTP response code in the range [200 - 299]. The task attempt has failed if the app''s handler returns a non-2xx response code or Cloud Tasks does not receive response before the deadline. Failed tasks will be retried according to the retry configuration. 503 (Service Unavailable) is considered an App Engine system error instead of an application error and will cause Cloud Tasks'' traffic congestion control to temporarily throttle the queue''s dispatches. Unlike other types of task targets, a 429 (Too Many Requests) response from an app handler does not cause traffic congestion control to throttle the queue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppEngineHttpRequest {
+    /// Task-level setting for App Engine routing. * If app_engine_routing_override is set on the queue, this value is used for all tasks in the queue, no matter what the setting is for the task-level app_engine_routing.
+    #[serde(default, rename = "appEngineRouting")]
+    pub app_engine_routing: ::core::option::Option<AppEngineRouting>,
+    /// HTTP request body. A request body is allowed only if the HTTP method is POST or PUT. It is an error to set a body on a task with an incompatible HttpMethod.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub body: ::core::option::Option<String>,
+    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the task is created. Repeated headers are not supported but a header value can contain commas. Cloud Tasks sets some headers to default values: * User-Agent: By default, this header is "AppEngine-Google; (+http://code.google.com/appengine)". This header can be modified, but Cloud Tasks will append "AppEngine-Google; (+http://code.google.com/appengine)" to the modified User-Agent. If the task has a body, Cloud Tasks sets the following headers: * Content-Type: By default, the Content-Type header is set to "application/octet-stream". The default can be overridden by explicitly setting Content-Type to a particular media type when the task is created. For example, Content-Type can be set to "application/json". * Content-Length: This is computed by Cloud Tasks. This value is output only. It cannot be changed. The headers below cannot be set or overridden: * Host * X-Google-* * X-AppEngine-* In addition, Cloud Tasks sets some headers when the task is dispatched, such as headers containing information about the task; see [request headers](https://cloud.google.com/tasks/docs/creating-appengine-handlers#reading_request_headers). These headers are set only when the task is dispatched, so they are not visible when the task is returned in a Cloud Tasks response. Although there is no specific limit for the maximum number of headers or the size, there is a limit on the maximum size of the Task. For more information, see the CreateTask documentation.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// The HTTP method to use for the request. The default is POST. The app''s request handler for the task''s target URL must be able to handle HTTP requests with this http_method, otherwise the task attempt fails with error code 405 (Method Not Allowed). See [Writing a push task request handler](https://cloud.google.com/appengine/docs/java/taskqueue/push/creating-handlers#writing_a_push_task_request_handler) and the App Engine documentation for your runtime on [How Requests are Handled](https://cloud.google.com/appengine/docs/standard/python3/how-requests-are-handled). // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    #[serde(default, rename = "httpMethod")]
+    pub http_method: ::core::option::Option<String>,
+    /// The relative URI. The relative URI must begin with "/" and must be a valid HTTP relative URI. It can contain a path and query string arguments. If the relative URI is empty, then the root path "/" will be used. No spaces are allowed, and the maximum length allowed is 2083 characters.
+    #[serde(default, rename = "relativeUri")]
+    pub relative_uri: ::core::option::Option<String>,
+}
+
+/// The status of a task attempt.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attempt {
+    /// Output only. The time that this attempt was dispatched. dispatch_time will be truncated to the nearest microsecond.
+    #[serde(default, rename = "dispatchTime")]
+    pub dispatch_time: ::core::option::Option<String>,
+    /// Output only. The response from the worker for this attempt. If response_time is unset, then the task has not been attempted or is currently running and the response_status field is meaningless.
+    #[serde(default, rename = "responseStatus")]
+    pub response_status: ::core::option::Option<Status>,
+    /// Output only. The time that this attempt response was received. response_time will be truncated to the nearest microsecond.
+    #[serde(default, rename = "responseTime")]
+    pub response_time: ::core::option::Option<String>,
+    /// Output only. The time that this attempt was scheduled. schedule_time will be truncated to the nearest microsecond.
+    #[serde(default, rename = "scheduleTime")]
+    pub schedule_time: ::core::option::Option<String>,
+}
+
+/// HTTP request. The task will be pushed to the worker as an HTTP request. If the worker or the redirected worker acknowledges the task by returning a successful HTTP response code ([200 - 299]), the task will be removed from the queue. If any other HTTP response code is returned or no response is received, the task will be retried according to the following: * User-specified throttling: retry configuration, rate limits, and the queue''s state. * System throttling: To prevent the worker from overloading, Cloud Tasks may temporarily reduce the queue''s effective rate. User-specified settings will not be changed. System throttling happens because: * Cloud Tasks backs off on all errors. Normally the backoff specified in rate limits will be used. But if the worker returns 429 (Too Many Requests), 503 (Service Unavailable), or the rate of errors is high, Cloud Tasks will use a higher backoff rate. The retry specified in the Retry-After HTTP response header is considered. * To prevent traffic spikes and to smooth sudden increases in traffic, dispatches ramp up slowly when the queue is newly created or idle and if large numbers of tasks suddenly become available to dispatch (due to spikes in create task rates, the queue being unpaused, or many tasks that are scheduled at the same time).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRequest {
+    /// HTTP request body. A request body is allowed only if the HTTP method is POST, PUT, or PATCH. It is an error to set body on a task with an incompatible HttpMethod.
+    #[serde(default)]
+    pub body: ::core::option::Option<String>,
+    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the task is created. These headers represent a subset of the headers that will accompany the task''s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. * User-Agent: This will be set to "Google-Cloud-Tasks". * X-Google-*: Google use only. * X-AppEngine-*: Google use only. Content-Type won''t be set by Cloud Tasks. You can explicitly set Content-Type to a media type when the task is created. For example, Content-Type can be set to "application/octet-stream" or "application/json". Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// The HTTP method to use for the request. The default is POST. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    #[serde(default, rename = "httpMethod")]
+    pub http_method: ::core::option::Option<String>,
+    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) will be generated and attached as an Authorization header in the HTTP request. This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
+    #[serde(default, rename = "oauthToken")]
+    pub oauth_token: ::core::option::Option<OAuthToken>,
+    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token will be generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
+    #[serde(default, rename = "oidcToken")]
+    pub oidc_token: ::core::option::Option<OidcToken>,
+    /// Required. The full url path that the request will be sent to. This string must begin with either "http://" or "https://". Some examples are: http://acme.com and https://acme.com/sales:8080. Cloud Tasks will encode some characters for safety and compatibility. The maximum allowed URL length is 2083 characters after encoding. The Location header response from a redirect response [300 - 399] may be followed. The redirect is not counted as a separate attempt.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Wraps the Header object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeaderOverride {
+    /// Header embodying a key and a value. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).
+    #[serde(default)]
+    pub header: ::core::option::Option<Header>,
 }
 
 /// URI Override. When specified, all the HTTP tasks inside the queue will be partially or fully overridden depending on the configured values.
@@ -506,4 +409,101 @@ pub struct UriOverride {
     /// URI Override Enforce Mode When specified, determines the Target UriOverride mode. If not specified, it defaults to ALWAYS. // TODO: enum values: ["URI_OVERRIDE_ENFORCE_MODE_UNSPECIFIED", "IF_NOT_EXISTS", "ALWAYS"]
     #[serde(default, rename = "uriOverrideEnforceMode")]
     pub uri_override_enforce_mode: ::core::option::Option<String>,
+}
+
+/// App Engine Routing. Defines routing characteristics specific to App Engine - service, version, and instance. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed). Using AppEngineRouting requires [appengine.applications.get](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: https://www.googleapis.com/auth/cloud-platform
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppEngineRouting {
+    /// Output only. The host that the task is sent to. The host is constructed from the domain name of the app associated with the queue''s project ID (for example .appspot.com), and the service, version, and instance. Tasks which were created using the App Engine SDK might have a custom domain name. For more information, see [How Requests are Routed](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed).
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// App instance. By default, the task is sent to an instance which is available when the task is attempted. Requests can only be sent to a specific instance if [manual scaling is used in App Engine Standard](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine?hl=en_US#scaling_types_and_instance_classes). App Engine Flex does not support instances. For more information, see [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
+    #[serde(default)]
+    pub instance: ::core::option::Option<String>,
+    /// App service. By default, the task is sent to the service which is the default service when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// App version. By default, the task is sent to the version which is the default version when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuthToken {
+    /// OAuth scope to be used for generating OAuth access token. If not specified, "https://www.googleapis.com/auth/cloud-platform" will be used.
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+}
+
+/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OidcToken {
+    /// Audience to be used when generating OIDC token. If not specified, the URI specified in target will be used.
+    #[serde(default)]
+    pub audience: ::core::option::Option<String>,
+    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Defines a header message. A header can have a key and a value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Header {
+    /// The Key of the header.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// The Value of the header.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// PathOverride. Path message defines path override for HTTP targets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PathOverride {
+    /// The URI path (e.g., /users/1234). Default is an empty string.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// QueryOverride. Query message defines query override for HTTP targets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryOverride {
+    /// The query parameters (e.g., qparam1=123&qparam2=456). Default is an empty string.
+    #[serde(default, rename = "queryParams")]
+    pub query_params: ::core::option::Option<String>,
 }

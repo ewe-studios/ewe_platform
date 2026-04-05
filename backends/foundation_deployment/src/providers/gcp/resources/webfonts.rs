@@ -10,29 +10,15 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Metadata for a variable font axis.
+/// Response containing the list of fonts currently served by the Google Fonts API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Axis {
-    /// maximum value
+pub struct WebfontList {
+    /// The list of fonts currently served by the Google Fonts API.
     #[serde(default)]
-    pub end: ::core::option::Option<f32>,
-    /// minimum value
+    pub items: ::core::option::Option<::std::vec::Vec<Webfont>>,
+    /// This kind represents a list of webfont objects in the webfonts service.
     #[serde(default)]
-    pub start: ::core::option::Option<f32>,
-    /// tag name.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-}
-
-/// Metadata for a tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tag {
-    /// The name of the tag.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The weight of the tag.
-    #[serde(default)]
-    pub weight: ::core::option::Option<f32>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Metadata describing a family of fonts.
@@ -76,13 +62,27 @@ pub struct Webfont {
     pub version: ::core::option::Option<String>,
 }
 
-/// Response containing the list of fonts currently served by the Google Fonts API.
+/// Metadata for a variable font axis.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebfontList {
-    /// The list of fonts currently served by the Google Fonts API.
+pub struct Axis {
+    /// maximum value
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Webfont>>,
-    /// This kind represents a list of webfont objects in the webfonts service.
+    pub end: ::core::option::Option<f32>,
+    /// minimum value
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
+    pub start: ::core::option::Option<f32>,
+    /// tag name.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+}
+
+/// Metadata for a tag.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tag {
+    /// The name of the tag.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The weight of the tag.
+    #[serde(default)]
+    pub weight: ::core::option::Option<f32>,
 }

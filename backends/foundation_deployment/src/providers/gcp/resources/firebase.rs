@@ -57,58 +57,6 @@ pub struct AnalyticsDetails {
     pub stream_mappings: ::core::option::Option<::std::vec::Vec<StreamMapping>>,
 }
 
-/// Details of a Google Analytics property
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalyticsProperty {
-    /// Output only. The ID of the [Google Analytics account](https://www.google.com/analytics/) for the Google Analytics property associated with the specified FirebaseProject.
-    #[serde(default, rename = "analyticsAccountId")]
-    pub analytics_account_id: ::core::option::Option<String>,
-    /// The display name of the Google Analytics property associated with the specified FirebaseProject.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The globally unique, Google-assigned identifier of the Google Analytics property associated with the specified FirebaseProject. If you called [AddGoogleAnalytics](../../v1beta1/projects/addGoogleAnalytics) to link the FirebaseProject with a Google Analytics account, the value in this id field is the same as the ID of the property either specified or provisioned with that call to AddGoogleAnalytics.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Details of a Firebase App for Android.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidApp {
-    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the AndroidApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.androidApps/getConfig). If api_key_id is not set in requests to [androidApps.Create](../../rest/v1beta1/projects.androidApps/create), then Firebase automatically associates an api_key_id with the AndroidApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated AndroidApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
-    #[serde(default, rename = "apiKeyId")]
-    pub api_key_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the AndroidApp. This identifier should be treated as an opaque token, as the data format is not specified.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// The user-assigned display name for the AndroidApp.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// The resource name of the AndroidApp, in the format: projects/ PROJECT_IDENTIFIER/androidApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.androidApps#AndroidApp.FIELDS.app_id)).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. The canonical package name of the Android app as would appear in the Google Play Developer Console.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the AndroidApp.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// The SHA1 certificate hashes for the AndroidApp.
-    #[serde(default, rename = "sha1Hashes")]
-    pub sha1_hashes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The SHA256 certificate hashes for the AndroidApp.
-    #[serde(default, rename = "sha256Hashes")]
-    pub sha256_hashes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Configuration metadata of a single Firebase App for Android.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AndroidAppConfig {
@@ -120,125 +68,12 @@ pub struct AndroidAppConfig {
     pub config_filename: ::core::option::Option<String>,
 }
 
-/// **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the resources within the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default auto-provisioned resources associated with the Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefaultResources {
-    /// Output only. **DEPRECATED.** _Instead, find the name of the default Firebase Hosting site using [ListSites](https://firebase.google.com/docs/reference/hosting/rest/v1beta1/projects.sites/list) within the Firebase Hosting REST API. If the default Hosting site for the Project has not yet been provisioned, the return might not contain a default site._ The name of the default Firebase Hosting site, in the format: PROJECT_ID Though rare, your projectId might already be used as the name for an existing Hosting site in another project (learn more about creating non-default, [additional sites](https://firebase.google.com/docs/hosting/multisites)). In these cases, your projectId is appended with a hyphen then five alphanumeric characters to create your default Hosting site name. For example, if your projectId is myproject123, your default Hosting site name might be: myproject123-a5c16
-    #[serde(default, rename = "hostingSite")]
-    pub hosting_site: ::core::option::Option<String>,
-    /// Output only. **DEPRECATED.** _Instead, use product-specific REST APIs to find the location of each resource in a Project. This field may not be populated, especially for newly provisioned projects after October 30, 2024._ The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location), which are resources associated with Google App Engine. The location is one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region). This field is omitted if the location for default Google Cloud resources has not been set.
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Output only. **DEPRECATED.** _Instead, find the name of the default Realtime Database instance using the [list endpoint](https://firebase.google.com/docs/reference/rest/database/database-management/rest/v1beta/projects.locations.instances/list) within the Firebase Realtime Database REST API. If the default Realtime Database instance for a Project has not yet been provisioned, the return might not contain a default instance._ The default Firebase Realtime Database instance name, in the format: PROJECT_ID Though rare, your projectId might already be used as the name for an existing Realtime Database instance in another project (learn more about [database sharding](https://firebase.google.com/docs/database/usage/sharding)). In these cases, your projectId is appended with a hyphen then five alphanumeric characters to create your default Realtime Database instance name. For example, if your projectId is myproject123, your default database instance name might be: myproject123-a5c16
-    #[serde(default, rename = "realtimeDatabaseInstance")]
-    pub realtime_database_instance: ::core::option::Option<String>,
-    /// Output only. **DEPRECATED.** _Instead, find the name of the default Cloud Storage for Firebase bucket using the [list endpoint](https://firebase.google.com/docs/reference/rest/storage/rest/v1beta/projects.buckets/list) within the Cloud Storage for Firebase REST API. If the default bucket for the Project has not yet been provisioned, the return might not contain a default bucket._ The name of the default Cloud Storage for Firebase bucket, in one of the following formats: * If provisioned _before_ October 30, 2024: PROJECT_ID.firebasestorage.app * If provisioned _on or after_ October 30, 2024: PROJECT_ID.firebasestorage.app
-    #[serde(default, rename = "storageBucket")]
-    pub storage_bucket: ::core::option::Option<String>,
-}
-
 /// FinalizeDefaultLocationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FinalizeDefaultLocationRequest {
     /// **DEPRECATED** The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location), which are resources associated with Google App Engine. The location must be one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region).
     #[serde(default, rename = "locationId")]
     pub location_id: ::core::option::Option<String>,
-}
-
-/// A high-level summary of an App.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FirebaseAppInfo {
-    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the App. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s configuration artifact ([AndroidApp](../../rest/v1beta1/projects.androidApps/getConfig) | [IosApp](../../rest/v1beta1/projects.iosApps/getConfig) | [WebApp](../../rest/v1beta1/projects.webApps/getConfig)). If api_key_id is not set in requests to create the App ([AndroidApp](../../rest/v1beta1/projects.androidApps/create) | [IosApp](../../rest/v1beta1/projects.iosApps/create) | [WebApp](../../rest/v1beta1/projects.webApps/create)), then Firebase automatically associates an api_key_id with the App. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned.
-    #[serde(default, rename = "apiKeyId")]
-    pub api_key_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the WebApp. This identifier should be treated as an opaque token, as the data format is not specified.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// The user-assigned display name of the Firebase App.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// The resource name of the Firebase App, in the format: projects/PROJECT_ID /iosApps/APP_ID or projects/PROJECT_ID/androidApps/APP_ID or projects/ PROJECT_ID/webApps/APP_ID
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. The platform-specific identifier of the App. *Note:* For most use cases, use appId, which is the canonical, globally unique identifier for referencing an App. This string is derived from a native identifier for each platform: packageName for an AndroidApp, bundleId for an IosApp, and webId for a WebApp. Its contents should be treated as opaque, as the native identifier format may change as platforms evolve. This string is only unique within a FirebaseProject and its associated Apps.
-    #[serde(default)]
-    pub namespace: ::core::option::Option<String>,
-    /// The platform of the Firebase App. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "IOS", "ANDROID", "WEB"]
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A FirebaseProject is the top-level Firebase entity. It is the container for Firebase Apps, Firebase Hosting sites, storage systems (Firebase Realtime Database, Cloud Firestore, Cloud Storage buckets), and other Firebase and Google Cloud resources. You create a FirebaseProject by calling AddFirebase and specifying an *existing* [Google Cloud Project](https://cloud.google.com/resource-manager/reference/rest/v1/projects). This adds Firebase resources to the existing Google Cloud Project. Since a FirebaseProject is actually also a Google Cloud Project, a FirebaseProject has the same underlying Google Cloud identifiers (projectNumber and projectId). This allows for easy interop with Google APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FirebaseProject {
-    /// A set of user-defined annotations for the FirebaseProject. Learn more about annotations in Google''s [AIP-128 standard](https://google.aip.dev/128#annotations). These annotations are intended solely for developers and client-side tools. Firebase services will not mutate this annotations set.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// The user-assigned display name of the Project.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The resource name of the Project, in the format: projects/PROJECT_IDENTIFIER PROJECT_IDENTIFIER: the Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. A user-assigned unique identifier for the Project. This identifier may appear in URLs or names for some Firebase resources associated with the Project, but it should generally be treated as a convenience alias to reference the Project.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The globally unique, Google-assigned canonical identifier for the Project. Use this identifier when configuring integrations and/or making API calls to Firebase or third-party services.
-    #[serde(default, rename = "projectNumber")]
-    pub project_number: ::core::option::Option<String>,
-    /// Output only. **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default Firebase resources associated with the Project.
-    #[serde(default)]
-    pub resources: ::core::option::Option<DefaultResources>,
-    /// Output only. The lifecycle state of the Project. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Details of a Firebase App for iOS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosApp {
-    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the IosApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.iosApps/getConfig). If api_key_id is not set in requests to [iosApps.Create](../../rest/v1beta1/projects.iosApps/create), then Firebase automatically associates an api_key_id with the IosApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated IosApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
-    #[serde(default, rename = "apiKeyId")]
-    pub api_key_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the IosApp. This identifier should be treated as an opaque token, as the data format is not specified.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// The automatically generated Apple ID assigned to the iOS app by Apple in the iOS App Store.
-    #[serde(default, rename = "appStoreId")]
-    pub app_store_id: ::core::option::Option<String>,
-    /// Immutable. The canonical bundle ID of the iOS app as it would appear in the iOS AppStore.
-    #[serde(default, rename = "bundleId")]
-    pub bundle_id: ::core::option::Option<String>,
-    /// The user-assigned display name for the IosApp.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// The resource name of the IosApp, in the format: projects/PROJECT_IDENTIFIER /iosApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.iosApps#IosApp.FIELDS.app_id)).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the IosApp.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The Apple Developer Team ID associated with the App in the App Store.
-    #[serde(default, rename = "teamId")]
-    pub team_id: ::core::option::Option<String>,
 }
 
 /// Configuration metadata of a single Firebase App for iOS.
@@ -326,20 +161,6 @@ pub struct ListWebAppsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// **DEPRECATED.** _This Location is no longer used to determine Firebase resource locations. Instead, consult product documentation to determine valid locations for each resource used in your Project._ A ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location) that can be selected for a FirebaseProject. These are resources associated with Google App Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// Products and services that are available in the location for default Google Cloud resources.
-    #[serde(default)]
-    pub features: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The ID of the Project''s location for default Google Cloud resources. It will be one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region).
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Indicates whether the location for default Google Cloud resources is a [regional or multi-regional location](https://firebase.google.com/docs/projects/locations#types) for data replication. // TODO: enum values: ["LOCATION_TYPE_UNSPECIFIED", "REGIONAL", "MULTI_REGIONAL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -366,20 +187,6 @@ pub struct ProductMetadata {
     /// List of warnings related to the associated operation.
     #[serde(default, rename = "warningMessages")]
     pub warning_messages: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A reference to a Google Cloud Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProjectInfo {
-    /// The user-assigned display name of the Google Cloud Project, for example: My App.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// **DEPRECATED** _Instead, use product-specific REST APIs to work with the location of each resource in a Project. This field may not be populated, especially for newly provisioned projects after October 30, 2024._ The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location). The location is one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region). Not all Projects will have this field populated. If it is not populated, it means that the Project does not yet have a location for default Google Cloud resources.
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// The resource name of the Google Cloud Project to which Firebase resources can be added, in the format: projects/PROJECT_IDENTIFIER Refer to the FirebaseProject [name](../projects#FirebaseProject.FIELDS.name) field for details about PROJECT_IDENTIFIER values.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
 }
 
 /// RemoveAnalyticsRequest resource type.
@@ -452,34 +259,6 @@ pub struct SearchFirebaseAppsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A SHA-1 or SHA-256 certificate associated with the AndroidApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShaCertificate {
-    /// The type of SHA certificate encoded in the hash. // TODO: enum values: ["SHA_CERTIFICATE_TYPE_UNSPECIFIED", "SHA_1", "SHA_256"]
-    #[serde(default, rename = "certType")]
-    pub cert_type: ::core::option::Option<String>,
-    /// The resource name of the ShaCertificate for the AndroidApp, in the format: projects/PROJECT_IDENTIFIER/androidApps/APP_ID/sha/SHA_HASH * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.androidApps#AndroidApp.FIELDS.app_id)). * SHA_HASH: the certificate hash for the App (see [shaHash](../projects.androidApps.sha#ShaCertificate.FIELDS.sha_hash)).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The certificate hash for the AndroidApp.
-    #[serde(default, rename = "shaHash")]
-    pub sha_hash: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// Wire-format for a Status object
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatusProto {
@@ -498,20 +277,6 @@ pub struct StatusProto {
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
     pub space: ::core::option::Option<String>,
-}
-
-/// A mapping of a Firebase App to a Google Analytics data stream
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StreamMapping {
-    /// The resource name of the Firebase App associated with the Google Analytics data stream, in the format: projects/PROJECT_IDENTIFIER/androidApps/APP_ID or projects/PROJECT_IDENTIFIER/iosApps/APP_ID or projects/PROJECT_IDENTIFIER /webApps/APP_ID Refer to the FirebaseProject [name](../projects#FirebaseProject.FIELDS.name) field for details about PROJECT_IDENTIFIER values.
-    #[serde(default)]
-    pub app: ::core::option::Option<String>,
-    /// Applicable for Firebase Web Apps only. The unique Google-assigned identifier of the Google Analytics web stream associated with the Firebase Web App. Firebase SDKs use this ID to interact with Google Analytics APIs. Learn more about this ID and Google Analytics web streams in the [Analytics documentation](https://support.google.com/analytics/answer/9304153).
-    #[serde(default, rename = "measurementId")]
-    pub measurement_id: ::core::option::Option<String>,
-    /// The unique Google-assigned identifier of the Google Analytics data stream associated with the Firebase App. Learn more about Google Analytics data streams in the [Analytics documentation](https://support.google.com/analytics/answer/9303323).
-    #[serde(default, rename = "streamId")]
-    pub stream_id: ::core::option::Option<String>,
 }
 
 /// UndeleteAndroidAppRequest resource type.
@@ -545,41 +310,6 @@ pub struct UndeleteWebAppRequest {
     /// If set to true, the request is only validated. The App will _not_ be undeleted.
     #[serde(default, rename = "validateOnly")]
     pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Details of a Firebase App for the web.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebApp {
-    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the WebApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.webApps/getConfig). If api_key_id is not set in requests to [webApps.Create](../../rest/v1beta1/projects.webApps/create), then Firebase automatically associates an api_key_id with the WebApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated WebApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
-    #[serde(default, rename = "apiKeyId")]
-    pub api_key_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the WebApp. This identifier should be treated as an opaque token, as the data format is not specified.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// The URLs where the WebApp is hosted.
-    #[serde(default, rename = "appUrls")]
-    pub app_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The user-assigned display name for the WebApp.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// The resource name of the WebApp, in the format: projects/PROJECT_IDENTIFIER /webApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.webApps#WebApp.FIELDS.app_id)).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the WebApp.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Immutable. A unique, Firebase-assigned identifier for the WebApp. This identifier is only used to populate the namespace value for the WebApp. For most use cases, use appId to identify or reference the App. The webId value is only unique within a FirebaseProject and its associated Apps.
-    #[serde(default, rename = "webId")]
-    pub web_id: ::core::option::Option<String>,
 }
 
 /// Configuration metadata of a single Firebase App for the web.
@@ -621,4 +351,274 @@ pub struct WebAppConfig {
     /// Version of the config specification.
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// Details of a Google Analytics property
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyticsProperty {
+    /// Output only. The ID of the [Google Analytics account](https://www.google.com/analytics/) for the Google Analytics property associated with the specified FirebaseProject.
+    #[serde(default, rename = "analyticsAccountId")]
+    pub analytics_account_id: ::core::option::Option<String>,
+    /// The display name of the Google Analytics property associated with the specified FirebaseProject.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The globally unique, Google-assigned identifier of the Google Analytics property associated with the specified FirebaseProject. If you called [AddGoogleAnalytics](../../v1beta1/projects/addGoogleAnalytics) to link the FirebaseProject with a Google Analytics account, the value in this id field is the same as the ID of the property either specified or provisioned with that call to AddGoogleAnalytics.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// A mapping of a Firebase App to a Google Analytics data stream
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamMapping {
+    /// The resource name of the Firebase App associated with the Google Analytics data stream, in the format: projects/PROJECT_IDENTIFIER/androidApps/APP_ID or projects/PROJECT_IDENTIFIER/iosApps/APP_ID or projects/PROJECT_IDENTIFIER /webApps/APP_ID Refer to the FirebaseProject [name](../projects#FirebaseProject.FIELDS.name) field for details about PROJECT_IDENTIFIER values.
+    #[serde(default)]
+    pub app: ::core::option::Option<String>,
+    /// Applicable for Firebase Web Apps only. The unique Google-assigned identifier of the Google Analytics web stream associated with the Firebase Web App. Firebase SDKs use this ID to interact with Google Analytics APIs. Learn more about this ID and Google Analytics web streams in the [Analytics documentation](https://support.google.com/analytics/answer/9304153).
+    #[serde(default, rename = "measurementId")]
+    pub measurement_id: ::core::option::Option<String>,
+    /// The unique Google-assigned identifier of the Google Analytics data stream associated with the Firebase App. Learn more about Google Analytics data streams in the [Analytics documentation](https://support.google.com/analytics/answer/9303323).
+    #[serde(default, rename = "streamId")]
+    pub stream_id: ::core::option::Option<String>,
+}
+
+/// Details of a Firebase App for Android.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidApp {
+    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the AndroidApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.androidApps/getConfig). If api_key_id is not set in requests to [androidApps.Create](../../rest/v1beta1/projects.androidApps/create), then Firebase automatically associates an api_key_id with the AndroidApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated AndroidApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
+    #[serde(default, rename = "apiKeyId")]
+    pub api_key_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the AndroidApp. This identifier should be treated as an opaque token, as the data format is not specified.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// The user-assigned display name for the AndroidApp.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// The resource name of the AndroidApp, in the format: projects/ PROJECT_IDENTIFIER/androidApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.androidApps#AndroidApp.FIELDS.app_id)).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. The canonical package name of the Android app as would appear in the Google Play Developer Console.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the AndroidApp.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// The SHA1 certificate hashes for the AndroidApp.
+    #[serde(default, rename = "sha1Hashes")]
+    pub sha1_hashes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The SHA256 certificate hashes for the AndroidApp.
+    #[serde(default, rename = "sha256Hashes")]
+    pub sha256_hashes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// **DEPRECATED.** _This Location is no longer used to determine Firebase resource locations. Instead, consult product documentation to determine valid locations for each resource used in your Project._ A ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location) that can be selected for a FirebaseProject. These are resources associated with Google App Engine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// Products and services that are available in the location for default Google Cloud resources.
+    #[serde(default)]
+    pub features: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The ID of the Project''s location for default Google Cloud resources. It will be one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region).
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Indicates whether the location for default Google Cloud resources is a [regional or multi-regional location](https://firebase.google.com/docs/projects/locations#types) for data replication. // TODO: enum values: ["LOCATION_TYPE_UNSPECIFIED", "REGIONAL", "MULTI_REGIONAL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A reference to a Google Cloud Project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectInfo {
+    /// The user-assigned display name of the Google Cloud Project, for example: My App.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// **DEPRECATED** _Instead, use product-specific REST APIs to work with the location of each resource in a Project. This field may not be populated, especially for newly provisioned projects after October 30, 2024._ The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location). The location is one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region). Not all Projects will have this field populated. If it is not populated, it means that the Project does not yet have a location for default Google Cloud resources.
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// The resource name of the Google Cloud Project to which Firebase resources can be added, in the format: projects/PROJECT_IDENTIFIER Refer to the FirebaseProject [name](../projects#FirebaseProject.FIELDS.name) field for details about PROJECT_IDENTIFIER values.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+}
+
+/// A FirebaseProject is the top-level Firebase entity. It is the container for Firebase Apps, Firebase Hosting sites, storage systems (Firebase Realtime Database, Cloud Firestore, Cloud Storage buckets), and other Firebase and Google Cloud resources. You create a FirebaseProject by calling AddFirebase and specifying an *existing* [Google Cloud Project](https://cloud.google.com/resource-manager/reference/rest/v1/projects). This adds Firebase resources to the existing Google Cloud Project. Since a FirebaseProject is actually also a Google Cloud Project, a FirebaseProject has the same underlying Google Cloud identifiers (projectNumber and projectId). This allows for easy interop with Google APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirebaseProject {
+    /// A set of user-defined annotations for the FirebaseProject. Learn more about annotations in Google''s [AIP-128 standard](https://google.aip.dev/128#annotations). These annotations are intended solely for developers and client-side tools. Firebase services will not mutate this annotations set.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// The user-assigned display name of the Project.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The resource name of the Project, in the format: projects/PROJECT_IDENTIFIER PROJECT_IDENTIFIER: the Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. A user-assigned unique identifier for the Project. This identifier may appear in URLs or names for some Firebase resources associated with the Project, but it should generally be treated as a convenience alias to reference the Project.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The globally unique, Google-assigned canonical identifier for the Project. Use this identifier when configuring integrations and/or making API calls to Firebase or third-party services.
+    #[serde(default, rename = "projectNumber")]
+    pub project_number: ::core::option::Option<String>,
+    /// Output only. **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default Firebase resources associated with the Project.
+    #[serde(default)]
+    pub resources: ::core::option::Option<DefaultResources>,
+    /// Output only. The lifecycle state of the Project. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Details of a Firebase App for iOS.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosApp {
+    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the IosApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.iosApps/getConfig). If api_key_id is not set in requests to [iosApps.Create](../../rest/v1beta1/projects.iosApps/create), then Firebase automatically associates an api_key_id with the IosApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated IosApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
+    #[serde(default, rename = "apiKeyId")]
+    pub api_key_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the IosApp. This identifier should be treated as an opaque token, as the data format is not specified.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// The automatically generated Apple ID assigned to the iOS app by Apple in the iOS App Store.
+    #[serde(default, rename = "appStoreId")]
+    pub app_store_id: ::core::option::Option<String>,
+    /// Immutable. The canonical bundle ID of the iOS app as it would appear in the iOS AppStore.
+    #[serde(default, rename = "bundleId")]
+    pub bundle_id: ::core::option::Option<String>,
+    /// The user-assigned display name for the IosApp.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// The resource name of the IosApp, in the format: projects/PROJECT_IDENTIFIER /iosApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.iosApps#IosApp.FIELDS.app_id)).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the IosApp.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The Apple Developer Team ID associated with the App in the App Store.
+    #[serde(default, rename = "teamId")]
+    pub team_id: ::core::option::Option<String>,
+}
+
+/// A SHA-1 or SHA-256 certificate associated with the AndroidApp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShaCertificate {
+    /// The type of SHA certificate encoded in the hash. // TODO: enum values: ["SHA_CERTIFICATE_TYPE_UNSPECIFIED", "SHA_1", "SHA_256"]
+    #[serde(default, rename = "certType")]
+    pub cert_type: ::core::option::Option<String>,
+    /// The resource name of the ShaCertificate for the AndroidApp, in the format: projects/PROJECT_IDENTIFIER/androidApps/APP_ID/sha/SHA_HASH * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.androidApps#AndroidApp.FIELDS.app_id)). * SHA_HASH: the certificate hash for the App (see [shaHash](../projects.androidApps.sha#ShaCertificate.FIELDS.sha_hash)).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The certificate hash for the AndroidApp.
+    #[serde(default, rename = "shaHash")]
+    pub sha_hash: ::core::option::Option<String>,
+}
+
+/// Details of a Firebase App for the web.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebApp {
+    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the WebApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.webApps/getConfig). If api_key_id is not set in requests to [webApps.Create](../../rest/v1beta1/projects.webApps/create), then Firebase automatically associates an api_key_id with the WebApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated WebApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
+    #[serde(default, rename = "apiKeyId")]
+    pub api_key_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the WebApp. This identifier should be treated as an opaque token, as the data format is not specified.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// The URLs where the WebApp is hosted.
+    #[serde(default, rename = "appUrls")]
+    pub app_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The user-assigned display name for the WebApp.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and it may be sent with update requests to ensure the client has an up-to-date value before proceeding. Learn more about etag in Google''s [AIP-154 standard](https://google.aip.dev/154#declarative-friendly-resources). This etag is strongly validated.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// The resource name of the WebApp, in the format: projects/PROJECT_IDENTIFIER /webApps/APP_ID * PROJECT_IDENTIFIER: the parent Project''s [ProjectNumber](../projects#FirebaseProject.FIELDS.project_number) ***(recommended)*** or its [ProjectId](../projects#FirebaseProject.FIELDS.project_id). Learn more about using project identifiers in Google''s [AIP 2510 standard](https://google.aip.dev/cloud/2510). Note that the value for PROJECT_IDENTIFIER in any response body will be the ProjectId. * APP_ID: the globally unique, Firebase-assigned identifier for the App (see [appId](../projects.webApps#WebApp.FIELDS.app_id)).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. A user-assigned unique identifier of the parent FirebaseProject for the WebApp.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Immutable. A unique, Firebase-assigned identifier for the WebApp. This identifier is only used to populate the namespace value for the WebApp. For most use cases, use appId to identify or reference the App. The webId value is only unique within a FirebaseProject and its associated Apps.
+    #[serde(default, rename = "webId")]
+    pub web_id: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A high-level summary of an App.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirebaseAppInfo {
+    /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the App. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s configuration artifact ([AndroidApp](../../rest/v1beta1/projects.androidApps/getConfig) | [IosApp](../../rest/v1beta1/projects.iosApps/getConfig) | [WebApp](../../rest/v1beta1/projects.webApps/getConfig)). If api_key_id is not set in requests to create the App ([AndroidApp](../../rest/v1beta1/projects.androidApps/create) | [IosApp](../../rest/v1beta1/projects.iosApps/create) | [WebApp](../../rest/v1beta1/projects.webApps/create)), then Firebase automatically associates an api_key_id with the App. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned.
+    #[serde(default, rename = "apiKeyId")]
+    pub api_key_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The globally unique, Firebase-assigned identifier for the WebApp. This identifier should be treated as an opaque token, as the data format is not specified.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// The user-assigned display name of the Firebase App.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. If the App has been removed from the Project, this is the timestamp of when the App is considered expired and will be permanently deleted. After this time, the App cannot be undeleted (that is, restored to the Project). This value is only provided if the App is in the DELETED state.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// The resource name of the Firebase App, in the format: projects/PROJECT_ID /iosApps/APP_ID or projects/PROJECT_ID/androidApps/APP_ID or projects/ PROJECT_ID/webApps/APP_ID
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. The platform-specific identifier of the App. *Note:* For most use cases, use appId, which is the canonical, globally unique identifier for referencing an App. This string is derived from a native identifier for each platform: packageName for an AndroidApp, bundleId for an IosApp, and webId for a WebApp. Its contents should be treated as opaque, as the native identifier format may change as platforms evolve. This string is only unique within a FirebaseProject and its associated Apps.
+    #[serde(default)]
+    pub namespace: ::core::option::Option<String>,
+    /// The platform of the Firebase App. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "IOS", "ANDROID", "WEB"]
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+    /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the resources within the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default auto-provisioned resources associated with the Project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultResources {
+    /// Output only. **DEPRECATED.** _Instead, find the name of the default Firebase Hosting site using [ListSites](https://firebase.google.com/docs/reference/hosting/rest/v1beta1/projects.sites/list) within the Firebase Hosting REST API. If the default Hosting site for the Project has not yet been provisioned, the return might not contain a default site._ The name of the default Firebase Hosting site, in the format: PROJECT_ID Though rare, your projectId might already be used as the name for an existing Hosting site in another project (learn more about creating non-default, [additional sites](https://firebase.google.com/docs/hosting/multisites)). In these cases, your projectId is appended with a hyphen then five alphanumeric characters to create your default Hosting site name. For example, if your projectId is myproject123, your default Hosting site name might be: myproject123-a5c16
+    #[serde(default, rename = "hostingSite")]
+    pub hosting_site: ::core::option::Option<String>,
+    /// Output only. **DEPRECATED.** _Instead, use product-specific REST APIs to find the location of each resource in a Project. This field may not be populated, especially for newly provisioned projects after October 30, 2024._ The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location), which are resources associated with Google App Engine. The location is one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region). This field is omitted if the location for default Google Cloud resources has not been set.
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Output only. **DEPRECATED.** _Instead, find the name of the default Realtime Database instance using the [list endpoint](https://firebase.google.com/docs/reference/rest/database/database-management/rest/v1beta/projects.locations.instances/list) within the Firebase Realtime Database REST API. If the default Realtime Database instance for a Project has not yet been provisioned, the return might not contain a default instance._ The default Firebase Realtime Database instance name, in the format: PROJECT_ID Though rare, your projectId might already be used as the name for an existing Realtime Database instance in another project (learn more about [database sharding](https://firebase.google.com/docs/database/usage/sharding)). In these cases, your projectId is appended with a hyphen then five alphanumeric characters to create your default Realtime Database instance name. For example, if your projectId is myproject123, your default database instance name might be: myproject123-a5c16
+    #[serde(default, rename = "realtimeDatabaseInstance")]
+    pub realtime_database_instance: ::core::option::Option<String>,
+    /// Output only. **DEPRECATED.** _Instead, find the name of the default Cloud Storage for Firebase bucket using the [list endpoint](https://firebase.google.com/docs/reference/rest/storage/rest/v1beta/projects.buckets/list) within the Cloud Storage for Firebase REST API. If the default bucket for the Project has not yet been provisioned, the return might not contain a default bucket._ The name of the default Cloud Storage for Firebase bucket, in one of the following formats: * If provisioned _before_ October 30, 2024: PROJECT_ID.firebasestorage.app * If provisioned _on or after_ October 30, 2024: PROJECT_ID.firebasestorage.app
+    #[serde(default, rename = "storageBucket")]
+    pub storage_bucket: ::core::option::Option<String>,
 }

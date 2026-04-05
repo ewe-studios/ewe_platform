@@ -10,52 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// This message defines attributes associated with API operations, such as a network API request. The terminology is based on the conventions used by Google APIs, Istio, and OpenAPI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Api {
-    /// The API operation name. For gRPC requests, it is the fully qualified API method name, such as "google.pubsub.v1.Publisher.Publish". For OpenAPI requests, it is the operationId, such as "getPet".
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The API protocol used for sending the request, such as "http", "https", "grpc", or "internal".
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// The API service name. It is a logical identifier for a networked API, such as "pubsub.googleapis.com". The naming syntax depends on the API management system being used for handling the request.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// The API version associated with the API operation above, such as "v1" or "v1alpha1".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// This message defines the standard attribute vocabulary for Google APIs. An attribute is a piece of metadata that describes an activity on a network service. For example, the size of an HTTP request, or the status code of an HTTP response. Each attribute has a type and a name, which is logically defined as a proto message field in AttributeContext. The field type becomes the attribute type, and the field path becomes the attribute name. For example, the attribute source.ip maps to field AttributeContext.source.ip. This message definition is guaranteed not to have any wire breaking change. So you can use it directly for passing attributes across different systems. NOTE: Different system may generate different subset of attributes. Please verify the system specification before relying on an attribute generated a system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttributeContext {
-    /// Represents an API operation that is involved to a network activity.
-    #[serde(default)]
-    pub api: ::core::option::Option<Api>,
-    /// The destination of a network activity, such as accepting a TCP connection. In a multi hop network activity, the destination represents the receiver of the last hop.
-    #[serde(default)]
-    pub destination: ::core::option::Option<Peer>,
-    /// Supports extensions for advanced use cases, such as logs and metrics.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// The origin of a network activity. In a multi hop network activity, the origin represents the sender of the first hop. For the first hop, the source and the origin must have the same content.
-    #[serde(default)]
-    pub origin: ::core::option::Option<Peer>,
-    /// Represents a network request, such as an HTTP request.
-    #[serde(default)]
-    pub request: ::core::option::Option<Request>,
-    /// Represents a target resource that is involved with a network activity. If multiple resources are involved with an activity, this must be the primary one.
-    #[serde(default)]
-    pub resource: ::core::option::Option<Resource>,
-    /// Represents a network response, such as an HTTP response.
-    #[serde(default)]
-    pub response: ::core::option::Option<Response>,
-    /// The source of a network activity, such as starting a TCP connection. In a multi hop network activity, the source represents the sender of the last hop.
-    #[serde(default)]
-    pub source: ::core::option::Option<Peer>,
-}
-
 /// Common audit log format for Google Cloud Platform API operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditLog {
@@ -106,27 +60,124 @@ pub struct AuditLog {
     pub status: ::core::option::Option<Status>,
 }
 
-/// This message defines request authentication attributes. Terminology is based on the JSON Web Token (JWT) standard, but the terms also correlate to concepts in other standards.
+/// Request message for the Check method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Auth {
-    /// A list of access level resource names that allow resources to be accessed by authenticated requester. It is part of Secure GCP processing for the incoming request. An access level string has the format: "//{api_service_name}/accessPolicies/{policy_id}/accessLevels/{short_name}" Example: "//accesscontextmanager.googleapis.com/accessPolicies/MY_POLICY_ID/accessLevels/MY_LEVEL"
-    #[serde(default, rename = "accessLevels")]
-    pub access_levels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The intended audience(s) for this authentication information. Reflects the audience (aud) claim within a JWT. The audience value(s) depends on the issuer, but typically include one or more of the following pieces of information: * The services intended to receive the credential. For example, ["https://pubsub.googleapis.com/", "https://storage.googleapis.com/"]. * A set of service-based scopes. For example, ["https://www.googleapis.com/auth/cloud-platform"]. * The client id of an app, such as the Firebase project id for JWTs from Firebase Auth. Consult the documentation for the credential issuer to determine the information provided.
+pub struct CheckRequest {
+    /// Describes attributes about the operation being executed by the service.
     #[serde(default)]
-    pub audiences: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Structured claims presented with the credential. JWTs include {key: value} pairs for standard and private claims. The following is a subset of the standard required and optional claims that would typically be presented for a Google-based JWT: {''iss'': ''accounts.google.com'', ''sub'': ''113289723416554971153'', ''aud'': [''123456789012'', ''pubsub.googleapis.com''], ''azp'': ''123456789012.apps.googleusercontent.com'', ''email'': ''jsmith@example.com'', ''iat'': 1353601026, ''exp'': 1353604926} SAML assertions are similarly specified, but with an identity provider dependent structure.
+    pub attributes: ::core::option::Option<AttributeContext>,
+    /// Optional. Contains a comma-separated list of flags.
     #[serde(default)]
-    pub claims: ::core::option::Option<serde_json::Value>,
-    /// Attributes of the OAuth token associated with the request.
+    pub flags: ::core::option::Option<String>,
+    /// Describes the resources and the policies applied to each resource.
     #[serde(default)]
-    pub oauth: ::core::option::Option<Oauth>,
-    /// The authorized presenter of the credential. Reflects the optional Authorized Presenter (azp) claim within a JWT or the OAuth client id. For example, a Google Cloud Platform client id looks as follows: "123456789012.apps.googleusercontent.com".
+    pub resources: ::core::option::Option<::std::vec::Vec<ResourceInfo>>,
+    /// Specifies the version of the service configuration that should be used to process the request. Must not be empty. Set this field to ''latest'' to specify using the latest configuration.
+    #[serde(default, rename = "serviceConfigId")]
+    pub service_config_id: ::core::option::Option<String>,
+}
+
+/// Response message for the Check method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckResponse {
+    /// Optional response metadata that will be emitted as dynamic metadata to be consumed by the caller of ServiceController. For compatibility with the ext_authz interface.
+    #[serde(default, rename = "dynamicMetadata")]
+    pub dynamic_metadata: ::core::option::Option<serde_json::Value>,
+    /// Returns a set of request contexts generated from the CheckRequest.
     #[serde(default)]
-    pub presenter: ::core::option::Option<String>,
-    /// The authenticated principal. Reflects the issuer (iss) and subject (sub) claims within a JWT. The issuer and subject should be / delimited, with / percent-encoded within the subject fragment. For Google accounts, the principal format is: "https://accounts.google.com/{id}"
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Operation is allowed when this field is not set. Any non-''OK'' status indicates a denial; google.rpc.Status.details would contain additional details about the denial.
     #[serde(default)]
-    pub principal: ::core::option::Option<String>,
+    pub status: ::core::option::Option<Status>,
+}
+
+/// Request message for the Report method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportRequest {
+    /// Describes the list of operations to be reported. Each operation is represented as an AttributeContext, and contains all attributes around an API access.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<AttributeContext>>,
+    /// Specifies the version of the service configuration that should be used to process the request. Must not be empty. Set this field to ''latest'' to specify using the latest configuration.
+    #[serde(default, rename = "serviceConfigId")]
+    pub service_config_id: ::core::option::Option<String>,
+}
+
+/// The context of a span. This is attached to an Exemplar in Distribution values during aggregation. It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpanContext {
+    /// The resource name of the span. The format is: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array. [SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array.
+    #[serde(default, rename = "spanName")]
+    pub span_name: ::core::option::Option<String>,
+}
+
+/// An individual log entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2LogEntry {
+    /// Optional. Information about the HTTP request associated with this log entry, if applicable.
+    #[serde(default, rename = "httpRequest")]
+    pub http_request: ::core::option::Option<V2HttpRequest>,
+    /// A unique ID for the log entry used for deduplication. If omitted, the implementation will generate one based on operation_id.
+    #[serde(default, rename = "insertId")]
+    pub insert_id: ::core::option::Option<String>,
+    /// A set of user-defined (key, value) data that provides additional information about the log entry.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// A set of user-defined (key, value) data that provides additional information about the moniotored resource that the log entry belongs to.
+    #[serde(default, rename = "monitoredResourceLabels")]
+    pub monitored_resource_labels: ::core::option::Option<serde_json::Value>,
+    /// Required. The log to which this log entry belongs. Examples: "syslog", "book_log".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Information about an operation associated with the log entry, if applicable.
+    #[serde(default)]
+    pub operation: ::core::option::Option<V2LogEntryOperation>,
+    /// The log entry payload, represented as a protocol buffer that is expressed as a JSON object. The only accepted type currently is AuditLog.
+    #[serde(default, rename = "protoPayload")]
+    pub proto_payload: ::core::option::Option<serde_json::Value>,
+    /// The severity of the log entry. The default value is LogSeverity.DEFAULT. // TODO: enum values: ["DEFAULT", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// Optional. Source code location information associated with the log entry, if any.
+    #[serde(default, rename = "sourceLocation")]
+    pub source_location: ::core::option::Option<V2LogEntrySourceLocation>,
+    /// The log entry payload, represented as a structure that is expressed as a JSON object.
+    #[serde(default, rename = "structPayload")]
+    pub struct_payload: ::core::option::Option<serde_json::Value>,
+    /// The log entry payload, represented as a Unicode string (UTF-8).
+    #[serde(default, rename = "textPayload")]
+    pub text_payload: ::core::option::Option<String>,
+    /// The time the event described by the log entry occurred. If omitted, defaults to operation start time.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+    /// Optional. Resource name of the trace associated with the log entry, if any. If this field contains a relative resource name, you can assume the name is relative to //tracing.googleapis.com. Example: projects/my-projectid/traces/06796866738c859f2f19b7cfb3214824
+    #[serde(default)]
+    pub trace: ::core::option::Option<String>,
+}
+
+/// Report v2 extension proto for passing the resource metadata associated with a resource create/update/delete/undelete event from ESF to Chemist. ResourceEvent proto should be serialized into the ReportRequest.operations.extensions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2ResourceEvent {
+    /// The ESF unique context id of the api request, from which this resource event originated. This field is only needed for CAIS integration via api annotation. See go/cais-lro-delete for more details.
+    #[serde(default, rename = "contextId")]
+    pub context_id: ::core::option::Option<String>,
+    /// The destinations field determines which backend services should handle the event. This should be specified as a comma-delimited string.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<String>,
+    /// The parent resource for the resource.
+    #[serde(default)]
+    pub parent: ::core::option::Option<Resource>,
+    /// The api path the resource event was created in. This should match the source of the payload field. For direct integrations with Chemist, this should generally be the RESPONSE. go/resource-event-pipeline-type // TODO: enum values: ["API_PATH_UNSPECIFIED", "REQUEST", "RESPONSE"]
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// The payload contains metadata associated with the resource event. A ResourceEventPayloadStatus is provided instead if the original payload cannot be returned due to a limitation (e.g. size limit).
+    #[serde(default)]
+    pub payload: ::core::option::Option<serde_json::Value>,
+    /// The resource associated with the event.
+    #[serde(default)]
+    pub resource: ::core::option::Option<Resource>,
+    /// The resource event type determines how the backend service should process the event. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATE", "UPDATE", "DELETE", "UNDELETE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Authentication information for the operation.
@@ -182,162 +233,12 @@ pub struct AuthorizationInfo {
     pub resource_attributes: ::core::option::Option<Resource>,
 }
 
-/// Request message for the Check method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckRequest {
-    /// Describes attributes about the operation being executed by the service.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<AttributeContext>,
-    /// Optional. Contains a comma-separated list of flags.
-    #[serde(default)]
-    pub flags: ::core::option::Option<String>,
-    /// Describes the resources and the policies applied to each resource.
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<ResourceInfo>>,
-    /// Specifies the version of the service configuration that should be used to process the request. Must not be empty. Set this field to ''latest'' to specify using the latest configuration.
-    #[serde(default, rename = "serviceConfigId")]
-    pub service_config_id: ::core::option::Option<String>,
-}
-
-/// Response message for the Check method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckResponse {
-    /// Optional response metadata that will be emitted as dynamic metadata to be consumed by the caller of ServiceController. For compatibility with the ext_authz interface.
-    #[serde(default, rename = "dynamicMetadata")]
-    pub dynamic_metadata: ::core::option::Option<serde_json::Value>,
-    /// Returns a set of request contexts generated from the CheckRequest.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// Operation is allowed when this field is not set. Any non-''OK'' status indicates a denial; google.rpc.Status.details would contain additional details about the denial.
-    #[serde(default)]
-    pub status: ::core::option::Option<Status>,
-}
-
-/// First party identity principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FirstPartyPrincipal {
-    /// The email address of a Google account. .
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// Metadata about the service that uses the service account. .
-    #[serde(default, rename = "serviceMetadata")]
-    pub service_metadata: ::core::option::Option<serde_json::Value>,
-}
-
-/// OAuth related information about the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthInfo {
-    /// The OAuth client ID of the 1P or 3P application acting on behalf of the user.
-    #[serde(default, rename = "oauthClientId")]
-    pub oauth_client_id: ::core::option::Option<String>,
-}
-
-/// This message defines attributes associated with OAuth credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Oauth {
-    /// The optional OAuth client ID. This is the unique public identifier issued by an authorization server to a registered client application. Empty string is equivalent to no oauth client id. WARNING: This is for MCP tools/call and tools/list authorization and not for general use.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-}
-
-/// Represents OrgPolicy Violation information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrgPolicyViolationInfo {
-    /// Optional. Deprecated. Resource payload that is currently in scope and is subjected to orgpolicy conditions. This payload may be the subset of the actual Resource that may come in the request.
-    #[serde(default)]
-    pub payload: ::core::option::Option<serde_json::Value>,
-    /// Optional. Deprecated. Tags referenced on the resource at the time of evaluation.
-    #[serde(default, rename = "resourceTags")]
-    pub resource_tags: ::core::option::Option<serde_json::Value>,
-    /// Optional. Resource type that the orgpolicy is checked against. Example: compute.googleapis.com/Instance, store.googleapis.com/bucket
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Optional. Policy violations
-    #[serde(default, rename = "violationInfo")]
-    pub violation_info: ::core::option::Option<::std::vec::Vec<ViolationInfo>>,
-}
-
-/// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Peer {
-    /// The IP address of the peer.
-    #[serde(default)]
-    pub ip: ::core::option::Option<String>,
-    /// The labels associated with the peer.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The network port of the peer.
-    #[serde(default)]
-    pub port: ::core::option::Option<String>,
-    /// The identity of this peer. Similar to Request.auth.principal, but relative to the peer instead of the request. For example, the identity associated with a load balancer that forwarded the request.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-    /// The CLDR country/region code associated with the above IP address. If the IP address is private, the region_code should reflect the physical location where this peer is running.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
 /// Information related to policy violations for this request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolicyViolationInfo {
     /// Indicates the orgpolicy violations for this resource.
     #[serde(default, rename = "orgPolicyViolationInfo")]
     pub org_policy_violation_info: ::core::option::Option<OrgPolicyViolationInfo>,
-}
-
-/// Request message for the Report method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReportRequest {
-    /// Describes the list of operations to be reported. Each operation is represented as an AttributeContext, and contains all attributes around an API access.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<AttributeContext>>,
-    /// Specifies the version of the service configuration that should be used to process the request. Must not be empty. Set this field to ''latest'' to specify using the latest configuration.
-    #[serde(default, rename = "serviceConfigId")]
-    pub service_config_id: ::core::option::Option<String>,
-}
-
-/// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Request {
-    /// The request authentication. May be absent for unauthenticated requests. Derived from the HTTP request Authorization header or equivalent.
-    #[serde(default)]
-    pub auth: ::core::option::Option<Auth>,
-    /// The HTTP request headers. If multiple headers share the same key, they must be merged according to the HTTP spec. All header keys must be lowercased, because HTTP header keys are case-insensitive.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The HTTP request Host header value.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// The unique ID for a request, which can be propagated to downstream systems. The ID should have low probability of collision within a single day for a specific service.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The HTTP request method, such as GET, POST.
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The values from Origin header from the HTTP request, such as "https://console.cloud.google.com". Modern browsers can only have one origin. Special browsers and/or HTTP clients may require multiple origins.
-    #[serde(default)]
-    pub origin: ::core::option::Option<String>,
-    /// The HTTP URL path, excluding the query parameters.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// The network protocol used with the request, such as "http/1.1", "spdy/3", "h2", "h2c", "webrtc", "tcp", "udp", "quic". See https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids for details.
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// The HTTP URL query in the format of name1=value1&name2=value2, as it appears in the first line of the HTTP request. No decoding is performed.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// A special parameter for request reason. It is used by security systems to associate auditing information with a request.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// The HTTP URL scheme, such as http and https.
-    #[serde(default)]
-    pub scheme: ::core::option::Option<String>,
-    /// The HTTP request size in bytes. If unknown, it must be -1.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-    /// The timestamp when the destination service receives the last byte of the request.
-    #[serde(default)]
-    pub time: ::core::option::Option<String>,
 }
 
 /// Metadata about the request.
@@ -360,45 +261,15 @@ pub struct RequestMetadata {
     pub request_attributes: ::core::option::Option<Request>,
 }
 
-/// This message defines core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a file stored on a network storage service.
+/// Location information about a resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Resource {
-    /// Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The timestamp when the resource was created. This may be either the time creation was initiated or when it was completed.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was deleted. If the resource is not deleted, this must be empty.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Mutable. The display name set by clients. Must be &lt;= 63 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The labels or tags on the resource, such as AWS resource tags and Kubernetes resource labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Immutable. The location of the resource. The location encoding is specific to the service provider, and new encoding may be introduced as the service evolves. For Google Cloud products, the encoding is what is used by Google Cloud APIs, such as us-east1, aws-us-east-1, and azure-eastus2. The semantics of location is identical to the cloud.googleapis.com/location label used by some Google Cloud APIs.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The stable identifier (name) of a resource on the service. A resource can be logically identified as "//{resource.service}/{resource.name}". The differences between a resource name and a URI are: * Resource name is a logical identifier, independent of network protocol and API version. For example, //pubsub.googleapis.com/projects/123/topics/news-feed. * URI often includes protocol and version information, so it can be used directly by applications. For example, https://pubsub.googleapis.com/v1/projects/123/topics/news-feed. See https://cloud.google.com/apis/design/resource_names for details.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The name of the service that this resource belongs to, such as pubsub.googleapis.com. The service may be different from the DNS hostname that actually serves the request.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// The type of the resource. The syntax is platform-specific because different platforms define their resources differently. For Google APIs, the type format must be "{service}/{kind}", such as "pubsub.googleapis.com/Topic".
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
+pub struct ResourceLocation {
+    /// The locations of a resource after the execution of the operation. Requests to create or delete a location based resource must populate the ''current_locations'' field and not the ''original_locations'' field. For example: "europe-west1-a" "us-east1" "nam3"
+    #[serde(default, rename = "currentLocations")]
+    pub current_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The locations of a resource prior to the execution of the operation. Requests that mutate the resource''s location must populate both the ''original_locations'' as well as the ''current_locations'' fields. For example: "europe-west1-a" "us-east1" "nam3"
+    #[serde(default, rename = "originalLocations")]
+    pub original_locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes a resource referenced in the request.
@@ -421,84 +292,6 @@ pub struct ResourceInfo {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Location information about a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceLocation {
-    /// The locations of a resource after the execution of the operation. Requests to create or delete a location based resource must populate the ''current_locations'' field and not the ''original_locations'' field. For example: "europe-west1-a" "us-east1" "nam3"
-    #[serde(default, rename = "currentLocations")]
-    pub current_locations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The locations of a resource prior to the execution of the operation. Requests that mutate the resource''s location must populate both the ''original_locations'' as well as the ''current_locations'' fields. For example: "europe-west1-a" "us-east1" "nam3"
-    #[serde(default, rename = "originalLocations")]
-    pub original_locations: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This message defines attributes for a typical network response. It generally models semantics of an HTTP response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Response {
-    /// The amount of time it takes the backend service to fully respond to a request. Measured from when the destination service starts to send the request to the backend until when the destination service receives the complete response from the backend.
-    #[serde(default, rename = "backendLatency")]
-    pub backend_latency: ::core::option::Option<String>,
-    /// The HTTP response status code, such as 200 and 404.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The HTTP response headers. If multiple headers share the same key, they must be merged according to HTTP spec. All header keys must be lowercased, because HTTP header keys are case-insensitive.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The HTTP response size in bytes. If unknown, it must be -1.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-    /// The timestamp when the destination service sends the last byte of the response.
-    #[serde(default)]
-    pub time: ::core::option::Option<String>,
-}
-
-/// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceAccountDelegationInfo {
-    /// First party (Google) identity as the real authority.
-    #[serde(default, rename = "firstPartyPrincipal")]
-    pub first_party_principal: ::core::option::Option<FirstPartyPrincipal>,
-    /// A string representing the principal_subject associated with the identity. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subject/{subject) except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-    /// Third party identity as the real authority.
-    #[serde(default, rename = "thirdPartyPrincipal")]
-    pub third_party_principal: ::core::option::Option<ThirdPartyPrincipal>,
-}
-
-/// The history of delegation across multiple services as the result of the original user''s action. Such as "service A uses its own account to do something for user B". This differs from ServiceAccountDelegationInfo, which only tracks the history of direct token exchanges (impersonation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceDelegationHistory {
-    /// The original end user who initiated the request to GCP.
-    #[serde(default, rename = "originalPrincipal")]
-    pub original_principal: ::core::option::Option<String>,
-    /// Data identifying the service specific jobs or units of work that were involved in a chain of service calls.
-    #[serde(default, rename = "serviceMetadata")]
-    pub service_metadata: ::core::option::Option<::std::vec::Vec<ServiceMetadata>>,
-}
-
-/// Metadata describing the service and additional service specific information used to identify the job or unit of work at hand.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceMetadata {
-    /// Additional metadata provided by service teams to describe service specific job information that was triggered by the original principal.
-    #[serde(default, rename = "jobMetadata")]
-    pub job_metadata: ::core::option::Option<serde_json::Value>,
-    /// A string representing the principal_subject associated with the identity. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subject/{subject) except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}] If the identity is a Google account (e.g. workspace user account or service account), this will be the email of the prefixed by serviceAccount:. For example: serviceAccount:my-service-account@project-1.iam.gserviceaccount.com. If the identity is an individual user, the identity will be formatted as: user:user_ABC@email.com.
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-    /// The service''s fully qualified domain name, e.g. "dataproc.googleapis.com".
-    #[serde(default, rename = "serviceDomain")]
-    pub service_domain: ::core::option::Option<String>,
-}
-
-/// The context of a span. This is attached to an Exemplar in Distribution values during aggregation. It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpanContext {
-    /// The resource name of the span. The format is: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array. [SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array.
-    #[serde(default, rename = "spanName")]
-    pub span_name: ::core::option::Option<String>,
-}
-
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -511,6 +304,35 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// This message defines the standard attribute vocabulary for Google APIs. An attribute is a piece of metadata that describes an activity on a network service. For example, the size of an HTTP request, or the status code of an HTTP response. Each attribute has a type and a name, which is logically defined as a proto message field in AttributeContext. The field type becomes the attribute type, and the field path becomes the attribute name. For example, the attribute source.ip maps to field AttributeContext.source.ip. This message definition is guaranteed not to have any wire breaking change. So you can use it directly for passing attributes across different systems. NOTE: Different system may generate different subset of attributes. Please verify the system specification before relying on an attribute generated a system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributeContext {
+    /// Represents an API operation that is involved to a network activity.
+    #[serde(default)]
+    pub api: ::core::option::Option<Api>,
+    /// The destination of a network activity, such as accepting a TCP connection. In a multi hop network activity, the destination represents the receiver of the last hop.
+    #[serde(default)]
+    pub destination: ::core::option::Option<Peer>,
+    /// Supports extensions for advanced use cases, such as logs and metrics.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// The origin of a network activity. In a multi hop network activity, the origin represents the sender of the first hop. For the first hop, the source and the origin must have the same content.
+    #[serde(default)]
+    pub origin: ::core::option::Option<Peer>,
+    /// Represents a network request, such as an HTTP request.
+    #[serde(default)]
+    pub request: ::core::option::Option<Request>,
+    /// Represents a target resource that is involved with a network activity. If multiple resources are involved with an activity, this must be the primary one.
+    #[serde(default)]
+    pub resource: ::core::option::Option<Resource>,
+    /// Represents a network response, such as an HTTP response.
+    #[serde(default)]
+    pub response: ::core::option::Option<Response>,
+    /// The source of a network activity, such as starting a TCP connection. In a multi hop network activity, the source represents the sender of the last hop.
+    #[serde(default)]
+    pub source: ::core::option::Option<Peer>,
 }
 
 /// A common proto for logging HTTP requests. Only contains semantics defined by the HTTP specification. Product-specific logging information MUST be defined in a separate message.
@@ -563,50 +385,6 @@ pub struct V2HttpRequest {
     pub user_agent: ::core::option::Option<String>,
 }
 
-/// An individual log entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2LogEntry {
-    /// Optional. Information about the HTTP request associated with this log entry, if applicable.
-    #[serde(default, rename = "httpRequest")]
-    pub http_request: ::core::option::Option<V2HttpRequest>,
-    /// A unique ID for the log entry used for deduplication. If omitted, the implementation will generate one based on operation_id.
-    #[serde(default, rename = "insertId")]
-    pub insert_id: ::core::option::Option<String>,
-    /// A set of user-defined (key, value) data that provides additional information about the log entry.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// A set of user-defined (key, value) data that provides additional information about the moniotored resource that the log entry belongs to.
-    #[serde(default, rename = "monitoredResourceLabels")]
-    pub monitored_resource_labels: ::core::option::Option<serde_json::Value>,
-    /// Required. The log to which this log entry belongs. Examples: "syslog", "book_log".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Information about an operation associated with the log entry, if applicable.
-    #[serde(default)]
-    pub operation: ::core::option::Option<V2LogEntryOperation>,
-    /// The log entry payload, represented as a protocol buffer that is expressed as a JSON object. The only accepted type currently is AuditLog.
-    #[serde(default, rename = "protoPayload")]
-    pub proto_payload: ::core::option::Option<serde_json::Value>,
-    /// The severity of the log entry. The default value is LogSeverity.DEFAULT. // TODO: enum values: ["DEFAULT", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Optional. Source code location information associated with the log entry, if any.
-    #[serde(default, rename = "sourceLocation")]
-    pub source_location: ::core::option::Option<V2LogEntrySourceLocation>,
-    /// The log entry payload, represented as a structure that is expressed as a JSON object.
-    #[serde(default, rename = "structPayload")]
-    pub struct_payload: ::core::option::Option<serde_json::Value>,
-    /// The log entry payload, represented as a Unicode string (UTF-8).
-    #[serde(default, rename = "textPayload")]
-    pub text_payload: ::core::option::Option<String>,
-    /// The time the event described by the log entry occurred. If omitted, defaults to operation start time.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-    /// Optional. Resource name of the trace associated with the log entry, if any. If this field contains a relative resource name, you can assume the name is relative to //tracing.googleapis.com. Example: projects/my-projectid/traces/06796866738c859f2f19b7cfb3214824
-    #[serde(default)]
-    pub trace: ::core::option::Option<String>,
-}
-
 /// Additional information about a potentially long-running operation with which a log entry is associated.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct V2LogEntryOperation {
@@ -638,30 +416,221 @@ pub struct V2LogEntrySourceLocation {
     pub line: ::core::option::Option<String>,
 }
 
-/// Report v2 extension proto for passing the resource metadata associated with a resource create/update/delete/undelete event from ESF to Chemist. ResourceEvent proto should be serialized into the ReportRequest.operations.extensions.
+/// OAuth related information about the request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2ResourceEvent {
-    /// The ESF unique context id of the api request, from which this resource event originated. This field is only needed for CAIS integration via api annotation. See go/cais-lro-delete for more details.
-    #[serde(default, rename = "contextId")]
-    pub context_id: ::core::option::Option<String>,
-    /// The destinations field determines which backend services should handle the event. This should be specified as a comma-delimited string.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<String>,
-    /// The parent resource for the resource.
-    #[serde(default)]
-    pub parent: ::core::option::Option<Resource>,
-    /// The api path the resource event was created in. This should match the source of the payload field. For direct integrations with Chemist, this should generally be the RESPONSE. go/resource-event-pipeline-type // TODO: enum values: ["API_PATH_UNSPECIFIED", "REQUEST", "RESPONSE"]
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// The payload contains metadata associated with the resource event. A ResourceEventPayloadStatus is provided instead if the original payload cannot be returned due to a limitation (e.g. size limit).
+pub struct OAuthInfo {
+    /// The OAuth client ID of the 1P or 3P application acting on behalf of the user.
+    #[serde(default, rename = "oauthClientId")]
+    pub oauth_client_id: ::core::option::Option<String>,
+}
+
+/// Identity delegation history of an authenticated service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceAccountDelegationInfo {
+    /// First party (Google) identity as the real authority.
+    #[serde(default, rename = "firstPartyPrincipal")]
+    pub first_party_principal: ::core::option::Option<FirstPartyPrincipal>,
+    /// A string representing the principal_subject associated with the identity. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subject/{subject) except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+    /// Third party identity as the real authority.
+    #[serde(default, rename = "thirdPartyPrincipal")]
+    pub third_party_principal: ::core::option::Option<ThirdPartyPrincipal>,
+}
+
+/// The history of delegation across multiple services as the result of the original user''s action. Such as "service A uses its own account to do something for user B". This differs from ServiceAccountDelegationInfo, which only tracks the history of direct token exchanges (impersonation).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceDelegationHistory {
+    /// The original end user who initiated the request to GCP.
+    #[serde(default, rename = "originalPrincipal")]
+    pub original_principal: ::core::option::Option<String>,
+    /// Data identifying the service specific jobs or units of work that were involved in a chain of service calls.
+    #[serde(default, rename = "serviceMetadata")]
+    pub service_metadata: ::core::option::Option<::std::vec::Vec<ServiceMetadata>>,
+}
+
+/// Represents OrgPolicy Violation information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrgPolicyViolationInfo {
+    /// Optional. Deprecated. Resource payload that is currently in scope and is subjected to orgpolicy conditions. This payload may be the subset of the actual Resource that may come in the request.
     #[serde(default)]
     pub payload: ::core::option::Option<serde_json::Value>,
-    /// The resource associated with the event.
+    /// Optional. Deprecated. Tags referenced on the resource at the time of evaluation.
+    #[serde(default, rename = "resourceTags")]
+    pub resource_tags: ::core::option::Option<serde_json::Value>,
+    /// Optional. Resource type that the orgpolicy is checked against. Example: compute.googleapis.com/Instance, store.googleapis.com/bucket
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Optional. Policy violations
+    #[serde(default, rename = "violationInfo")]
+    pub violation_info: ::core::option::Option<::std::vec::Vec<ViolationInfo>>,
+}
+
+/// This message defines attributes associated with API operations, such as a network API request. The terminology is based on the conventions used by Google APIs, Istio, and OpenAPI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Api {
+    /// The API operation name. For gRPC requests, it is the fully qualified API method name, such as "google.pubsub.v1.Publisher.Publish". For OpenAPI requests, it is the operationId, such as "getPet".
     #[serde(default)]
-    pub resource: ::core::option::Option<Resource>,
-    /// The resource event type determines how the backend service should process the event. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATE", "UPDATE", "DELETE", "UNDELETE"]
+    pub operation: ::core::option::Option<String>,
+    /// The API protocol used for sending the request, such as "http", "https", "grpc", or "internal".
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// The API service name. It is a logical identifier for a networked API, such as "pubsub.googleapis.com". The naming syntax depends on the API management system being used for handling the request.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// The API version associated with the API operation above, such as "v1" or "v1alpha1".
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Peer {
+    /// The IP address of the peer.
+    #[serde(default)]
+    pub ip: ::core::option::Option<String>,
+    /// The labels associated with the peer.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The network port of the peer.
+    #[serde(default)]
+    pub port: ::core::option::Option<String>,
+    /// The identity of this peer. Similar to Request.auth.principal, but relative to the peer instead of the request. For example, the identity associated with a load balancer that forwarded the request.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+    /// The CLDR country/region code associated with the above IP address. If the IP address is private, the region_code should reflect the physical location where this peer is running.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Request {
+    /// The request authentication. May be absent for unauthenticated requests. Derived from the HTTP request Authorization header or equivalent.
+    #[serde(default)]
+    pub auth: ::core::option::Option<Auth>,
+    /// The HTTP request headers. If multiple headers share the same key, they must be merged according to the HTTP spec. All header keys must be lowercased, because HTTP header keys are case-insensitive.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// The HTTP request Host header value.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// The unique ID for a request, which can be propagated to downstream systems. The ID should have low probability of collision within a single day for a specific service.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The HTTP request method, such as GET, POST.
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The values from Origin header from the HTTP request, such as "https://console.cloud.google.com". Modern browsers can only have one origin. Special browsers and/or HTTP clients may require multiple origins.
+    #[serde(default)]
+    pub origin: ::core::option::Option<String>,
+    /// The HTTP URL path, excluding the query parameters.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// The network protocol used with the request, such as "http/1.1", "spdy/3", "h2", "h2c", "webrtc", "tcp", "udp", "quic". See https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids for details.
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// The HTTP URL query in the format of name1=value1&name2=value2, as it appears in the first line of the HTTP request. No decoding is performed.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// A special parameter for request reason. It is used by security systems to associate auditing information with a request.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// The HTTP URL scheme, such as http and https.
+    #[serde(default)]
+    pub scheme: ::core::option::Option<String>,
+    /// The HTTP request size in bytes. If unknown, it must be -1.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+    /// The timestamp when the destination service receives the last byte of the request.
+    #[serde(default)]
+    pub time: ::core::option::Option<String>,
+}
+
+/// This message defines core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a file stored on a network storage service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Resource {
+    /// Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The timestamp when the resource was created. This may be either the time creation was initiated or when it was completed.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was deleted. If the resource is not deleted, this must be empty.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Mutable. The display name set by clients. Must be &lt;= 63 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The labels or tags on the resource, such as AWS resource tags and Kubernetes resource labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Immutable. The location of the resource. The location encoding is specific to the service provider, and new encoding may be introduced as the service evolves. For Google Cloud products, the encoding is what is used by Google Cloud APIs, such as us-east1, aws-us-east-1, and azure-eastus2. The semantics of location is identical to the cloud.googleapis.com/location label used by some Google Cloud APIs.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The stable identifier (name) of a resource on the service. A resource can be logically identified as "//{resource.service}/{resource.name}". The differences between a resource name and a URI are: * Resource name is a logical identifier, independent of network protocol and API version. For example, //pubsub.googleapis.com/projects/123/topics/news-feed. * URI often includes protocol and version information, so it can be used directly by applications. For example, https://pubsub.googleapis.com/v1/projects/123/topics/news-feed. See https://cloud.google.com/apis/design/resource_names for details.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The name of the service that this resource belongs to, such as pubsub.googleapis.com. The service may be different from the DNS hostname that actually serves the request.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// The type of the resource. The syntax is platform-specific because different platforms define their resources differently. For Google APIs, the type format must be "{service}/{kind}", such as "pubsub.googleapis.com/Topic".
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+    /// The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// This message defines attributes for a typical network response. It generally models semantics of an HTTP response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Response {
+    /// The amount of time it takes the backend service to fully respond to a request. Measured from when the destination service starts to send the request to the backend until when the destination service receives the complete response from the backend.
+    #[serde(default, rename = "backendLatency")]
+    pub backend_latency: ::core::option::Option<String>,
+    /// The HTTP response status code, such as 200 and 404.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The HTTP response headers. If multiple headers share the same key, they must be merged according to HTTP spec. All header keys must be lowercased, because HTTP header keys are case-insensitive.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// The HTTP response size in bytes. If unknown, it must be -1.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+    /// The timestamp when the destination service sends the last byte of the response.
+    #[serde(default)]
+    pub time: ::core::option::Option<String>,
+}
+
+/// First party identity principal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirstPartyPrincipal {
+    /// The email address of a Google account. .
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// Metadata about the service that uses the service account. .
+    #[serde(default, rename = "serviceMetadata")]
+    pub service_metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// Metadata describing the service and additional service specific information used to identify the job or unit of work at hand.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceMetadata {
+    /// Additional metadata provided by service teams to describe service specific job information that was triggered by the original principal.
+    #[serde(default, rename = "jobMetadata")]
+    pub job_metadata: ::core::option::Option<serde_json::Value>,
+    /// A string representing the principal_subject associated with the identity. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subject/{subject) except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}] If the identity is a Google account (e.g. workspace user account or service account), this will be the email of the prefixed by serviceAccount:. For example: serviceAccount:my-service-account@project-1.iam.gserviceaccount.com. If the identity is an individual user, the identity will be formatted as: user:user_ABC@email.com.
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+    /// The service''s fully qualified domain name, e.g. "dataproc.googleapis.com".
+    #[serde(default, rename = "serviceDomain")]
+    pub service_domain: ::core::option::Option<String>,
 }
 
 /// Provides information about the Policy violation info for this request.
@@ -682,4 +651,35 @@ pub struct ViolationInfo {
     /// Optional. Indicates the type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "BOOLEAN_CONSTRAINT", "LIST_CONSTRAINT", "CUSTOM_CONSTRAINT"]
     #[serde(default, rename = "policyType")]
     pub policy_type: ::core::option::Option<String>,
+}
+
+/// This message defines request authentication attributes. Terminology is based on the JSON Web Token (JWT) standard, but the terms also correlate to concepts in other standards.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Auth {
+    /// A list of access level resource names that allow resources to be accessed by authenticated requester. It is part of Secure GCP processing for the incoming request. An access level string has the format: "//{api_service_name}/accessPolicies/{policy_id}/accessLevels/{short_name}" Example: "//accesscontextmanager.googleapis.com/accessPolicies/MY_POLICY_ID/accessLevels/MY_LEVEL"
+    #[serde(default, rename = "accessLevels")]
+    pub access_levels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The intended audience(s) for this authentication information. Reflects the audience (aud) claim within a JWT. The audience value(s) depends on the issuer, but typically include one or more of the following pieces of information: * The services intended to receive the credential. For example, ["https://pubsub.googleapis.com/", "https://storage.googleapis.com/"]. * A set of service-based scopes. For example, ["https://www.googleapis.com/auth/cloud-platform"]. * The client id of an app, such as the Firebase project id for JWTs from Firebase Auth. Consult the documentation for the credential issuer to determine the information provided.
+    #[serde(default)]
+    pub audiences: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Structured claims presented with the credential. JWTs include {key: value} pairs for standard and private claims. The following is a subset of the standard required and optional claims that would typically be presented for a Google-based JWT: {''iss'': ''accounts.google.com'', ''sub'': ''113289723416554971153'', ''aud'': [''123456789012'', ''pubsub.googleapis.com''], ''azp'': ''123456789012.apps.googleusercontent.com'', ''email'': ''jsmith@example.com'', ''iat'': 1353601026, ''exp'': 1353604926} SAML assertions are similarly specified, but with an identity provider dependent structure.
+    #[serde(default)]
+    pub claims: ::core::option::Option<serde_json::Value>,
+    /// Attributes of the OAuth token associated with the request.
+    #[serde(default)]
+    pub oauth: ::core::option::Option<Oauth>,
+    /// The authorized presenter of the credential. Reflects the optional Authorized Presenter (azp) claim within a JWT or the OAuth client id. For example, a Google Cloud Platform client id looks as follows: "123456789012.apps.googleusercontent.com".
+    #[serde(default)]
+    pub presenter: ::core::option::Option<String>,
+    /// The authenticated principal. Reflects the issuer (iss) and subject (sub) claims within a JWT. The issuer and subject should be / delimited, with / percent-encoded within the subject fragment. For Google accounts, the principal format is: "https://accounts.google.com/{id}"
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+}
+
+/// This message defines attributes associated with OAuth credentials.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Oauth {
+    /// The optional OAuth client ID. This is the unique public identifier issued by an authorization server to a registered client application. Empty string is equivalent to no oauth client id. WARNING: This is for MCP tools/call and tools/list authorization and not for general use.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
 }

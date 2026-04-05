@@ -10,24 +10,201 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The URI of an storage archive or a signed URL to use as the build source.
+/// Represents the metadata of a long-running operation on domains.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArchiveSource {
-    /// Optional. Deprecated: Not used. The author contained in the metadata of a version control change.
+pub struct DomainOperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Additional metadata for operations on custom domains.
+    #[serde(default, rename = "customDomainOperationMetadata")]
+    pub custom_domain_operation_metadata: ::core::option::Option<CustomDomainOperationMetadata>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub author: ::core::option::Option<SourceUserMetadata>,
-    /// Optional. An optional message that describes the uploaded version of the source code.
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Signed URL to an archive in a storage bucket.
-    #[serde(default, rename = "externalSignedUri")]
-    pub external_signed_uri: ::core::option::Option<String>,
-    /// Optional. The directory relative to the root of the archive to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
-    #[serde(default, rename = "rootDirectory")]
-    pub root_directory: ::core::option::Option<String>,
-    /// URI to an archive in Cloud Storage. The object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to deploy.
-    #[serde(default, rename = "userStorageUri")]
-    pub user_storage_uri: ::core::option::Option<String>,
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Message for response to list backends
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBackendsResponse {
+    /// The list of backends
+    #[serde(default)]
+    pub backends: ::core::option::Option<::std::vec::Vec<Backend>>,
+    /// A token identifying the next page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to list builds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBuildsResponse {
+    /// The list of builds.
+    #[serde(default)]
+    pub builds: ::core::option::Option<::std::vec::Vec<Build>>,
+    /// A token identifying the next page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to list domains.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDomainsResponse {
+    /// Output only. The list of domains.
+    #[serde(default)]
+    pub domains: ::core::option::Option<::std::vec::Vec<Domain>>,
+    /// Output only. A token identifying the next page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to list rollouts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListRolloutsResponse {
+    /// A token identifying the next page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of rollouts.
+    #[serde(default)]
+    pub rollouts: ::core::option::Option<::std::vec::Vec<Rollout>>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents the metadata of a long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Controls traffic configuration for the backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Traffic {
+    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. Time at which the backend was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Current state of traffic allocation for the backend. When setting target, this field may differ for some time until the desired state is reached.
+    #[serde(default)]
+    pub current: ::core::option::Option<TrafficSet>,
+    /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Unstructured key value map that can be used to organize and categorize objects.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the backend''s traffic. Format: projects/{project}/locations/{locationId}/backends/{backendId}/traffic.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. A field that, if true, indicates that the system is working to make the backend''s current match the requested target list.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// A rollout policy specifies how new builds and automatic deployments are created.
+    #[serde(default, rename = "rolloutPolicy")]
+    pub rollout_policy: ::core::option::Option<RolloutPolicy>,
+    /// Set to manually control the desired traffic for the backend. This will cause current to eventually match this value. The percentages must add up to 100%.
+    #[serde(default)]
+    pub target: ::core::option::Option<TrafficSet>,
+    /// Output only. System-assigned, unique identifier.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Time at which the backend was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Additional metadata for operations on custom domains.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDomainOperationMetadata {
+    /// Output only. The custom domain''s CertState, which must be CERT_ACTIVE for the create operations to complete. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
+    #[serde(default, rename = "certState")]
+    pub cert_state: ::core::option::Option<String>,
+    /// Output only. The custom domain''s HostState, which must be HOST_ACTIVE for Create operations of the domain name this CustomDomain refers toto complete. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
+    #[serde(default, rename = "hostState")]
+    pub host_state: ::core::option::Option<String>,
+    /// Output only. A list of issues that are currently preventing the operation from completing. These are generally DNS-related issues encountered when querying a domain''s records or attempting to mint an SSL certificate.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
+    /// Output only. A list of steps that the user must complete to migrate their domain to App Hosting without downtime.
+    #[serde(default, rename = "liveMigrationSteps")]
+    pub live_migration_steps: ::core::option::Option<::std::vec::Vec<LiveMigrationStep>>,
+    /// Output only. The custom domain''s OwnershipState, which must be OWNERSHIP_ACTIVE for the create operations to complete. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
+    #[serde(default, rename = "ownershipState")]
+    pub ownership_state: ::core::option::Option<String>,
+    /// Output only. A set of DNS record updates to perform, to allow App Hosting to serve secure content on the domain.
+    #[serde(default, rename = "quickSetupUpdates")]
+    pub quick_setup_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
 }
 
 /// A backend is the primary resource of App Hosting.
@@ -148,179 +325,6 @@ pub struct Build {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The source for the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuildSource {
-    /// An archive source.
-    #[serde(default)]
-    pub archive: ::core::option::Option<ArchiveSource>,
-    /// A codebase source.
-    #[serde(default)]
-    pub codebase: ::core::option::Option<CodebaseSource>,
-    /// An Artifact Registry container image source.
-    #[serde(default)]
-    pub container: ::core::option::Option<ContainerSource>,
-}
-
-/// The connection to an external source repository to watch for event-driven updates to the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Codebase {
-    /// Required. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) connected to this backend, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink} The connection for the gitRepositoryLink must made be using the Firebase App Hosting GitHub App via the Firebase Console.
-    #[serde(default)]
-    pub repository: ::core::option::Option<String>,
-    /// Optional. If repository is provided, the directory relative to the root of the repository to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
-    #[serde(default, rename = "rootDirectory")]
-    pub root_directory: ::core::option::Option<String>,
-}
-
-/// A codebase source, representing the state of the codebase that the build will be created at.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CodebaseSource {
-    /// Output only. The author contained in the metadata of a version control change.
-    #[serde(default)]
-    pub author: ::core::option::Option<UserMetadata>,
-    /// The branch in the codebase to build from, using the latest commit.
-    #[serde(default)]
-    pub branch: ::core::option::Option<String>,
-    /// The commit in the codebase to build from.
-    #[serde(default)]
-    pub commit: ::core::option::Option<String>,
-    /// Output only. The message of a codebase change.
-    #[serde(default, rename = "commitMessage")]
-    pub commit_message: ::core::option::Option<String>,
-    /// Output only. The time the change was made.
-    #[serde(default, rename = "commitTime")]
-    pub commit_time: ::core::option::Option<String>,
-    /// Output only. The human-friendly name to use for this Codebase when displaying a build. We use the first eight characters of the SHA-1 hash for GitHub.com.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The full SHA-1 hash of a Git commit, if available.
-    #[serde(default)]
-    pub hash: ::core::option::Option<String>,
-    /// Output only. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) used for this build, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink}
-    #[serde(default)]
-    pub repository: ::core::option::Option<String>,
-    /// Output only. A URI linking to the codebase on an hosting provider''s website. May not be valid if the commit has been rebased or force-pushed out of existence in the linked repository.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Additional configuration of the backend for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Config {
-    /// Output only. [OUTPUT_ONLY] This field represents all environment variables employed during both the build and runtime. This list reflects the result of merging variables from all sources (Backend.override_env, Build.Config.env, YAML, defaults, system). Each variable includes its origin
-    #[serde(default, rename = "effectiveEnv")]
-    pub effective_env: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
-    /// Optional. Supplied environment variables for a specific build. Provided at Build creation time and immutable afterwards. This field is only applicable for Builds using a build image - (e.g., ContainerSource or ArchiveSource with locally_built_source) Attempts to set this for other build types will result in an error
-    #[serde(default)]
-    pub env: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
-    /// Optional. Additional configuration of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
-    #[serde(default, rename = "runConfig")]
-    pub run_config: ::core::option::Option<RunConfig>,
-}
-
-/// The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContainerSource {
-    /// Required. A URI representing a container for the backend to use.
-    #[serde(default)]
-    pub image: ::core::option::Option<String>,
-}
-
-/// Additional metadata for operations on custom domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomDomainOperationMetadata {
-    /// Output only. The custom domain''s CertState, which must be CERT_ACTIVE for the create operations to complete. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
-    #[serde(default, rename = "certState")]
-    pub cert_state: ::core::option::Option<String>,
-    /// Output only. The custom domain''s HostState, which must be HOST_ACTIVE for Create operations of the domain name this CustomDomain refers toto complete. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
-    #[serde(default, rename = "hostState")]
-    pub host_state: ::core::option::Option<String>,
-    /// Output only. A list of issues that are currently preventing the operation from completing. These are generally DNS-related issues encountered when querying a domain''s records or attempting to mint an SSL certificate.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
-    /// Output only. A list of steps that the user must complete to migrate their domain to App Hosting without downtime.
-    #[serde(default, rename = "liveMigrationSteps")]
-    pub live_migration_steps: ::core::option::Option<::std::vec::Vec<LiveMigrationStep>>,
-    /// Output only. The custom domain''s OwnershipState, which must be OWNERSHIP_ACTIVE for the create operations to complete. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
-    #[serde(default, rename = "ownershipState")]
-    pub ownership_state: ::core::option::Option<String>,
-    /// Output only. A set of DNS record updates to perform, to allow App Hosting to serve secure content on the domain.
-    #[serde(default, rename = "quickSetupUpdates")]
-    pub quick_setup_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
-}
-
-/// The status of a custom domain''s linkage to a backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomDomainStatus {
-    /// Output only. Tracks SSL certificate status for the domain. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
-    #[serde(default, rename = "certState")]
-    pub cert_state: ::core::option::Option<String>,
-    /// Output only. Tracks whether a custom domain is detected as appropriately directing traffic to App Hosting. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
-    #[serde(default, rename = "hostState")]
-    pub host_state: ::core::option::Option<String>,
-    /// Output only. A list of issues with domain configuration. Allows users to self-correct problems with DNS records.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
-    /// Output only. Tracks whether the backend is permitted to serve content on the domain, based off the domain''s DNS records. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
-    #[serde(default, rename = "ownershipState")]
-    pub ownership_state: ::core::option::Option<String>,
-    /// Output only. Lists the records that must added or removed to a custom domain''s DNS in order to finish setup and start serving content. Field is present during onboarding. Also present after onboarding if one or more of the above states is not *_ACTIVE, indicating the domain''s DNS records are in a bad state.
-    #[serde(default, rename = "requiredDnsUpdates")]
-    pub required_dns_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
-}
-
-/// A representation of a DNS records for a domain. DNS records are resource records that define how systems and services should behave when handling requests for a domain. For example, when you add A records to your domain''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain (such as your App Hosting files).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsRecord {
-    /// Output only. The domain the record pertains to, e.g. foo.bar.com..
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-    /// Output only. The data of the record. The meaning of the value depends on record type: - A and AAAA: IP addresses for the domain. - CNAME: Another domain to check for records. - TXT: Arbitrary text strings associated with the domain. App Hosting uses TXT records to determine which Firebase projects have permission to act on the domain''s behalf. - CAA: The record''s flags, tag, and value, e.g. 0 issue "pki.goog".
-    #[serde(default)]
-    pub rdata: ::core::option::Option<String>,
-    /// Output only. An enum that indicates which state(s) this DNS record applies to. Populated for all records with an ADD or REMOVE required action.
-    #[serde(default, rename = "relevantState")]
-    pub relevant_state: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. An enum that indicates the a required action for this record. Populated when the record is part of a required change in a DnsUpdates discovered or desired record set. // TODO: enum values: ["NONE", "ADD", "REMOVE"]
-    #[serde(default, rename = "requiredAction")]
-    pub required_action: ::core::option::Option<String>,
-    /// Output only. The record''s type, which determines what data the record contains. // TODO: enum values: ["TYPE_UNSPECIFIED", "A", "CNAME", "TXT", "AAAA", "CAA"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A set of DNS records relevant to the setup and maintenance of a custom domain in App Hosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsRecordSet {
-    /// Output only. An error App Hosting services encountered when querying your domain''s DNS records. Note: App Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
-    #[serde(default, rename = "checkError")]
-    pub check_error: ::core::option::Option<Status>,
-    /// Output only. The domain name the record set pertains to.
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-    /// Output only. Records on the domain.
-    #[serde(default)]
-    pub records: ::core::option::Option<::std::vec::Vec<DnsRecord>>,
-}
-
-/// A set of DNS record updates that you should make to allow App Hosting to serve secure content in response to requests against your domain. These updates present the current state of your domain''s and related subdomains'' DNS records when App Hosting last queried them, and the desired set of records that App Hosting needs to see before your custom domain can be fully active.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsUpdates {
-    /// Output only. The last time App Hosting checked your custom domain''s DNS records.
-    #[serde(default, rename = "checkTime")]
-    pub check_time: ::core::option::Option<String>,
-    /// Output only. The set of DNS records App Hosting needs in order to be able to serve secure content on the domain.
-    #[serde(default)]
-    pub desired: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
-    /// Output only. The set of DNS records App Hosting discovered when inspecting a domain.
-    #[serde(default)]
-    pub discovered: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
-    /// Output only. The domain name the DNS updates pertain to.
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-}
-
 /// A domain name that is associated with a backend.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Domain {
@@ -368,170 +372,6 @@ pub struct Domain {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Represents the metadata of a long-running operation on domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DomainOperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Additional metadata for operations on custom domains.
-    #[serde(default, rename = "customDomainOperationMetadata")]
-    pub custom_domain_operation_metadata: ::core::option::Option<CustomDomainOperationMetadata>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Environment variables for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentVariable {
-    /// Optional. Where this variable should be made available. If left unspecified, will be available in both BUILD and BACKEND.
-    #[serde(default)]
-    pub availability: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The high-level origin category of the environment variable. // TODO: enum values: ["ORIGIN_UNSPECIFIED", "BACKEND_OVERRIDES", "BUILD_CONFIG", "APPHOSTING_YAML", "FIREBASE_SYSTEM"]
-    #[serde(default)]
-    pub origin: ::core::option::Option<String>,
-    /// Output only. Specific detail about the source. For APPHOSTING_YAML origins, this will contain the exact filename, such as "apphosting.yaml" or "apphosting.staging.yaml".
-    #[serde(default, rename = "originFileName")]
-    pub origin_file_name: ::core::option::Option<String>,
-    /// A fully qualified secret version. The value of the secret will be accessed once while building the application and once per cold start of the container at runtime. The service account used by Cloud Build and by Cloud Run must each have the secretmanager.versions.access permission on the secret.
-    #[serde(default)]
-    pub secret: ::core::option::Option<String>,
-    /// A plaintext value. This value is encrypted at rest, but all project readers can view the value when reading your backend configuration.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-    /// Required. The name of the environment variable. The environment variables reserved by [Cloud Run](https://docs.cloud.google.com/run/docs/configuring/services/environment-variables#reserved) should not be set. Additionally, variable names cannot start with "X_FIREBASE_".
-    #[serde(default)]
-    pub variable: ::core::option::Option<String>,
-}
-
-/// The container for the rpc status and source for any errors found during the build process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Error {
-    /// Output only. Resource link
-    #[serde(default, rename = "cloudResource")]
-    pub cloud_resource: ::core::option::Option<String>,
-    /// Output only. A status and (human readable) error message for the build, if in a FAILED state.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Output only. The source of the error for the build, if in a FAILED state. // TODO: enum values: ["ERROR_SOURCE_UNSPECIFIED", "CLOUD_BUILD", "CLOUD_RUN"]
-    #[serde(default, rename = "errorSource")]
-    pub error_source: ::core::option::Option<String>,
-}
-
-/// Message for response to list backends
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBackendsResponse {
-    /// The list of backends
-    #[serde(default)]
-    pub backends: ::core::option::Option<::std::vec::Vec<Backend>>,
-    /// A token identifying the next page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to list builds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBuildsResponse {
-    /// The list of builds.
-    #[serde(default)]
-    pub builds: ::core::option::Option<::std::vec::Vec<Build>>,
-    /// A token identifying the next page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to list domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDomainsResponse {
-    /// Output only. The list of domains.
-    #[serde(default)]
-    pub domains: ::core::option::Option<::std::vec::Vec<Domain>>,
-    /// Output only. A token identifying the next page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Output only. Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to list rollouts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListRolloutsResponse {
-    /// A token identifying the next page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of rollouts.
-    #[serde(default)]
-    pub rollouts: ::core::option::Option<::std::vec::Vec<Rollout>>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A set of updates including ACME challenges and DNS records that allow App Hosting to create an SSL certificate and establish project ownership for your domain name before you direct traffic to App Hosting servers. Use these updates to facilitate zero downtime migrations to App Hosting from other services. After you''ve made the recommended updates, check your custom domain''s ownershipState and certState. To avoid downtime, they should be OWNERSHIP_ACTIVE and CERT_ACTIVE, respectively, before you update your A and AAAA records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveMigrationStep {
-    /// Output only. DNS updates to facilitate your domain''s zero-downtime migration to App Hosting.
-    #[serde(default, rename = "dnsUpdates")]
-    pub dns_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
-    /// Output only. Issues that prevent the current step from completing.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
-    /// Output only. One or more states from the CustomDomainStatus of the migrating domain that this step is attempting to make ACTIVE. For example, if the step is attempting to mint an SSL certificate, this field will include CERT_STATE.
-    #[serde(default, rename = "relevantDomainStates")]
-    pub relevant_domain_states: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The state of the live migration step, indicates whether you should work to complete the step now, in the future, or have already completed it. // TODO: enum values: ["STEP_STATE_UNSPECIFIED", "PREPARING", "PENDING", "INCOMPLETE", "PROCESSING", "COMPLETE"]
-    #[serde(default, rename = "stepState")]
-    pub step_state: ::core::option::Option<String>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -552,14 +392,6 @@ pub struct Location {
     pub name: ::core::option::Option<String>,
 }
 
-/// An external resource managed by App Hosting on the project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedResource {
-    /// A Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), managed by App Hosting.
-    #[serde(default, rename = "runService")]
-    pub run_service: ::core::option::Option<RunService>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -578,54 +410,6 @@ pub struct Operation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// A file path pattern to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Path {
-    /// Optional. The pattern to match against.
-    #[serde(default)]
-    pub pattern: ::core::option::Option<String>,
-    /// Optional. The type of pattern to match against. // TODO: enum values: ["PATTERN_TYPE_UNSPECIFIED", "RE2", "GLOB", "PREFIX"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Specifies redirect behavior for a domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Redirect {
-    /// Optional. The status code to use in a redirect response. Must be a valid HTTP 3XX status code. Defaults to 302 if not present.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Required. The URI of the redirect''s intended destination. This URI will be prepended to the original request path. URI without a scheme are assumed to be HTTPS.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
 }
 
 /// A single rollout of a build for a backend.
@@ -672,6 +456,14 @@ pub struct Rollout {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// A list of traffic splits that together represent where traffic is being routed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficSet {
+    /// Required. The list of traffic splits.
+    #[serde(default)]
+    pub splits: ::core::option::Option<::std::vec::Vec<TrafficSplit>>,
+}
+
 /// The policy for how automatic builds and rollouts are triggered and rolled out.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RolloutPolicy {
@@ -690,6 +482,165 @@ pub struct RolloutPolicy {
     /// Optional. A list of file paths patterns that trigger a build and rollout if at least one of the changed files in the commit are present in this list. This field is optional; the rollout policy will default to triggering on all paths if not populated. Limited to 100 paths. Example: “required_paths: { pattern: "foo/bar/*” type: GLOB }
     #[serde(default, rename = "requiredPaths")]
     pub required_paths: ::core::option::Option<::std::vec::Vec<Path>>,
+}
+
+/// A set of updates including ACME challenges and DNS records that allow App Hosting to create an SSL certificate and establish project ownership for your domain name before you direct traffic to App Hosting servers. Use these updates to facilitate zero downtime migrations to App Hosting from other services. After you''ve made the recommended updates, check your custom domain''s ownershipState and certState. To avoid downtime, they should be OWNERSHIP_ACTIVE and CERT_ACTIVE, respectively, before you update your A and AAAA records.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiveMigrationStep {
+    /// Output only. DNS updates to facilitate your domain''s zero-downtime migration to App Hosting.
+    #[serde(default, rename = "dnsUpdates")]
+    pub dns_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
+    /// Output only. Issues that prevent the current step from completing.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
+    /// Output only. One or more states from the CustomDomainStatus of the migrating domain that this step is attempting to make ACTIVE. For example, if the step is attempting to mint an SSL certificate, this field will include CERT_STATE.
+    #[serde(default, rename = "relevantDomainStates")]
+    pub relevant_domain_states: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The state of the live migration step, indicates whether you should work to complete the step now, in the future, or have already completed it. // TODO: enum values: ["STEP_STATE_UNSPECIFIED", "PREPARING", "PENDING", "INCOMPLETE", "PROCESSING", "COMPLETE"]
+    #[serde(default, rename = "stepState")]
+    pub step_state: ::core::option::Option<String>,
+}
+
+/// The connection to an external source repository to watch for event-driven updates to the backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Codebase {
+    /// Required. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) connected to this backend, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink} The connection for the gitRepositoryLink must made be using the Firebase App Hosting GitHub App via the Firebase Console.
+    #[serde(default)]
+    pub repository: ::core::option::Option<String>,
+    /// Optional. If repository is provided, the directory relative to the root of the repository to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
+    #[serde(default, rename = "rootDirectory")]
+    pub root_directory: ::core::option::Option<String>,
+}
+
+/// An external resource managed by App Hosting on the project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedResource {
+    /// A Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), managed by App Hosting.
+    #[serde(default, rename = "runService")]
+    pub run_service: ::core::option::Option<RunService>,
+}
+
+/// Additional configuration of the backend for this build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Config {
+    /// Output only. [OUTPUT_ONLY] This field represents all environment variables employed during both the build and runtime. This list reflects the result of merging variables from all sources (Backend.override_env, Build.Config.env, YAML, defaults, system). Each variable includes its origin
+    #[serde(default, rename = "effectiveEnv")]
+    pub effective_env: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
+    /// Optional. Supplied environment variables for a specific build. Provided at Build creation time and immutable afterwards. This field is only applicable for Builds using a build image - (e.g., ContainerSource or ArchiveSource with locally_built_source) Attempts to set this for other build types will result in an error
+    #[serde(default)]
+    pub env: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
+    /// Optional. Additional configuration of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
+    #[serde(default, rename = "runConfig")]
+    pub run_config: ::core::option::Option<RunConfig>,
+}
+
+/// The container for the rpc status and source for any errors found during the build process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Error {
+    /// Output only. Resource link
+    #[serde(default, rename = "cloudResource")]
+    pub cloud_resource: ::core::option::Option<String>,
+    /// Output only. A status and (human readable) error message for the build, if in a FAILED state.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Output only. The source of the error for the build, if in a FAILED state. // TODO: enum values: ["ERROR_SOURCE_UNSPECIFIED", "CLOUD_BUILD", "CLOUD_RUN"]
+    #[serde(default, rename = "errorSource")]
+    pub error_source: ::core::option::Option<String>,
+}
+
+/// The source for the build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuildSource {
+    /// An archive source.
+    #[serde(default)]
+    pub archive: ::core::option::Option<ArchiveSource>,
+    /// A codebase source.
+    #[serde(default)]
+    pub codebase: ::core::option::Option<CodebaseSource>,
+    /// An Artifact Registry container image source.
+    #[serde(default)]
+    pub container: ::core::option::Option<ContainerSource>,
+}
+
+/// The status of a custom domain''s linkage to a backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDomainStatus {
+    /// Output only. Tracks SSL certificate status for the domain. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
+    #[serde(default, rename = "certState")]
+    pub cert_state: ::core::option::Option<String>,
+    /// Output only. Tracks whether a custom domain is detected as appropriately directing traffic to App Hosting. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
+    #[serde(default, rename = "hostState")]
+    pub host_state: ::core::option::Option<String>,
+    /// Output only. A list of issues with domain configuration. Allows users to self-correct problems with DNS records.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<Status>>,
+    /// Output only. Tracks whether the backend is permitted to serve content on the domain, based off the domain''s DNS records. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
+    #[serde(default, rename = "ownershipState")]
+    pub ownership_state: ::core::option::Option<String>,
+    /// Output only. Lists the records that must added or removed to a custom domain''s DNS in order to finish setup and start serving content. Field is present during onboarding. Also present after onboarding if one or more of the above states is not *_ACTIVE, indicating the domain''s DNS records are in a bad state.
+    #[serde(default, rename = "requiredDnsUpdates")]
+    pub required_dns_updates: ::core::option::Option<::std::vec::Vec<DnsUpdates>>,
+}
+
+/// Indicates whether App Hosting will serve content on the domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServingBehavior {
+    /// Optional. Redirect behavior for a domain, if provided.
+    #[serde(default)]
+    pub redirect: ::core::option::Option<Redirect>,
+}
+
+/// The traffic allocation for the backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficSplit {
+    /// Required. The build that traffic is being routed to.
+    #[serde(default)]
+    pub build: ::core::option::Option<String>,
+    /// Required. The percentage of traffic to send to the build. Currently must be 100% or 0%.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
+}
+
+/// A file path pattern to match against.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Path {
+    /// Optional. The pattern to match against.
+    #[serde(default)]
+    pub pattern: ::core::option::Option<String>,
+    /// Optional. The type of pattern to match against. // TODO: enum values: ["PATTERN_TYPE_UNSPECIFIED", "RE2", "GLOB", "PREFIX"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A managed Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunService {
+    /// Optional. The name of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), in the format: projects/{project}/locations/{location}/services/{serviceId}
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Environment variables for this build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentVariable {
+    /// Optional. Where this variable should be made available. If left unspecified, will be available in both BUILD and BACKEND.
+    #[serde(default)]
+    pub availability: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The high-level origin category of the environment variable. // TODO: enum values: ["ORIGIN_UNSPECIFIED", "BACKEND_OVERRIDES", "BUILD_CONFIG", "APPHOSTING_YAML", "FIREBASE_SYSTEM"]
+    #[serde(default)]
+    pub origin: ::core::option::Option<String>,
+    /// Output only. Specific detail about the source. For APPHOSTING_YAML origins, this will contain the exact filename, such as "apphosting.yaml" or "apphosting.staging.yaml".
+    #[serde(default, rename = "originFileName")]
+    pub origin_file_name: ::core::option::Option<String>,
+    /// A fully qualified secret version. The value of the secret will be accessed once while building the application and once per cold start of the container at runtime. The service account used by Cloud Build and by Cloud Run must each have the secretmanager.versions.access permission on the secret.
+    #[serde(default)]
+    pub secret: ::core::option::Option<String>,
+    /// A plaintext value. This value is encrypted at rest, but all project readers can view the value when reading your backend configuration.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+    /// Required. The name of the environment variable. The environment variables reserved by [Cloud Run](https://docs.cloud.google.com/run/docs/configuring/services/environment-variables#reserved) should not be set. Additionally, variable names cannot start with "X_FIREBASE_".
+    #[serde(default)]
+    pub variable: ::core::option::Option<String>,
 }
 
 /// Configuration applied to the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
@@ -712,20 +663,92 @@ pub struct RunConfig {
     pub min_instances: ::core::option::Option<i32>,
 }
 
-/// A managed Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
+/// The URI of an storage archive or a signed URL to use as the build source.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunService {
-    /// Optional. The name of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), in the format: projects/{project}/locations/{location}/services/{serviceId}
+pub struct ArchiveSource {
+    /// Optional. Deprecated: Not used. The author contained in the metadata of a version control change.
     #[serde(default)]
-    pub service: ::core::option::Option<String>,
+    pub author: ::core::option::Option<SourceUserMetadata>,
+    /// Optional. An optional message that describes the uploaded version of the source code.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Signed URL to an archive in a storage bucket.
+    #[serde(default, rename = "externalSignedUri")]
+    pub external_signed_uri: ::core::option::Option<String>,
+    /// Optional. The directory relative to the root of the archive to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
+    #[serde(default, rename = "rootDirectory")]
+    pub root_directory: ::core::option::Option<String>,
+    /// URI to an archive in Cloud Storage. The object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to deploy.
+    #[serde(default, rename = "userStorageUri")]
+    pub user_storage_uri: ::core::option::Option<String>,
 }
 
-/// Indicates whether App Hosting will serve content on the domain.
+/// A codebase source, representing the state of the codebase that the build will be created at.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServingBehavior {
-    /// Optional. Redirect behavior for a domain, if provided.
+pub struct CodebaseSource {
+    /// Output only. The author contained in the metadata of a version control change.
     #[serde(default)]
-    pub redirect: ::core::option::Option<Redirect>,
+    pub author: ::core::option::Option<UserMetadata>,
+    /// The branch in the codebase to build from, using the latest commit.
+    #[serde(default)]
+    pub branch: ::core::option::Option<String>,
+    /// The commit in the codebase to build from.
+    #[serde(default)]
+    pub commit: ::core::option::Option<String>,
+    /// Output only. The message of a codebase change.
+    #[serde(default, rename = "commitMessage")]
+    pub commit_message: ::core::option::Option<String>,
+    /// Output only. The time the change was made.
+    #[serde(default, rename = "commitTime")]
+    pub commit_time: ::core::option::Option<String>,
+    /// Output only. The human-friendly name to use for this Codebase when displaying a build. We use the first eight characters of the SHA-1 hash for GitHub.com.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The full SHA-1 hash of a Git commit, if available.
+    #[serde(default)]
+    pub hash: ::core::option::Option<String>,
+    /// Output only. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) used for this build, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink}
+    #[serde(default)]
+    pub repository: ::core::option::Option<String>,
+    /// Output only. A URI linking to the codebase on an hosting provider''s website. May not be valid if the commit has been rebased or force-pushed out of existence in the linked repository.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContainerSource {
+    /// Required. A URI representing a container for the backend to use.
+    #[serde(default)]
+    pub image: ::core::option::Option<String>,
+}
+
+/// A set of DNS record updates that you should make to allow App Hosting to serve secure content in response to requests against your domain. These updates present the current state of your domain''s and related subdomains'' DNS records when App Hosting last queried them, and the desired set of records that App Hosting needs to see before your custom domain can be fully active.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsUpdates {
+    /// Output only. The last time App Hosting checked your custom domain''s DNS records.
+    #[serde(default, rename = "checkTime")]
+    pub check_time: ::core::option::Option<String>,
+    /// Output only. The set of DNS records App Hosting needs in order to be able to serve secure content on the domain.
+    #[serde(default)]
+    pub desired: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
+    /// Output only. The set of DNS records App Hosting discovered when inspecting a domain.
+    #[serde(default)]
+    pub discovered: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
+    /// Output only. The domain name the DNS updates pertain to.
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+}
+
+/// Specifies redirect behavior for a domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Redirect {
+    /// Optional. The status code to use in a redirect response. Must be a valid HTTP 3XX status code. Defaults to 302 if not present.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Required. The URI of the redirect''s intended destination. This URI will be prepended to the original request path. URI without a scheme are assumed to be HTTPS.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Deprecated: Not used. Metadata for the user who started the build.
@@ -742,6 +765,34 @@ pub struct SourceUserMetadata {
     pub image_uri: ::core::option::Option<String>,
 }
 
+/// Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserMetadata {
+    /// Output only. The ''name'' field in a Git user''s git.config. Required by Git.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The ''email'' field in a Git user''s git.config, if available.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Output only. The URI of an image file associated with the user''s account in an external source control provider, if available.
+    #[serde(default, rename = "imageUri")]
+    pub image_uri: ::core::option::Option<String>,
+}
+
+/// A set of DNS records relevant to the setup and maintenance of a custom domain in App Hosting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsRecordSet {
+    /// Output only. An error App Hosting services encountered when querying your domain''s DNS records. Note: App Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
+    #[serde(default, rename = "checkError")]
+    pub check_error: ::core::option::Option<Status>,
+    /// Output only. The domain name the record set pertains to.
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+    /// Output only. Records on the domain.
+    #[serde(default)]
+    pub records: ::core::option::Option<::std::vec::Vec<DnsRecord>>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -756,73 +807,22 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Controls traffic configuration for the backend.
+/// A representation of a DNS records for a domain. DNS records are resource records that define how systems and services should behave when handling requests for a domain. For example, when you add A records to your domain''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain (such as your App Hosting files).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Traffic {
-    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
+pub struct DnsRecord {
+    /// Output only. The domain the record pertains to, e.g. foo.bar.com..
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+    /// Output only. The data of the record. The meaning of the value depends on record type: - A and AAAA: IP addresses for the domain. - CNAME: Another domain to check for records. - TXT: Arbitrary text strings associated with the domain. App Hosting uses TXT records to determine which Firebase projects have permission to act on the domain''s behalf. - CAA: The record''s flags, tag, and value, e.g. 0 issue "pki.goog".
     #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. Time at which the backend was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Current state of traffic allocation for the backend. When setting target, this field may differ for some time until the desired state is reached.
-    #[serde(default)]
-    pub current: ::core::option::Option<TrafficSet>,
-    /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Unstructured key value map that can be used to organize and categorize objects.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the backend''s traffic. Format: projects/{project}/locations/{locationId}/backends/{backendId}/traffic.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. A field that, if true, indicates that the system is working to make the backend''s current match the requested target list.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// A rollout policy specifies how new builds and automatic deployments are created.
-    #[serde(default, rename = "rolloutPolicy")]
-    pub rollout_policy: ::core::option::Option<RolloutPolicy>,
-    /// Set to manually control the desired traffic for the backend. This will cause current to eventually match this value. The percentages must add up to 100%.
-    #[serde(default)]
-    pub target: ::core::option::Option<TrafficSet>,
-    /// Output only. System-assigned, unique identifier.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Time at which the backend was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A list of traffic splits that together represent where traffic is being routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrafficSet {
-    /// Required. The list of traffic splits.
-    #[serde(default)]
-    pub splits: ::core::option::Option<::std::vec::Vec<TrafficSplit>>,
-}
-
-/// The traffic allocation for the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrafficSplit {
-    /// Required. The build that traffic is being routed to.
-    #[serde(default)]
-    pub build: ::core::option::Option<String>,
-    /// Required. The percentage of traffic to send to the build. Currently must be 100% or 0%.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-}
-
-/// Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserMetadata {
-    /// Output only. The ''name'' field in a Git user''s git.config. Required by Git.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The ''email'' field in a Git user''s git.config, if available.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Output only. The URI of an image file associated with the user''s account in an external source control provider, if available.
-    #[serde(default, rename = "imageUri")]
-    pub image_uri: ::core::option::Option<String>,
+    pub rdata: ::core::option::Option<String>,
+    /// Output only. An enum that indicates which state(s) this DNS record applies to. Populated for all records with an ADD or REMOVE required action.
+    #[serde(default, rename = "relevantState")]
+    pub relevant_state: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. An enum that indicates the a required action for this record. Populated when the record is part of a required change in a DnsUpdates discovered or desired record set. // TODO: enum values: ["NONE", "ADD", "REMOVE"]
+    #[serde(default, rename = "requiredAction")]
+    pub required_action: ::core::option::Option<String>,
+    /// Output only. The record''s type, which determines what data the record contains. // TODO: enum values: ["TYPE_UNSPECIFIED", "A", "CNAME", "TXT", "AAAA", "CAA"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }

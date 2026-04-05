@@ -21,45 +21,6 @@ pub struct ApplyParametersRequest {
     pub node_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyCycle {
-    /// Output only. Duration of the time window, set by service producer.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Time within the day to start the operations.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DenyMaintenancePeriod {
-    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be the same or after the start.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-    /// Time in UTC when the Blackout period starts on start_date and ends on end_date. This can be: * Full time. * All zeros for 00:00:00 UTC
-    #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
-}
-
 /// Request message for GetTags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTagsRequest {
@@ -80,23 +41,6 @@ pub struct GetTagsResponse {
     /// Required. Tag keys/values directly bound to this resource. Each item in the map must be expressed as " : ". For example: "123/environment" : "production", "123/costCenter" : "marketing"
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
-}
-
-/// Maintenance policy per instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudMemcacheV1MaintenancePolicy {
-    /// Output only. The time when the policy was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The time when the policy was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Required. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_windows is expected to be one.
-    #[serde(default, rename = "weeklyMaintenanceWindow")]
-    pub weekly_maintenance_window: ::core::option::Option<::std::vec::Vec<WeeklyMaintenanceWindow>>,
 }
 
 /// Represents the metadata of a long-running operation.
@@ -216,6 +160,169 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
     pub start_time: ::core::option::Option<String>,
 }
 
+/// Contains notification related data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter {
+    /// Optional. Array of string values. e.g. instance''s replica information.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
+    /// Whether an instance is eligible or ineligible.
+    #[serde(default)]
+    pub eligible: ::core::option::Option<bool>,
+    /// User-defined reason for the current value of instance eligibility. Usually, this can be directly mapped to the internal state. An empty reason is allowed.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Response for ListInstances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstancesResponse {
+    /// A list of Memcached instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Defines policies to service maintenance events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenancePolicy {
+    /// Output only. The time when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Resource labels to represent user provided metadata. Each label is a key-value pair, where both the key and the value are arbitrary strings provided by the user.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Required. MaintenancePolicy name using the form: projects/{project_id}/locations/{location_id}/maintenancePolicies/{maintenance_policy_id} where {project_id} refers to a GCP consumer project ID, {location_id} refers to a GCP region/zone, {maintenance_policy_id} must be 1-63 characters long and match the regular expression [a-z0-9]([-a-z0-9]*[a-z0-9])?.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The state of the policy. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Maintenance policy applicable to instance update.
+    #[serde(default, rename = "updatePolicy")]
+    pub update_policy: ::core::option::Option<UpdatePolicy>,
+    /// Output only. The time when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents the metadata of a long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "cancelRequested")]
+    pub cancel_requested: ::core::option::Option<bool>,
+    /// Output only. Time when the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Time when the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusDetail")]
+    pub status_detail: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request for RescheduleMaintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RescheduleMaintenanceRequest {
+    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
+    #[serde(default, rename = "rescheduleType")]
+    pub reschedule_type: ::core::option::Option<String>,
+    /// Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
+    #[serde(default, rename = "scheduleTime")]
+    pub schedule_time: ::core::option::Option<String>,
+}
+
+/// Request message for SetTags.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetTagsRequest {
+    /// Optional. A checksum based on the current bindings which can be passed to prevent race conditions. If not passed, etag check would be skipped.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. The full resource name of the service resource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. A unique identifier for this request. Must be a valid UUID. This request is only idempotent if a request_id is provided.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Required. These bindings will override any bindings previously set and will be effective immediately. Each item in the map must be expressed as " : ". For example: "123/environment" : "production", "123/costCenter" : "marketing"
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for SetTags.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetTagsResponse {
+    /// A checksum based on the current bindings. This field is always set in server responses.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. The full resource name of the service resource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Tag keys/values directly bound to this resource. Each item in the map must be expressed as " : ". For example: "123/environment" : "production", "123/costCenter" : "marketing"
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
+/// Request for UpdateParameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateParametersRequest {
+    /// The parameters to apply to the instance.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<MemcacheParameters>,
+    /// Required. Mask of fields to update.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
@@ -230,29 +337,6 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
     pub maintenance_policies: ::core::option::Option<serde_json::Value>,
 }
 
-/// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
-    /// The location of the node, if different from instance location.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The id of the node. This should be equal to SaasInstanceNode.node_id.
-    #[serde(default, rename = "nodeId")]
-    pub node_id: ::core::option::Option<String>,
-    /// If present, this will override eligibility for the node coming from instance or exclusions for specified SLIs.
-    #[serde(default, rename = "perSliEligibility")]
-    pub per_sli_eligibility:
-        ::core::option::Option<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
-}
-
-/// Contains notification related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter {
-    /// Optional. Array of string values. e.g. instance''s replica information.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Describes provisioned dataplane resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
@@ -262,17 +346,6 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
     /// URL identifying the resource, e.g. "https://www.googleapis.com/compute/v1/projects/...)".
     #[serde(default, rename = "resourceUrl")]
     pub resource_url: ::core::option::Option<String>,
-}
-
-/// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
-    /// Whether an instance is eligible or ineligible.
-    #[serde(default)]
-    pub eligible: ::core::option::Option<bool>,
-    /// User-defined reason for the current value of instance eligibility. Usually, this can be directly mapped to the internal state. An empty reason is allowed.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
 }
 
 /// SloMetadata contains resources required for proper SLO classification of the instance.
@@ -369,56 +442,6 @@ pub struct Instance {
     pub zones: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// InstanceMessage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceMessage {
-    /// A code that correspond to one type of user-facing message. // TODO: enum values: ["CODE_UNSPECIFIED", "ZONE_DISTRIBUTION_UNBALANCED"]
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Message on memcached instance which will be exposed to users.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Response for ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstancesResponse {
-    /// A list of Memcached instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -439,30 +462,81 @@ pub struct Location {
     pub name: ::core::option::Option<String>,
 }
 
-/// Defines policies to service maintenance events.
+/// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenancePolicy {
-    /// Output only. The time when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Resource labels to represent user provided metadata. Each label is a key-value pair, where both the key and the value are arbitrary strings provided by the user.
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Required. MaintenancePolicy name using the form: projects/{project_id}/locations/{location_id}/maintenancePolicies/{maintenance_policy_id} where {project_id} refers to a GCP consumer project ID, {location_id} refers to a GCP region/zone, {maintenance_policy_id} must be 1-63 characters long and match the regular expression [a-z0-9]([-a-z0-9]*[a-z0-9])?.
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Optional. The state of the policy. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "DELETING"]
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Maintenance policy applicable to instance update.
-    #[serde(default, rename = "updatePolicy")]
-    pub update_policy: ::core::option::Option<UpdatePolicy>,
-    /// Output only. The time when the resource was updated.
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Maintenance policy applicable to instance updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdatePolicy {
+    /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
+    #[serde(default)]
+    pub channel: ::core::option::Option<String>,
+    /// Deny Maintenance Period that is applied to resource to indicate when maintenance is forbidden. The protocol supports zero-to-many such periods, but the current SLM Rollout implementation only supports zero-to-one.
+    #[serde(default, rename = "denyMaintenancePeriods")]
+    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
+    /// Optional. Maintenance window that is applied to resources covered by this policy.
+    #[serde(default)]
+    pub window: ::core::option::Option<MaintenanceWindow>,
+}
+
+/// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
+    /// The location of the node, if different from instance location.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The id of the node. This should be equal to SaasInstanceNode.node_id.
+    #[serde(default, rename = "nodeId")]
+    pub node_id: ::core::option::Option<String>,
+    /// If present, this will override eligibility for the node coming from instance or exclusions for specified SLIs.
+    #[serde(default, rename = "perSliEligibility")]
+    pub per_sli_eligibility:
+        ::core::option::Option<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
+}
+
+/// InstanceMessage resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceMessage {
+    /// A code that correspond to one type of user-facing message. // TODO: enum values: ["CODE_UNSPECIFIED", "ZONE_DISTRIBUTION_UNBALANCED"]
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Message on memcached instance which will be exposed to users.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Maintenance policy per instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMemcacheV1MaintenancePolicy {
+    /// Output only. The time when the policy was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The time when the policy was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
+    /// Required. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_windows is expected to be one.
+    #[serde(default, rename = "weeklyMaintenanceWindow")]
+    pub weekly_maintenance_window: ::core::option::Option<::std::vec::Vec<WeeklyMaintenanceWindow>>,
 }
 
 /// Upcoming maintenance schedule.
@@ -477,28 +551,6 @@ pub struct MaintenanceSchedule {
     /// Output only. The start time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
-}
-
-/// MaintenanceWindow definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceWindow {
-    /// Daily cycle.
-    #[serde(default, rename = "dailyCycle")]
-    pub daily_cycle: ::core::option::Option<DailyCycle>,
-    /// Weekly cycle.
-    #[serde(default, rename = "weeklyCycle")]
-    pub weekly_cycle: ::core::option::Option<WeeklyCycle>,
-}
-
-/// MemcacheParameters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemcacheParameters {
-    /// Output only. The unique ID associated with this set of parameters. Users can use this id to determine if the parameters associated with the instance differ from the parameters associated with the nodes. A discrepancy between parameter ids can inform users that they may need to take action to apply parameters on nodes.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// User defined set of parameters to use in the memcached process.
-    #[serde(default)]
-    pub params: ::core::option::Option<serde_json::Value>,
 }
 
 /// Node resource type.
@@ -541,61 +593,101 @@ pub struct NodeConfig {
     pub memory_size_mb: ::core::option::Option<i32>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
+    pub message: ::core::option::Option<String>,
 }
 
-/// Represents the metadata of a long-running operation.
+/// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: ::core::option::Option<bool>,
-    /// Output only. Time when the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Time when the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusDetail")]
-    pub status_detail: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
+pub struct DenyMaintenancePeriod {
+    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be the same or after the start.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+    /// Time in UTC when the Blackout period starts on start_date and ends on end_date. This can be: * Full time. * All zeros for 00:00:00 UTC
     #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
+    pub time: ::core::option::Option<TimeOfDay>,
 }
 
-/// Request for RescheduleMaintenance.
+/// MaintenanceWindow definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RescheduleMaintenanceRequest {
-    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
-    #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: ::core::option::Option<String>,
-    /// Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
-    #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: ::core::option::Option<String>,
+pub struct MaintenanceWindow {
+    /// Daily cycle.
+    #[serde(default, rename = "dailyCycle")]
+    pub daily_cycle: ::core::option::Option<DailyCycle>,
+    /// Weekly cycle.
+    #[serde(default, rename = "weeklyCycle")]
+    pub weekly_cycle: ::core::option::Option<WeeklyCycle>,
+}
+
+/// Time window specified for weekly operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklyMaintenanceWindow {
+    /// Required. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Required. Duration of the time window.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Required. Start time of the window in UTC.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// MemcacheParameters resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemcacheParameters {
+    /// Output only. The unique ID associated with this set of parameters. Users can use this id to determine if the parameters associated with the instance differ from the parameters associated with the nodes. A discrepancy between parameter ids can inform users that they may need to take action to apply parameters on nodes.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// User defined set of parameters to use in the memcached process.
+    #[serde(default)]
+    pub params: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Time window specified for daily operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyCycle {
+    /// Output only. Duration of the time window, set by service producer.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Time within the day to start the operations.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Time window specified for weekly operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklyCycle {
+    /// User can specify multiple windows in a week. Minimum of 1 window.
+    #[serde(default)]
+    pub schedule: ::core::option::Option<::std::vec::Vec<Schedule>>,
 }
 
 /// Configure the schedule.
@@ -610,51 +702,6 @@ pub struct Schedule {
     /// Time within the window to start the operations.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Request message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetTagsRequest {
-    /// Optional. A checksum based on the current bindings which can be passed to prevent race conditions. If not passed, etag check would be skipped.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. The full resource name of the service resource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. A unique identifier for this request. Must be a valid UUID. This request is only idempotent if a request_id is provided.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Required. These bindings will override any bindings previously set and will be effective immediately. Each item in the map must be expressed as " : ". For example: "123/environment" : "production", "123/costCenter" : "marketing"
-    #[serde(default)]
-    pub tags: ::core::option::Option<serde_json::Value>,
-}
-
-/// Response message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetTagsResponse {
-    /// A checksum based on the current bindings. This field is always set in server responses.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. The full resource name of the service resource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Tag keys/values directly bound to this resource. Each item in the map must be expressed as " : ". For example: "123/environment" : "production", "123/costCenter" : "marketing"
-    #[serde(default)]
-    pub tags: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -672,51 +719,4 @@ pub struct TimeOfDay {
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
-}
-
-/// Request for UpdateParameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateParametersRequest {
-    /// The parameters to apply to the instance.
-    #[serde(default)]
-    pub parameters: ::core::option::Option<MemcacheParameters>,
-    /// Required. Mask of fields to update.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Maintenance policy applicable to instance updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdatePolicy {
-    /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-    /// Deny Maintenance Period that is applied to resource to indicate when maintenance is forbidden. The protocol supports zero-to-many such periods, but the current SLM Rollout implementation only supports zero-to-one.
-    #[serde(default, rename = "denyMaintenancePeriods")]
-    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
-    /// Optional. Maintenance window that is applied to resources covered by this policy.
-    #[serde(default)]
-    pub window: ::core::option::Option<MaintenanceWindow>,
-}
-
-/// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WeeklyCycle {
-    /// User can specify multiple windows in a week. Minimum of 1 window.
-    #[serde(default)]
-    pub schedule: ::core::option::Option<::std::vec::Vec<Schedule>>,
-}
-
-/// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WeeklyMaintenanceWindow {
-    /// Required. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Required. Duration of the time window.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Required. Start time of the window in UTC.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
 }

@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An attachment to a note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attachment {
-    /// The MIME types (IANA media types) in which the attachment is available.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource name;
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// The request to add one or more permissions on the note. Currently, only the WRITER role may be specified. If adding a permission fails, then the entire request fails and no changes are made.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreatePermissionsRequest {
@@ -45,47 +34,6 @@ pub struct BatchDeletePermissionsRequest {
     pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// The request to add a single permission on the note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreatePermissionRequest {
-    /// Required. The parent note where this permission will be created. Format: notes/{note}
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Required. The permission to create. One of Permission.email, User.email or Group.email must be supplied.
-    #[serde(default)]
-    pub permission: ::core::option::Option<Permission>,
-}
-
-/// Describes a single Group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Group {
-    /// The group email.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// The list of items for a single list note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListContent {
-    /// The items in the list. The number of items must be less than 1,000.
-    #[serde(default, rename = "listItems")]
-    pub list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
-}
-
-/// A single list item in a note''s list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListItem {
-    /// Whether this item has been checked off or not.
-    #[serde(default)]
-    pub checked: ::core::option::Option<bool>,
-    /// If set, list of list items nested under this list item. Only one level of nesting is allowed.
-    #[serde(default, rename = "childListItems")]
-    pub child_list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
-    /// The text of this item. Length must be less than 1,000 characters.
-    #[serde(default)]
-    pub text: ::core::option::Option<TextContent>,
-}
-
 /// The response when listing a page of notes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListNotesResponse {
@@ -95,6 +43,17 @@ pub struct ListNotesResponse {
     /// A page of notes.
     #[serde(default)]
     pub notes: ::core::option::Option<::std::vec::Vec<Note>>,
+}
+
+/// The request to add a single permission on the note.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatePermissionRequest {
+    /// Required. The parent note where this permission will be created. Format: notes/{note}
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Required. The permission to create. One of Permission.email, User.email or Group.email must be supplied.
+    #[serde(default)]
+    pub permission: ::core::option::Option<Permission>,
 }
 
 /// A single note.
@@ -129,6 +88,28 @@ pub struct Note {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// An attachment to a note.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attachment {
+    /// The MIME types (IANA media types) in which the attachment is available.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource name;
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The content of the note.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Section {
+    /// Used if this section''s content is a list.
+    #[serde(default)]
+    pub list: ::core::option::Option<ListContent>,
+    /// Used if this section''s content is a block of text. The length of the text content must be less than 20,000 characters.
+    #[serde(default)]
+    pub text: ::core::option::Option<TextContent>,
+}
+
 /// A single permission on the note. Associates a member with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Permission {
@@ -155,13 +136,40 @@ pub struct Permission {
     pub user: ::core::option::Option<User>,
 }
 
-/// The content of the note.
+/// The list of items for a single list note.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Section {
-    /// Used if this section''s content is a list.
+pub struct ListContent {
+    /// The items in the list. The number of items must be less than 1,000.
+    #[serde(default, rename = "listItems")]
+    pub list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
+}
+
+/// Describes a single Group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Group {
+    /// The group email.
     #[serde(default)]
-    pub list: ::core::option::Option<ListContent>,
-    /// Used if this section''s content is a block of text. The length of the text content must be less than 20,000 characters.
+    pub email: ::core::option::Option<String>,
+}
+
+/// Describes a single user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    /// The user''s email.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// A single list item in a note''s list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListItem {
+    /// Whether this item has been checked off or not.
+    #[serde(default)]
+    pub checked: ::core::option::Option<bool>,
+    /// If set, list of list items nested under this list item. Only one level of nesting is allowed.
+    #[serde(default, rename = "childListItems")]
+    pub child_list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
+    /// The text of this item. Length must be less than 1,000 characters.
     #[serde(default)]
     pub text: ::core::option::Option<TextContent>,
 }
@@ -172,12 +180,4 @@ pub struct TextContent {
     /// The text of the note. The limits on this vary with the specific field using this type.
     #[serde(default)]
     pub text: ::core::option::Option<String>,
-}
-
-/// Describes a single user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    /// The user''s email.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
 }

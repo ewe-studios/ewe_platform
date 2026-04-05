@@ -10,41 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// JSON template for address of a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Address {
-    /// A customer''s physical address. An address can be composed of one to three lines. The addressline2 and addressLine3 are optional.
-    #[serde(default, rename = "addressLine1")]
-    pub address_line1: ::core::option::Option<String>,
-    /// Line 2 of the address.
-    #[serde(default, rename = "addressLine2")]
-    pub address_line2: ::core::option::Option<String>,
-    /// Line 3 of the address.
-    #[serde(default, rename = "addressLine3")]
-    pub address_line3: ::core::option::Option<String>,
-    /// The customer contact''s name. This is required.
-    #[serde(default, rename = "contactName")]
-    pub contact_name: ::core::option::Option<String>,
-    /// For countryCode information, see the ISO 3166 country code elements. Verify that country is approved for resale of Google products. This property is required when creating a new customer.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// Identifies the resource as a customer address. Value: customers#address
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// An example of a locality value is the city of San Francisco.
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// The company or company division name. This is required.
-    #[serde(default, rename = "organizationName")]
-    pub organization_name: ::core::option::Option<String>,
-    /// A postalCode example is a postal zip code such as 94043. This property is required when creating a new customer.
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// An example of a region value is CA for the state of California.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-}
-
 /// JSON template for the ChangePlan rpc request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChangePlanRequest {
@@ -100,25 +65,6 @@ pub struct Customer {
     pub resource_ui_url: ::core::option::Option<String>,
 }
 
-/// JSON template for primary admin in case of TEAM customers
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimaryAdmin {
-    /// The business email of the primary administrator of the customer. The email verification link is sent to this email address at the time of customer creation. Primary administrators have access to the customer''s Admin Console, including the ability to invite and evict users and manage the administrative needs of the customer.
-    #[serde(default, rename = "primaryEmail")]
-    pub primary_email: ::core::option::Option<String>,
-}
-
-/// JSON template for a subscription renewal settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenewalSettings {
-    /// Identifies the resource as a subscription renewal setting. Value: subscriptions#renewalSettings
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Renewal settings for the annual commitment plan. For more detailed information, see renewal options in the administrator help center. When renewing a subscription, the renewalType is a required property.
-    #[serde(default, rename = "renewalType")]
-    pub renewal_type: ::core::option::Option<String>,
-}
-
 /// JSON template for resellernotify getwatchdetails response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResellernotifyGetwatchdetailsResponse {
@@ -138,21 +84,61 @@ pub struct ResellernotifyResource {
     pub topic_name: ::core::option::Option<String>,
 }
 
-/// JSON template for subscription seats.
+/// A subscription manages the relationship of a Google customer''s payment plan with a product''s SKU, user licenses, 30-day free trial status, and renewal options. A primary role of a reseller is to manage the Google customer''s subscriptions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Seats {
-    /// Identifies the resource as a subscription seat setting. Value: subscriptions#seats
+pub struct Subscriptions {
+    /// Identifies the resource as a collection of subscriptions. Value: reseller#subscriptions
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// Read-only field containing the current number of users that are assigned a license for the product defined in skuId. This field''s value is equivalent to the numerical count of users returned by the Enterprise License Manager API method: [listForProductAndSku](https://developers.google.com/workspace/admin/licensing/v1/reference/licenseAssignments/listForProductAndSku).
-    #[serde(default, rename = "licensedNumberOfSeats")]
-    pub licensed_number_of_seats: ::core::option::Option<i32>,
-    /// This is a required property and is exclusive to subscriptions with FLEXIBLE or TRIAL plans. This property sets the maximum number of licensed users allowed on a subscription. This quantity can be increased up to the maximum limit defined in the reseller''s contract. The minimum quantity is the current number of users in the customer account. *Note: *G Suite subscriptions automatically assign a license to every user.
-    #[serde(default, rename = "maximumNumberOfSeats")]
-    pub maximum_number_of_seats: ::core::option::Option<i32>,
-    /// This is a required property and is exclusive to subscriptions with ANNUAL_MONTHLY_PAY and ANNUAL_YEARLY_PAY plans. This property sets the maximum number of licenses assignable to users on a subscription. The reseller can add more licenses, but once set, the numberOfSeats cannot be reduced until renewal. The reseller is invoiced based on the numberOfSeats value regardless of how many of these user licenses are assigned. *Note: *Google Workspace subscriptions automatically assign a license to every user.
-    #[serde(default, rename = "numberOfSeats")]
-    pub number_of_seats: ::core::option::Option<i32>,
+    /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The subscriptions in this page of results.
+    #[serde(default)]
+    pub subscriptions: ::core::option::Option<::std::vec::Vec<Subscription>>,
+}
+
+/// JSON template for address of a customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Address {
+    /// A customer''s physical address. An address can be composed of one to three lines. The addressline2 and addressLine3 are optional.
+    #[serde(default, rename = "addressLine1")]
+    pub address_line1: ::core::option::Option<String>,
+    /// Line 2 of the address.
+    #[serde(default, rename = "addressLine2")]
+    pub address_line2: ::core::option::Option<String>,
+    /// Line 3 of the address.
+    #[serde(default, rename = "addressLine3")]
+    pub address_line3: ::core::option::Option<String>,
+    /// The customer contact''s name. This is required.
+    #[serde(default, rename = "contactName")]
+    pub contact_name: ::core::option::Option<String>,
+    /// For countryCode information, see the ISO 3166 country code elements. Verify that country is approved for resale of Google products. This property is required when creating a new customer.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// Identifies the resource as a customer address. Value: customers#address
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// An example of a locality value is the city of San Francisco.
+    #[serde(default)]
+    pub locality: ::core::option::Option<String>,
+    /// The company or company division name. This is required.
+    #[serde(default, rename = "organizationName")]
+    pub organization_name: ::core::option::Option<String>,
+    /// A postalCode example is a postal zip code such as 94043. This property is required when creating a new customer.
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// An example of a region value is CA for the state of California.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+}
+
+/// JSON template for primary admin in case of TEAM customers
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrimaryAdmin {
+    /// The business email of the primary administrator of the customer. The email verification link is sent to this email address at the time of customer creation. Primary administrators have access to the customer''s Admin Console, including the ability to invite and evict users and manage the administrative needs of the customer.
+    #[serde(default, rename = "primaryEmail")]
+    pub primary_email: ::core::option::Option<String>,
 }
 
 /// JSON template for a subscription.
@@ -214,16 +200,30 @@ pub struct Subscription {
     pub trial_settings: ::core::option::Option<serde_json::Value>,
 }
 
-/// A subscription manages the relationship of a Google customer''s payment plan with a product''s SKU, user licenses, 30-day free trial status, and renewal options. A primary role of a reseller is to manage the Google customer''s subscriptions.
+/// JSON template for a subscription renewal settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscriptions {
-    /// Identifies the resource as a collection of subscriptions. Value: reseller#subscriptions
+pub struct RenewalSettings {
+    /// Identifies the resource as a subscription renewal setting. Value: subscriptions#renewalSettings
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The subscriptions in this page of results.
+    /// Renewal settings for the annual commitment plan. For more detailed information, see renewal options in the administrator help center. When renewing a subscription, the renewalType is a required property.
+    #[serde(default, rename = "renewalType")]
+    pub renewal_type: ::core::option::Option<String>,
+}
+
+/// JSON template for subscription seats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Seats {
+    /// Identifies the resource as a subscription seat setting. Value: subscriptions#seats
     #[serde(default)]
-    pub subscriptions: ::core::option::Option<::std::vec::Vec<Subscription>>,
+    pub kind: ::core::option::Option<String>,
+    /// Read-only field containing the current number of users that are assigned a license for the product defined in skuId. This field''s value is equivalent to the numerical count of users returned by the Enterprise License Manager API method: [listForProductAndSku](https://developers.google.com/workspace/admin/licensing/v1/reference/licenseAssignments/listForProductAndSku).
+    #[serde(default, rename = "licensedNumberOfSeats")]
+    pub licensed_number_of_seats: ::core::option::Option<i32>,
+    /// This is a required property and is exclusive to subscriptions with FLEXIBLE or TRIAL plans. This property sets the maximum number of licensed users allowed on a subscription. This quantity can be increased up to the maximum limit defined in the reseller''s contract. The minimum quantity is the current number of users in the customer account. *Note: *G Suite subscriptions automatically assign a license to every user.
+    #[serde(default, rename = "maximumNumberOfSeats")]
+    pub maximum_number_of_seats: ::core::option::Option<i32>,
+    /// This is a required property and is exclusive to subscriptions with ANNUAL_MONTHLY_PAY and ANNUAL_YEARLY_PAY plans. This property sets the maximum number of licenses assignable to users on a subscription. The reseller can add more licenses, but once set, the numberOfSeats cannot be reduced until renewal. The reseller is invoiced based on the numberOfSeats value regardless of how many of these user licenses are assigned. *Note: *Google Workspace subscriptions automatically assign a license to every user.
+    #[serde(default, rename = "numberOfSeats")]
+    pub number_of_seats: ::core::option::Option<i32>,
 }

@@ -10,223 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An admission rule specifies either that all container images used in a pod creation request must be attested to by one or more attestors, that all pod creations will be allowed, or that all pod creations will be denied. Images matching an admission allowlist pattern are exempted from admission rules and will never block a pod creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdmissionRule {
-    /// Required. The action when a pod creation is denied by the admission rule. // TODO: enum values: ["ENFORCEMENT_MODE_UNSPECIFIED", "ENFORCED_BLOCK_AND_AUDIT_LOG", "DRYRUN_AUDIT_LOG_ONLY"]
-    #[serde(default, rename = "enforcementMode")]
-    pub enforcement_mode: ::core::option::Option<String>,
-    /// Required. How this admission rule will be evaluated. // TODO: enum values: ["EVALUATION_MODE_UNSPECIFIED", "ALWAYS_ALLOW", "REQUIRE_ATTESTATION", "ALWAYS_DENY"]
-    #[serde(default, rename = "evaluationMode")]
-    pub evaluation_mode: ::core::option::Option<String>,
-    /// Optional. The resource names of the attestors that must attest to a container image, in the format projects/*/attestors/*. Each attestor must exist before a policy can reference it. To add an attestor to a policy the principal issuing the policy change request must be able to read the attestor resource. Note: this field must be non-empty when the evaluation_mode field specifies REQUIRE_ATTESTATION, otherwise it must be empty.
-    #[serde(default, rename = "requireAttestationsBy")]
-    pub require_attestations_by: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An admission allowlist pattern exempts images from checks by admission rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdmissionWhitelistPattern {
-    /// An image name pattern to allowlist, in the form registry/path/to/image. This supports a trailing * wildcard, but this is allowed only in text after the registry/ part. This also supports a trailing ** wildcard which matches subdirectories of a given entry.
-    #[serde(default, rename = "namePattern")]
-    pub name_pattern: ::core::option::Option<String>,
-}
-
-/// Result of evaluating an image name allowlist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AllowlistResult {
-    /// The allowlist pattern that the image matched.
-    #[serde(default, rename = "matchedPattern")]
-    pub matched_pattern: ::core::option::Option<String>,
-}
-
-/// An attestation authenticator that will be used to verify attestations. Typically this is just a set of public keys. Conceptually, an authenticator can be treated as always returning either "authenticated" or "not authenticated" when presented with a signed attestation (almost always assumed to be a [DSSE](https://github.com/secure-systems-lab/dsse) attestation). The details of how an authenticator makes this decision are specific to the type of ''authenticator'' that this message wraps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttestationAuthenticator {
-    /// Optional. A user-provided name for this AttestationAuthenticator. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. A set of raw PKIX SubjectPublicKeyInfo format public keys. If any public key in the set validates the attestation signature, then the signature is considered authenticated (i.e. any one key is sufficient to authenticate).
-    #[serde(default, rename = "pkixPublicKeySet")]
-    pub pkix_public_key_set: ::core::option::Option<PkixPublicKeySet>,
-}
-
-/// Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttestationOccurrence {
-    /// One or more JWTs encoding a self-contained attestation. Each JWT encodes the payload that it verifies within the JWT itself. Verifier implementation SHOULD ignore the serialized_payload field when verifying these JWTs. If only JWTs are present on this AttestationOccurrence, then the serialized_payload SHOULD be left empty. Each JWT SHOULD encode a claim specific to the resource_uri of this Occurrence, but this is not validated by Grafeas metadata API implementations. The JWT itself is opaque to Grafeas.
-    #[serde(default)]
-    pub jwts: ::core::option::Option<::std::vec::Vec<Jwt>>,
-    /// Required. The serialized payload that is verified by one or more signatures.
-    #[serde(default, rename = "serializedPayload")]
-    pub serialized_payload: ::core::option::Option<String>,
-    /// One or more signatures over serialized_payload. Verifier implementations should consider this attestation message verified if at least one signature verifies serialized_payload. See Signature in common.proto for more details on signature structure and verification.
-    #[serde(default)]
-    pub signatures: ::core::option::Option<::std::vec::Vec<Signature>>,
-}
-
-/// Specifies the locations for fetching the provenance attestations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttestationSource {
-    /// The IDs of the Google Cloud projects that store the SLSA attestations as Container Analysis Occurrences, in the format projects/[PROJECT_ID]. Maximum number of container_analysis_attestation_projects allowed in each AttestationSource is 10.
-    #[serde(default, rename = "containerAnalysisAttestationProjects")]
-    pub container_analysis_attestation_projects: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An attestor that attests to container image artifacts. An existing attestor cannot be modified except where indicated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attestor {
-    /// Optional. A descriptive comment. This field may be updated. The field may be displayed in chooser dialogs.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. A checksum, returned by the server, that can be sent on update requests to ensure the attestor has an up-to-date value before attempting to update it. See https://google.aip.dev/154.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. The resource name, in the format: projects/*/attestors/*. This field may not be updated.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Time when the attestor was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// This specifies how an attestation will be read, and how it will be used during policy enforcement.
-    #[serde(default, rename = "userOwnedGrafeasNote")]
-    pub user_owned_grafeas_note: ::core::option::Option<UserOwnedGrafeasNote>,
-}
-
-/// An attestor public key that will be used to verify attestations signed by this attestor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttestorPublicKey {
-    /// ASCII-armored representation of a PGP public key, as the entire output by the command gpg --export --armor foo@example.com (either LF or CRLF line endings). When using this field, id should be left blank. The Binary Authorization API handlers will calculate the ID and fill it in automatically. Binary Authorization computes this ID as the OpenPGP RFC4880 V4 fingerprint, represented as upper-case hex. If id is provided by the caller, it will be overwritten by the API-calculated ID.
-    #[serde(default, rename = "asciiArmoredPgpPublicKey")]
-    pub ascii_armored_pgp_public_key: ::core::option::Option<String>,
-    /// Optional. A descriptive comment. This field may be updated.
-    #[serde(default)]
-    pub comment: ::core::option::Option<String>,
-    /// The ID of this public key. Signatures verified by Binary Authorization must include the ID of the public key that can be used to verify them, and that ID must match the contents of this field exactly. Additional restrictions on this field can be imposed based on which public key type is encapsulated. See the documentation on public_key cases below for details.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A raw PKIX SubjectPublicKeyInfo format public key. NOTE: id may be explicitly provided by the caller when using this type of public key, but it MUST be a valid RFC3986 URI. If id is left blank, a default one will be computed based on the digest of the DER encoding of the public key.
-    #[serde(default, rename = "pkixPublicKey")]
-    pub pkix_public_key: ::core::option::Option<PkixPublicKey>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// A single check to perform against a Pod. Checks are grouped into CheckSet objects, which are defined by the top-level policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Check {
-    /// Optional. A special-case check that always denies. Note that this still only applies when the scope of the CheckSet applies and the image isn''t exempted by an image allowlist. This check is primarily useful for testing, or to set the default behavior for all unmatched scopes to "deny".
-    #[serde(default, rename = "alwaysDeny")]
-    pub always_deny: ::core::option::Option<bool>,
-    /// Optional. A user-provided name for this check. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Images exempted from this check. If any of the patterns match the image url, the check will not be evaluated.
-    #[serde(default, rename = "imageAllowlist")]
-    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
-    /// Optional. Require that an image is no older than a configured expiration time. Image age is determined by its upload time.
-    #[serde(default, rename = "imageFreshnessCheck")]
-    pub image_freshness_check: ::core::option::Option<ImageFreshnessCheck>,
-    /// Optional. Require that an image was signed by Cosign with a trusted key. This check requires that both the image and signature are stored in Artifact Registry.
-    #[serde(default, rename = "sigstoreSignatureCheck")]
-    pub sigstore_signature_check: ::core::option::Option<SigstoreSignatureCheck>,
-    /// Optional. Require a SimpleSigning-type attestation for every image in the deployment.
-    #[serde(default, rename = "simpleSigningAttestationCheck")]
-    pub simple_signing_attestation_check: ::core::option::Option<SimpleSigningAttestationCheck>,
-    /// Optional. Require that an image was built by a trusted builder (such as Google Cloud Build), meets requirements for Supply chain Levels for Software Artifacts (SLSA), and was built from a trusted source code repostitory.
-    #[serde(default, rename = "slsaCheck")]
-    pub slsa_check: ::core::option::Option<SlsaCheck>,
-    /// Optional. Require that an image lives in a trusted directory.
-    #[serde(default, rename = "trustedDirectoryCheck")]
-    pub trusted_directory_check: ::core::option::Option<TrustedDirectoryCheck>,
-    /// Optional. Require that an image does not contain vulnerabilities that violate the configured rules, such as based on severity levels.
-    #[serde(default, rename = "vulnerabilityCheck")]
-    pub vulnerability_check: ::core::option::Option<VulnerabilityCheck>,
-}
-
-/// Result of evaluating one check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckResult {
-    /// If the image was exempted by an allow_pattern in the check, contains the pattern that the image name matched.
-    #[serde(default, rename = "allowlistResult")]
-    pub allowlist_result: ::core::option::Option<AllowlistResult>,
-    /// The name of the check.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// If a check was evaluated, contains the result of the check.
-    #[serde(default, rename = "evaluationResult")]
-    pub evaluation_result: ::core::option::Option<EvaluationResult>,
-    /// Explanation of this check result.
-    #[serde(default)]
-    pub explanation: ::core::option::Option<String>,
-    /// The index of the check.
-    #[serde(default)]
-    pub index: ::core::option::Option<String>,
-    /// The type of the check.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Result of evaluating one or more checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckResults {
-    /// Per-check details.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<CheckResult>>,
-}
-
-/// A conjunction of policy checks, scoped to a particular namespace or Kubernetes service account. In order for evaluation of a CheckSet to return "allowed" for a given image in a given Pod, one of the following conditions must be satisfied: * The image is explicitly exempted by an entry in image_allowlist, OR * ALL of the checks evaluate to "allowed".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckSet {
-    /// Optional. The checks to apply. The ultimate result of evaluating the check set will be "allow" if and only if every check in checks evaluates to "allow". If checks is empty, the default behavior is "always allow".
-    #[serde(default)]
-    pub checks: ::core::option::Option<::std::vec::Vec<Check>>,
-    /// Optional. A user-provided name for this CheckSet. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Images exempted from this CheckSet. If any of the patterns match the image being evaluated, no checks in the CheckSet will be evaluated.
-    #[serde(default, rename = "imageAllowlist")]
-    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
-    /// Optional. The scope to which this CheckSet applies. If unset or an empty string (the default), applies to all namespaces and service accounts. See the Scope message documentation for details on scoping rules.
-    #[serde(default)]
-    pub scope: ::core::option::Option<Scope>,
-}
-
-/// Result of evaluating one check set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CheckSetResult {
-    /// If the image was exempted by an allow_pattern in the check set, contains the pattern that the image name matched.
-    #[serde(default, rename = "allowlistResult")]
-    pub allowlist_result: ::core::option::Option<AllowlistResult>,
-    /// If checks were evaluated, contains the results of evaluating each check.
-    #[serde(default, rename = "checkResults")]
-    pub check_results: ::core::option::Option<CheckResults>,
-    /// The name of the check set.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Explanation of this check set result. Only populated if no checks were evaluated.
-    #[serde(default)]
-    pub explanation: ::core::option::Option<String>,
-    /// The index of the check set.
-    #[serde(default)]
-    pub index: ::core::option::Option<String>,
-    /// The scope of the check set.
-    #[serde(default)]
-    pub scope: ::core::option::Option<Scope>,
-}
-
 /// Response message for PlatformPolicyEvaluationService.EvaluateGkePolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvaluateGkePolicyResponse {
@@ -236,100 +19,6 @@ pub struct EvaluateGkePolicyResponse {
     /// The result of evaluating all Pods in the request. // TODO: enum values: ["VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
     #[serde(default)]
     pub verdict: ::core::option::Option<String>,
-}
-
-/// Result of evaluating one check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationResult {
-    /// The result of evaluating this check. // TODO: enum values: ["CHECK_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A Binary Authorization policy for a GKE cluster. This is one type of policy that can occur as a PlatformPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GkePolicy {
-    /// Optional. The CheckSet objects to apply, scoped by namespace or namespace and service account. Exactly one CheckSet will be evaluated for a given Pod (unless the list is empty, in which case the behavior is "always allow"). If multiple CheckSet objects have scopes that match the namespace and service account of the Pod being evaluated, only the CheckSet with the MOST SPECIFIC scope will match. CheckSet objects must be listed in order of decreasing specificity, i.e. if a scope matches a given service account (which must include the namespace), it must come before a CheckSet with a scope matching just that namespace. This property is enforced by server-side validation. The purpose of this restriction is to ensure that if more than one CheckSet matches a given Pod, the CheckSet that will be evaluated will always be the first in the list to match (because if any other matches, it must be less specific). If check_sets is empty, the default behavior is to allow all images. If check_sets is non-empty, the last check_sets entry must always be a CheckSet with no scope set, i.e. a catchall to handle any situation not caught by the preceding CheckSet objects.
-    #[serde(default, rename = "checkSets")]
-    pub check_sets: ::core::option::Option<::std::vec::Vec<CheckSet>>,
-    /// Optional. Images exempted from this policy. If any of the patterns match the image being evaluated, the rest of the policy will not be evaluated.
-    #[serde(default, rename = "imageAllowlist")]
-    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IamPolicy {
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Images that are exempted from normal checks based on name pattern only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageAllowlist {
-    /// Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.
-    #[serde(default, rename = "allowPattern")]
-    pub allow_pattern: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An image freshness check, which rejects images that were uploaded before the set number of days ago to the supported repositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageFreshnessCheck {
-    /// Required. The max number of days that is allowed since the image was uploaded. Must be greater than zero.
-    #[serde(default, rename = "maxUploadAgeDays")]
-    pub max_upload_age_days: ::core::option::Option<i32>,
-}
-
-/// Result of evaluating one image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageResult {
-    /// If the image was exempted by a top-level allow_pattern, contains the allowlist pattern that the image name matched.
-    #[serde(default, rename = "allowlistResult")]
-    pub allowlist_result: ::core::option::Option<AllowlistResult>,
-    /// If a check set was evaluated, contains the result of the check set. Empty if there were no check sets.
-    #[serde(default, rename = "checkSetResult")]
-    pub check_set_result: ::core::option::Option<CheckSetResult>,
-    /// Explanation of this image result. Only populated if no check sets were evaluated.
-    #[serde(default)]
-    pub explanation: ::core::option::Option<String>,
-    /// Image URI from the request.
-    #[serde(default, rename = "imageUri")]
-    pub image_uri: ::core::option::Option<String>,
-    /// The result of evaluating this image. // TODO: enum values: ["IMAGE_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
-/// Jwt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Jwt {
-    /// The compact encoding of a JWS, which is always three base64 encoded strings joined by periods. For details, see: https://tools.ietf.org/html/rfc7515.html#section-3.1
-    #[serde(default, rename = "compactJwt")]
-    pub compact_jwt: ::core::option::Option<String>,
 }
 
 /// Response message for BinauthzManagementServiceV1.ListAttestors.
@@ -352,68 +41,6 @@ pub struct ListPlatformPoliciesResponse {
     /// The list of platform policies.
     #[serde(default, rename = "platformPolicies")]
     pub platform_policies: ::core::option::Option<::std::vec::Vec<PlatformPolicy>>,
-}
-
-/// A public key in the PkixPublicKey [format](https://tools.ietf.org/html/rfc5280#section-4.1.2.7). Public keys of this type are typically textually encoded using the PEM format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PkixPublicKey {
-    /// Optional. The ID of this public key. Signatures verified by Binary Authorization must include the ID of the public key that can be used to verify them. The ID must match exactly contents of the key_id field exactly. The ID may be explicitly provided by the caller, but it MUST be a valid RFC3986 URI. If key_id is left blank and this PkixPublicKey is not used in the context of a wrapper (see next paragraph), a default key ID will be computed based on the digest of the DER encoding of the public key. If this PkixPublicKey is used in the context of a wrapper that has its own notion of key ID (e.g. AttestorPublicKey), then this field can either match that value exactly, or be left blank, in which case it behaves exactly as though it is equal to that wrapper value.
-    #[serde(default, rename = "keyId")]
-    pub key_id: ::core::option::Option<String>,
-    /// A PEM-encoded public key, as described in https://tools.ietf.org/html/rfc7468#section-13
-    #[serde(default, rename = "publicKeyPem")]
-    pub public_key_pem: ::core::option::Option<String>,
-    /// The signature algorithm used to verify a message against a signature using this key. These signature algorithm must match the structure and any object identifiers encoded in public_key_pem (i.e. this algorithm must match that of the public key). // TODO: enum values: ["SIGNATURE_ALGORITHM_UNSPECIFIED", "RSA_PSS_2048_SHA256", "RSA_SIGN_PSS_2048_SHA256", "RSA_PSS_3072_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_PSS_4096_SHA512", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "ECDSA_P256_SHA256", "EC_SIGN_P256_SHA256", "ECDSA_P384_SHA384", "EC_SIGN_P384_SHA384", "ECDSA_P521_SHA512", "EC_SIGN_P521_SHA512"]
-    #[serde(default, rename = "signatureAlgorithm")]
-    pub signature_algorithm: ::core::option::Option<String>,
-}
-
-/// A bundle of PKIX public keys, used to authenticate attestation signatures. Generally, a signature is considered to be authenticated by a PkixPublicKeySet if any of the public keys verify it (i.e. it is an "OR" of the keys).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PkixPublicKeySet {
-    /// Required. pkix_public_keys must have at least one entry.
-    #[serde(default, rename = "pkixPublicKeys")]
-    pub pkix_public_keys: ::core::option::Option<::std::vec::Vec<PkixPublicKey>>,
-}
-
-/// A Binary Authorization platform policy for deployments on various platforms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlatformPolicy {
-    /// Optional. A description comment about the policy.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Used to prevent updating the policy when another request has updated it since it was retrieved.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. GKE platform-specific policy.
-    #[serde(default, rename = "gkePolicy")]
-    pub gke_policy: ::core::option::Option<GkePolicy>,
-    /// Output only. The relative resource name of the Binary Authorization platform policy, in the form of projects/*/platforms/*/policies/*.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Time when the policy was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Result of evaluating the whole GKE policy for one Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PodResult {
-    /// Per-image details.
-    #[serde(default, rename = "imageResults")]
-    pub image_results: ::core::option::Option<::std::vec::Vec<ImageResult>>,
-    /// The Kubernetes namespace of the Pod.
-    #[serde(default, rename = "kubernetesNamespace")]
-    pub kubernetes_namespace: ::core::option::Option<String>,
-    /// The Kubernetes service account of the Pod.
-    #[serde(default, rename = "kubernetesServiceAccount")]
-    pub kubernetes_service_account: ::core::option::Option<String>,
-    /// The name of the Pod.
-    #[serde(default, rename = "podName")]
-    pub pod_name: ::core::option::Option<String>,
-    /// The result of evaluating this Pod. // TODO: enum values: ["POD_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
 }
 
 /// A policy for container image binary authorization.
@@ -455,23 +82,230 @@ pub struct Policy {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// A scope specifier for CheckSet objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Scope {
-    /// Optional. Matches all Kubernetes service accounts in the provided namespace, unless a more specific kubernetes_service_account scope already matched.
-    #[serde(default, rename = "kubernetesNamespace")]
-    pub kubernetes_namespace: ::core::option::Option<String>,
-    /// Optional. Matches a single Kubernetes service account, e.g. my-namespace:my-service-account. kubernetes_service_account scope is always more specific than kubernetes_namespace scope for the same namespace.
-    #[serde(default, rename = "kubernetesServiceAccount")]
-    pub kubernetes_service_account: ::core::option::Option<String>,
-}
-
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
     pub policy: ::core::option::Option<IamPolicy>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Request message for ValidationHelperV1.ValidateAttestationOccurrence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateAttestationOccurrenceRequest {
+    /// Required. An AttestationOccurrence to be checked that it can be verified by the Attestor. It does not have to be an existing entity in Container Analysis. It must otherwise be a valid AttestationOccurrence.
+    #[serde(default)]
+    pub attestation: ::core::option::Option<AttestationOccurrence>,
+    /// Required. The resource name of the Note to which the containing Occurrence is associated.
+    #[serde(default, rename = "occurrenceNote")]
+    pub occurrence_note: ::core::option::Option<String>,
+    /// Required. The URI of the artifact (e.g. container image) that is the subject of the containing Occurrence.
+    #[serde(default, rename = "occurrenceResourceUri")]
+    pub occurrence_resource_uri: ::core::option::Option<String>,
+}
+
+/// Response message for ValidationHelperV1.ValidateAttestationOccurrence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateAttestationOccurrenceResponse {
+    /// The reason for denial if the Attestation couldn''t be validated.
+    #[serde(default, rename = "denialReason")]
+    pub denial_reason: ::core::option::Option<String>,
+    /// The result of the Attestation validation. // TODO: enum values: ["RESULT_UNSPECIFIED", "VERIFIED", "ATTESTATION_NOT_VERIFIABLE"]
+    #[serde(default)]
+    pub result: ::core::option::Option<String>,
+}
+
+/// Result of evaluating the whole GKE policy for one Pod.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PodResult {
+    /// Per-image details.
+    #[serde(default, rename = "imageResults")]
+    pub image_results: ::core::option::Option<::std::vec::Vec<ImageResult>>,
+    /// The Kubernetes namespace of the Pod.
+    #[serde(default, rename = "kubernetesNamespace")]
+    pub kubernetes_namespace: ::core::option::Option<String>,
+    /// The Kubernetes service account of the Pod.
+    #[serde(default, rename = "kubernetesServiceAccount")]
+    pub kubernetes_service_account: ::core::option::Option<String>,
+    /// The name of the Pod.
+    #[serde(default, rename = "podName")]
+    pub pod_name: ::core::option::Option<String>,
+    /// The result of evaluating this Pod. // TODO: enum values: ["POD_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// An attestor that attests to container image artifacts. An existing attestor cannot be modified except where indicated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attestor {
+    /// Optional. A descriptive comment. This field may be updated. The field may be displayed in chooser dialogs.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. A checksum, returned by the server, that can be sent on update requests to ensure the attestor has an up-to-date value before attempting to update it. See https://google.aip.dev/154.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. The resource name, in the format: projects/*/attestors/*. This field may not be updated.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Time when the attestor was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// This specifies how an attestation will be read, and how it will be used during policy enforcement.
+    #[serde(default, rename = "userOwnedGrafeasNote")]
+    pub user_owned_grafeas_note: ::core::option::Option<UserOwnedGrafeasNote>,
+}
+
+/// A Binary Authorization platform policy for deployments on various platforms.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlatformPolicy {
+    /// Optional. A description comment about the policy.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Used to prevent updating the policy when another request has updated it since it was retrieved.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. GKE platform-specific policy.
+    #[serde(default, rename = "gkePolicy")]
+    pub gke_policy: ::core::option::Option<GkePolicy>,
+    /// Output only. The relative resource name of the Binary Authorization platform policy, in the form of projects/*/platforms/*/policies/*.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Time when the policy was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An admission allowlist pattern exempts images from checks by admission rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdmissionWhitelistPattern {
+    /// An image name pattern to allowlist, in the form registry/path/to/image. This supports a trailing * wildcard, but this is allowed only in text after the registry/ part. This also supports a trailing ** wildcard which matches subdirectories of a given entry.
+    #[serde(default, rename = "namePattern")]
+    pub name_pattern: ::core::option::Option<String>,
+}
+
+/// An admission rule specifies either that all container images used in a pod creation request must be attested to by one or more attestors, that all pod creations will be allowed, or that all pod creations will be denied. Images matching an admission allowlist pattern are exempted from admission rules and will never block a pod creation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdmissionRule {
+    /// Required. The action when a pod creation is denied by the admission rule. // TODO: enum values: ["ENFORCEMENT_MODE_UNSPECIFIED", "ENFORCED_BLOCK_AND_AUDIT_LOG", "DRYRUN_AUDIT_LOG_ONLY"]
+    #[serde(default, rename = "enforcementMode")]
+    pub enforcement_mode: ::core::option::Option<String>,
+    /// Required. How this admission rule will be evaluated. // TODO: enum values: ["EVALUATION_MODE_UNSPECIFIED", "ALWAYS_ALLOW", "REQUIRE_ATTESTATION", "ALWAYS_DENY"]
+    #[serde(default, rename = "evaluationMode")]
+    pub evaluation_mode: ::core::option::Option<String>,
+    /// Optional. The resource names of the attestors that must attest to a container image, in the format projects/*/attestors/*. Each attestor must exist before a policy can reference it. To add an attestor to a policy the principal issuing the policy change request must be able to read the attestor resource. Note: this field must be non-empty when the evaluation_mode field specifies REQUIRE_ATTESTATION, otherwise it must be empty.
+    #[serde(default, rename = "requireAttestationsBy")]
+    pub require_attestations_by: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamPolicy {
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttestationOccurrence {
+    /// One or more JWTs encoding a self-contained attestation. Each JWT encodes the payload that it verifies within the JWT itself. Verifier implementation SHOULD ignore the serialized_payload field when verifying these JWTs. If only JWTs are present on this AttestationOccurrence, then the serialized_payload SHOULD be left empty. Each JWT SHOULD encode a claim specific to the resource_uri of this Occurrence, but this is not validated by Grafeas metadata API implementations. The JWT itself is opaque to Grafeas.
+    #[serde(default)]
+    pub jwts: ::core::option::Option<::std::vec::Vec<Jwt>>,
+    /// Required. The serialized payload that is verified by one or more signatures.
+    #[serde(default, rename = "serializedPayload")]
+    pub serialized_payload: ::core::option::Option<String>,
+    /// One or more signatures over serialized_payload. Verifier implementations should consider this attestation message verified if at least one signature verifies serialized_payload. See Signature in common.proto for more details on signature structure and verification.
+    #[serde(default)]
+    pub signatures: ::core::option::Option<::std::vec::Vec<Signature>>,
+}
+
+/// Result of evaluating one image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageResult {
+    /// If the image was exempted by a top-level allow_pattern, contains the allowlist pattern that the image name matched.
+    #[serde(default, rename = "allowlistResult")]
+    pub allowlist_result: ::core::option::Option<AllowlistResult>,
+    /// If a check set was evaluated, contains the result of the check set. Empty if there were no check sets.
+    #[serde(default, rename = "checkSetResult")]
+    pub check_set_result: ::core::option::Option<CheckSetResult>,
+    /// Explanation of this image result. Only populated if no check sets were evaluated.
+    #[serde(default)]
+    pub explanation: ::core::option::Option<String>,
+    /// Image URI from the request.
+    #[serde(default, rename = "imageUri")]
+    pub image_uri: ::core::option::Option<String>,
+    /// The result of evaluating this image. // TODO: enum values: ["IMAGE_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// An user owned Grafeas note references a Grafeas Attestation.Authority Note created by the user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserOwnedGrafeasNote {
+    /// Output only. This field will contain the service account email address that this attestor will use as the principal when querying Container Analysis. Attestor administrators must grant this service account the IAM role needed to read attestations from the note_reference in Container Analysis (containeranalysis.notes.occurrences.viewer). This email address is fixed for the lifetime of the attestor, but callers should not make any other assumptions about the service account email; future versions may use an email based on a different naming pattern.
+    #[serde(default, rename = "delegationServiceAccountEmail")]
+    pub delegation_service_account_email: ::core::option::Option<String>,
+    /// Required. The Grafeas resource name of a Attestation.Authority Note, created by the user, in the format: projects/[PROJECT_ID]/notes/*. This field may not be updated. A project ID must be used, not a project number. An attestation by this attestor is stored as a Grafeas Attestation.Authority Occurrence that names a container image and that links to this Note. Grafeas is an external dependency.
+    #[serde(default, rename = "noteReference")]
+    pub note_reference: ::core::option::Option<String>,
+    /// Optional. Public keys that verify attestations signed by this attestor. This field may be updated. If this field is non-empty, one of the specified public keys must verify that an attestation was signed by this attestor for the image specified in the admission request. If this field is empty, this attestor always returns that no valid attestations exist.
+    #[serde(default, rename = "publicKeys")]
+    pub public_keys: ::core::option::Option<::std::vec::Vec<AttestorPublicKey>>,
+}
+
+/// A Binary Authorization policy for a GKE cluster. This is one type of policy that can occur as a PlatformPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GkePolicy {
+    /// Optional. The CheckSet objects to apply, scoped by namespace or namespace and service account. Exactly one CheckSet will be evaluated for a given Pod (unless the list is empty, in which case the behavior is "always allow"). If multiple CheckSet objects have scopes that match the namespace and service account of the Pod being evaluated, only the CheckSet with the MOST SPECIFIC scope will match. CheckSet objects must be listed in order of decreasing specificity, i.e. if a scope matches a given service account (which must include the namespace), it must come before a CheckSet with a scope matching just that namespace. This property is enforced by server-side validation. The purpose of this restriction is to ensure that if more than one CheckSet matches a given Pod, the CheckSet that will be evaluated will always be the first in the list to match (because if any other matches, it must be less specific). If check_sets is empty, the default behavior is to allow all images. If check_sets is non-empty, the last check_sets entry must always be a CheckSet with no scope set, i.e. a catchall to handle any situation not caught by the preceding CheckSet objects.
+    #[serde(default, rename = "checkSets")]
+    pub check_sets: ::core::option::Option<::std::vec::Vec<CheckSet>>,
+    /// Optional. Images exempted from this policy. If any of the patterns match the image being evaluated, the rest of the policy will not be evaluated.
+    #[serde(default, rename = "imageAllowlist")]
+    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Jwt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Jwt {
+    /// The compact encoding of a JWS, which is always three base64 encoded strings joined by periods. For details, see: https://tools.ietf.org/html/rfc7515.html#section-3.1
+    #[serde(default, rename = "compactJwt")]
+    pub compact_jwt: ::core::option::Option<String>,
 }
 
 /// Verifiers (e.g. Kritis implementations) MUST verify signatures with respect to the trust anchors defined in policy (e.g. a Kritis policy). Typically this means that the verifier has been configured with a map from public_key_id to public key material (and any required parameters, e.g. signing algorithm). In particular, verification implementations MUST NOT treat the signature public_key_id as anything more than a key lookup hint. The public_key_id DOES NOT validate or authenticate a public key; it only provides a mechanism for quickly selecting a public key ALREADY CONFIGURED on the verifier through a trusted channel. Verification implementations MUST reject signatures in any of the following circumstances: * The public_key_id is not recognized by the verifier. * The public key that public_key_id refers to does not verify the signature with respect to the payload. The signature contents SHOULD NOT be "attached" (where the payload is included with the serialized signature bytes). Verifiers MUST ignore any "attached" payload and only verify signatures with respect to explicitly provided payload (e.g. a payload field on the proto message that holds this Signature, or the canonical serialization of the proto message that holds this signature).
@@ -485,31 +319,168 @@ pub struct Signature {
     pub signature: ::core::option::Option<String>,
 }
 
-/// A Sigstore authority, used to verify signatures that are created by Sigstore. An authority is analogous to an attestation authenticator, verifying that a signature is valid or invalid.
+/// Result of evaluating one check set.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SigstoreAuthority {
-    /// Optional. A user-provided name for this SigstoreAuthority. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
+pub struct CheckSetResult {
+    /// If the image was exempted by an allow_pattern in the check set, contains the pattern that the image name matched.
+    #[serde(default, rename = "allowlistResult")]
+    pub allowlist_result: ::core::option::Option<AllowlistResult>,
+    /// If checks were evaluated, contains the results of evaluating each check.
+    #[serde(default, rename = "checkResults")]
+    pub check_results: ::core::option::Option<CheckResults>,
+    /// The name of the check set.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Required. A simple set of public keys. A signature is considered valid if any keys in the set validate the signature.
-    #[serde(default, rename = "publicKeySet")]
-    pub public_key_set: ::core::option::Option<SigstorePublicKeySet>,
+    /// Explanation of this check set result. Only populated if no checks were evaluated.
+    #[serde(default)]
+    pub explanation: ::core::option::Option<String>,
+    /// The index of the check set.
+    #[serde(default)]
+    pub index: ::core::option::Option<String>,
+    /// The scope of the check set.
+    #[serde(default)]
+    pub scope: ::core::option::Option<Scope>,
 }
 
-/// A Sigstore public key. SigstorePublicKey is the public key material used to authenticate Sigstore signatures.
+/// An attestor public key that will be used to verify attestations signed by this attestor.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SigstorePublicKey {
-    /// The public key material in PEM format.
-    #[serde(default, rename = "publicKeyPem")]
-    pub public_key_pem: ::core::option::Option<String>,
+pub struct AttestorPublicKey {
+    /// ASCII-armored representation of a PGP public key, as the entire output by the command gpg --export --armor foo@example.com (either LF or CRLF line endings). When using this field, id should be left blank. The Binary Authorization API handlers will calculate the ID and fill it in automatically. Binary Authorization computes this ID as the OpenPGP RFC4880 V4 fingerprint, represented as upper-case hex. If id is provided by the caller, it will be overwritten by the API-calculated ID.
+    #[serde(default, rename = "asciiArmoredPgpPublicKey")]
+    pub ascii_armored_pgp_public_key: ::core::option::Option<String>,
+    /// Optional. A descriptive comment. This field may be updated.
+    #[serde(default)]
+    pub comment: ::core::option::Option<String>,
+    /// The ID of this public key. Signatures verified by Binary Authorization must include the ID of the public key that can be used to verify them, and that ID must match the contents of this field exactly. Additional restrictions on this field can be imposed based on which public key type is encapsulated. See the documentation on public_key cases below for details.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A raw PKIX SubjectPublicKeyInfo format public key. NOTE: id may be explicitly provided by the caller when using this type of public key, but it MUST be a valid RFC3986 URI. If id is left blank, a default one will be computed based on the digest of the DER encoding of the public key.
+    #[serde(default, rename = "pkixPublicKey")]
+    pub pkix_public_key: ::core::option::Option<PkixPublicKey>,
 }
 
-/// A bundle of Sigstore public keys, used to verify Sigstore signatures. A signature is authenticated by a SigstorePublicKeySet if any of the keys verify it.
+/// A conjunction of policy checks, scoped to a particular namespace or Kubernetes service account. In order for evaluation of a CheckSet to return "allowed" for a given image in a given Pod, one of the following conditions must be satisfied: * The image is explicitly exempted by an entry in image_allowlist, OR * ALL of the checks evaluate to "allowed".
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SigstorePublicKeySet {
-    /// Required. public_keys must have at least one entry.
-    #[serde(default, rename = "publicKeys")]
-    pub public_keys: ::core::option::Option<::std::vec::Vec<SigstorePublicKey>>,
+pub struct CheckSet {
+    /// Optional. The checks to apply. The ultimate result of evaluating the check set will be "allow" if and only if every check in checks evaluates to "allow". If checks is empty, the default behavior is "always allow".
+    #[serde(default)]
+    pub checks: ::core::option::Option<::std::vec::Vec<Check>>,
+    /// Optional. A user-provided name for this CheckSet. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Images exempted from this CheckSet. If any of the patterns match the image being evaluated, no checks in the CheckSet will be evaluated.
+    #[serde(default, rename = "imageAllowlist")]
+    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
+    /// Optional. The scope to which this CheckSet applies. If unset or an empty string (the default), applies to all namespaces and service accounts. See the Scope message documentation for details on scoping rules.
+    #[serde(default)]
+    pub scope: ::core::option::Option<Scope>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Result of evaluating one or more checks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckResults {
+    /// Per-check details.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<CheckResult>>,
+}
+
+/// A single check to perform against a Pod. Checks are grouped into CheckSet objects, which are defined by the top-level policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Check {
+    /// Optional. A special-case check that always denies. Note that this still only applies when the scope of the CheckSet applies and the image isn''t exempted by an image allowlist. This check is primarily useful for testing, or to set the default behavior for all unmatched scopes to "deny".
+    #[serde(default, rename = "alwaysDeny")]
+    pub always_deny: ::core::option::Option<bool>,
+    /// Optional. A user-provided name for this check. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Images exempted from this check. If any of the patterns match the image url, the check will not be evaluated.
+    #[serde(default, rename = "imageAllowlist")]
+    pub image_allowlist: ::core::option::Option<ImageAllowlist>,
+    /// Optional. Require that an image is no older than a configured expiration time. Image age is determined by its upload time.
+    #[serde(default, rename = "imageFreshnessCheck")]
+    pub image_freshness_check: ::core::option::Option<ImageFreshnessCheck>,
+    /// Optional. Require that an image was signed by Cosign with a trusted key. This check requires that both the image and signature are stored in Artifact Registry.
+    #[serde(default, rename = "sigstoreSignatureCheck")]
+    pub sigstore_signature_check: ::core::option::Option<SigstoreSignatureCheck>,
+    /// Optional. Require a SimpleSigning-type attestation for every image in the deployment.
+    #[serde(default, rename = "simpleSigningAttestationCheck")]
+    pub simple_signing_attestation_check: ::core::option::Option<SimpleSigningAttestationCheck>,
+    /// Optional. Require that an image was built by a trusted builder (such as Google Cloud Build), meets requirements for Supply chain Levels for Software Artifacts (SLSA), and was built from a trusted source code repostitory.
+    #[serde(default, rename = "slsaCheck")]
+    pub slsa_check: ::core::option::Option<SlsaCheck>,
+    /// Optional. Require that an image lives in a trusted directory.
+    #[serde(default, rename = "trustedDirectoryCheck")]
+    pub trusted_directory_check: ::core::option::Option<TrustedDirectoryCheck>,
+    /// Optional. Require that an image does not contain vulnerabilities that violate the configured rules, such as based on severity levels.
+    #[serde(default, rename = "vulnerabilityCheck")]
+    pub vulnerability_check: ::core::option::Option<VulnerabilityCheck>,
+}
+
+/// A scope specifier for CheckSet objects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Scope {
+    /// Optional. Matches all Kubernetes service accounts in the provided namespace, unless a more specific kubernetes_service_account scope already matched.
+    #[serde(default, rename = "kubernetesNamespace")]
+    pub kubernetes_namespace: ::core::option::Option<String>,
+    /// Optional. Matches a single Kubernetes service account, e.g. my-namespace:my-service-account. kubernetes_service_account scope is always more specific than kubernetes_namespace scope for the same namespace.
+    #[serde(default, rename = "kubernetesServiceAccount")]
+    pub kubernetes_service_account: ::core::option::Option<String>,
+}
+
+/// Result of evaluating one check.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckResult {
+    /// If the image was exempted by an allow_pattern in the check, contains the pattern that the image name matched.
+    #[serde(default, rename = "allowlistResult")]
+    pub allowlist_result: ::core::option::Option<AllowlistResult>,
+    /// The name of the check.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// If a check was evaluated, contains the result of the check.
+    #[serde(default, rename = "evaluationResult")]
+    pub evaluation_result: ::core::option::Option<EvaluationResult>,
+    /// Explanation of this check result.
+    #[serde(default)]
+    pub explanation: ::core::option::Option<String>,
+    /// The index of the check.
+    #[serde(default)]
+    pub index: ::core::option::Option<String>,
+    /// The type of the check.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Images that are exempted from normal checks based on name pattern only.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageAllowlist {
+    /// Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.
+    #[serde(default, rename = "allowPattern")]
+    pub allow_pattern: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An image freshness check, which rejects images that were uploaded before the set number of days ago to the supported repositories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageFreshnessCheck {
+    /// Required. The max number of days that is allowed since the image was uploaded. Must be greater than zero.
+    #[serde(default, rename = "maxUploadAgeDays")]
+    pub max_upload_age_days: ::core::option::Option<i32>,
 }
 
 /// A Sigstore signature check, which verifies the Sigstore signature associated with an image.
@@ -540,22 +511,6 @@ pub struct SlsaCheck {
     pub rules: ::core::option::Option<::std::vec::Vec<VerificationRule>>,
 }
 
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A trusted directory check, which rejects images that do not come from the set of user-configured trusted directories.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrustedDirectoryCheck {
@@ -564,43 +519,62 @@ pub struct TrustedDirectoryCheck {
     pub trusted_dir_patterns: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// An user owned Grafeas note references a Grafeas Attestation.Authority Note created by the user.
+/// An image vulnerability check, which rejects images that violate the configured vulnerability rules.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserOwnedGrafeasNote {
-    /// Output only. This field will contain the service account email address that this attestor will use as the principal when querying Container Analysis. Attestor administrators must grant this service account the IAM role needed to read attestations from the note_reference in Container Analysis (containeranalysis.notes.occurrences.viewer). This email address is fixed for the lifetime of the attestor, but callers should not make any other assumptions about the service account email; future versions may use an email based on a different naming pattern.
-    #[serde(default, rename = "delegationServiceAccountEmail")]
-    pub delegation_service_account_email: ::core::option::Option<String>,
-    /// Required. The Grafeas resource name of a Attestation.Authority Note, created by the user, in the format: projects/[PROJECT_ID]/notes/*. This field may not be updated. A project ID must be used, not a project number. An attestation by this attestor is stored as a Grafeas Attestation.Authority Occurrence that names a container image and that links to this Note. Grafeas is an external dependency.
-    #[serde(default, rename = "noteReference")]
-    pub note_reference: ::core::option::Option<String>,
-    /// Optional. Public keys that verify attestations signed by this attestor. This field may be updated. If this field is non-empty, one of the specified public keys must verify that an attestation was signed by this attestor for the image specified in the admission request. If this field is empty, this attestor always returns that no valid attestations exist.
-    #[serde(default, rename = "publicKeys")]
-    pub public_keys: ::core::option::Option<::std::vec::Vec<AttestorPublicKey>>,
+pub struct VulnerabilityCheck {
+    /// Optional. A list of specific CVEs to ignore even if the vulnerability level violates maximumUnfixableSeverity or maximumFixableSeverity. CVEs are listed in the format of Container Analysis note id. For example: - CVE-2021-20305 - CVE-2020-10543 The CVEs are applicable regardless of note provider project, e.g., an entry of CVE-2021-20305 will allow vulnerabilities with a note name of either projects/goog-vulnz/notes/CVE-2021-20305 or projects/CUSTOM-PROJECT/notes/CVE-2021-20305.
+    #[serde(default, rename = "allowedCves")]
+    pub allowed_cves: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of specific CVEs to always raise warnings about even if the vulnerability level meets maximumUnfixableSeverity or maximumFixableSeverity. CVEs are listed in the format of Container Analysis note id. For example: - CVE-2021-20305 - CVE-2020-10543 The CVEs are applicable regardless of note provider project, e.g., an entry of CVE-2021-20305 will block vulnerabilities with a note name of either projects/goog-vulnz/notes/CVE-2021-20305 or projects/CUSTOM-PROJECT/notes/CVE-2021-20305.
+    #[serde(default, rename = "blockedCves")]
+    pub blocked_cves: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The projects where vulnerabilities are stored as Container Analysis Occurrences. Each project is expressed in the resource format of projects/[PROJECT_ID], e.g., projects/my-gcp-project. An attempt will be made for each project to fetch vulnerabilities, and all valid vulnerabilities will be used to check against the vulnerability policy. If no valid scan is found in all projects configured here, an error will be returned for the check. Maximum number of container_analysis_vulnerability_projects allowed in each VulnerabilityCheck is 10.
+    #[serde(default, rename = "containerAnalysisVulnerabilityProjects")]
+    pub container_analysis_vulnerability_projects: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The threshold for severity for which a fix is currently available. This field is required and must be set. // TODO: enum values: ["MAXIMUM_ALLOWED_SEVERITY_UNSPECIFIED", "BLOCK_ALL", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL", "ALLOW_ALL"]
+    #[serde(default, rename = "maximumFixableSeverity")]
+    pub maximum_fixable_severity: ::core::option::Option<String>,
+    /// Required. The threshold for severity for which a fix isn''t currently available. This field is required and must be set. // TODO: enum values: ["MAXIMUM_ALLOWED_SEVERITY_UNSPECIFIED", "BLOCK_ALL", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL", "ALLOW_ALL"]
+    #[serde(default, rename = "maximumUnfixableSeverity")]
+    pub maximum_unfixable_severity: ::core::option::Option<String>,
 }
 
-/// Request message for ValidationHelperV1.ValidateAttestationOccurrence.
+/// Result of evaluating an image name allowlist.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateAttestationOccurrenceRequest {
-    /// Required. An AttestationOccurrence to be checked that it can be verified by the Attestor. It does not have to be an existing entity in Container Analysis. It must otherwise be a valid AttestationOccurrence.
-    #[serde(default)]
-    pub attestation: ::core::option::Option<AttestationOccurrence>,
-    /// Required. The resource name of the Note to which the containing Occurrence is associated.
-    #[serde(default, rename = "occurrenceNote")]
-    pub occurrence_note: ::core::option::Option<String>,
-    /// Required. The URI of the artifact (e.g. container image) that is the subject of the containing Occurrence.
-    #[serde(default, rename = "occurrenceResourceUri")]
-    pub occurrence_resource_uri: ::core::option::Option<String>,
+pub struct AllowlistResult {
+    /// The allowlist pattern that the image matched.
+    #[serde(default, rename = "matchedPattern")]
+    pub matched_pattern: ::core::option::Option<String>,
 }
 
-/// Response message for ValidationHelperV1.ValidateAttestationOccurrence.
+/// Result of evaluating one check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateAttestationOccurrenceResponse {
-    /// The reason for denial if the Attestation couldn''t be validated.
-    #[serde(default, rename = "denialReason")]
-    pub denial_reason: ::core::option::Option<String>,
-    /// The result of the Attestation validation. // TODO: enum values: ["RESULT_UNSPECIFIED", "VERIFIED", "ATTESTATION_NOT_VERIFIABLE"]
+pub struct EvaluationResult {
+    /// The result of evaluating this check. // TODO: enum values: ["CHECK_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
     #[serde(default)]
-    pub result: ::core::option::Option<String>,
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// A Sigstore authority, used to verify signatures that are created by Sigstore. An authority is analogous to an attestation authenticator, verifying that a signature is valid or invalid.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SigstoreAuthority {
+    /// Optional. A user-provided name for this SigstoreAuthority. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. A simple set of public keys. A signature is considered valid if any keys in the set validate the signature.
+    #[serde(default, rename = "publicKeySet")]
+    pub public_key_set: ::core::option::Option<SigstorePublicKeySet>,
+}
+
+/// An attestation authenticator that will be used to verify attestations. Typically this is just a set of public keys. Conceptually, an authenticator can be treated as always returning either "authenticated" or "not authenticated" when presented with a signed attestation (almost always assumed to be a [DSSE](https://github.com/secure-systems-lab/dsse) attestation). The details of how an authenticator makes this decision are specific to the type of ''authenticator'' that this message wraps.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttestationAuthenticator {
+    /// Optional. A user-provided name for this AttestationAuthenticator. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. A set of raw PKIX SubjectPublicKeyInfo format public keys. If any public key in the set validates the attestation signature, then the signature is considered authenticated (i.e. any one key is sufficient to authenticate).
+    #[serde(default, rename = "pkixPublicKeySet")]
+    pub pkix_public_key_set: ::core::option::Option<PkixPublicKeySet>,
 }
 
 /// Specifies verification rules for evaluating the SLSA attestations including: which builders to trust, where to fetch the SLSA attestations generated by those builders, and other builder-specific evaluation rules such as which source repositories are trusted. An image is considered verified by the rule if any of the fetched SLSA attestations is verified.
@@ -623,22 +597,48 @@ pub struct VerificationRule {
     pub trusted_source_repo_patterns: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// An image vulnerability check, which rejects images that violate the configured vulnerability rules.
+/// A bundle of Sigstore public keys, used to verify Sigstore signatures. A signature is authenticated by a SigstorePublicKeySet if any of the keys verify it.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VulnerabilityCheck {
-    /// Optional. A list of specific CVEs to ignore even if the vulnerability level violates maximumUnfixableSeverity or maximumFixableSeverity. CVEs are listed in the format of Container Analysis note id. For example: - CVE-2021-20305 - CVE-2020-10543 The CVEs are applicable regardless of note provider project, e.g., an entry of CVE-2021-20305 will allow vulnerabilities with a note name of either projects/goog-vulnz/notes/CVE-2021-20305 or projects/CUSTOM-PROJECT/notes/CVE-2021-20305.
-    #[serde(default, rename = "allowedCves")]
-    pub allowed_cves: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of specific CVEs to always raise warnings about even if the vulnerability level meets maximumUnfixableSeverity or maximumFixableSeverity. CVEs are listed in the format of Container Analysis note id. For example: - CVE-2021-20305 - CVE-2020-10543 The CVEs are applicable regardless of note provider project, e.g., an entry of CVE-2021-20305 will block vulnerabilities with a note name of either projects/goog-vulnz/notes/CVE-2021-20305 or projects/CUSTOM-PROJECT/notes/CVE-2021-20305.
-    #[serde(default, rename = "blockedCves")]
-    pub blocked_cves: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The projects where vulnerabilities are stored as Container Analysis Occurrences. Each project is expressed in the resource format of projects/[PROJECT_ID], e.g., projects/my-gcp-project. An attempt will be made for each project to fetch vulnerabilities, and all valid vulnerabilities will be used to check against the vulnerability policy. If no valid scan is found in all projects configured here, an error will be returned for the check. Maximum number of container_analysis_vulnerability_projects allowed in each VulnerabilityCheck is 10.
-    #[serde(default, rename = "containerAnalysisVulnerabilityProjects")]
-    pub container_analysis_vulnerability_projects: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The threshold for severity for which a fix is currently available. This field is required and must be set. // TODO: enum values: ["MAXIMUM_ALLOWED_SEVERITY_UNSPECIFIED", "BLOCK_ALL", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL", "ALLOW_ALL"]
-    #[serde(default, rename = "maximumFixableSeverity")]
-    pub maximum_fixable_severity: ::core::option::Option<String>,
-    /// Required. The threshold for severity for which a fix isn''t currently available. This field is required and must be set. // TODO: enum values: ["MAXIMUM_ALLOWED_SEVERITY_UNSPECIFIED", "BLOCK_ALL", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL", "ALLOW_ALL"]
-    #[serde(default, rename = "maximumUnfixableSeverity")]
-    pub maximum_unfixable_severity: ::core::option::Option<String>,
+pub struct SigstorePublicKeySet {
+    /// Required. public_keys must have at least one entry.
+    #[serde(default, rename = "publicKeys")]
+    pub public_keys: ::core::option::Option<::std::vec::Vec<SigstorePublicKey>>,
+}
+
+/// A bundle of PKIX public keys, used to authenticate attestation signatures. Generally, a signature is considered to be authenticated by a PkixPublicKeySet if any of the public keys verify it (i.e. it is an "OR" of the keys).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PkixPublicKeySet {
+    /// Required. pkix_public_keys must have at least one entry.
+    #[serde(default, rename = "pkixPublicKeys")]
+    pub pkix_public_keys: ::core::option::Option<::std::vec::Vec<PkixPublicKey>>,
+}
+
+/// Specifies the locations for fetching the provenance attestations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttestationSource {
+    /// The IDs of the Google Cloud projects that store the SLSA attestations as Container Analysis Occurrences, in the format projects/[PROJECT_ID]. Maximum number of container_analysis_attestation_projects allowed in each AttestationSource is 10.
+    #[serde(default, rename = "containerAnalysisAttestationProjects")]
+    pub container_analysis_attestation_projects: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A Sigstore public key. SigstorePublicKey is the public key material used to authenticate Sigstore signatures.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SigstorePublicKey {
+    /// The public key material in PEM format.
+    #[serde(default, rename = "publicKeyPem")]
+    pub public_key_pem: ::core::option::Option<String>,
+}
+
+/// A public key in the PkixPublicKey [format](https://tools.ietf.org/html/rfc5280#section-4.1.2.7). Public keys of this type are typically textually encoded using the PEM format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PkixPublicKey {
+    /// Optional. The ID of this public key. Signatures verified by Binary Authorization must include the ID of the public key that can be used to verify them. The ID must match exactly contents of the key_id field exactly. The ID may be explicitly provided by the caller, but it MUST be a valid RFC3986 URI. If key_id is left blank and this PkixPublicKey is not used in the context of a wrapper (see next paragraph), a default key ID will be computed based on the digest of the DER encoding of the public key. If this PkixPublicKey is used in the context of a wrapper that has its own notion of key ID (e.g. AttestorPublicKey), then this field can either match that value exactly, or be left blank, in which case it behaves exactly as though it is equal to that wrapper value.
+    #[serde(default, rename = "keyId")]
+    pub key_id: ::core::option::Option<String>,
+    /// A PEM-encoded public key, as described in https://tools.ietf.org/html/rfc7468#section-13
+    #[serde(default, rename = "publicKeyPem")]
+    pub public_key_pem: ::core::option::Option<String>,
+    /// The signature algorithm used to verify a message against a signature using this key. These signature algorithm must match the structure and any object identifiers encoded in public_key_pem (i.e. this algorithm must match that of the public key). // TODO: enum values: ["SIGNATURE_ALGORITHM_UNSPECIFIED", "RSA_PSS_2048_SHA256", "RSA_SIGN_PSS_2048_SHA256", "RSA_PSS_3072_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_PSS_4096_SHA512", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "ECDSA_P256_SHA256", "EC_SIGN_P256_SHA256", "ECDSA_P384_SHA384", "EC_SIGN_P384_SHA384", "ECDSA_P521_SHA512", "EC_SIGN_P521_SHA512"]
+    #[serde(default, rename = "signatureAlgorithm")]
+    pub signature_algorithm: ::core::option::Option<String>,
 }

@@ -10,6 +10,17 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response for ListBudgets
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
+    /// List of the budgets owned by the requested billing account.
+    #[serde(default)]
+    pub budgets: ::core::option::Option<::std::vec::Vec<GoogleCloudBillingBudgetsV1Budget>>,
+    /// If not empty, indicates that there may be more budgets that match the request; this value should be passed in a new ListBudgetsRequest.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// A budget is a plan that describes what you expect to spend on Cloud projects, plus the rules to execute as spend is tracked against that plan, (for example, send an alert when 90% of the target spend is met). The budget time period is configurable, with options such as month (default), quarter, year, or custom time period.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBillingBudgetsV1Budget {
@@ -51,17 +62,6 @@ pub struct GoogleCloudBillingBudgetsV1BudgetAmount {
     pub specified_amount: ::core::option::Option<GoogleTypeMoney>,
 }
 
-/// All date times begin at 12 AM US and Canadian Pacific Time (UTC-8).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
-    /// Optional. The end date of the time period. Budgets with elapsed end date won''t be processed. If unset, specifies to track all usage incurred since the start_date.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<GoogleTypeDate>,
-    /// Required. The start date must be after January 1, 2017.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<GoogleTypeDate>,
-}
-
 /// A filter for a budget, limiting the scope of the cost to calculate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBillingBudgetsV1Filter {
@@ -92,17 +92,6 @@ pub struct GoogleCloudBillingBudgetsV1Filter {
     /// Optional. A set of subaccounts of the form billingAccounts/{account_id}, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account is included. If the field is omitted, the report includes usage from the parent account and all subaccounts, if they exist.
     #[serde(default)]
     pub subaccounts: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for ListBudgets
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
-    /// List of the budgets owned by the requested billing account.
-    #[serde(default)]
-    pub budgets: ::core::option::Option<::std::vec::Vec<GoogleCloudBillingBudgetsV1Budget>>,
-    /// If not empty, indicates that there may be more budgets that match the request; this value should be passed in a new ListBudgetsRequest.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// NotificationsRule defines notifications that are sent based on budget spend and thresholds.
@@ -136,20 +125,6 @@ pub struct GoogleCloudBillingBudgetsV1ThresholdRule {
     pub threshold_percent: ::core::option::Option<f64>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
 /// Represents an amount of money with its currency type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleTypeMoney {
@@ -162,4 +137,29 @@ pub struct GoogleTypeMoney {
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
     pub units: ::core::option::Option<String>,
+}
+
+/// All date times begin at 12 AM US and Canadian Pacific Time (UTC-8).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
+    /// Optional. The end date of the time period. Budgets with elapsed end date won''t be processed. If unset, specifies to track all usage incurred since the start_date.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<GoogleTypeDate>,
+    /// Required. The start date must be after January 1, 2017.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<GoogleTypeDate>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

@@ -10,223 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// To express that the result needs to be between two numbers (inclusive).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
-    /// Begins with this number.
-    #[serde(default, rename = "fromValue")]
-    pub from_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
-    /// Ends with this number.
-    #[serde(default, rename = "toValue")]
-    pub to_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
-}
-
-/// A contiguous range of days: startDate, startDate + 1, ..., endDate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessDateRange {
-    /// The inclusive end date for the query in the format YYYY-MM-DD. Cannot be before startDate. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the current time in the request''s time zone.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<String>,
-    /// The inclusive start date for the query in the format YYYY-MM-DD. Cannot be after endDate. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the current time in the request''s time zone.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<String>,
-}
-
-/// Dimensions are attributes of your data. For example, the dimension userEmail indicates the email of the user that accessed reporting data. Dimension values in report responses are strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessDimension {
-    /// The API name of the dimension. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of dimensions supported in this API. Dimensions are referenced by name in dimensionFilter and orderBys.
-    #[serde(default, rename = "dimensionName")]
-    pub dimension_name: ::core::option::Option<String>,
-}
-
-/// Describes a dimension column in the report. Dimensions requested in a report produce column entries within rows and DimensionHeaders. However, dimensions used exclusively within filters or expressions do not produce columns in a report; correspondingly, those dimensions do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessDimensionHeader {
-    /// The dimension''s name; for example ''userEmail''.
-    #[serde(default, rename = "dimensionName")]
-    pub dimension_name: ::core::option::Option<String>,
-}
-
-/// The value of a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessDimensionValue {
-    /// The dimension value. For example, this value may be ''France'' for the ''country'' dimension.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// An expression to filter dimension or metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessFilter {
-    /// A filter for two values.
-    #[serde(default, rename = "betweenFilter")]
-    pub between_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessBetweenFilter>,
-    /// The dimension name or metric name.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<String>,
-    /// A filter for in list values.
-    #[serde(default, rename = "inListFilter")]
-    pub in_list_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessInListFilter>,
-    /// A filter for numeric or date values.
-    #[serde(default, rename = "numericFilter")]
-    pub numeric_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessNumericFilter>,
-    /// Strings related filter.
-    #[serde(default, rename = "stringFilter")]
-    pub string_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessStringFilter>,
-}
-
-/// Expresses dimension or metric filters. The fields in the same expression need to be either all dimensions or all metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessFilterExpression {
-    /// A primitive filter. In the same FilterExpression, all of the filter''s field names need to be either all dimensions or all metrics.
-    #[serde(default, rename = "accessFilter")]
-    pub access_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilter>,
-    /// Each of the FilterExpressions in the and_group has an AND relationship.
-    #[serde(default, rename = "andGroup")]
-    pub and_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
-    /// The FilterExpression is NOT of not_expression.
-    #[serde(default, rename = "notExpression")]
-    pub not_expression: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpression>,
-    /// Each of the FilterExpressions in the or_group has an OR relationship.
-    #[serde(default, rename = "orGroup")]
-    pub or_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
-}
-
-/// A list of filter expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessFilterExpressionList {
-    /// A list of filter expressions.
-    #[serde(default)]
-    pub expressions:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
-}
-
-/// The result needs to be in a list of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessInListFilter {
-    /// If true, the string value is case sensitive.
-    #[serde(default, rename = "caseSensitive")]
-    pub case_sensitive: ::core::option::Option<bool>,
-    /// The list of string values. Must be non-empty.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The quantitative measurements of a report. For example, the metric accessCount is the total number of data access records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessMetric {
-    /// The API name of the metric. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of metrics supported in this API. Metrics are referenced by name in metricFilter & orderBys.
-    #[serde(default, rename = "metricName")]
-    pub metric_name: ::core::option::Option<String>,
-}
-
-/// Describes a metric column in the report. Visible metrics requested in a report produce column entries within rows and MetricHeaders. However, metrics used exclusively within filters or expressions do not produce columns in a report; correspondingly, those metrics do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessMetricHeader {
-    /// The metric''s name; for example ''accessCount''.
-    #[serde(default, rename = "metricName")]
-    pub metric_name: ::core::option::Option<String>,
-}
-
-/// The value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessMetricValue {
-    /// The measurement value. For example, this value may be ''13''.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Filters for numeric or date values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessNumericFilter {
-    /// The operation type for this filter. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EQUAL", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// A numeric value or a date value.
-    #[serde(default)]
-    pub value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
-}
-
-/// Order bys define how rows will be sorted in the response. For example, ordering rows by descending access count is one ordering, and ordering rows by the country string is a different ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessOrderBy {
-    /// If true, sorts by descending order. If false or unspecified, sorts in ascending order.
-    #[serde(default)]
-    pub desc: ::core::option::Option<bool>,
-    /// Sorts results by a dimension''s values.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy>,
-    /// Sorts results by a metric''s values.
-    #[serde(default)]
-    pub metric: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy>,
-}
-
-/// Sorts by dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy {
-    /// A dimension name in the request to order by.
-    #[serde(default, rename = "dimensionName")]
-    pub dimension_name: ::core::option::Option<String>,
-    /// Controls the rule for dimension value ordering. // TODO: enum values: ["ORDER_TYPE_UNSPECIFIED", "ALPHANUMERIC", "CASE_INSENSITIVE_ALPHANUMERIC", "NUMERIC"]
-    #[serde(default, rename = "orderType")]
-    pub order_type: ::core::option::Option<String>,
-}
-
-/// Sorts by metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy {
-    /// A metric name in the request to order by.
-    #[serde(default, rename = "metricName")]
-    pub metric_name: ::core::option::Option<String>,
-}
-
-/// Current state of all quotas for this Analytics property. If any quota for a property is exhausted, all requests to that property will return Resource Exhausted errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessQuota {
-    /// Properties can use up to 50 concurrent requests.
-    #[serde(default, rename = "concurrentRequests")]
-    pub concurrent_requests: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
-    /// Properties and cloud project pairs can have up to 50 server errors per hour.
-    #[serde(default, rename = "serverErrorsPerProjectPerHour")]
-    pub server_errors_per_project_per_hour:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
-    /// Properties can use 250,000 tokens per day. Most requests consume fewer than 10 tokens.
-    #[serde(default, rename = "tokensPerDay")]
-    pub tokens_per_day: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
-    /// Properties can use 50,000 tokens per hour. An API request consumes a single number of tokens, and that number is deducted from all of the hourly, daily, and per project hourly quotas.
-    #[serde(default, rename = "tokensPerHour")]
-    pub tokens_per_hour: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
-    /// Properties can use up to 25% of their tokens per project per hour. This amounts to Analytics 360 Properties can use 12,500 tokens per project per hour. An API request consumes a single number of tokens, and that number is deducted from all of the hourly, daily, and per project hourly quotas.
-    #[serde(default, rename = "tokensPerProjectPerHour")]
-    pub tokens_per_project_per_hour:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
-}
-
-/// Current state for a particular quota group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessQuotaStatus {
-    /// Quota consumed by this request.
-    #[serde(default)]
-    pub consumed: ::core::option::Option<i32>,
-    /// Quota remaining after this request.
-    #[serde(default)]
-    pub remaining: ::core::option::Option<i32>,
-}
-
-/// Access report data for each row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccessRow {
-    /// List of dimension values. These values are in the same order as specified in the request.
-    #[serde(default, rename = "dimensionValues")]
-    pub dimension_values:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessDimensionValue>>,
-    /// List of metric values. These values are in the same order as specified in the request.
-    #[serde(default, rename = "metricValues")]
-    pub metric_values:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessMetricValue>>,
-}
-
 /// The filter for strings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAnalyticsAdminV1betaAccessStringFilter {
@@ -241,234 +24,12 @@ pub struct GoogleAnalyticsAdminV1betaAccessStringFilter {
     pub value: ::core::option::Option<String>,
 }
 
-/// A resource message representing a Google Analytics account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccount {
-    /// Output only. Time when this account was originally created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Indicates whether this Account is soft-deleted or not. Deleted accounts are excluded from List results unless specifically requested.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Required. Human-readable display name for this account.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The URI for a Google Marketing Platform organization resource. Only set when this account is connected to a GMP organization. Format: marketingplatformadmin.googleapis.com/organizations/{org_id}
-    #[serde(default, rename = "gmpOrganization")]
-    pub gmp_organization: ::core::option::Option<String>,
-    /// Identifier. Resource name of this account. Format: accounts/{account} Example: "accounts/100"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Country of business. Must be a Unicode CLDR region code.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// Output only. Time when account payload fields were last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A virtual resource representing an overview of an account and all its child Google Analytics properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaAccountSummary {
-    /// Resource name of account referred to by this account summary Format: accounts/{account_id} Example: "accounts/1000"
-    #[serde(default)]
-    pub account: ::core::option::Option<String>,
-    /// Display name for the account referred to in this account summary.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Resource name for this account summary. Format: accountSummaries/{account_id} Example: "accountSummaries/1000"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of summaries for child accounts of this account.
-    #[serde(default, rename = "propertySummaries")]
-    pub property_summaries:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaPropertySummary>>,
-}
-
 /// Request message for AcknowledgeUserDataCollection RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest {
     /// Required. An acknowledgement that the caller of this method understands the terms of user data collection. This field must contain the exact value: "I acknowledge that I have the necessary privacy disclosures and rights from my end users for the collection and processing of their data, including the association of such data with the visitation information Google Analytics collects from my site and/or app property."
     #[serde(default)]
     pub acknowledgement: ::core::option::Option<String>,
-}
-
-/// A description of a change to a single Google Analytics resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaChangeHistoryChange {
-    /// The type of action that changed this resource. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "CREATED", "UPDATED", "DELETED"]
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Resource name of the resource whose changes are described by this entry.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Resource contents from after the change was made. If this resource was deleted in this change, this field will be missing.
-    #[serde(default, rename = "resourceAfterChange")]
-    pub resource_after_change:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource>,
-    /// Resource contents from before the change was made. If this resource was created in this change, this field will be missing.
-    #[serde(default, rename = "resourceBeforeChange")]
-    pub resource_before_change:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource>,
-}
-
-/// A snapshot of a resource as before or after the result of a change in change history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource {
-    /// A snapshot of an Account resource in change history.
-    #[serde(default)]
-    pub account: ::core::option::Option<GoogleAnalyticsAdminV1betaAccount>,
-    /// A snapshot of a ConversionEvent resource in change history.
-    #[serde(default, rename = "conversionEvent")]
-    pub conversion_event: ::core::option::Option<GoogleAnalyticsAdminV1betaConversionEvent>,
-    /// A snapshot of a data retention settings resource in change history.
-    #[serde(default, rename = "dataRetentionSettings")]
-    pub data_retention_settings:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaDataRetentionSettings>,
-    /// A snapshot of a DataStream resource in change history.
-    #[serde(default, rename = "dataStream")]
-    pub data_stream: ::core::option::Option<GoogleAnalyticsAdminV1betaDataStream>,
-    /// A snapshot of a FirebaseLink resource in change history.
-    #[serde(default, rename = "firebaseLink")]
-    pub firebase_link: ::core::option::Option<GoogleAnalyticsAdminV1betaFirebaseLink>,
-    /// A snapshot of a GoogleAdsLink resource in change history.
-    #[serde(default, rename = "googleAdsLink")]
-    pub google_ads_link: ::core::option::Option<GoogleAnalyticsAdminV1betaGoogleAdsLink>,
-    /// A snapshot of a MeasurementProtocolSecret resource in change history.
-    #[serde(default, rename = "measurementProtocolSecret")]
-    pub measurement_protocol_secret:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>,
-    /// A snapshot of a Property resource in change history.
-    #[serde(default)]
-    pub property: ::core::option::Option<GoogleAnalyticsAdminV1betaProperty>,
-}
-
-/// A set of changes within a Google Analytics account or its child properties that resulted from the same cause. Common causes would be updates made in the Google Analytics UI, changes from customer support, or automatic Google Analytics system changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaChangeHistoryEvent {
-    /// The type of actor that made this change. // TODO: enum values: ["ACTOR_TYPE_UNSPECIFIED", "USER", "SYSTEM", "SUPPORT"]
-    #[serde(default, rename = "actorType")]
-    pub actor_type: ::core::option::Option<String>,
-    /// Time when change was made.
-    #[serde(default, rename = "changeTime")]
-    pub change_time: ::core::option::Option<String>,
-    /// A list of changes made in this change history event that fit the filters specified in SearchChangeHistoryEventsRequest.
-    #[serde(default)]
-    pub changes:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaChangeHistoryChange>>,
-    /// If true, then the list of changes returned was filtered, and does not represent all changes that occurred in this event.
-    #[serde(default, rename = "changesFiltered")]
-    pub changes_filtered: ::core::option::Option<bool>,
-    /// ID of this change history event. This ID is unique across Google Analytics.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Email address of the Google account that made the change. This will be a valid email address if the actor field is set to USER, and empty otherwise. Google accounts that have been deleted will cause an error.
-    #[serde(default, rename = "userActorEmail")]
-    pub user_actor_email: ::core::option::Option<String>,
-}
-
-/// A conversion event in a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaConversionEvent {
-    /// Optional. The method by which conversions will be counted across multiple events within a session. If this value is not provided, it will be set to ONCE_PER_EVENT. // TODO: enum values: ["CONVERSION_COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
-    #[serde(default, rename = "countingMethod")]
-    pub counting_method: ::core::option::Option<String>,
-    /// Output only. Time when this conversion event was created in the property.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. If set to true, this conversion event refers to a custom event. If set to false, this conversion event refers to a default event in GA. Default events typically have special meaning in GA. Default events are usually created for you by the GA system, but in some cases can be created by property admins. Custom events count towards the maximum number of custom conversion events that may be created per property.
-    #[serde(default)]
-    pub custom: ::core::option::Option<bool>,
-    /// Optional. Defines a default value/currency for a conversion event.
-    #[serde(default, rename = "defaultConversionValue")]
-    pub default_conversion_value:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue>,
-    /// Output only. If set, this event can currently be deleted with DeleteConversionEvent.
-    #[serde(default)]
-    pub deletable: ::core::option::Option<bool>,
-    /// Immutable. The event name for this conversion event. Examples: ''click'', ''purchase''
-    #[serde(default, rename = "eventName")]
-    pub event_name: ::core::option::Option<String>,
-    /// Identifier. Resource name of this conversion event. Format: properties/{property}/conversionEvents/{conversion_event}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Defines a default value/currency for a conversion event. Both value and currency must be provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue {
-    /// When a conversion event for this event_name has no set currency, this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// This value will be used to populate the value for all conversions of the specified event_name where the event "value" parameter is unset.
-    #[serde(default)]
-    pub value: ::core::option::Option<f64>,
-}
-
-/// A definition for a CustomDimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaCustomDimension {
-    /// Optional. Description for this custom dimension. Max length of 150 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. If set to true, sets this dimension as NPA and excludes it from ads personalization. This is currently only supported by user-scoped custom dimensions.
-    #[serde(default, rename = "disallowAdsPersonalization")]
-    pub disallow_ads_personalization: ::core::option::Option<bool>,
-    /// Required. Display name for this custom dimension as shown in the Analytics UI. Max length of 82 characters, alphanumeric plus space and underscore starting with a letter. Legacy system-generated display names may contain square brackets, but updates to this field will never permit square brackets.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Resource name for this CustomDimension resource. Format: properties/{property}/customDimensions/{customDimension}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. Tagging parameter name for this custom dimension. If this is a user-scoped dimension, then this is the user property name. If this is an event-scoped dimension, then this is the event parameter name. If this is an item-scoped dimension, then this is the parameter name found in the eCommerce items array. May only contain alphanumeric and underscore characters, starting with a letter. Max length of 24 characters for user-scoped dimensions, 40 characters for event-scoped dimensions.
-    #[serde(default, rename = "parameterName")]
-    pub parameter_name: ::core::option::Option<String>,
-    /// Required. Immutable. The scope of this dimension. // TODO: enum values: ["DIMENSION_SCOPE_UNSPECIFIED", "EVENT", "USER", "ITEM"]
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-}
-
-/// A definition for a custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaCustomMetric {
-    /// Optional. Description for this custom dimension. Max length of 150 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name for this custom metric as shown in the Analytics UI. Max length of 82 characters, alphanumeric plus space and underscore starting with a letter. Legacy system-generated display names may contain square brackets, but updates to this field will never permit square brackets.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. The type for the custom metric''s value. // TODO: enum values: ["MEASUREMENT_UNIT_UNSPECIFIED", "STANDARD", "CURRENCY", "FEET", "METERS", "KILOMETERS", "MILES", "MILLISECONDS", "SECONDS", "MINUTES", "HOURS"]
-    #[serde(default, rename = "measurementUnit")]
-    pub measurement_unit: ::core::option::Option<String>,
-    /// Identifier. Resource name for this CustomMetric resource. Format: properties/{property}/customMetrics/{customMetric}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. Tagging name for this custom metric. If this is an event-scoped metric, then this is the event parameter name. May only contain alphanumeric and underscore charactes, starting with a letter. Max length of 40 characters for event-scoped metrics.
-    #[serde(default, rename = "parameterName")]
-    pub parameter_name: ::core::option::Option<String>,
-    /// Optional. Types of restricted data that this metric may contain. Required for metrics with CURRENCY measurement unit. Must be empty for metrics with a non-CURRENCY measurement unit.
-    #[serde(default, rename = "restrictedMetricType")]
-    pub restricted_metric_type: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Immutable. The scope of this custom metric. // TODO: enum values: ["METRIC_SCOPE_UNSPECIFIED", "EVENT"]
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-}
-
-/// Settings values for data retention. This is a singleton resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaDataRetentionSettings {
-    /// Required. The length of time that event-level data is retained. // TODO: enum values: ["RETENTION_DURATION_UNSPECIFIED", "TWO_MONTHS", "FOURTEEN_MONTHS", "TWENTY_SIX_MONTHS", "THIRTY_EIGHT_MONTHS", "FIFTY_MONTHS"]
-    #[serde(default, rename = "eventDataRetention")]
-    pub event_data_retention: ::core::option::Option<String>,
-    /// Identifier. Resource name for this DataRetentionSetting resource. Format: properties/{property}/dataRetentionSettings
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// If true, reset the retention period for the user identifier with every event from that user.
-    #[serde(default, rename = "resetUserDataOnNewActivity")]
-    pub reset_user_data_on_new_activity: ::core::option::Option<bool>,
-    /// Required. The length of time that user-level data is retained. // TODO: enum values: ["RETENTION_DURATION_UNSPECIFIED", "TWO_MONTHS", "FOURTEEN_MONTHS", "TWENTY_SIX_MONTHS", "THIRTY_EIGHT_MONTHS", "FIFTY_MONTHS"]
-    #[serde(default, rename = "userDataRetention")]
-    pub user_data_retention: ::core::option::Option<String>,
 }
 
 /// A resource message representing data sharing settings of a Google Analytics account.
@@ -492,150 +53,6 @@ pub struct GoogleAnalyticsAdminV1betaDataSharingSettings {
     /// Enable features like predictions, modeled data, and benchmarking that can provide you with richer business insights when you contribute aggregated measurement data. The data you share (including information about the property from which it is shared) is aggregated and de-identified before being used to generate business insights. This field maps to the "Modeling contributions & business insights" field in the Google Analytics Admin UI.
     #[serde(default, rename = "sharingWithOthersEnabled")]
     pub sharing_with_others_enabled: ::core::option::Option<bool>,
-}
-
-/// A resource message representing a data stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaDataStream {
-    /// Data specific to Android app streams. Must be populated if type is ANDROID_APP_DATA_STREAM.
-    #[serde(default, rename = "androidAppStreamData")]
-    pub android_app_stream_data:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData>,
-    /// Output only. Time when this stream was originally created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Human-readable display name for the Data Stream. Required for web data streams. The max allowed display name length is 255 UTF-16 code units.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Data specific to iOS app streams. Must be populated if type is IOS_APP_DATA_STREAM.
-    #[serde(default, rename = "iosAppStreamData")]
-    pub ios_app_stream_data:
-        ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData>,
-    /// Identifier. Resource name of this Data Stream. Format: properties/{property_id}/dataStreams/{stream_id} Example: "properties/1000/dataStreams/2000"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. The type of this DataStream resource. // TODO: enum values: ["DATA_STREAM_TYPE_UNSPECIFIED", "WEB_DATA_STREAM", "ANDROID_APP_DATA_STREAM", "IOS_APP_DATA_STREAM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. Time when stream payload fields were last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Data specific to web streams. Must be populated if type is WEB_DATA_STREAM.
-    #[serde(default, rename = "webStreamData")]
-    pub web_stream_data: ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamWebStreamData>,
-}
-
-/// Data specific to Android app streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData {
-    /// Output only. ID of the corresponding Android app in Firebase, if any. This ID can change if the Android app is deleted and recreated.
-    #[serde(default, rename = "firebaseAppId")]
-    pub firebase_app_id: ::core::option::Option<String>,
-    /// Immutable. The package name for the app being measured. Example: "com.example.myandroidapp"
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Data specific to iOS app streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData {
-    /// Required. Immutable. The Apple App Store Bundle ID for the app Example: "com.example.myiosapp"
-    #[serde(default, rename = "bundleId")]
-    pub bundle_id: ::core::option::Option<String>,
-    /// Output only. ID of the corresponding iOS app in Firebase, if any. This ID can change if the iOS app is deleted and recreated.
-    #[serde(default, rename = "firebaseAppId")]
-    pub firebase_app_id: ::core::option::Option<String>,
-}
-
-/// Data specific to web streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaDataStreamWebStreamData {
-    /// Domain name of the web app being measured, or empty. Example: "http://www.google.com", "https://www.google.com"
-    #[serde(default, rename = "defaultUri")]
-    pub default_uri: ::core::option::Option<String>,
-    /// Output only. ID of the corresponding web app in Firebase, if any. This ID can change if the web app is deleted and recreated.
-    #[serde(default, rename = "firebaseAppId")]
-    pub firebase_app_id: ::core::option::Option<String>,
-    /// Output only. Analytics Measurement ID. Example: "G-1A2BCD345E"
-    #[serde(default, rename = "measurementId")]
-    pub measurement_id: ::core::option::Option<String>,
-}
-
-/// A link between a Google Analytics property and a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaFirebaseLink {
-    /// Output only. Time when this FirebaseLink was originally created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Identifier. Example format: properties/1234/firebaseLinks/5678
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. Firebase project resource name. When creating a FirebaseLink, you may provide this resource name using either a project number or project ID. Once this resource has been created, returned FirebaseLinks will always have a project_name that contains a project number. Format: ''projects/{project number}'' Example: ''projects/1234''
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-}
-
-/// A link between a Google Analytics property and a Google Ads account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaGoogleAdsLink {
-    /// Enable personalized advertising features with this integration. Automatically publish my Google Analytics audience lists and Google Analytics remarketing events/parameters to the linked Google Ads account. If this field is not set on create/update, it will be defaulted to true.
-    #[serde(default, rename = "adsPersonalizationEnabled")]
-    pub ads_personalization_enabled: ::core::option::Option<bool>,
-    /// Output only. If true, this link is for a Google Ads manager account.
-    #[serde(default, rename = "canManageClients")]
-    pub can_manage_clients: ::core::option::Option<bool>,
-    /// Output only. Time when this link was originally created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Email address of the user that created the link. An empty string will be returned if the email address can''t be retrieved.
-    #[serde(default, rename = "creatorEmailAddress")]
-    pub creator_email_address: ::core::option::Option<String>,
-    /// Immutable. Google Ads customer ID.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Identifier. Format: properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note: googleAdsLinkId is not the Google Ads customer ID.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Time when this link was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A key event in a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaKeyEvent {
-    /// Required. The method by which Key Events will be counted across multiple events within a session. // TODO: enum values: ["COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
-    #[serde(default, rename = "countingMethod")]
-    pub counting_method: ::core::option::Option<String>,
-    /// Output only. Time when this key event was created in the property.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. If set to true, this key event refers to a custom event. If set to false, this key event refers to a default event in GA. Default events typically have special meaning in GA. Default events are usually created for you by the GA system, but in some cases can be created by property admins. Custom events count towards the maximum number of custom key events that may be created per property.
-    #[serde(default)]
-    pub custom: ::core::option::Option<bool>,
-    /// Optional. Defines a default value/currency for a key event.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<GoogleAnalyticsAdminV1betaKeyEventDefaultValue>,
-    /// Output only. If set to true, this event can be deleted.
-    #[serde(default)]
-    pub deletable: ::core::option::Option<bool>,
-    /// Immutable. The event name for this key event. Examples: ''click'', ''purchase''
-    #[serde(default, rename = "eventName")]
-    pub event_name: ::core::option::Option<String>,
-    /// Output only. Resource name of this key event. Format: properties/{property}/keyEvents/{key_event}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Defines a default value/currency for a key event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaKeyEventDefaultValue {
-    /// Required. When an occurrence of this Key Event (specified by event_name) has no set currency this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Required. This will be used to populate the "value" parameter for all occurrences of this Key Event (specified by event_name) where that parameter is unset.
-    #[serde(default, rename = "numericValue")]
-    pub numeric_value: ::core::option::Option<f64>,
 }
 
 /// Response message for ListAccountSummaries RPC.
@@ -767,92 +184,6 @@ pub struct GoogleAnalyticsAdminV1betaListPropertiesResponse {
     pub properties: ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaProperty>>,
 }
 
-/// A secret value used for sending hits to Measurement Protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
-    /// Required. Human-readable display name for this secret.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Resource name of this secret. This secret may be a child of any type of stream. Format: properties/{property}/dataStreams/{dataStream}/measurementProtocolSecrets/{measurementProtocolSecret}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The measurement protocol secret value. Pass this value to the api_secret field of the Measurement Protocol API when sending hits to this secret''s parent property.
-    #[serde(default, rename = "secretValue")]
-    pub secret_value: ::core::option::Option<String>,
-}
-
-/// To represent a number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaNumericValue {
-    /// Double value
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// Integer value
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-}
-
-/// A resource message representing a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaProperty {
-    /// Immutable. The resource name of the parent account Format: accounts/{account_id} Example: "accounts/123"
-    #[serde(default)]
-    pub account: ::core::option::Option<String>,
-    /// Output only. Time when the entity was originally created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The currency type used in reports involving monetary values. Format: https://en.wikipedia.org/wiki/ISO_4217 Examples: "USD", "EUR", "JPY"
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Output only. If set, the time at which this property was trashed. If not set, then this property is not currently in the trash can.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Required. Human-readable display name for this property. The max allowed display name length is 100 UTF-16 code units.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. If set, the time at which this trashed property will be permanently deleted. If not set, then this property is not currently in the trash can and is not slated to be deleted.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Industry associated with this property Example: AUTOMOTIVE, FOOD_AND_DRINK // TODO: enum values: ["INDUSTRY_CATEGORY_UNSPECIFIED", "AUTOMOTIVE", "BUSINESS_AND_INDUSTRIAL_MARKETS", "FINANCE", "HEALTHCARE", "TECHNOLOGY", "TRAVEL", "OTHER", "ARTS_AND_ENTERTAINMENT", "BEAUTY_AND_FITNESS", "BOOKS_AND_LITERATURE", "FOOD_AND_DRINK", "GAMES", "HOBBIES_AND_LEISURE", "HOME_AND_GARDEN", "INTERNET_AND_TELECOM", "LAW_AND_GOVERNMENT", "NEWS", "ONLINE_COMMUNITIES", "PEOPLE_AND_SOCIETY", "PETS_AND_ANIMALS", "REAL_ESTATE", "REFERENCE", "SCIENCE", "SPORTS", "JOBS_AND_EDUCATION", "SHOPPING"]
-    #[serde(default, rename = "industryCategory")]
-    pub industry_category: ::core::option::Option<String>,
-    /// Identifier. Resource name of this property. Format: properties/{property_id} Example: "properties/1000"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. Resource name of this property''s logical parent. Note: The Property-Moving UI can be used to change the parent. Format: accounts/{account}, properties/{property} Example: "accounts/100", "properties/101"
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Immutable. The property type for this Property resource. When creating a property, if the type is "PROPERTY_TYPE_UNSPECIFIED", then "ORDINARY_PROPERTY" will be implied. // TODO: enum values: ["PROPERTY_TYPE_UNSPECIFIED", "PROPERTY_TYPE_ORDINARY", "PROPERTY_TYPE_SUBPROPERTY", "PROPERTY_TYPE_ROLLUP"]
-    #[serde(default, rename = "propertyType")]
-    pub property_type: ::core::option::Option<String>,
-    /// Output only. The Google Analytics service level that applies to this property. // TODO: enum values: ["SERVICE_LEVEL_UNSPECIFIED", "GOOGLE_ANALYTICS_STANDARD", "GOOGLE_ANALYTICS_360"]
-    #[serde(default, rename = "serviceLevel")]
-    pub service_level: ::core::option::Option<String>,
-    /// Required. Reporting Time Zone, used as the day boundary for reports, regardless of where the data originates. If the time zone honors DST, Analytics will automatically adjust for the changes. NOTE: Changing the time zone only affects data going forward, and is not applied retroactively. Format: https://www.iana.org/time-zones Example: "America/Los_Angeles"
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-    /// Output only. Time when entity payload fields were last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A virtual resource representing metadata for a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsAdminV1betaPropertySummary {
-    /// Display name for the property referred to in this property summary.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of this property''s logical parent. Note: The Property-Moving UI can be used to change the parent. Format: accounts/{account}, properties/{property} Example: "accounts/100", "properties/200"
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Resource name of property referred to by this property summary Format: properties/{property_id} Example: "properties/1000"
-    #[serde(default)]
-    pub property: ::core::option::Option<String>,
-    /// The property''s property type. // TODO: enum values: ["PROPERTY_TYPE_UNSPECIFIED", "PROPERTY_TYPE_ORDINARY", "PROPERTY_TYPE_SUBPROPERTY", "PROPERTY_TYPE_ROLLUP"]
-    #[serde(default, rename = "propertyType")]
-    pub property_type: ::core::option::Option<String>,
-}
-
 /// Request message for ProvisionAccountTicket RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest {
@@ -976,4 +307,673 @@ pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A virtual resource representing an overview of an account and all its child Google Analytics properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccountSummary {
+    /// Resource name of account referred to by this account summary Format: accounts/{account_id} Example: "accounts/1000"
+    #[serde(default)]
+    pub account: ::core::option::Option<String>,
+    /// Display name for the account referred to in this account summary.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Resource name for this account summary. Format: accountSummaries/{account_id} Example: "accountSummaries/1000"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of summaries for child accounts of this account.
+    #[serde(default, rename = "propertySummaries")]
+    pub property_summaries:
+        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaPropertySummary>>,
+}
+
+/// A definition for a CustomDimension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaCustomDimension {
+    /// Optional. Description for this custom dimension. Max length of 150 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. If set to true, sets this dimension as NPA and excludes it from ads personalization. This is currently only supported by user-scoped custom dimensions.
+    #[serde(default, rename = "disallowAdsPersonalization")]
+    pub disallow_ads_personalization: ::core::option::Option<bool>,
+    /// Required. Display name for this custom dimension as shown in the Analytics UI. Max length of 82 characters, alphanumeric plus space and underscore starting with a letter. Legacy system-generated display names may contain square brackets, but updates to this field will never permit square brackets.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Resource name for this CustomDimension resource. Format: properties/{property}/customDimensions/{customDimension}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. Tagging parameter name for this custom dimension. If this is a user-scoped dimension, then this is the user property name. If this is an event-scoped dimension, then this is the event parameter name. If this is an item-scoped dimension, then this is the parameter name found in the eCommerce items array. May only contain alphanumeric and underscore characters, starting with a letter. Max length of 24 characters for user-scoped dimensions, 40 characters for event-scoped dimensions.
+    #[serde(default, rename = "parameterName")]
+    pub parameter_name: ::core::option::Option<String>,
+    /// Required. Immutable. The scope of this dimension. // TODO: enum values: ["DIMENSION_SCOPE_UNSPECIFIED", "EVENT", "USER", "ITEM"]
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+}
+
+/// A definition for a custom metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaCustomMetric {
+    /// Optional. Description for this custom dimension. Max length of 150 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Display name for this custom metric as shown in the Analytics UI. Max length of 82 characters, alphanumeric plus space and underscore starting with a letter. Legacy system-generated display names may contain square brackets, but updates to this field will never permit square brackets.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. The type for the custom metric''s value. // TODO: enum values: ["MEASUREMENT_UNIT_UNSPECIFIED", "STANDARD", "CURRENCY", "FEET", "METERS", "KILOMETERS", "MILES", "MILLISECONDS", "SECONDS", "MINUTES", "HOURS"]
+    #[serde(default, rename = "measurementUnit")]
+    pub measurement_unit: ::core::option::Option<String>,
+    /// Identifier. Resource name for this CustomMetric resource. Format: properties/{property}/customMetrics/{customMetric}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. Tagging name for this custom metric. If this is an event-scoped metric, then this is the event parameter name. May only contain alphanumeric and underscore charactes, starting with a letter. Max length of 40 characters for event-scoped metrics.
+    #[serde(default, rename = "parameterName")]
+    pub parameter_name: ::core::option::Option<String>,
+    /// Optional. Types of restricted data that this metric may contain. Required for metrics with CURRENCY measurement unit. Must be empty for metrics with a non-CURRENCY measurement unit.
+    #[serde(default, rename = "restrictedMetricType")]
+    pub restricted_metric_type: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Immutable. The scope of this custom metric. // TODO: enum values: ["METRIC_SCOPE_UNSPECIFIED", "EVENT"]
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+}
+
+/// A key event in a Google Analytics property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaKeyEvent {
+    /// Required. The method by which Key Events will be counted across multiple events within a session. // TODO: enum values: ["COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
+    #[serde(default, rename = "countingMethod")]
+    pub counting_method: ::core::option::Option<String>,
+    /// Output only. Time when this key event was created in the property.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. If set to true, this key event refers to a custom event. If set to false, this key event refers to a default event in GA. Default events typically have special meaning in GA. Default events are usually created for you by the GA system, but in some cases can be created by property admins. Custom events count towards the maximum number of custom key events that may be created per property.
+    #[serde(default)]
+    pub custom: ::core::option::Option<bool>,
+    /// Optional. Defines a default value/currency for a key event.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<GoogleAnalyticsAdminV1betaKeyEventDefaultValue>,
+    /// Output only. If set to true, this event can be deleted.
+    #[serde(default)]
+    pub deletable: ::core::option::Option<bool>,
+    /// Immutable. The event name for this key event. Examples: ''click'', ''purchase''
+    #[serde(default, rename = "eventName")]
+    pub event_name: ::core::option::Option<String>,
+    /// Output only. Resource name of this key event. Format: properties/{property}/keyEvents/{key_event}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A contiguous range of days: startDate, startDate + 1, ..., endDate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessDateRange {
+    /// The inclusive end date for the query in the format YYYY-MM-DD. Cannot be before startDate. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the current time in the request''s time zone.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<String>,
+    /// The inclusive start date for the query in the format YYYY-MM-DD. Cannot be after endDate. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the current time in the request''s time zone.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<String>,
+}
+
+/// Dimensions are attributes of your data. For example, the dimension userEmail indicates the email of the user that accessed reporting data. Dimension values in report responses are strings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessDimension {
+    /// The API name of the dimension. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of dimensions supported in this API. Dimensions are referenced by name in dimensionFilter and orderBys.
+    #[serde(default, rename = "dimensionName")]
+    pub dimension_name: ::core::option::Option<String>,
+}
+
+/// The quantitative measurements of a report. For example, the metric accessCount is the total number of data access records.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessMetric {
+    /// The API name of the metric. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of metrics supported in this API. Metrics are referenced by name in metricFilter & orderBys.
+    #[serde(default, rename = "metricName")]
+    pub metric_name: ::core::option::Option<String>,
+}
+
+/// Order bys define how rows will be sorted in the response. For example, ordering rows by descending access count is one ordering, and ordering rows by the country string is a different ordering.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessOrderBy {
+    /// If true, sorts by descending order. If false or unspecified, sorts in ascending order.
+    #[serde(default)]
+    pub desc: ::core::option::Option<bool>,
+    /// Sorts results by a dimension''s values.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy>,
+    /// Sorts results by a metric''s values.
+    #[serde(default)]
+    pub metric: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy>,
+}
+
+/// Describes a dimension column in the report. Dimensions requested in a report produce column entries within rows and DimensionHeaders. However, dimensions used exclusively within filters or expressions do not produce columns in a report; correspondingly, those dimensions do not produce headers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessDimensionHeader {
+    /// The dimension''s name; for example ''userEmail''.
+    #[serde(default, rename = "dimensionName")]
+    pub dimension_name: ::core::option::Option<String>,
+}
+
+/// Describes a metric column in the report. Visible metrics requested in a report produce column entries within rows and MetricHeaders. However, metrics used exclusively within filters or expressions do not produce columns in a report; correspondingly, those metrics do not produce headers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessMetricHeader {
+    /// The metric''s name; for example ''accessCount''.
+    #[serde(default, rename = "metricName")]
+    pub metric_name: ::core::option::Option<String>,
+}
+
+/// Current state of all quotas for this Analytics property. If any quota for a property is exhausted, all requests to that property will return Resource Exhausted errors.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessQuota {
+    /// Properties can use up to 50 concurrent requests.
+    #[serde(default, rename = "concurrentRequests")]
+    pub concurrent_requests: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
+    /// Properties and cloud project pairs can have up to 50 server errors per hour.
+    #[serde(default, rename = "serverErrorsPerProjectPerHour")]
+    pub server_errors_per_project_per_hour:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
+    /// Properties can use 250,000 tokens per day. Most requests consume fewer than 10 tokens.
+    #[serde(default, rename = "tokensPerDay")]
+    pub tokens_per_day: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
+    /// Properties can use 50,000 tokens per hour. An API request consumes a single number of tokens, and that number is deducted from all of the hourly, daily, and per project hourly quotas.
+    #[serde(default, rename = "tokensPerHour")]
+    pub tokens_per_hour: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
+    /// Properties can use up to 25% of their tokens per project per hour. This amounts to Analytics 360 Properties can use 12,500 tokens per project per hour. An API request consumes a single number of tokens, and that number is deducted from all of the hourly, daily, and per project hourly quotas.
+    #[serde(default, rename = "tokensPerProjectPerHour")]
+    pub tokens_per_project_per_hour:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaAccessQuotaStatus>,
+}
+
+/// Access report data for each row.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessRow {
+    /// List of dimension values. These values are in the same order as specified in the request.
+    #[serde(default, rename = "dimensionValues")]
+    pub dimension_values:
+        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessDimensionValue>>,
+    /// List of metric values. These values are in the same order as specified in the request.
+    #[serde(default, rename = "metricValues")]
+    pub metric_values:
+        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessMetricValue>>,
+}
+
+/// A set of changes within a Google Analytics account or its child properties that resulted from the same cause. Common causes would be updates made in the Google Analytics UI, changes from customer support, or automatic Google Analytics system changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaChangeHistoryEvent {
+    /// The type of actor that made this change. // TODO: enum values: ["ACTOR_TYPE_UNSPECIFIED", "USER", "SYSTEM", "SUPPORT"]
+    #[serde(default, rename = "actorType")]
+    pub actor_type: ::core::option::Option<String>,
+    /// Time when change was made.
+    #[serde(default, rename = "changeTime")]
+    pub change_time: ::core::option::Option<String>,
+    /// A list of changes made in this change history event that fit the filters specified in SearchChangeHistoryEventsRequest.
+    #[serde(default)]
+    pub changes:
+        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaChangeHistoryChange>>,
+    /// If true, then the list of changes returned was filtered, and does not represent all changes that occurred in this event.
+    #[serde(default, rename = "changesFiltered")]
+    pub changes_filtered: ::core::option::Option<bool>,
+    /// ID of this change history event. This ID is unique across Google Analytics.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Email address of the Google account that made the change. This will be a valid email address if the actor field is set to USER, and empty otherwise. Google accounts that have been deleted will cause an error.
+    #[serde(default, rename = "userActorEmail")]
+    pub user_actor_email: ::core::option::Option<String>,
+}
+
+/// A virtual resource representing metadata for a Google Analytics property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaPropertySummary {
+    /// Display name for the property referred to in this property summary.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of this property''s logical parent. Note: The Property-Moving UI can be used to change the parent. Format: accounts/{account}, properties/{property} Example: "accounts/100", "properties/200"
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Resource name of property referred to by this property summary Format: properties/{property_id} Example: "properties/1000"
+    #[serde(default)]
+    pub property: ::core::option::Option<String>,
+    /// The property''s property type. // TODO: enum values: ["PROPERTY_TYPE_UNSPECIFIED", "PROPERTY_TYPE_ORDINARY", "PROPERTY_TYPE_SUBPROPERTY", "PROPERTY_TYPE_ROLLUP"]
+    #[serde(default, rename = "propertyType")]
+    pub property_type: ::core::option::Option<String>,
+}
+
+/// Defines a default value/currency for a key event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaKeyEventDefaultValue {
+    /// Required. When an occurrence of this Key Event (specified by event_name) has no set currency this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Required. This will be used to populate the "value" parameter for all occurrences of this Key Event (specified by event_name) where that parameter is unset.
+    #[serde(default, rename = "numericValue")]
+    pub numeric_value: ::core::option::Option<f64>,
+}
+
+/// Sorts by dimension values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy {
+    /// A dimension name in the request to order by.
+    #[serde(default, rename = "dimensionName")]
+    pub dimension_name: ::core::option::Option<String>,
+    /// Controls the rule for dimension value ordering. // TODO: enum values: ["ORDER_TYPE_UNSPECIFIED", "ALPHANUMERIC", "CASE_INSENSITIVE_ALPHANUMERIC", "NUMERIC"]
+    #[serde(default, rename = "orderType")]
+    pub order_type: ::core::option::Option<String>,
+}
+
+/// Sorts by metric values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy {
+    /// A metric name in the request to order by.
+    #[serde(default, rename = "metricName")]
+    pub metric_name: ::core::option::Option<String>,
+}
+
+/// Current state for a particular quota group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessQuotaStatus {
+    /// Quota consumed by this request.
+    #[serde(default)]
+    pub consumed: ::core::option::Option<i32>,
+    /// Quota remaining after this request.
+    #[serde(default)]
+    pub remaining: ::core::option::Option<i32>,
+}
+
+/// The value of a dimension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessDimensionValue {
+    /// The dimension value. For example, this value may be ''France'' for the ''country'' dimension.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The value of a metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessMetricValue {
+    /// The measurement value. For example, this value may be ''13''.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A description of a change to a single Google Analytics resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaChangeHistoryChange {
+    /// The type of action that changed this resource. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "CREATED", "UPDATED", "DELETED"]
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Resource name of the resource whose changes are described by this entry.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Resource contents from after the change was made. If this resource was deleted in this change, this field will be missing.
+    #[serde(default, rename = "resourceAfterChange")]
+    pub resource_after_change:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource>,
+    /// Resource contents from before the change was made. If this resource was created in this change, this field will be missing.
+    #[serde(default, rename = "resourceBeforeChange")]
+    pub resource_before_change:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource>,
+}
+
+/// A snapshot of a resource as before or after the result of a change in change history.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource {
+    /// A snapshot of an Account resource in change history.
+    #[serde(default)]
+    pub account: ::core::option::Option<GoogleAnalyticsAdminV1betaAccount>,
+    /// A snapshot of a ConversionEvent resource in change history.
+    #[serde(default, rename = "conversionEvent")]
+    pub conversion_event: ::core::option::Option<GoogleAnalyticsAdminV1betaConversionEvent>,
+    /// A snapshot of a data retention settings resource in change history.
+    #[serde(default, rename = "dataRetentionSettings")]
+    pub data_retention_settings:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaDataRetentionSettings>,
+    /// A snapshot of a DataStream resource in change history.
+    #[serde(default, rename = "dataStream")]
+    pub data_stream: ::core::option::Option<GoogleAnalyticsAdminV1betaDataStream>,
+    /// A snapshot of a FirebaseLink resource in change history.
+    #[serde(default, rename = "firebaseLink")]
+    pub firebase_link: ::core::option::Option<GoogleAnalyticsAdminV1betaFirebaseLink>,
+    /// A snapshot of a GoogleAdsLink resource in change history.
+    #[serde(default, rename = "googleAdsLink")]
+    pub google_ads_link: ::core::option::Option<GoogleAnalyticsAdminV1betaGoogleAdsLink>,
+    /// A snapshot of a MeasurementProtocolSecret resource in change history.
+    #[serde(default, rename = "measurementProtocolSecret")]
+    pub measurement_protocol_secret:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>,
+    /// A snapshot of a Property resource in change history.
+    #[serde(default)]
+    pub property: ::core::option::Option<GoogleAnalyticsAdminV1betaProperty>,
+}
+
+/// A resource message representing a Google Analytics account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccount {
+    /// Output only. Time when this account was originally created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Indicates whether this Account is soft-deleted or not. Deleted accounts are excluded from List results unless specifically requested.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Required. Human-readable display name for this account.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The URI for a Google Marketing Platform organization resource. Only set when this account is connected to a GMP organization. Format: marketingplatformadmin.googleapis.com/organizations/{org_id}
+    #[serde(default, rename = "gmpOrganization")]
+    pub gmp_organization: ::core::option::Option<String>,
+    /// Identifier. Resource name of this account. Format: accounts/{account} Example: "accounts/100"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Country of business. Must be a Unicode CLDR region code.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// Output only. Time when account payload fields were last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A conversion event in a Google Analytics property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaConversionEvent {
+    /// Optional. The method by which conversions will be counted across multiple events within a session. If this value is not provided, it will be set to ONCE_PER_EVENT. // TODO: enum values: ["CONVERSION_COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
+    #[serde(default, rename = "countingMethod")]
+    pub counting_method: ::core::option::Option<String>,
+    /// Output only. Time when this conversion event was created in the property.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. If set to true, this conversion event refers to a custom event. If set to false, this conversion event refers to a default event in GA. Default events typically have special meaning in GA. Default events are usually created for you by the GA system, but in some cases can be created by property admins. Custom events count towards the maximum number of custom conversion events that may be created per property.
+    #[serde(default)]
+    pub custom: ::core::option::Option<bool>,
+    /// Optional. Defines a default value/currency for a conversion event.
+    #[serde(default, rename = "defaultConversionValue")]
+    pub default_conversion_value:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue>,
+    /// Output only. If set, this event can currently be deleted with DeleteConversionEvent.
+    #[serde(default)]
+    pub deletable: ::core::option::Option<bool>,
+    /// Immutable. The event name for this conversion event. Examples: ''click'', ''purchase''
+    #[serde(default, rename = "eventName")]
+    pub event_name: ::core::option::Option<String>,
+    /// Identifier. Resource name of this conversion event. Format: properties/{property}/conversionEvents/{conversion_event}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Settings values for data retention. This is a singleton resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaDataRetentionSettings {
+    /// Required. The length of time that event-level data is retained. // TODO: enum values: ["RETENTION_DURATION_UNSPECIFIED", "TWO_MONTHS", "FOURTEEN_MONTHS", "TWENTY_SIX_MONTHS", "THIRTY_EIGHT_MONTHS", "FIFTY_MONTHS"]
+    #[serde(default, rename = "eventDataRetention")]
+    pub event_data_retention: ::core::option::Option<String>,
+    /// Identifier. Resource name for this DataRetentionSetting resource. Format: properties/{property}/dataRetentionSettings
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// If true, reset the retention period for the user identifier with every event from that user.
+    #[serde(default, rename = "resetUserDataOnNewActivity")]
+    pub reset_user_data_on_new_activity: ::core::option::Option<bool>,
+    /// Required. The length of time that user-level data is retained. // TODO: enum values: ["RETENTION_DURATION_UNSPECIFIED", "TWO_MONTHS", "FOURTEEN_MONTHS", "TWENTY_SIX_MONTHS", "THIRTY_EIGHT_MONTHS", "FIFTY_MONTHS"]
+    #[serde(default, rename = "userDataRetention")]
+    pub user_data_retention: ::core::option::Option<String>,
+}
+
+/// A resource message representing a data stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaDataStream {
+    /// Data specific to Android app streams. Must be populated if type is ANDROID_APP_DATA_STREAM.
+    #[serde(default, rename = "androidAppStreamData")]
+    pub android_app_stream_data:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData>,
+    /// Output only. Time when this stream was originally created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Human-readable display name for the Data Stream. Required for web data streams. The max allowed display name length is 255 UTF-16 code units.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Data specific to iOS app streams. Must be populated if type is IOS_APP_DATA_STREAM.
+    #[serde(default, rename = "iosAppStreamData")]
+    pub ios_app_stream_data:
+        ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData>,
+    /// Identifier. Resource name of this Data Stream. Format: properties/{property_id}/dataStreams/{stream_id} Example: "properties/1000/dataStreams/2000"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. The type of this DataStream resource. // TODO: enum values: ["DATA_STREAM_TYPE_UNSPECIFIED", "WEB_DATA_STREAM", "ANDROID_APP_DATA_STREAM", "IOS_APP_DATA_STREAM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. Time when stream payload fields were last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Data specific to web streams. Must be populated if type is WEB_DATA_STREAM.
+    #[serde(default, rename = "webStreamData")]
+    pub web_stream_data: ::core::option::Option<GoogleAnalyticsAdminV1betaDataStreamWebStreamData>,
+}
+
+/// A link between a Google Analytics property and a Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaFirebaseLink {
+    /// Output only. Time when this FirebaseLink was originally created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Identifier. Example format: properties/1234/firebaseLinks/5678
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. Firebase project resource name. When creating a FirebaseLink, you may provide this resource name using either a project number or project ID. Once this resource has been created, returned FirebaseLinks will always have a project_name that contains a project number. Format: ''projects/{project number}'' Example: ''projects/1234''
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+}
+
+/// A link between a Google Analytics property and a Google Ads account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaGoogleAdsLink {
+    /// Enable personalized advertising features with this integration. Automatically publish my Google Analytics audience lists and Google Analytics remarketing events/parameters to the linked Google Ads account. If this field is not set on create/update, it will be defaulted to true.
+    #[serde(default, rename = "adsPersonalizationEnabled")]
+    pub ads_personalization_enabled: ::core::option::Option<bool>,
+    /// Output only. If true, this link is for a Google Ads manager account.
+    #[serde(default, rename = "canManageClients")]
+    pub can_manage_clients: ::core::option::Option<bool>,
+    /// Output only. Time when this link was originally created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Email address of the user that created the link. An empty string will be returned if the email address can''t be retrieved.
+    #[serde(default, rename = "creatorEmailAddress")]
+    pub creator_email_address: ::core::option::Option<String>,
+    /// Immutable. Google Ads customer ID.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Identifier. Format: properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note: googleAdsLinkId is not the Google Ads customer ID.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Time when this link was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A secret value used for sending hits to Measurement Protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
+    /// Required. Human-readable display name for this secret.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Resource name of this secret. This secret may be a child of any type of stream. Format: properties/{property}/dataStreams/{dataStream}/measurementProtocolSecrets/{measurementProtocolSecret}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The measurement protocol secret value. Pass this value to the api_secret field of the Measurement Protocol API when sending hits to this secret''s parent property.
+    #[serde(default, rename = "secretValue")]
+    pub secret_value: ::core::option::Option<String>,
+}
+
+/// A resource message representing a Google Analytics property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaProperty {
+    /// Immutable. The resource name of the parent account Format: accounts/{account_id} Example: "accounts/123"
+    #[serde(default)]
+    pub account: ::core::option::Option<String>,
+    /// Output only. Time when the entity was originally created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The currency type used in reports involving monetary values. Format: https://en.wikipedia.org/wiki/ISO_4217 Examples: "USD", "EUR", "JPY"
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Output only. If set, the time at which this property was trashed. If not set, then this property is not currently in the trash can.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Required. Human-readable display name for this property. The max allowed display name length is 100 UTF-16 code units.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. If set, the time at which this trashed property will be permanently deleted. If not set, then this property is not currently in the trash can and is not slated to be deleted.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Industry associated with this property Example: AUTOMOTIVE, FOOD_AND_DRINK // TODO: enum values: ["INDUSTRY_CATEGORY_UNSPECIFIED", "AUTOMOTIVE", "BUSINESS_AND_INDUSTRIAL_MARKETS", "FINANCE", "HEALTHCARE", "TECHNOLOGY", "TRAVEL", "OTHER", "ARTS_AND_ENTERTAINMENT", "BEAUTY_AND_FITNESS", "BOOKS_AND_LITERATURE", "FOOD_AND_DRINK", "GAMES", "HOBBIES_AND_LEISURE", "HOME_AND_GARDEN", "INTERNET_AND_TELECOM", "LAW_AND_GOVERNMENT", "NEWS", "ONLINE_COMMUNITIES", "PEOPLE_AND_SOCIETY", "PETS_AND_ANIMALS", "REAL_ESTATE", "REFERENCE", "SCIENCE", "SPORTS", "JOBS_AND_EDUCATION", "SHOPPING"]
+    #[serde(default, rename = "industryCategory")]
+    pub industry_category: ::core::option::Option<String>,
+    /// Identifier. Resource name of this property. Format: properties/{property_id} Example: "properties/1000"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. Resource name of this property''s logical parent. Note: The Property-Moving UI can be used to change the parent. Format: accounts/{account}, properties/{property} Example: "accounts/100", "properties/101"
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Immutable. The property type for this Property resource. When creating a property, if the type is "PROPERTY_TYPE_UNSPECIFIED", then "ORDINARY_PROPERTY" will be implied. // TODO: enum values: ["PROPERTY_TYPE_UNSPECIFIED", "PROPERTY_TYPE_ORDINARY", "PROPERTY_TYPE_SUBPROPERTY", "PROPERTY_TYPE_ROLLUP"]
+    #[serde(default, rename = "propertyType")]
+    pub property_type: ::core::option::Option<String>,
+    /// Output only. The Google Analytics service level that applies to this property. // TODO: enum values: ["SERVICE_LEVEL_UNSPECIFIED", "GOOGLE_ANALYTICS_STANDARD", "GOOGLE_ANALYTICS_360"]
+    #[serde(default, rename = "serviceLevel")]
+    pub service_level: ::core::option::Option<String>,
+    /// Required. Reporting Time Zone, used as the day boundary for reports, regardless of where the data originates. If the time zone honors DST, Analytics will automatically adjust for the changes. NOTE: Changing the time zone only affects data going forward, and is not applied retroactively. Format: https://www.iana.org/time-zones Example: "America/Los_Angeles"
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+    /// Output only. Time when entity payload fields were last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Defines a default value/currency for a conversion event. Both value and currency must be provided.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue {
+    /// When a conversion event for this event_name has no set currency, this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// This value will be used to populate the value for all conversions of the specified event_name where the event "value" parameter is unset.
+    #[serde(default)]
+    pub value: ::core::option::Option<f64>,
+}
+
+/// Data specific to Android app streams.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData {
+    /// Output only. ID of the corresponding Android app in Firebase, if any. This ID can change if the Android app is deleted and recreated.
+    #[serde(default, rename = "firebaseAppId")]
+    pub firebase_app_id: ::core::option::Option<String>,
+    /// Immutable. The package name for the app being measured. Example: "com.example.myandroidapp"
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Data specific to iOS app streams.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData {
+    /// Required. Immutable. The Apple App Store Bundle ID for the app Example: "com.example.myiosapp"
+    #[serde(default, rename = "bundleId")]
+    pub bundle_id: ::core::option::Option<String>,
+    /// Output only. ID of the corresponding iOS app in Firebase, if any. This ID can change if the iOS app is deleted and recreated.
+    #[serde(default, rename = "firebaseAppId")]
+    pub firebase_app_id: ::core::option::Option<String>,
+}
+
+/// Data specific to web streams.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaDataStreamWebStreamData {
+    /// Domain name of the web app being measured, or empty. Example: "http://www.google.com", "https://www.google.com"
+    #[serde(default, rename = "defaultUri")]
+    pub default_uri: ::core::option::Option<String>,
+    /// Output only. ID of the corresponding web app in Firebase, if any. This ID can change if the web app is deleted and recreated.
+    #[serde(default, rename = "firebaseAppId")]
+    pub firebase_app_id: ::core::option::Option<String>,
+    /// Output only. Analytics Measurement ID. Example: "G-1A2BCD345E"
+    #[serde(default, rename = "measurementId")]
+    pub measurement_id: ::core::option::Option<String>,
+}
+
+/// To express that the result needs to be between two numbers (inclusive).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
+    /// Begins with this number.
+    #[serde(default, rename = "fromValue")]
+    pub from_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+    /// Ends with this number.
+    #[serde(default, rename = "toValue")]
+    pub to_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+}
+
+/// An expression to filter dimension or metric values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessFilter {
+    /// A filter for two values.
+    #[serde(default, rename = "betweenFilter")]
+    pub between_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessBetweenFilter>,
+    /// The dimension name or metric name.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<String>,
+    /// A filter for in list values.
+    #[serde(default, rename = "inListFilter")]
+    pub in_list_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessInListFilter>,
+    /// A filter for numeric or date values.
+    #[serde(default, rename = "numericFilter")]
+    pub numeric_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessNumericFilter>,
+    /// Strings related filter.
+    #[serde(default, rename = "stringFilter")]
+    pub string_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessStringFilter>,
+}
+
+/// Expresses dimension or metric filters. The fields in the same expression need to be either all dimensions or all metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessFilterExpression {
+    /// A primitive filter. In the same FilterExpression, all of the filter''s field names need to be either all dimensions or all metrics.
+    #[serde(default, rename = "accessFilter")]
+    pub access_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilter>,
+    /// Each of the FilterExpressions in the and_group has an AND relationship.
+    #[serde(default, rename = "andGroup")]
+    pub and_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+    /// The FilterExpression is NOT of not_expression.
+    #[serde(default, rename = "notExpression")]
+    pub not_expression: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpression>,
+    /// Each of the FilterExpressions in the or_group has an OR relationship.
+    #[serde(default, rename = "orGroup")]
+    pub or_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+}
+
+/// A list of filter expressions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessFilterExpressionList {
+    /// A list of filter expressions.
+    #[serde(default)]
+    pub expressions:
+        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
+}
+
+/// The result needs to be in a list of string values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessInListFilter {
+    /// If true, the string value is case sensitive.
+    #[serde(default, rename = "caseSensitive")]
+    pub case_sensitive: ::core::option::Option<bool>,
+    /// The list of string values. Must be non-empty.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Filters for numeric or date values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAccessNumericFilter {
+    /// The operation type for this filter. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EQUAL", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// A numeric value or a date value.
+    #[serde(default)]
+    pub value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+}
+
+/// To represent a number.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaNumericValue {
+    /// Double value
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// Integer value
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
 }

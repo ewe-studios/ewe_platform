@@ -18,116 +18,6 @@ pub struct ANR {
     pub stack_trace: ::core::option::Option<StackTrace>,
 }
 
-/// Android app information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidAppInfo {
-    /// The name of the app. Optional
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The package name of the app. Required.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The internal version code of the app. Optional.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<String>,
-    /// The version name of the app. Optional.
-    #[serde(default, rename = "versionName")]
-    pub version_name: ::core::option::Option<String>,
-}
-
-/// A test of an Android application that can control an Android component independently of its normal lifecycle. See for more information on types of Android tests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidInstrumentationTest {
-    /// The java package for the test to be executed. Required
-    #[serde(default, rename = "testPackageId")]
-    pub test_package_id: ::core::option::Option<String>,
-    /// The InstrumentationTestRunner class. Required
-    #[serde(default, rename = "testRunnerClass")]
-    pub test_runner_class: ::core::option::Option<String>,
-    /// Each target must be fully qualified with the package name or class name, in one of these formats: - "package package_name" - "class package_name.class_name" - "class package_name.class_name#method_name" If empty, all targets in the module will be run.
-    #[serde(default, rename = "testTargets")]
-    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The flag indicates whether Android Test Orchestrator will be used to run test or not.
-    #[serde(default, rename = "useOrchestrator")]
-    pub use_orchestrator: ::core::option::Option<bool>,
-}
-
-/// A test of an android application that explores the application on a virtual or physical Android device, finding culprits and crashes as it goes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidRoboTest {
-    /// The initial activity that should be used to start the app. Optional
-    #[serde(default, rename = "appInitialActivity")]
-    pub app_initial_activity: ::core::option::Option<String>,
-    /// The java package for the bootstrap. Optional
-    #[serde(default, rename = "bootstrapPackageId")]
-    pub bootstrap_package_id: ::core::option::Option<String>,
-    /// The runner class for the bootstrap. Optional
-    #[serde(default, rename = "bootstrapRunnerClass")]
-    pub bootstrap_runner_class: ::core::option::Option<String>,
-    /// The max depth of the traversal stack Robo can explore. Optional
-    #[serde(default, rename = "maxDepth")]
-    pub max_depth: ::core::option::Option<i32>,
-    /// The max number of steps/actions Robo can execute. Default is no limit (0). Optional
-    #[serde(default, rename = "maxSteps")]
-    pub max_steps: ::core::option::Option<i32>,
-}
-
-/// An Android mobile test specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidTest {
-    /// Information about the application under test.
-    #[serde(default, rename = "androidAppInfo")]
-    pub android_app_info: ::core::option::Option<AndroidAppInfo>,
-    /// An Android instrumentation test.
-    #[serde(default, rename = "androidInstrumentationTest")]
-    pub android_instrumentation_test: ::core::option::Option<AndroidInstrumentationTest>,
-    /// An Android robo test.
-    #[serde(default, rename = "androidRoboTest")]
-    pub android_robo_test: ::core::option::Option<AndroidRoboTest>,
-    /// An Android test loop.
-    #[serde(default, rename = "androidTestLoop")]
-    pub android_test_loop: ::core::option::Option<serde_json::Value>,
-    /// Max time a test is allowed to run before it is automatically cancelled.
-    #[serde(default, rename = "testTimeout")]
-    pub test_timeout: ::core::option::Option<Duration>,
-}
-
-///  Any contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message. Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type. Example 1: Pack and unpack a message in C++. Foo foo = ...; Any any; any.PackFrom(foo); ... if (any.UnpackTo(&foo)) { ... } Example 2: Pack and unpack a message in Java. Foo foo = ...; Any any = Any.pack(foo); ... if (any.is(Foo.class)) { foo = any.unpack(Foo.class); } Example 3: Pack and unpack a message in Python. foo = Foo(...) any = Any() any.Pack(foo) ... if any.Is(Foo.DESCRIPTOR): any.Unpack(foo) ... Example 4: Pack and unpack a message in Go foo := &pb.Foo{...} any, err := ptypes.MarshalAny(foo) ... foo := &pb.Foo{} if err := ptypes.UnmarshalAny(any, foo); err != nil { ... } The pack methods provided by protobuf library will by default use ''type.googleapis.com/full.type.name'' as the type URL and the unpack methods only use the fully qualified type name after the last ''/'' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z". # JSON The JSON representation of an Any value uses the regular representation of the deserialized, embedded message, with an additional field @type which contains the type URL. Example: package google.profile; message Person { string first_name = 1; string last_name = 2; } { "@type": "type.googleapis.com/google.profile.Person", "firstName": , "lastName": } If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field value which holds the custom JSON in addition to the @type field. Example (for message google.protobuf.Duration): { "@type": "type.googleapis.com/google.protobuf.Duration", "value": "1.212s" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Any {
-    /// A URL/resource name that uniquely identifies the type of the serialized protocol buffer message. This string must contain at least one "/" character. The last segment of the URL''s path must represent the fully qualified name of the type (as in path/google.protobuf.Duration). The name should be in a canonical form (e.g., leading "." is not accepted). In practice, teams usually precompile into the binary all types that they expect it to use in the context of Any. However, for URLs which use the scheme http, https, or no scheme, one can optionally set up a type server that maps type URLs to message definitions as follows: * If no scheme is provided, https is assumed. * An HTTP GET on the URL must yield a google.protobuf.Type value in binary format, or produce an error. * Applications are allowed to cache lookup results based on the URL, or have them precompiled into a binary to avoid any lookup. Therefore, binary compatibility needs to be preserved on changes to types. (Use versioned type names to manage breaking changes.) Note: this functionality is not currently available in the official protobuf release, and it is not used for type URLs beginning with type.googleapis.com. Schemes other than http, https (or the empty scheme) might be used with implementation specific semantics.
-    #[serde(default, rename = "typeUrl")]
-    pub type_url: ::core::option::Option<String>,
-    /// Must be a valid serialized protocol buffer of the above specified type.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// AppStartTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppStartTime {
-    /// Optional. The time from app start to reaching the developer-reported "fully drawn" time. This is only stored if the app includes a call to Activity.reportFullyDrawn(). See https://developer.android.com/topic/performance/launch-time.html#time-full
-    #[serde(default, rename = "fullyDrawnTime")]
-    pub fully_drawn_time: ::core::option::Option<Duration>,
-    /// The time from app start to the first displayed activity being drawn, as reported in Logcat. See https://developer.android.com/topic/performance/launch-time.html#time-initial
-    #[serde(default, rename = "initialDisplayTime")]
-    pub initial_display_time: ::core::option::Option<Duration>,
-}
-
-/// Encapsulates the metadata for basic sample series represented by a line chart
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BasicPerfSampleSeries {
-    /// TODO: enum values: ["perfMetricTypeUnspecified", "memory", "cpu", "network", "graphics"]
-    #[serde(default, rename = "perfMetricType")]
-    pub perf_metric_type: ::core::option::Option<String>,
-    /// TODO: enum values: ["perfUnitUnspecified", "kibibyte", "percent", "bytesPerSecond", "framesPerSecond", "byte"]
-    #[serde(default, rename = "perfUnit")]
-    pub perf_unit: ::core::option::Option<String>,
-    /// TODO: enum values: ["sampleSeriesTypeUnspecified", "memoryRssPrivate", "memoryRssShared", "memoryRssTotal", "memoryTotal", "cpuUser", "cpuKernel", "cpuTotal", "ntBytesTransferred", "ntBytesReceived", "networkSent", "networkReceived", "graphicsFrameRate"]
-    #[serde(default, rename = "sampleSeriesLabel")]
-    pub sample_series_label: ::core::option::Option<String>,
-}
-
 /// The request must provide up to a maximum of 5000 samples to be created; a larger sample size will cause an INVALID_ARGUMENT error
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreatePerfSamplesRequest {
@@ -151,37 +41,12 @@ pub struct BlankScreen {
     pub screen_id: ::core::option::Option<String>,
 }
 
-/// CPUInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CPUInfo {
-    /// description of the device processor ie ''1.8 GHz hexa core 64-bit ARMv8-A''
-    #[serde(default, rename = "cpuProcessor")]
-    pub cpu_processor: ::core::option::Option<String>,
-    /// the CPU clock speed in GHz
-    #[serde(default, rename = "cpuSpeedInGhz")]
-    pub cpu_speed_in_ghz: ::core::option::Option<f32>,
-    /// the number of CPU cores
-    #[serde(default, rename = "numberOfCores")]
-    pub number_of_cores: ::core::option::Option<i32>,
-}
-
 /// Crash dialog was detected during the test execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CrashDialogError {
     /// The name of the package that caused the dialog.
     #[serde(default, rename = "crashPackage")]
     pub crash_package: ::core::option::Option<String>,
-}
-
-///  A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Duration {
-    /// Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 seconds field and a positive or negative nanos field. For durations of one second or more, a non-zero value for the nanos field must be of the same sign as the seconds field. Must be from -999,999,999 to +999,999,999 inclusive.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years
-    #[serde(default)]
-    pub seconds: ::core::option::Option<String>,
 }
 
 /// Additional details about encountered login screens.
@@ -206,208 +71,12 @@ pub struct EncounteredNonAndroidUiWidgetScreen {
     pub screen_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// An Environment represents the set of test runs (Steps) from the parent Execution that are configured with the same set of dimensions (Model, Version, Locale, and Orientation). Multiple such runs occur particularly because of features like sharding (splitting up a test suite to run in parallel across devices) and reruns (running a test multiple times to check for different outcomes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Environment {
-    /// Output only. The time when the Environment status was set to complete. This value will be set automatically when state transitions to COMPLETE.
-    #[serde(default, rename = "completionTime")]
-    pub completion_time: ::core::option::Option<Timestamp>,
-    /// Output only. The time when the Environment was created.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<Timestamp>,
-    /// Dimension values describing the environment. Dimension values always consist of "Model", "Version", "Locale", and "Orientation". - In response: always set - In create request: always set - In update request: never set
-    #[serde(default, rename = "dimensionValue")]
-    pub dimension_value: ::core::option::Option<::std::vec::Vec<EnvironmentDimensionValueEntry>>,
-    /// A short human-readable name to display in the UI. Maximum of 100 characters. For example: Nexus 5, API 27.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. An Environment id.
-    #[serde(default, rename = "environmentId")]
-    pub environment_id: ::core::option::Option<String>,
-    /// Merged result of the environment.
-    #[serde(default, rename = "environmentResult")]
-    pub environment_result: ::core::option::Option<MergedResult>,
-    /// Output only. An Execution id.
-    #[serde(default, rename = "executionId")]
-    pub execution_id: ::core::option::Option<String>,
-    /// Output only. A History id.
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// Output only. A Project id.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// The location where output files are stored in the user bucket.
-    #[serde(default, rename = "resultsStorage")]
-    pub results_storage: ::core::option::Option<ResultsStorage>,
-    /// Output only. Summaries of shards. Only one shard will present unless sharding feature is enabled in TestExecutionService.
-    #[serde(default, rename = "shardSummaries")]
-    pub shard_summaries: ::core::option::Option<::std::vec::Vec<ShardSummary>>,
-}
-
-/// EnvironmentDimensionValueEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentDimensionValueEntry {
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// An Execution represents a collection of Steps. For instance, it could represent: - a mobile test executed across a range of device configurations - a jenkins job with a build step followed by a test step The maximum size of an execution message is 1 MiB. An Execution can be updated until its state is set to COMPLETE at which point it becomes immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Execution {
-    /// The time when the Execution status transitioned to COMPLETE. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set
-    #[serde(default, rename = "completionTime")]
-    pub completion_time: ::core::option::Option<Timestamp>,
-    /// The time when the Execution was created. This value will be set automatically when CreateExecution is called. - In response: always set - In create/update request: never set
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<Timestamp>,
-    /// The dimensions along which different steps in this execution may vary. This must remain fixed over the life of the execution. Returns INVALID_ARGUMENT if this field is set in an update request. Returns INVALID_ARGUMENT if the same name occurs in more than one dimension_definition. Returns INVALID_ARGUMENT if the size of the list is over 100. - In response: present if set by create - In create request: optional - In update request: never set
-    #[serde(default, rename = "dimensionDefinitions")]
-    pub dimension_definitions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A unique identifier within a History for this Execution. Returns INVALID_ARGUMENT if this field is set or overwritten by the caller. - In response always set - In create/update request: never set
-    #[serde(default, rename = "executionId")]
-    pub execution_id: ::core::option::Option<String>,
-    /// Classify the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional
-    #[serde(default)]
-    pub outcome: ::core::option::Option<Outcome>,
-    /// Lightweight information about execution request. - In response: present if set by create - In create: optional - In update: optional
-    #[serde(default)]
-    pub specification: ::core::option::Option<Specification>,
-    /// The initial state is IN_PROGRESS. The only legal state transitions is from IN_PROGRESS to COMPLETE. A PRECONDITION_FAILED will be returned if an invalid transition is requested. The state can only be set to COMPLETE once. A FAILED_PRECONDITION will be returned if the state is set to COMPLETE multiple times. If the state is set to COMPLETE, all the in-progress steps within the execution will be set as COMPLETE. If the outcome of the step is not set, the outcome will be set to INCONCLUSIVE. - In response always set - In create/update request: optional // TODO: enum values: ["unknownState", "pending", "inProgress", "complete"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// TestExecution Matrix ID that the TestExecutionService uses. - In response: present if set by create - In create: optional - In update: never set
-    #[serde(default, rename = "testExecutionMatrixId")]
-    pub test_execution_matrix_id: ::core::option::Option<String>,
-}
-
-/// Details for an outcome with a FAILURE outcome summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FailureDetail {
-    /// If the failure was severe because the system (app) under test crashed.
-    #[serde(default)]
-    pub crashed: ::core::option::Option<bool>,
-    /// If the device ran out of memory during a test, causing the test to crash.
-    #[serde(default, rename = "deviceOutOfMemory")]
-    pub device_out_of_memory: ::core::option::Option<bool>,
-    /// If the Roboscript failed to complete successfully, e.g., because a Roboscript action or assertion failed or a Roboscript action could not be matched during the entire crawl.
-    #[serde(default, rename = "failedRoboscript")]
-    pub failed_roboscript: ::core::option::Option<bool>,
-    /// If an app is not installed and thus no test can be run with the app. This might be caused by trying to run a test on an unsupported platform.
-    #[serde(default, rename = "notInstalled")]
-    pub not_installed: ::core::option::Option<bool>,
-    /// If a native process (including any other than the app) crashed.
-    #[serde(default, rename = "otherNativeCrash")]
-    pub other_native_crash: ::core::option::Option<bool>,
-    /// If the test overran some time limit, and that is why it failed.
-    #[serde(default, rename = "timedOut")]
-    pub timed_out: ::core::option::Option<bool>,
-    /// If the robo was unable to crawl the app; perhaps because the app did not start.
-    #[serde(default, rename = "unableToCrawl")]
-    pub unable_to_crawl: ::core::option::Option<bool>,
-}
-
 /// Additional details for a fatal exception.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FatalException {
     /// The stack trace of the fatal exception. Optional.
     #[serde(default, rename = "stackTrace")]
     pub stack_trace: ::core::option::Option<StackTrace>,
-}
-
-/// A reference to a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileReference {
-    /// The URI of a file stored in Google Cloud Storage. For example: http://storage.googleapis.com/mybucket/path/to/test.xml or in Cloud Storage URI format: gs://mybucket/path/to/test.xml with version-specific info, gs://mybucket/path/to/test.xml#1360383693690000 An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set
-    #[serde(default, rename = "fileUri")]
-    pub file_uri: ::core::option::Option<String>,
-}
-
-/// Graphics statistics for the App. The information is collected from ''adb shell dumpsys graphicsstats''. For more info see: https://developer.android.com/training/testing/performance.html Statistics will only be present for API 23+.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphicsStats {
-    /// Histogram of frame render times. There should be 154 buckets ranging from [5ms, 6ms) to [4950ms, infinity)
-    #[serde(default)]
-    pub buckets: ::core::option::Option<::std::vec::Vec<GraphicsStatsBucket>>,
-    /// Total "high input latency" events.
-    #[serde(default, rename = "highInputLatencyCount")]
-    pub high_input_latency_count: ::core::option::Option<String>,
-    /// Total frames with slow render time. Should be &lt;= total_frames.
-    #[serde(default, rename = "jankyFrames")]
-    pub janky_frames: ::core::option::Option<String>,
-    /// Total "missed vsync" events.
-    #[serde(default, rename = "missedVsyncCount")]
-    pub missed_vsync_count: ::core::option::Option<String>,
-    /// 50th percentile frame render time in milliseconds.
-    #[serde(default, rename = "p50Millis")]
-    pub p50_millis: ::core::option::Option<String>,
-    /// 90th percentile frame render time in milliseconds.
-    #[serde(default, rename = "p90Millis")]
-    pub p90_millis: ::core::option::Option<String>,
-    /// 95th percentile frame render time in milliseconds.
-    #[serde(default, rename = "p95Millis")]
-    pub p95_millis: ::core::option::Option<String>,
-    /// 99th percentile frame render time in milliseconds.
-    #[serde(default, rename = "p99Millis")]
-    pub p99_millis: ::core::option::Option<String>,
-    /// Total "slow bitmap upload" events.
-    #[serde(default, rename = "slowBitmapUploadCount")]
-    pub slow_bitmap_upload_count: ::core::option::Option<String>,
-    /// Total "slow draw" events.
-    #[serde(default, rename = "slowDrawCount")]
-    pub slow_draw_count: ::core::option::Option<String>,
-    /// Total "slow UI thread" events.
-    #[serde(default, rename = "slowUiThreadCount")]
-    pub slow_ui_thread_count: ::core::option::Option<String>,
-    /// Total frames rendered by package.
-    #[serde(default, rename = "totalFrames")]
-    pub total_frames: ::core::option::Option<String>,
-}
-
-/// GraphicsStatsBucket resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphicsStatsBucket {
-    /// Number of frames in the bucket.
-    #[serde(default, rename = "frameCount")]
-    pub frame_count: ::core::option::Option<String>,
-    /// Lower bound of render time in milliseconds.
-    #[serde(default, rename = "renderMillis")]
-    pub render_millis: ::core::option::Option<String>,
-}
-
-/// A History represents a sorted list of Executions ordered by the start_timestamp_millis field (descending). It can be used to group all the Executions of a continuous build. Note that the ordering only operates on one-dimension. If a repository has multiple branches, it means that multiple histories will need to be used in order to order Executions per branch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct History {
-    /// A short human-readable (plain text) name to display in the UI. Maximum of 100 characters. - In response: present if set during create. - In create request: optional
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// A unique identifier within a project for this History. Returns INVALID_ARGUMENT if this field is set or overwritten by the caller. - In response always set - In create request: never set
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// A name to uniquely identify a history within a project. Maximum of 200 characters. - In response always set - In create request: always set
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The platform of the test history. - In response: always set. Returns the platform of the last execution if unknown. // TODO: enum values: ["unknownPlatform", "android", "ios"]
-    #[serde(default, rename = "testPlatform")]
-    pub test_platform: ::core::option::Option<String>,
-}
-
-/// An image, with a link to the main image and a thumbnail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// An error explaining why the thumbnail could not be rendered.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// A reference to the full-size, original image. This is the same as the tool_outputs entry for the image under its Step. Always set.
-    #[serde(default, rename = "sourceImage")]
-    pub source_image: ::core::option::Option<ToolOutputReference>,
-    /// The step to which the image is attached. Always set.
-    #[serde(default, rename = "stepId")]
-    pub step_id: ::core::option::Option<String>,
-    /// The thumbnail.
-    #[serde(default)]
-    pub thumbnail: ::core::option::Option<Thumbnail>,
 }
 
 /// Additional details of in-app purchases encountered during the crawl.
@@ -421,89 +90,12 @@ pub struct InAppPurchasesFound {
     pub in_app_purchases_flows_started: ::core::option::Option<i32>,
 }
 
-/// Details for an outcome with an INCONCLUSIVE outcome summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InconclusiveDetail {
-    /// If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.
-    #[serde(default, rename = "abortedByUser")]
-    pub aborted_by_user: ::core::option::Option<bool>,
-    /// If results are being provided to the user in certain cases of infrastructure failures
-    #[serde(default, rename = "hasErrorLogs")]
-    pub has_error_logs: ::core::option::Option<bool>,
-    /// If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.
-    #[serde(default, rename = "infrastructureFailure")]
-    pub infrastructure_failure: ::core::option::Option<bool>,
-}
-
-/// Step Id and outcome of each individual step that was run as a group with other steps with the same configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndividualOutcome {
-    /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
-    #[serde(default, rename = "multistepNumber")]
-    pub multistep_number: ::core::option::Option<i32>,
-    /// TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
-    #[serde(default, rename = "outcomeSummary")]
-    pub outcome_summary: ::core::option::Option<String>,
-    /// How long it took for this step to run.
-    #[serde(default, rename = "runDuration")]
-    pub run_duration: ::core::option::Option<Duration>,
-    #[serde(default, rename = "stepId")]
-    pub step_id: ::core::option::Option<String>,
-}
-
 /// Additional details for an iOS app crash.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IosAppCrashed {
     /// The stack trace, if one is available. Optional.
     #[serde(default, rename = "stackTrace")]
     pub stack_trace: ::core::option::Option<StackTrace>,
-}
-
-/// iOS app information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosAppInfo {
-    /// The name of the app. Required
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A iOS mobile test specification
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosTest {
-    /// Information about the application under test.
-    #[serde(default, rename = "iosAppInfo")]
-    pub ios_app_info: ::core::option::Option<IosAppInfo>,
-    /// An iOS Robo test.
-    #[serde(default, rename = "iosRoboTest")]
-    pub ios_robo_test: ::core::option::Option<serde_json::Value>,
-    /// An iOS test loop.
-    #[serde(default, rename = "iosTestLoop")]
-    pub ios_test_loop: ::core::option::Option<IosTestLoop>,
-    /// An iOS XCTest.
-    #[serde(default, rename = "iosXcTest")]
-    pub ios_xc_test: ::core::option::Option<IosXcTest>,
-    /// Max time a test is allowed to run before it is automatically cancelled.
-    #[serde(default, rename = "testTimeout")]
-    pub test_timeout: ::core::option::Option<Duration>,
-}
-
-/// A game loop test of an iOS application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosTestLoop {
-    /// Bundle ID of the app.
-    #[serde(default, rename = "bundleId")]
-    pub bundle_id: ::core::option::Option<String>,
-}
-
-/// A test of an iOS application that uses the XCTest framework.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosXcTest {
-    /// Bundle ID of the app.
-    #[serde(default, rename = "bundleId")]
-    pub bundle_id: ::core::option::Option<String>,
-    /// Xcode version that the test was run with.
-    #[serde(default, rename = "xcodeVersion")]
-    pub xcode_version: ::core::option::Option<String>,
 }
 
 /// Response message for EnvironmentService.ListEnvironments.
@@ -617,88 +209,12 @@ pub struct ListTestCasesResponse {
     pub test_cases: ::core::option::Option<::std::vec::Vec<TestCase>>,
 }
 
-/// MemoryInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemoryInfo {
-    /// Maximum memory that can be allocated to the process in KiB
-    #[serde(default, rename = "memoryCapInKibibyte")]
-    pub memory_cap_in_kibibyte: ::core::option::Option<String>,
-    /// Total memory available on the device in KiB
-    #[serde(default, rename = "memoryTotalInKibibyte")]
-    pub memory_total_in_kibibyte: ::core::option::Option<String>,
-}
-
-/// Merged test result for environment. If the environment has only one step (no reruns or shards), then the merged result is the same as the step result. If the environment has multiple shards and/or reruns, then the results of shards and reruns that belong to the same environment are merged into one environment result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MergedResult {
-    /// Outcome of the resource
-    #[serde(default)]
-    pub outcome: ::core::option::Option<Outcome>,
-    /// State of the resource // TODO: enum values: ["unknownState", "pending", "inProgress", "complete"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The combined and rolled-up result of each test suite that was run as part of this environment. Combining: When the test cases from a suite are run in different steps (sharding), the results are added back together in one overview. (e.g., if shard1 has 2 failures and shard2 has 1 failure than the overview failure_count = 3). Rollup: When test cases from the same suite are run multiple times (flaky), the results are combined (e.g., if testcase1.run1 fails, testcase1.run2 passes, and both testcase2.run1 and testcase2.run2 fail then the overview flaky_count = 1 and failure_count = 1).
-    #[serde(default, rename = "testSuiteOverviews")]
-    pub test_suite_overviews: ::core::option::Option<::std::vec::Vec<TestSuiteOverview>>,
-}
-
-/// Details when multiple steps are run with the same configuration as a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiStep {
-    /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
-    #[serde(default, rename = "multistepNumber")]
-    pub multistep_number: ::core::option::Option<i32>,
-    /// Present if it is a primary (original) step.
-    #[serde(default, rename = "primaryStep")]
-    pub primary_step: ::core::option::Option<PrimaryStep>,
-    /// Step Id of the primary (original) step, which might be this step.
-    #[serde(default, rename = "primaryStepId")]
-    pub primary_step_id: ::core::option::Option<String>,
-}
-
 /// Additional details for a native crash.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NativeCrash {
     /// The stack trace of the native crash. Optional.
     #[serde(default, rename = "stackTrace")]
     pub stack_trace: ::core::option::Option<StackTrace>,
-}
-
-/// A non-sdk API and examples of it being called along with other metadata See https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NonSdkApi {
-    /// The signature of the Non-SDK API
-    #[serde(default, rename = "apiSignature")]
-    pub api_signature: ::core::option::Option<String>,
-    /// Example stack traces of this API being called.
-    #[serde(default, rename = "exampleStackTraces")]
-    pub example_stack_traces: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional debugging insights for non-SDK API violations.
-    #[serde(default)]
-    pub insights: ::core::option::Option<::std::vec::Vec<NonSdkApiInsight>>,
-    /// The total number of times this API was observed to have been called.
-    #[serde(default, rename = "invocationCount")]
-    pub invocation_count: ::core::option::Option<i32>,
-    /// Which list this API appears on // TODO: enum values: ["NONE", "WHITE", "BLACK", "GREY", "GREY_MAX_O", "GREY_MAX_P", "GREY_MAX_Q", "GREY_MAX_R", "GREY_MAX_S"]
-    #[serde(default)]
-    pub list: ::core::option::Option<String>,
-}
-
-/// Non-SDK API insights (to address debugging solutions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NonSdkApiInsight {
-    /// Optional sample stack traces, for which this insight applies (there should be at least one).
-    #[serde(default, rename = "exampleTraceMessages")]
-    pub example_trace_messages: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A unique ID, to be used for determining the effectiveness of this particular insight in the context of a matcher. (required)
-    #[serde(default, rename = "matcherId")]
-    pub matcher_id: ::core::option::Option<String>,
-    /// An insight indicating that the hidden API usage originates from a Google-provided library.
-    #[serde(default, rename = "pendingGoogleUpdateInsight")]
-    pub pending_google_update_insight: ::core::option::Option<PendingGoogleUpdateInsight>,
-    /// An insight indicating that the hidden API usage originates from the use of a library that needs to be upgraded.
-    #[serde(default, rename = "upgradeInsight")]
-    pub upgrade_insight: ::core::option::Option<UpgradeInsight>,
 }
 
 /// Additional details for a non-sdk API usage violation.
@@ -729,26 +245,6 @@ pub struct NonSdkApiUsageViolationReport {
     pub unique_apis: ::core::option::Option<i32>,
 }
 
-/// Interprets a result so that humans and machines can act on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Outcome {
-    /// More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional
-    #[serde(default, rename = "failureDetail")]
-    pub failure_detail: ::core::option::Option<FailureDetail>,
-    /// More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional
-    #[serde(default, rename = "inconclusiveDetail")]
-    pub inconclusive_detail: ::core::option::Option<InconclusiveDetail>,
-    /// More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional
-    #[serde(default, rename = "skippedDetail")]
-    pub skipped_detail: ::core::option::Option<SkippedDetail>,
-    /// More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional
-    #[serde(default, rename = "successDetail")]
-    pub success_detail: ::core::option::Option<SuccessDetail>,
-    /// The simplest way to interpret a result. Required // TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
-    #[serde(default)]
-    pub summary: ::core::option::Option<String>,
-}
-
 /// A warning that Robo encountered a screen that has overlapping clickable elements; this may indicate a potential UI issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OverlappingUIElements {
@@ -758,25 +254,6 @@ pub struct OverlappingUIElements {
     /// The screen id of the elements
     #[serde(default, rename = "screenId")]
     pub screen_id: ::core::option::Option<String>,
-}
-
-/// This insight indicates that the hidden API usage originates from a Google-provided library. Users need not take any action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingGoogleUpdateInsight {
-    /// The name of the Google-provided library with the non-SDK API dependency.
-    #[serde(default, rename = "nameOfGoogleLibrary")]
-    pub name_of_google_library: ::core::option::Option<String>,
-}
-
-/// Encapsulates performance environment info
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerfEnvironment {
-    /// CPU related environment info
-    #[serde(default, rename = "cpuInfo")]
-    pub cpu_info: ::core::option::Option<CPUInfo>,
-    /// Memory related environment info
-    #[serde(default, rename = "memoryInfo")]
-    pub memory_info: ::core::option::Option<MemoryInfo>,
 }
 
 /// A summary of perf metrics collected and performance environment info
@@ -807,15 +284,173 @@ pub struct PerfMetricsSummary {
     pub step_id: ::core::option::Option<String>,
 }
 
-/// Resource representing a single performance measure or data point
+/// A notification that Robo performed some monkey actions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerfSample {
-    /// Timestamp of collection.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<Timestamp>,
-    /// Value observed
+pub struct PerformedMonkeyActions {
+    /// The total number of monkey actions performed during the crawl.
+    #[serde(default, rename = "totalActions")]
+    pub total_actions: ::core::option::Option<i32>,
+}
+
+/// Per-project settings for the Tool Results service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectSettings {
+    /// The name of the Google Cloud Storage bucket to which results are written. By default, this is unset. In update request: optional In response: optional
+    #[serde(default, rename = "defaultBucket")]
+    pub default_bucket: ::core::option::Option<String>,
+    /// The name of the project''s settings. Always of the form: projects/{project-id}/settings In update request: never set In response: always set
     #[serde(default)]
-    pub value: ::core::option::Option<f64>,
+    pub name: ::core::option::Option<String>,
+}
+
+/// Request message for StepService.PublishXunitXmlFiles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublishXunitXmlFilesRequest {
+    /// URI of the Xunit XML files to publish. The maximum size of the file this reference is pointing to is 50MB. Required.
+    #[serde(default, rename = "xunitXmlFiles")]
+    pub xunit_xml_files: ::core::option::Option<::std::vec::Vec<FileReference>>,
+}
+
+/// Execution stats for a user-provided Robo script.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoboScriptExecution {
+    /// The number of Robo script actions executed successfully.
+    #[serde(default, rename = "successfulActions")]
+    pub successful_actions: ::core::option::Option<i32>,
+    /// The total number of actions in the Robo script.
+    #[serde(default, rename = "totalActions")]
+    pub total_actions: ::core::option::Option<i32>,
+}
+
+/// User provided intent failed to resolve to an activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartActivityNotFound {
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A warning that the screen hierarchy is deeper than the recommended threshold.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UIElementTooDeep {
+    /// The depth of the screen element
+    #[serde(default)]
+    pub depth: ::core::option::Option<i32>,
+    /// The screen id of the element
+    #[serde(default, rename = "screenId")]
+    pub screen_id: ::core::option::Option<String>,
+    /// The screen state id of the element
+    #[serde(default, rename = "screenStateId")]
+    pub screen_state_id: ::core::option::Option<String>,
+}
+
+/// Additional details of an unused robodirective.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnusedRoboDirective {
+    /// The name of the resource that was unused.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Additional details of a used Robo directive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsedRoboDirective {
+    /// The name of the resource that was used.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Additional details of a used Robo directive with an ignore action. Note: This is a different scenario than unused directive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsedRoboIgnoreDirective {
+    /// The name of the resource that was ignored.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// An Environment represents the set of test runs (Steps) from the parent Execution that are configured with the same set of dimensions (Model, Version, Locale, and Orientation). Multiple such runs occur particularly because of features like sharding (splitting up a test suite to run in parallel across devices) and reruns (running a test multiple times to check for different outcomes).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Environment {
+    /// Output only. The time when the Environment status was set to complete. This value will be set automatically when state transitions to COMPLETE.
+    #[serde(default, rename = "completionTime")]
+    pub completion_time: ::core::option::Option<Timestamp>,
+    /// Output only. The time when the Environment was created.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<Timestamp>,
+    /// Dimension values describing the environment. Dimension values always consist of "Model", "Version", "Locale", and "Orientation". - In response: always set - In create request: always set - In update request: never set
+    #[serde(default, rename = "dimensionValue")]
+    pub dimension_value: ::core::option::Option<::std::vec::Vec<EnvironmentDimensionValueEntry>>,
+    /// A short human-readable name to display in the UI. Maximum of 100 characters. For example: Nexus 5, API 27.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. An Environment id.
+    #[serde(default, rename = "environmentId")]
+    pub environment_id: ::core::option::Option<String>,
+    /// Merged result of the environment.
+    #[serde(default, rename = "environmentResult")]
+    pub environment_result: ::core::option::Option<MergedResult>,
+    /// Output only. An Execution id.
+    #[serde(default, rename = "executionId")]
+    pub execution_id: ::core::option::Option<String>,
+    /// Output only. A History id.
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// Output only. A Project id.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// The location where output files are stored in the user bucket.
+    #[serde(default, rename = "resultsStorage")]
+    pub results_storage: ::core::option::Option<ResultsStorage>,
+    /// Output only. Summaries of shards. Only one shard will present unless sharding feature is enabled in TestExecutionService.
+    #[serde(default, rename = "shardSummaries")]
+    pub shard_summaries: ::core::option::Option<::std::vec::Vec<ShardSummary>>,
+}
+
+/// An Execution represents a collection of Steps. For instance, it could represent: - a mobile test executed across a range of device configurations - a jenkins job with a build step followed by a test step The maximum size of an execution message is 1 MiB. An Execution can be updated until its state is set to COMPLETE at which point it becomes immutable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Execution {
+    /// The time when the Execution status transitioned to COMPLETE. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set
+    #[serde(default, rename = "completionTime")]
+    pub completion_time: ::core::option::Option<Timestamp>,
+    /// The time when the Execution was created. This value will be set automatically when CreateExecution is called. - In response: always set - In create/update request: never set
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<Timestamp>,
+    /// The dimensions along which different steps in this execution may vary. This must remain fixed over the life of the execution. Returns INVALID_ARGUMENT if this field is set in an update request. Returns INVALID_ARGUMENT if the same name occurs in more than one dimension_definition. Returns INVALID_ARGUMENT if the size of the list is over 100. - In response: present if set by create - In create request: optional - In update request: never set
+    #[serde(default, rename = "dimensionDefinitions")]
+    pub dimension_definitions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A unique identifier within a History for this Execution. Returns INVALID_ARGUMENT if this field is set or overwritten by the caller. - In response always set - In create/update request: never set
+    #[serde(default, rename = "executionId")]
+    pub execution_id: ::core::option::Option<String>,
+    /// Classify the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional
+    #[serde(default)]
+    pub outcome: ::core::option::Option<Outcome>,
+    /// Lightweight information about execution request. - In response: present if set by create - In create: optional - In update: optional
+    #[serde(default)]
+    pub specification: ::core::option::Option<Specification>,
+    /// The initial state is IN_PROGRESS. The only legal state transitions is from IN_PROGRESS to COMPLETE. A PRECONDITION_FAILED will be returned if an invalid transition is requested. The state can only be set to COMPLETE once. A FAILED_PRECONDITION will be returned if the state is set to COMPLETE multiple times. If the state is set to COMPLETE, all the in-progress steps within the execution will be set as COMPLETE. If the outcome of the step is not set, the outcome will be set to INCONCLUSIVE. - In response always set - In create/update request: optional // TODO: enum values: ["unknownState", "pending", "inProgress", "complete"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// TestExecution Matrix ID that the TestExecutionService uses. - In response: present if set by create - In create: optional - In update: never set
+    #[serde(default, rename = "testExecutionMatrixId")]
+    pub test_execution_matrix_id: ::core::option::Option<String>,
+}
+
+/// A History represents a sorted list of Executions ordered by the start_timestamp_millis field (descending). It can be used to group all the Executions of a continuous build. Note that the ordering only operates on one-dimension. If a repository has multiple branches, it means that multiple histories will need to be used in order to order Executions per branch.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct History {
+    /// A short human-readable (plain text) name to display in the UI. Maximum of 100 characters. - In response: present if set during create. - In create request: optional
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// A unique identifier within a project for this History. Returns INVALID_ARGUMENT if this field is set or overwritten by the caller. - In response always set - In create request: never set
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// A name to uniquely identify a history within a project. Maximum of 200 characters. - In response always set - In create request: always set
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The platform of the test history. - In response: always set. Returns the platform of the last execution if unknown. // TODO: enum values: ["unknownPlatform", "android", "ios"]
+    #[serde(default, rename = "testPlatform")]
+    pub test_platform: ::core::option::Option<String>,
 }
 
 /// Resource representing a collection of performance samples (or data points)
@@ -841,106 +476,15 @@ pub struct PerfSampleSeries {
     pub step_id: ::core::option::Option<String>,
 }
 
-/// A notification that Robo performed some monkey actions.
+/// Resource representing a single performance measure or data point
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerformedMonkeyActions {
-    /// The total number of monkey actions performed during the crawl.
-    #[serde(default, rename = "totalActions")]
-    pub total_actions: ::core::option::Option<i32>,
-}
-
-/// Stores rollup test status of multiple steps that were run as a group and outcome of each individual step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimaryStep {
-    /// Step Id and outcome of each individual step.
-    #[serde(default, rename = "individualOutcome")]
-    pub individual_outcome: ::core::option::Option<::std::vec::Vec<IndividualOutcome>>,
-    /// Rollup test status of multiple steps that were run with the same configuration as a group. // TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
-    #[serde(default, rename = "rollUp")]
-    pub roll_up: ::core::option::Option<String>,
-}
-
-/// Per-project settings for the Tool Results service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProjectSettings {
-    /// The name of the Google Cloud Storage bucket to which results are written. By default, this is unset. In update request: optional In response: optional
-    #[serde(default, rename = "defaultBucket")]
-    pub default_bucket: ::core::option::Option<String>,
-    /// The name of the project''s settings. Always of the form: projects/{project-id}/settings In update request: never set In response: always set
+pub struct PerfSample {
+    /// Timestamp of collection.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<Timestamp>,
+    /// Value observed
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Request message for StepService.PublishXunitXmlFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PublishXunitXmlFilesRequest {
-    /// URI of the Xunit XML files to publish. The maximum size of the file this reference is pointing to is 50MB. Required.
-    #[serde(default, rename = "xunitXmlFiles")]
-    pub xunit_xml_files: ::core::option::Option<::std::vec::Vec<FileReference>>,
-}
-
-/// A rectangular region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionProto {
-    /// The height, in pixels. Always set.
-    #[serde(default, rename = "heightPx")]
-    pub height_px: ::core::option::Option<i32>,
-    /// The left side of the rectangle, in pixels. Always set.
-    #[serde(default, rename = "leftPx")]
-    pub left_px: ::core::option::Option<i32>,
-    /// The top of the rectangle, in pixels. Always set.
-    #[serde(default, rename = "topPx")]
-    pub top_px: ::core::option::Option<i32>,
-    /// The width, in pixels. Always set.
-    #[serde(default, rename = "widthPx")]
-    pub width_px: ::core::option::Option<i32>,
-}
-
-/// The storage for test results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResultsStorage {
-    /// The root directory for test results.
-    #[serde(default, rename = "resultsStoragePath")]
-    pub results_storage_path: ::core::option::Option<FileReference>,
-    /// The path to the Xunit XML file.
-    #[serde(default, rename = "xunitXmlFile")]
-    pub xunit_xml_file: ::core::option::Option<FileReference>,
-}
-
-/// Execution stats for a user-provided Robo script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoboScriptExecution {
-    /// The number of Robo script actions executed successfully.
-    #[serde(default, rename = "successfulActions")]
-    pub successful_actions: ::core::option::Option<i32>,
-    /// The total number of actions in the Robo script.
-    #[serde(default, rename = "totalActions")]
-    pub total_actions: ::core::option::Option<i32>,
-}
-
-/// IMPORTANT: It is unsafe to accept this message from an untrusted source, since it''s trivial for an attacker to forge serialized messages that don''t fulfill the type''s safety contract -- for example, it could contain attacker controlled script. A system which receives a SafeHtmlProto implicitly trusts the producer of the SafeHtmlProto. So, it''s generally safe to return this message in RPC responses, but generally unsafe to accept it in RPC requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SafeHtmlProto {
-    /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
-    #[serde(default, rename = "privateDoNotAccessOrElseSafeHtmlWrappedValue")]
-    pub private_do_not_access_or_else_safe_html_wrapped_value: ::core::option::Option<String>,
-}
-
-/// Screen resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Screen {
-    /// File reference of the png file. Required.
-    #[serde(default, rename = "fileReference")]
-    pub file_reference: ::core::option::Option<String>,
-    /// Locale of the device that the screenshot was taken on. Required.
-    #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// Model of the device that the screenshot was taken on. Required.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// OS version of the device that the screenshot was taken on. Required.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// ScreenshotCluster resource type.
@@ -960,74 +504,32 @@ pub struct ScreenshotCluster {
     pub screens: ::core::option::Option<::std::vec::Vec<Screen>>,
 }
 
-/// Result summary for a shard in an environment.
+/// A set of similar suggestions that we suspect are closely related. This proto and most of the nested protos are branched from foxandcrown.prelaunchreport.service.SuggestionClusterProto, replacing PLR''s dependencies with FTL''s.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShardSummary {
-    /// Summaries of the steps belonging to the shard. With flaky_test_attempts enabled from TestExecutionService, more than one run (Step) can present. And the runs will be sorted by multistep_number.
+pub struct SuggestionClusterProto {
+    /// Category in which these types of suggestions should appear. Always set. // TODO: enum values: ["unknownCategory", "contentLabeling", "touchTargetSize", "lowContrast", "implementation"]
     #[serde(default)]
-    pub runs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Merged result of the shard.
-    #[serde(default, rename = "shardResult")]
-    pub shard_result: ::core::option::Option<MergedResult>,
+    pub category: ::core::option::Option<String>,
+    /// A sequence of suggestions. All of the suggestions within a cluster must have the same SuggestionPriority and belong to the same SuggestionCategory. Suggestions with the same screenshot URL should be adjacent.
+    #[serde(default)]
+    pub suggestions: ::core::option::Option<::std::vec::Vec<SuggestionProto>>,
 }
 
-/// Details for an outcome with a SKIPPED outcome summary.
+/// An image, with a link to the main image and a thumbnail.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkippedDetail {
-    /// If the App doesn''t support the specific API level.
-    #[serde(default, rename = "incompatibleAppVersion")]
-    pub incompatible_app_version: ::core::option::Option<bool>,
-    /// If the App doesn''t run on the specific architecture, for example, x86.
-    #[serde(default, rename = "incompatibleArchitecture")]
-    pub incompatible_architecture: ::core::option::Option<bool>,
-    /// If the requested OS version doesn''t run on the specific device model.
-    #[serde(default, rename = "incompatibleDevice")]
-    pub incompatible_device: ::core::option::Option<bool>,
-    /// Indicates that the test could not be scheduled in the requested time because no suitable device was available.
-    #[serde(default, rename = "pendingTimeout")]
-    pub pending_timeout: ::core::option::Option<bool>,
-}
-
-/// The details about how to run the execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Specification {
-    /// An Android mobile test execution specification.
-    #[serde(default, rename = "androidTest")]
-    pub android_test: ::core::option::Option<AndroidTest>,
-    /// An iOS mobile test execution specification.
-    #[serde(default, rename = "iosTest")]
-    pub ios_test: ::core::option::Option<IosTest>,
-}
-
-/// A stacktrace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackTrace {
-    /// The stack trace message. Required
+pub struct Image {
+    /// An error explaining why the thumbnail could not be rendered.
     #[serde(default)]
-    pub exception: ::core::option::Option<String>,
-}
-
-/// User provided intent failed to resolve to an activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartActivityNotFound {
+    pub error: ::core::option::Option<Status>,
+    /// A reference to the full-size, original image. This is the same as the tool_outputs entry for the image under its Step. Always set.
+    #[serde(default, rename = "sourceImage")]
+    pub source_image: ::core::option::Option<ToolOutputReference>,
+    /// The step to which the image is attached. Always set.
+    #[serde(default, rename = "stepId")]
+    pub step_id: ::core::option::Option<String>,
+    /// The thumbnail.
     #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub thumbnail: ::core::option::Option<Thumbnail>,
 }
 
 /// A Step represents a single operation performed as part of Execution. A step can be used to represent the execution of a tool ( for example a test runner execution or an execution of a compiler). Steps can overlap (for instance two steps might have the same start time if some operations are done in parallel). Here is an example, let''s consider that we have a continuous build is executing a test runner for each iteration. The workflow would look like: - user creates a Execution with id 1 - user creates a TestExecutionStep with id 100 for Execution 1 - user update TestExecutionStep with id 100 to add a raw xml log + the service parses the xml logs and returns a TestExecutionStep with updated TestResult(s). - user update the status of TestExecutionStep with id 100 to COMPLETE A Step can be updated until its state is set to COMPLETE at which points it becomes immutable.
@@ -1080,41 +582,192 @@ pub struct Step {
     pub tool_execution_step: ::core::option::Option<ToolExecutionStep>,
 }
 
-/// StepDimensionValueEntry resource type.
+/// TestCase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StepDimensionValueEntry {
+pub struct TestCase {
+    /// The elapsed run time of the test case. Required.
+    #[serde(default, rename = "elapsedTime")]
+    pub elapsed_time: ::core::option::Option<Duration>,
+    /// The end time of the test case.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<Timestamp>,
+    /// Why the test case was skipped. Present only for skipped test case
+    #[serde(default, rename = "skippedMessage")]
+    pub skipped_message: ::core::option::Option<String>,
+    /// The stack trace details if the test case failed or encountered an error. The maximum size of the stack traces is 100KiB, beyond which the stack track will be truncated. Zero if the test case passed.
+    #[serde(default, rename = "stackTraces")]
+    pub stack_traces: ::core::option::Option<::std::vec::Vec<StackTrace>>,
+    /// The start time of the test case.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<Timestamp>,
+    /// The status of the test case. Required. // TODO: enum values: ["passed", "failed", "error", "skipped", "flaky"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// A unique identifier within a Step for this Test Case.
+    #[serde(default, rename = "testCaseId")]
+    pub test_case_id: ::core::option::Option<String>,
+    /// Test case reference, e.g. name, class name and test suite name. Required.
+    #[serde(default, rename = "testCaseReference")]
+    pub test_case_reference: ::core::option::Option<TestCaseReference>,
+    /// References to opaque files of any format output by the tool execution. @OutputOnly
+    #[serde(default, rename = "toolOutputs")]
+    pub tool_outputs: ::core::option::Option<::std::vec::Vec<ToolOutputReference>>,
+}
+
+/// A non-sdk API and examples of it being called along with other metadata See https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NonSdkApi {
+    /// The signature of the Non-SDK API
+    #[serde(default, rename = "apiSignature")]
+    pub api_signature: ::core::option::Option<String>,
+    /// Example stack traces of this API being called.
+    #[serde(default, rename = "exampleStackTraces")]
+    pub example_stack_traces: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional debugging insights for non-SDK API violations.
+    #[serde(default)]
+    pub insights: ::core::option::Option<::std::vec::Vec<NonSdkApiInsight>>,
+    /// The total number of times this API was observed to have been called.
+    #[serde(default, rename = "invocationCount")]
+    pub invocation_count: ::core::option::Option<i32>,
+    /// Which list this API appears on // TODO: enum values: ["NONE", "WHITE", "BLACK", "GREY", "GREY_MAX_O", "GREY_MAX_P", "GREY_MAX_Q", "GREY_MAX_R", "GREY_MAX_S"]
+    #[serde(default)]
+    pub list: ::core::option::Option<String>,
+}
+
+/// AppStartTime resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppStartTime {
+    /// Optional. The time from app start to reaching the developer-reported "fully drawn" time. This is only stored if the app includes a call to Activity.reportFullyDrawn(). See https://developer.android.com/topic/performance/launch-time.html#time-full
+    #[serde(default, rename = "fullyDrawnTime")]
+    pub fully_drawn_time: ::core::option::Option<Duration>,
+    /// The time from app start to the first displayed activity being drawn, as reported in Logcat. See https://developer.android.com/topic/performance/launch-time.html#time-initial
+    #[serde(default, rename = "initialDisplayTime")]
+    pub initial_display_time: ::core::option::Option<Duration>,
+}
+
+/// Graphics statistics for the App. The information is collected from ''adb shell dumpsys graphicsstats''. For more info see: https://developer.android.com/training/testing/performance.html Statistics will only be present for API 23+.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphicsStats {
+    /// Histogram of frame render times. There should be 154 buckets ranging from [5ms, 6ms) to [4950ms, infinity)
+    #[serde(default)]
+    pub buckets: ::core::option::Option<::std::vec::Vec<GraphicsStatsBucket>>,
+    /// Total "high input latency" events.
+    #[serde(default, rename = "highInputLatencyCount")]
+    pub high_input_latency_count: ::core::option::Option<String>,
+    /// Total frames with slow render time. Should be &lt;= total_frames.
+    #[serde(default, rename = "jankyFrames")]
+    pub janky_frames: ::core::option::Option<String>,
+    /// Total "missed vsync" events.
+    #[serde(default, rename = "missedVsyncCount")]
+    pub missed_vsync_count: ::core::option::Option<String>,
+    /// 50th percentile frame render time in milliseconds.
+    #[serde(default, rename = "p50Millis")]
+    pub p50_millis: ::core::option::Option<String>,
+    /// 90th percentile frame render time in milliseconds.
+    #[serde(default, rename = "p90Millis")]
+    pub p90_millis: ::core::option::Option<String>,
+    /// 95th percentile frame render time in milliseconds.
+    #[serde(default, rename = "p95Millis")]
+    pub p95_millis: ::core::option::Option<String>,
+    /// 99th percentile frame render time in milliseconds.
+    #[serde(default, rename = "p99Millis")]
+    pub p99_millis: ::core::option::Option<String>,
+    /// Total "slow bitmap upload" events.
+    #[serde(default, rename = "slowBitmapUploadCount")]
+    pub slow_bitmap_upload_count: ::core::option::Option<String>,
+    /// Total "slow draw" events.
+    #[serde(default, rename = "slowDrawCount")]
+    pub slow_draw_count: ::core::option::Option<String>,
+    /// Total "slow UI thread" events.
+    #[serde(default, rename = "slowUiThreadCount")]
+    pub slow_ui_thread_count: ::core::option::Option<String>,
+    /// Total frames rendered by package.
+    #[serde(default, rename = "totalFrames")]
+    pub total_frames: ::core::option::Option<String>,
+}
+
+/// Encapsulates performance environment info
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerfEnvironment {
+    /// CPU related environment info
+    #[serde(default, rename = "cpuInfo")]
+    pub cpu_info: ::core::option::Option<CPUInfo>,
+    /// Memory related environment info
+    #[serde(default, rename = "memoryInfo")]
+    pub memory_info: ::core::option::Option<MemoryInfo>,
+}
+
+/// EnvironmentDimensionValueEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentDimensionValueEntry {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
 
-/// StepLabelsEntry resource type.
+/// The storage for test results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StepLabelsEntry {
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
+pub struct ResultsStorage {
+    /// The root directory for test results.
+    #[serde(default, rename = "resultsStoragePath")]
+    pub results_storage_path: ::core::option::Option<FileReference>,
+    /// The path to the Xunit XML file.
+    #[serde(default, rename = "xunitXmlFile")]
+    pub xunit_xml_file: ::core::option::Option<FileReference>,
 }
 
-/// Details for an outcome with a SUCCESS outcome summary. LINT.IfChange
+/// Result summary for a shard in an environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuccessDetail {
-    /// If a native process other than the app crashed.
-    #[serde(default, rename = "otherNativeCrash")]
-    pub other_native_crash: ::core::option::Option<bool>,
+pub struct ShardSummary {
+    /// Summaries of the steps belonging to the shard. With flaky_test_attempts enabled from TestExecutionService, more than one run (Step) can present. And the runs will be sorted by multistep_number.
+    #[serde(default)]
+    pub runs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Merged result of the shard.
+    #[serde(default, rename = "shardResult")]
+    pub shard_result: ::core::option::Option<MergedResult>,
 }
 
-/// A set of similar suggestions that we suspect are closely related. This proto and most of the nested protos are branched from foxandcrown.prelaunchreport.service.SuggestionClusterProto, replacing PLR''s dependencies with FTL''s.
+/// The details about how to run the execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestionClusterProto {
-    /// Category in which these types of suggestions should appear. Always set. // TODO: enum values: ["unknownCategory", "contentLabeling", "touchTargetSize", "lowContrast", "implementation"]
+pub struct Specification {
+    /// An Android mobile test execution specification.
+    #[serde(default, rename = "androidTest")]
+    pub android_test: ::core::option::Option<AndroidTest>,
+    /// An iOS mobile test execution specification.
+    #[serde(default, rename = "iosTest")]
+    pub ios_test: ::core::option::Option<IosTest>,
+}
+
+/// Encapsulates the metadata for basic sample series represented by a line chart
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BasicPerfSampleSeries {
+    /// TODO: enum values: ["perfMetricTypeUnspecified", "memory", "cpu", "network", "graphics"]
+    #[serde(default, rename = "perfMetricType")]
+    pub perf_metric_type: ::core::option::Option<String>,
+    /// TODO: enum values: ["perfUnitUnspecified", "kibibyte", "percent", "bytesPerSecond", "framesPerSecond", "byte"]
+    #[serde(default, rename = "perfUnit")]
+    pub perf_unit: ::core::option::Option<String>,
+    /// TODO: enum values: ["sampleSeriesTypeUnspecified", "memoryRssPrivate", "memoryRssShared", "memoryRssTotal", "memoryTotal", "cpuUser", "cpuKernel", "cpuTotal", "ntBytesTransferred", "ntBytesReceived", "networkSent", "networkReceived", "graphicsFrameRate"]
+    #[serde(default, rename = "sampleSeriesLabel")]
+    pub sample_series_label: ::core::option::Option<String>,
+}
+
+/// Screen resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Screen {
+    /// File reference of the png file. Required.
+    #[serde(default, rename = "fileReference")]
+    pub file_reference: ::core::option::Option<String>,
+    /// Locale of the device that the screenshot was taken on. Required.
     #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// A sequence of suggestions. All of the suggestions within a cluster must have the same SuggestionPriority and belong to the same SuggestionCategory. Suggestions with the same screenshot URL should be adjacent.
+    pub locale: ::core::option::Option<String>,
+    /// Model of the device that the screenshot was taken on. Required.
     #[serde(default)]
-    pub suggestions: ::core::option::Option<::std::vec::Vec<SuggestionProto>>,
+    pub model: ::core::option::Option<String>,
+    /// OS version of the device that the screenshot was taken on. Required.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
 }
 
 /// SuggestionProto resource type.
@@ -1152,50 +805,67 @@ pub struct SuggestionProto {
     pub title: ::core::option::Option<String>,
 }
 
-/// TestCase resource type.
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestCase {
-    /// The elapsed run time of the test case. Required.
-    #[serde(default, rename = "elapsedTime")]
-    pub elapsed_time: ::core::option::Option<Duration>,
-    /// The end time of the test case.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<Timestamp>,
-    /// Why the test case was skipped. Present only for skipped test case
-    #[serde(default, rename = "skippedMessage")]
-    pub skipped_message: ::core::option::Option<String>,
-    /// The stack trace details if the test case failed or encountered an error. The maximum size of the stack traces is 100KiB, beyond which the stack track will be truncated. Zero if the test case passed.
-    #[serde(default, rename = "stackTraces")]
-    pub stack_traces: ::core::option::Option<::std::vec::Vec<StackTrace>>,
-    /// The start time of the test case.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<Timestamp>,
-    /// The status of the test case. Required. // TODO: enum values: ["passed", "failed", "error", "skipped", "flaky"]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// A unique identifier within a Step for this Test Case.
-    #[serde(default, rename = "testCaseId")]
-    pub test_case_id: ::core::option::Option<String>,
-    /// Test case reference, e.g. name, class name and test suite name. Required.
-    #[serde(default, rename = "testCaseReference")]
-    pub test_case_reference: ::core::option::Option<TestCaseReference>,
-    /// References to opaque files of any format output by the tool execution. @OutputOnly
-    #[serde(default, rename = "toolOutputs")]
-    pub tool_outputs: ::core::option::Option<::std::vec::Vec<ToolOutputReference>>,
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
 }
 
-/// A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.
+/// A single thumbnail, with its size and format.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestCaseReference {
-    /// The name of the class.
-    #[serde(default, rename = "className")]
-    pub class_name: ::core::option::Option<String>,
-    /// The name of the test case. Required.
+pub struct Thumbnail {
+    /// The thumbnail''s content type, i.e. "image/png". Always set.
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// The thumbnail file itself. That is, the bytes here are precisely the bytes that make up the thumbnail file; they can be served as an image as-is (with the appropriate content type.) Always set.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The name of the test suite to which this test case belongs.
-    #[serde(default, rename = "testSuiteName")]
-    pub test_suite_name: ::core::option::Option<String>,
+    pub data: ::core::option::Option<String>,
+    /// The height of the thumbnail, in pixels. Always set.
+    #[serde(default, rename = "heightPx")]
+    pub height_px: ::core::option::Option<i32>,
+    /// The width of the thumbnail, in pixels. Always set.
+    #[serde(default, rename = "widthPx")]
+    pub width_px: ::core::option::Option<i32>,
+}
+
+/// StepDimensionValueEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StepDimensionValueEntry {
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// StepLabelsEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StepLabelsEntry {
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Details when multiple steps are run with the same configuration as a group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiStep {
+    /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
+    #[serde(default, rename = "multistepNumber")]
+    pub multistep_number: ::core::option::Option<i32>,
+    /// Present if it is a primary (original) step.
+    #[serde(default, rename = "primaryStep")]
+    pub primary_step: ::core::option::Option<PrimaryStep>,
+    /// Step Id of the primary (original) step, which might be this step.
+    #[serde(default, rename = "primaryStepId")]
+    pub primary_step_id: ::core::option::Option<String>,
 }
 
 /// A step that represents running tests. It accepts ant-junit xml files which will be parsed into structured test results by the service. Xml file paths are updated in order to append more files, however they can''t be deleted. Users can also add test results manually by using the test_result field.
@@ -1213,6 +883,157 @@ pub struct TestExecutionStep {
     /// Represents the execution of the test runner. The exit code of this tool will be used to determine if the test passed. - In response: always set - In create/update request: optional
     #[serde(default, rename = "toolExecution")]
     pub tool_execution: ::core::option::Option<ToolExecution>,
+}
+
+/// Generic tool step to be used for binaries we do not explicitly support. For example: running cp to copy artifacts from one location to another.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolExecutionStep {
+    /// A Tool execution. - In response: present if set by create/update request - In create/update request: optional
+    #[serde(default, rename = "toolExecution")]
+    pub tool_execution: ::core::option::Option<ToolExecution>,
+}
+
+/// Non-SDK API insights (to address debugging solutions).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NonSdkApiInsight {
+    /// Optional sample stack traces, for which this insight applies (there should be at least one).
+    #[serde(default, rename = "exampleTraceMessages")]
+    pub example_trace_messages: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A unique ID, to be used for determining the effectiveness of this particular insight in the context of a matcher. (required)
+    #[serde(default, rename = "matcherId")]
+    pub matcher_id: ::core::option::Option<String>,
+    /// An insight indicating that the hidden API usage originates from a Google-provided library.
+    #[serde(default, rename = "pendingGoogleUpdateInsight")]
+    pub pending_google_update_insight: ::core::option::Option<PendingGoogleUpdateInsight>,
+    /// An insight indicating that the hidden API usage originates from the use of a library that needs to be upgraded.
+    #[serde(default, rename = "upgradeInsight")]
+    pub upgrade_insight: ::core::option::Option<UpgradeInsight>,
+}
+
+/// GraphicsStatsBucket resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphicsStatsBucket {
+    /// Number of frames in the bucket.
+    #[serde(default, rename = "frameCount")]
+    pub frame_count: ::core::option::Option<String>,
+    /// Lower bound of render time in milliseconds.
+    #[serde(default, rename = "renderMillis")]
+    pub render_millis: ::core::option::Option<String>,
+}
+
+/// CPUInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CPUInfo {
+    /// description of the device processor ie ''1.8 GHz hexa core 64-bit ARMv8-A''
+    #[serde(default, rename = "cpuProcessor")]
+    pub cpu_processor: ::core::option::Option<String>,
+    /// the CPU clock speed in GHz
+    #[serde(default, rename = "cpuSpeedInGhz")]
+    pub cpu_speed_in_ghz: ::core::option::Option<f32>,
+    /// the number of CPU cores
+    #[serde(default, rename = "numberOfCores")]
+    pub number_of_cores: ::core::option::Option<i32>,
+}
+
+/// MemoryInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryInfo {
+    /// Maximum memory that can be allocated to the process in KiB
+    #[serde(default, rename = "memoryCapInKibibyte")]
+    pub memory_cap_in_kibibyte: ::core::option::Option<String>,
+    /// Total memory available on the device in KiB
+    #[serde(default, rename = "memoryTotalInKibibyte")]
+    pub memory_total_in_kibibyte: ::core::option::Option<String>,
+}
+
+/// Merged test result for environment. If the environment has only one step (no reruns or shards), then the merged result is the same as the step result. If the environment has multiple shards and/or reruns, then the results of shards and reruns that belong to the same environment are merged into one environment result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MergedResult {
+    /// Outcome of the resource
+    #[serde(default)]
+    pub outcome: ::core::option::Option<Outcome>,
+    /// State of the resource // TODO: enum values: ["unknownState", "pending", "inProgress", "complete"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The combined and rolled-up result of each test suite that was run as part of this environment. Combining: When the test cases from a suite are run in different steps (sharding), the results are added back together in one overview. (e.g., if shard1 has 2 failures and shard2 has 1 failure than the overview failure_count = 3). Rollup: When test cases from the same suite are run multiple times (flaky), the results are combined (e.g., if testcase1.run1 fails, testcase1.run2 passes, and both testcase2.run1 and testcase2.run2 fail then the overview flaky_count = 1 and failure_count = 1).
+    #[serde(default, rename = "testSuiteOverviews")]
+    pub test_suite_overviews: ::core::option::Option<::std::vec::Vec<TestSuiteOverview>>,
+}
+
+/// An Android mobile test specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidTest {
+    /// Information about the application under test.
+    #[serde(default, rename = "androidAppInfo")]
+    pub android_app_info: ::core::option::Option<AndroidAppInfo>,
+    /// An Android instrumentation test.
+    #[serde(default, rename = "androidInstrumentationTest")]
+    pub android_instrumentation_test: ::core::option::Option<AndroidInstrumentationTest>,
+    /// An Android robo test.
+    #[serde(default, rename = "androidRoboTest")]
+    pub android_robo_test: ::core::option::Option<AndroidRoboTest>,
+    /// An Android test loop.
+    #[serde(default, rename = "androidTestLoop")]
+    pub android_test_loop: ::core::option::Option<serde_json::Value>,
+    /// Max time a test is allowed to run before it is automatically cancelled.
+    #[serde(default, rename = "testTimeout")]
+    pub test_timeout: ::core::option::Option<Duration>,
+}
+
+/// A iOS mobile test specification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosTest {
+    /// Information about the application under test.
+    #[serde(default, rename = "iosAppInfo")]
+    pub ios_app_info: ::core::option::Option<IosAppInfo>,
+    /// An iOS Robo test.
+    #[serde(default, rename = "iosRoboTest")]
+    pub ios_robo_test: ::core::option::Option<serde_json::Value>,
+    /// An iOS test loop.
+    #[serde(default, rename = "iosTestLoop")]
+    pub ios_test_loop: ::core::option::Option<IosTestLoop>,
+    /// An iOS XCTest.
+    #[serde(default, rename = "iosXcTest")]
+    pub ios_xc_test: ::core::option::Option<IosXcTest>,
+    /// Max time a test is allowed to run before it is automatically cancelled.
+    #[serde(default, rename = "testTimeout")]
+    pub test_timeout: ::core::option::Option<Duration>,
+}
+
+/// IMPORTANT: It is unsafe to accept this message from an untrusted source, since it''s trivial for an attacker to forge serialized messages that don''t fulfill the type''s safety contract -- for example, it could contain attacker controlled script. A system which receives a SafeHtmlProto implicitly trusts the producer of the SafeHtmlProto. So, it''s generally safe to return this message in RPC responses, but generally unsafe to accept it in RPC requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SafeHtmlProto {
+    /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
+    #[serde(default, rename = "privateDoNotAccessOrElseSafeHtmlWrappedValue")]
+    pub private_do_not_access_or_else_safe_html_wrapped_value: ::core::option::Option<String>,
+}
+
+/// A rectangular region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionProto {
+    /// The height, in pixels. Always set.
+    #[serde(default, rename = "heightPx")]
+    pub height_px: ::core::option::Option<i32>,
+    /// The left side of the rectangle, in pixels. Always set.
+    #[serde(default, rename = "leftPx")]
+    pub left_px: ::core::option::Option<i32>,
+    /// The top of the rectangle, in pixels. Always set.
+    #[serde(default, rename = "topPx")]
+    pub top_px: ::core::option::Option<i32>,
+    /// The width, in pixels. Always set.
+    #[serde(default, rename = "widthPx")]
+    pub width_px: ::core::option::Option<i32>,
+}
+
+/// Stores rollup test status of multiple steps that were run as a group and outcome of each individual step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrimaryStep {
+    /// Step Id and outcome of each individual step.
+    #[serde(default, rename = "individualOutcome")]
+    pub individual_outcome: ::core::option::Option<::std::vec::Vec<IndividualOutcome>>,
+    /// Rollup test status of multiple steps that were run with the same configuration as a group. // TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
+    #[serde(default, rename = "rollUp")]
+    pub roll_up: ::core::option::Option<String>,
 }
 
 /// An issue detected occurring during a test execution.
@@ -1236,6 +1057,70 @@ pub struct TestIssue {
     /// Warning message with additional details of the issue. Should always be a message from com.google.devtools.toolresults.v1.warnings
     #[serde(default)]
     pub warning_migration: ::core::option::Option<Any>,
+}
+
+/// Testing timing break down to know phases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestTiming {
+    /// How long it took to run the test process. - In response: present if previously set. - In create/update request: optional
+    #[serde(default, rename = "testProcessDuration")]
+    pub test_process_duration: ::core::option::Option<Duration>,
+}
+
+/// An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolExecution {
+    /// The full tokenized command line including the program name (equivalent to argv in a C program). - In response: present if set by create request - In create request: optional - In update request: never set
+    #[serde(default, rename = "commandLineArguments")]
+    pub command_line_arguments: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.
+    #[serde(default, rename = "exitCode")]
+    pub exit_code: ::core::option::Option<ToolExitCode>,
+    /// References to any plain text logs output the tool execution. This field can be set before the tool has exited in order to be able to have access to a live view of the logs while the tool is running. The maximum allowed number of tool logs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list
+    #[serde(default, rename = "toolLogs")]
+    pub tool_logs: ::core::option::Option<::std::vec::Vec<FileReference>>,
+    /// References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list
+    #[serde(default, rename = "toolOutputs")]
+    pub tool_outputs: ::core::option::Option<::std::vec::Vec<ToolOutputReference>>,
+}
+
+/// This insight indicates that the hidden API usage originates from a Google-provided library. Users need not take any action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingGoogleUpdateInsight {
+    /// The name of the Google-provided library with the non-SDK API dependency.
+    #[serde(default, rename = "nameOfGoogleLibrary")]
+    pub name_of_google_library: ::core::option::Option<String>,
+}
+
+/// This insight is a recommendation to upgrade a given library to the specified version, in order to avoid dependencies on non-SDK APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeInsight {
+    /// The name of the package to be upgraded.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The suggested version to upgrade to. Optional: In case we are not sure which version solves this problem
+    #[serde(default, rename = "upgradeToVersion")]
+    pub upgrade_to_version: ::core::option::Option<String>,
+}
+
+/// Interprets a result so that humans and machines can act on it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Outcome {
+    /// More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional
+    #[serde(default, rename = "failureDetail")]
+    pub failure_detail: ::core::option::Option<FailureDetail>,
+    /// More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional
+    #[serde(default, rename = "inconclusiveDetail")]
+    pub inconclusive_detail: ::core::option::Option<InconclusiveDetail>,
+    /// More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional
+    #[serde(default, rename = "skippedDetail")]
+    pub skipped_detail: ::core::option::Option<SkippedDetail>,
+    /// More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional
+    #[serde(default, rename = "successDetail")]
+    pub success_detail: ::core::option::Option<SuccessDetail>,
+    /// The simplest way to interpret a result. Required // TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
+    #[serde(default)]
+    pub summary: ::core::option::Option<String>,
 }
 
 /// A summary of a test suite result either parsed from XML or uploaded directly by a user. Note: the API related comments are for StepService only. This message is also being used in ExecutionService in a read only mode for the corresponding step.
@@ -1267,65 +1152,120 @@ pub struct TestSuiteOverview {
     pub xml_source: ::core::option::Option<FileReference>,
 }
 
-/// Testing timing break down to know phases.
+/// Android app information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestTiming {
-    /// How long it took to run the test process. - In response: present if previously set. - In create/update request: optional
-    #[serde(default, rename = "testProcessDuration")]
-    pub test_process_duration: ::core::option::Option<Duration>,
-}
-
-/// A single thumbnail, with its size and format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thumbnail {
-    /// The thumbnail''s content type, i.e. "image/png". Always set.
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// The thumbnail file itself. That is, the bytes here are precisely the bytes that make up the thumbnail file; they can be served as an image as-is (with the appropriate content type.) Always set.
+pub struct AndroidAppInfo {
+    /// The name of the app. Optional
     #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// The height of the thumbnail, in pixels. Always set.
-    #[serde(default, rename = "heightPx")]
-    pub height_px: ::core::option::Option<i32>,
-    /// The width of the thumbnail, in pixels. Always set.
-    #[serde(default, rename = "widthPx")]
-    pub width_px: ::core::option::Option<i32>,
+    pub name: ::core::option::Option<String>,
+    /// The package name of the app. Required.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The internal version code of the app. Optional.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<String>,
+    /// The version name of the app. Optional.
+    #[serde(default, rename = "versionName")]
+    pub version_name: ::core::option::Option<String>,
 }
 
-/// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+/// A test of an Android application that can control an Android component independently of its normal lifecycle. See for more information on types of Android tests.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Timestamp {
-    /// Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.
+pub struct AndroidInstrumentationTest {
+    /// The java package for the test to be executed. Required
+    #[serde(default, rename = "testPackageId")]
+    pub test_package_id: ::core::option::Option<String>,
+    /// The InstrumentationTestRunner class. Required
+    #[serde(default, rename = "testRunnerClass")]
+    pub test_runner_class: ::core::option::Option<String>,
+    /// Each target must be fully qualified with the package name or class name, in one of these formats: - "package package_name" - "class package_name.class_name" - "class package_name.class_name#method_name" If empty, all targets in the module will be run.
+    #[serde(default, rename = "testTargets")]
+    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The flag indicates whether Android Test Orchestrator will be used to run test or not.
+    #[serde(default, rename = "useOrchestrator")]
+    pub use_orchestrator: ::core::option::Option<bool>,
+}
+
+/// A test of an android application that explores the application on a virtual or physical Android device, finding culprits and crashes as it goes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidRoboTest {
+    /// The initial activity that should be used to start the app. Optional
+    #[serde(default, rename = "appInitialActivity")]
+    pub app_initial_activity: ::core::option::Option<String>,
+    /// The java package for the bootstrap. Optional
+    #[serde(default, rename = "bootstrapPackageId")]
+    pub bootstrap_package_id: ::core::option::Option<String>,
+    /// The runner class for the bootstrap. Optional
+    #[serde(default, rename = "bootstrapRunnerClass")]
+    pub bootstrap_runner_class: ::core::option::Option<String>,
+    /// The max depth of the traversal stack Robo can explore. Optional
+    #[serde(default, rename = "maxDepth")]
+    pub max_depth: ::core::option::Option<i32>,
+    /// The max number of steps/actions Robo can execute. Default is no limit (0). Optional
+    #[serde(default, rename = "maxSteps")]
+    pub max_steps: ::core::option::Option<i32>,
+}
+
+/// iOS app information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosAppInfo {
+    /// The name of the app. Required
     #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.
+    pub name: ::core::option::Option<String>,
+}
+
+/// A game loop test of an iOS application.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosTestLoop {
+    /// Bundle ID of the app.
+    #[serde(default, rename = "bundleId")]
+    pub bundle_id: ::core::option::Option<String>,
+}
+
+/// A test of an iOS application that uses the XCTest framework.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosXcTest {
+    /// Bundle ID of the app.
+    #[serde(default, rename = "bundleId")]
+    pub bundle_id: ::core::option::Option<String>,
+    /// Xcode version that the test was run with.
+    #[serde(default, rename = "xcodeVersion")]
+    pub xcode_version: ::core::option::Option<String>,
+}
+
+/// Step Id and outcome of each individual step that was run as a group with other steps with the same configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndividualOutcome {
+    /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
+    #[serde(default, rename = "multistepNumber")]
+    pub multistep_number: ::core::option::Option<i32>,
+    /// TODO: enum values: ["unset", "success", "failure", "inconclusive", "skipped", "flaky"]
+    #[serde(default, rename = "outcomeSummary")]
+    pub outcome_summary: ::core::option::Option<String>,
+    /// How long it took for this step to run.
+    #[serde(default, rename = "runDuration")]
+    pub run_duration: ::core::option::Option<Duration>,
+    #[serde(default, rename = "stepId")]
+    pub step_id: ::core::option::Option<String>,
+}
+
+/// A stacktrace.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackTrace {
+    /// The stack trace message. Required
     #[serde(default)]
-    pub seconds: ::core::option::Option<String>,
+    pub exception: ::core::option::Option<String>,
 }
 
-/// An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.
+///  Any contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message. Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type. Example 1: Pack and unpack a message in C++. Foo foo = ...; Any any; any.PackFrom(foo); ... if (any.UnpackTo(&foo)) { ... } Example 2: Pack and unpack a message in Java. Foo foo = ...; Any any = Any.pack(foo); ... if (any.is(Foo.class)) { foo = any.unpack(Foo.class); } Example 3: Pack and unpack a message in Python. foo = Foo(...) any = Any() any.Pack(foo) ... if any.Is(Foo.DESCRIPTOR): any.Unpack(foo) ... Example 4: Pack and unpack a message in Go foo := &pb.Foo{...} any, err := ptypes.MarshalAny(foo) ... foo := &pb.Foo{} if err := ptypes.UnmarshalAny(any, foo); err != nil { ... } The pack methods provided by protobuf library will by default use ''type.googleapis.com/full.type.name'' as the type URL and the unpack methods only use the fully qualified type name after the last ''/'' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z". # JSON The JSON representation of an Any value uses the regular representation of the deserialized, embedded message, with an additional field @type which contains the type URL. Example: package google.profile; message Person { string first_name = 1; string last_name = 2; } { "@type": "type.googleapis.com/google.profile.Person", "firstName": , "lastName": } If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field value which holds the custom JSON in addition to the @type field. Example (for message google.protobuf.Duration): { "@type": "type.googleapis.com/google.protobuf.Duration", "value": "1.212s" }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolExecution {
-    /// The full tokenized command line including the program name (equivalent to argv in a C program). - In response: present if set by create request - In create request: optional - In update request: never set
-    #[serde(default, rename = "commandLineArguments")]
-    pub command_line_arguments: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.
-    #[serde(default, rename = "exitCode")]
-    pub exit_code: ::core::option::Option<ToolExitCode>,
-    /// References to any plain text logs output the tool execution. This field can be set before the tool has exited in order to be able to have access to a live view of the logs while the tool is running. The maximum allowed number of tool logs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list
-    #[serde(default, rename = "toolLogs")]
-    pub tool_logs: ::core::option::Option<::std::vec::Vec<FileReference>>,
-    /// References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list
-    #[serde(default, rename = "toolOutputs")]
-    pub tool_outputs: ::core::option::Option<::std::vec::Vec<ToolOutputReference>>,
-}
-
-/// Generic tool step to be used for binaries we do not explicitly support. For example: running cp to copy artifacts from one location to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolExecutionStep {
-    /// A Tool execution. - In response: present if set by create/update request - In create/update request: optional
-    #[serde(default, rename = "toolExecution")]
-    pub tool_execution: ::core::option::Option<ToolExecution>,
+pub struct Any {
+    /// A URL/resource name that uniquely identifies the type of the serialized protocol buffer message. This string must contain at least one "/" character. The last segment of the URL''s path must represent the fully qualified name of the type (as in path/google.protobuf.Duration). The name should be in a canonical form (e.g., leading "." is not accepted). In practice, teams usually precompile into the binary all types that they expect it to use in the context of Any. However, for URLs which use the scheme http, https, or no scheme, one can optionally set up a type server that maps type URLs to message definitions as follows: * If no scheme is provided, https is assumed. * An HTTP GET on the URL must yield a google.protobuf.Type value in binary format, or produce an error. * Applications are allowed to cache lookup results based on the URL, or have them precompiled into a binary to avoid any lookup. Therefore, binary compatibility needs to be preserved on changes to types. (Use versioned type names to manage breaking changes.) Note: this functionality is not currently available in the official protobuf release, and it is not used for type URLs beginning with type.googleapis.com. Schemes other than http, https (or the empty scheme) might be used with implementation specific semantics.
+    #[serde(default, rename = "typeUrl")]
+    pub type_url: ::core::option::Option<String>,
+    /// Must be a valid serialized protocol buffer of the above specified type.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
 /// Exit code from a tool execution.
@@ -1350,51 +1290,111 @@ pub struct ToolOutputReference {
     pub test_case: ::core::option::Option<TestCaseReference>,
 }
 
-/// A warning that the screen hierarchy is deeper than the recommended threshold.
+/// Details for an outcome with a FAILURE outcome summary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UIElementTooDeep {
-    /// The depth of the screen element
+pub struct FailureDetail {
+    /// If the failure was severe because the system (app) under test crashed.
     #[serde(default)]
-    pub depth: ::core::option::Option<i32>,
-    /// The screen id of the element
-    #[serde(default, rename = "screenId")]
-    pub screen_id: ::core::option::Option<String>,
-    /// The screen state id of the element
-    #[serde(default, rename = "screenStateId")]
-    pub screen_state_id: ::core::option::Option<String>,
+    pub crashed: ::core::option::Option<bool>,
+    /// If the device ran out of memory during a test, causing the test to crash.
+    #[serde(default, rename = "deviceOutOfMemory")]
+    pub device_out_of_memory: ::core::option::Option<bool>,
+    /// If the Roboscript failed to complete successfully, e.g., because a Roboscript action or assertion failed or a Roboscript action could not be matched during the entire crawl.
+    #[serde(default, rename = "failedRoboscript")]
+    pub failed_roboscript: ::core::option::Option<bool>,
+    /// If an app is not installed and thus no test can be run with the app. This might be caused by trying to run a test on an unsupported platform.
+    #[serde(default, rename = "notInstalled")]
+    pub not_installed: ::core::option::Option<bool>,
+    /// If a native process (including any other than the app) crashed.
+    #[serde(default, rename = "otherNativeCrash")]
+    pub other_native_crash: ::core::option::Option<bool>,
+    /// If the test overran some time limit, and that is why it failed.
+    #[serde(default, rename = "timedOut")]
+    pub timed_out: ::core::option::Option<bool>,
+    /// If the robo was unable to crawl the app; perhaps because the app did not start.
+    #[serde(default, rename = "unableToCrawl")]
+    pub unable_to_crawl: ::core::option::Option<bool>,
 }
 
-/// Additional details of an unused robodirective.
+/// Details for an outcome with an INCONCLUSIVE outcome summary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnusedRoboDirective {
-    /// The name of the resource that was unused.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
+pub struct InconclusiveDetail {
+    /// If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.
+    #[serde(default, rename = "abortedByUser")]
+    pub aborted_by_user: ::core::option::Option<bool>,
+    /// If results are being provided to the user in certain cases of infrastructure failures
+    #[serde(default, rename = "hasErrorLogs")]
+    pub has_error_logs: ::core::option::Option<bool>,
+    /// If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.
+    #[serde(default, rename = "infrastructureFailure")]
+    pub infrastructure_failure: ::core::option::Option<bool>,
 }
 
-/// This insight is a recommendation to upgrade a given library to the specified version, in order to avoid dependencies on non-SDK APIs.
+/// Details for an outcome with a SKIPPED outcome summary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeInsight {
-    /// The name of the package to be upgraded.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The suggested version to upgrade to. Optional: In case we are not sure which version solves this problem
-    #[serde(default, rename = "upgradeToVersion")]
-    pub upgrade_to_version: ::core::option::Option<String>,
+pub struct SkippedDetail {
+    /// If the App doesn''t support the specific API level.
+    #[serde(default, rename = "incompatibleAppVersion")]
+    pub incompatible_app_version: ::core::option::Option<bool>,
+    /// If the App doesn''t run on the specific architecture, for example, x86.
+    #[serde(default, rename = "incompatibleArchitecture")]
+    pub incompatible_architecture: ::core::option::Option<bool>,
+    /// If the requested OS version doesn''t run on the specific device model.
+    #[serde(default, rename = "incompatibleDevice")]
+    pub incompatible_device: ::core::option::Option<bool>,
+    /// Indicates that the test could not be scheduled in the requested time because no suitable device was available.
+    #[serde(default, rename = "pendingTimeout")]
+    pub pending_timeout: ::core::option::Option<bool>,
 }
 
-/// Additional details of a used Robo directive.
+/// Details for an outcome with a SUCCESS outcome summary. LINT.IfChange
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsedRoboDirective {
-    /// The name of the resource that was used.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
+pub struct SuccessDetail {
+    /// If a native process other than the app crashed.
+    #[serde(default, rename = "otherNativeCrash")]
+    pub other_native_crash: ::core::option::Option<bool>,
 }
 
-/// Additional details of a used Robo directive with an ignore action. Note: This is a different scenario than unused directive.
+///  A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsedRoboIgnoreDirective {
-    /// The name of the resource that was ignored.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
+pub struct Duration {
+    /// Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 seconds field and a positive or negative nanos field. For durations of one second or more, a non-zero value for the nanos field must be of the same sign as the seconds field. Must be from -999,999,999 to +999,999,999 inclusive.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years
+    #[serde(default)]
+    pub seconds: ::core::option::Option<String>,
+}
+
+/// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Timestamp {
+    /// Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<String>,
+}
+
+/// A reference to a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileReference {
+    /// The URI of a file stored in Google Cloud Storage. For example: http://storage.googleapis.com/mybucket/path/to/test.xml or in Cloud Storage URI format: gs://mybucket/path/to/test.xml with version-specific info, gs://mybucket/path/to/test.xml#1360383693690000 An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set
+    #[serde(default, rename = "fileUri")]
+    pub file_uri: ::core::option::Option<String>,
+}
+
+/// A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestCaseReference {
+    /// The name of the class.
+    #[serde(default, rename = "className")]
+    pub class_name: ::core::option::Option<String>,
+    /// The name of the test case. Required.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The name of the test suite to which this test case belongs.
+    #[serde(default, rename = "testSuiteName")]
+    pub test_suite_name: ::core::option::Option<String>,
 }

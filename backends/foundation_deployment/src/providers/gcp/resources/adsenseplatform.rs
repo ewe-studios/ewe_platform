@@ -10,6 +10,61 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A platform sub-account event to record spam signals.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
+    /// Required. Information associated with the event.
+    #[serde(default, rename = "eventInfo")]
+    pub event_info: ::core::option::Option<EventInfo>,
+    /// Required. Event timestamp.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Required. Event type. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "LOG_IN_VIA_PLATFORM", "SIGN_UP_VIA_PLATFORM"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// Response definition for the list accounts rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAccountsResponse {
+    /// The Accounts returned in the list response. Represented by a partial view of the Account resource, populating name and creation_request_id.
+    #[serde(default)]
+    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
+    /// Continuation token used to page through accounts. To retrieve the next page of the results, set the next request''s "page_token" value to this.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response definition for the site list rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSitesResponse {
+    /// Continuation token used to page through sites. To retrieve the next page of the results, set the next request''s "page_token" value to this.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The sites returned in this list response.
+    #[serde(default)]
+    pub sites: ::core::option::Option<::std::vec::Vec<Site>>,
+}
+
+/// Response definition for the lookup account rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LookupAccountResponse {
+    /// The name of the Account Format: platforms/{platform}/accounts/{account_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Private information for partner recorded events (PII).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventInfo {
+    /// The billing address of the publisher associated with this event, if available.
+    #[serde(default, rename = "billingAddress")]
+    pub billing_address: ::core::option::Option<Address>,
+    /// Required. The email address that is associated with the publisher when performing the event.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
 /// Representation of an Account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
@@ -34,6 +89,20 @@ pub struct Account {
     /// Required. The IANA TZ timezone code of this account. For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. This field is used for reporting. It is recommended to set it to the same value for all child accounts.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<TimeZone>,
+}
+
+/// Representation of a Site.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Site {
+    /// Domain/sub-domain of the site. Must be a valid domain complying with [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt) and formatted as punycode [RFC 3492](https://www.ietf.org/rfc/rfc3492.txt) in case the domain contains unicode characters.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Output only. Resource name of a site. Format: platforms/{platform}/accounts/{account}/sites/{site}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. State of a site. // TODO: enum values: ["STATE_UNSPECIFIED", "REQUIRES_REVIEW", "GETTING_READY", "READY", "NEEDS_ATTENTION"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
 }
 
 /// Address data.
@@ -69,75 +138,6 @@ pub struct Address {
     /// Zip/post code. Max length 10 bytes or 10 characters.
     #[serde(default)]
     pub zip: ::core::option::Option<String>,
-}
-
-/// A platform sub-account event to record spam signals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Event {
-    /// Required. Information associated with the event.
-    #[serde(default, rename = "eventInfo")]
-    pub event_info: ::core::option::Option<EventInfo>,
-    /// Required. Event timestamp.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Required. Event type. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "LOG_IN_VIA_PLATFORM", "SIGN_UP_VIA_PLATFORM"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// Private information for partner recorded events (PII).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventInfo {
-    /// The billing address of the publisher associated with this event, if available.
-    #[serde(default, rename = "billingAddress")]
-    pub billing_address: ::core::option::Option<Address>,
-    /// Required. The email address that is associated with the publisher when performing the event.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// Response definition for the list accounts rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccountsResponse {
-    /// The Accounts returned in the list response. Represented by a partial view of the Account resource, populating name and creation_request_id.
-    #[serde(default)]
-    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
-    /// Continuation token used to page through accounts. To retrieve the next page of the results, set the next request''s "page_token" value to this.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response definition for the site list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSitesResponse {
-    /// Continuation token used to page through sites. To retrieve the next page of the results, set the next request''s "page_token" value to this.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The sites returned in this list response.
-    #[serde(default)]
-    pub sites: ::core::option::Option<::std::vec::Vec<Site>>,
-}
-
-/// Response definition for the lookup account rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LookupAccountResponse {
-    /// The name of the Account Format: platforms/{platform}/accounts/{account_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Representation of a Site.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Site {
-    /// Domain/sub-domain of the site. Must be a valid domain complying with [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt) and formatted as punycode [RFC 3492](https://www.ietf.org/rfc/rfc3492.txt) in case the domain contains unicode characters.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Output only. Resource name of a site. Format: platforms/{platform}/accounts/{account}/sites/{site}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. State of a site. // TODO: enum values: ["STATE_UNSPECIFIED", "REQUIRES_REVIEW", "GETTING_READY", "READY", "NEEDS_ATTENTION"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).

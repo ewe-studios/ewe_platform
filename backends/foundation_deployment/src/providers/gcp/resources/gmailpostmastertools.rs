@@ -10,14 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Specifies the base metric to query, which can be a predefined standard metric or a user-defined custom metric (if supported in the future).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BaseMetric {
-    /// A predefined standard metric. // TODO: enum values: ["STANDARD_METRIC_UNSPECIFIED", "FEEDBACK_LOOP_ID", "FEEDBACK_LOOP_SPAM_RATE", "SPAM_RATE", "AUTH_SUCCESS_RATE", "TLS_ENCRYPTION_MESSAGE_COUNT", "TLS_ENCRYPTION_RATE", "DELIVERY_ERROR_COUNT", "DELIVERY_ERROR_RATE"]
-    #[serde(default, rename = "standardMetric")]
-    pub standard_metric: ::core::option::Option<String>,
-}
-
 /// Request message for BatchQueryDomainStats.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchQueryDomainStatsRequest {
@@ -34,114 +26,6 @@ pub struct BatchQueryDomainStatsResponse {
     pub results: ::core::option::Option<::std::vec::Vec<BatchQueryDomainStatsResult>>,
 }
 
-/// Represents the result of a single QueryDomainStatsRequest within a batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BatchQueryDomainStatsResult {
-    /// The error status if the individual query failed.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// The successful response for the individual query.
-    #[serde(default)]
-    pub response: ::core::option::Option<QueryDomainStatsResponse>,
-}
-
-/// Data for a single row of the compliance status table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplianceRowData {
-    /// The compliance requirement. // TODO: enum values: ["COMPLIANCE_REQUIREMENT_UNSPECIFIED", "SPF", "DKIM", "SPF_AND_DKIM", "DMARC_POLICY", "DMARC_ALIGNMENT", "MESSAGE_FORMATTING", "DNS_RECORDS", "ENCRYPTION", "USER_REPORTED_SPAM_RATE", "ONE_CLICK_UNSUBSCRIBE", "HONOR_UNSUBSCRIBE"]
-    #[serde(default)]
-    pub requirement: ::core::option::Option<String>,
-    /// The compliance status for the requirement.
-    #[serde(default)]
-    pub status: ::core::option::Option<ComplianceStatus>,
-}
-
-/// The status of a sender compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplianceStatus {
-    /// Output only. The compliance status. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "NEEDS_WORK"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// A set of specific dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateList {
-    /// Required. The list of specific dates for which to retrieve data.
-    #[serde(default)]
-    pub dates: ::core::option::Option<::std::vec::Vec<Date>>,
-}
-
-/// A single date range defined by a start and end date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateRange {
-    /// Required. The inclusive end date of the date range.
-    #[serde(default)]
-    pub end: ::core::option::Option<Date>,
-    /// Required. The inclusive start date of the date range.
-    #[serde(default)]
-    pub start: ::core::option::Option<Date>,
-}
-
-/// A set of date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateRanges {
-    /// Required. The list of date ranges for which to retrieve data.
-    #[serde(default, rename = "dateRanges")]
-    pub date_ranges: ::core::option::Option<::std::vec::Vec<DateRange>>,
-}
-
-/// Information about a domain registered by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Domain {
-    /// Output only. Immutable. The timestamp at which the domain was added to the user''s account.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The timestamp at which the domain was last verified by the user.
-    #[serde(default, rename = "lastVerifyTime")]
-    pub last_verify_time: ::core::option::Option<String>,
-    /// Identifier. The resource name of the domain. Format: domains/{domain_name}, where domain_name is the fully qualified domain name (i.e., mymail.mydomain.com).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. User''s permission of this domain. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "READER", "OWNER", "NONE"]
-    #[serde(default)]
-    pub permission: ::core::option::Option<String>,
-    /// Output only. Information about a user''s verification history and properties for the domain. // TODO: enum values: ["VERIFICATION_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED"]
-    #[serde(default, rename = "verificationState")]
-    pub verification_state: ::core::option::Option<String>,
-}
-
-/// Compliance data for a given domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DomainComplianceData {
-    /// Domain that this data is for.
-    #[serde(default, rename = "domainId")]
-    pub domain_id: ::core::option::Option<String>,
-    /// Unsubscribe honoring compliance verdict.
-    #[serde(default, rename = "honorUnsubscribeVerdict")]
-    pub honor_unsubscribe_verdict: ::core::option::Option<HonorUnsubscribeVerdict>,
-    /// One-click unsubscribe compliance verdict.
-    #[serde(default, rename = "oneClickUnsubscribeVerdict")]
-    pub one_click_unsubscribe_verdict: ::core::option::Option<OneClickUnsubscribeVerdict>,
-    /// Data for each of the rows of the table. Each message contains all the data that backs a single row.
-    #[serde(default, rename = "rowData")]
-    pub row_data: ::core::option::Option<::std::vec::Vec<ComplianceRowData>>,
-}
-
 /// Compliance status for a domain.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DomainComplianceStatus {
@@ -156,34 +40,6 @@ pub struct DomainComplianceStatus {
     pub subdomain_compliance_data: ::core::option::Option<DomainComplianceData>,
 }
 
-/// Email statistics for a domain for a specified time period or date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DomainStat {
-    /// Optional. The specific date for these stats, if granularity is DAILY. This field is populated if the QueryDomainStatsRequest specified a DAILY aggregation granularity.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// The user-defined name from MetricDefinition.name in the request, used to correlate this result with the requested metric.
-    #[serde(default)]
-    pub metric: ::core::option::Option<String>,
-    /// Output only. The resource name of the DomainStat resource. Format: domains/{domain}/domainStats/{domain_stat} The {domain_stat} segment is an opaque, server-generated ID. We recommend using the metric field to identify queried metrics instead of parsing the name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The value of the corresponding metric.
-    #[serde(default)]
-    pub value: ::core::option::Option<StatisticValue>,
-}
-
-/// Compliance verdict for whether a sender meets the unsubscribe honoring compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HonorUnsubscribeVerdict {
-    /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NOT_HONORING", "NOT_HONORING_TOO_FEW_CAMPAIGNS", "NOT_HONORING_TOO_MANY_CAMPAIGNS"]
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// The compliance status.
-    #[serde(default)]
-    pub status: ::core::option::Option<ComplianceStatus>,
-}
-
 /// Response message for ListDomains.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListDomainsResponse {
@@ -195,29 +51,12 @@ pub struct ListDomainsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Defines a specific metric to query, including a user-defined name, the base metric type, and optional filters.
+/// Represents a list of strings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricDefinition {
-    /// Required. The underlying metric to query.
-    #[serde(default, rename = "baseMetric")]
-    pub base_metric: ::core::option::Option<BaseMetric>,
-    /// Optional. Optional filters to apply to the metric.
+pub struct StringList {
+    /// The string values.
     #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Required. The user-defined name for this metric. This name will be used as the key for this metric''s value in the response.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Compliance verdict for whether a sender meets the one-click unsubscribe compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneClickUnsubscribeVerdict {
-    /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NO_UNSUB_GENERAL", "NO_UNSUB_SPAM_REPORTS", "NO_UNSUB_PROMO_SPAM_REPORTS"]
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// The compliance status.
-    #[serde(default)]
-    pub status: ::core::option::Option<ComplianceStatus>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for QueryDomainStats.
@@ -243,6 +82,93 @@ pub struct QueryDomainStatsRequest {
     pub time_query: ::core::option::Option<TimeQuery>,
 }
 
+/// Represents the result of a single QueryDomainStatsRequest within a batch.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchQueryDomainStatsResult {
+    /// The error status if the individual query failed.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// The successful response for the individual query.
+    #[serde(default)]
+    pub response: ::core::option::Option<QueryDomainStatsResponse>,
+}
+
+/// Compliance data for a given domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainComplianceData {
+    /// Domain that this data is for.
+    #[serde(default, rename = "domainId")]
+    pub domain_id: ::core::option::Option<String>,
+    /// Unsubscribe honoring compliance verdict.
+    #[serde(default, rename = "honorUnsubscribeVerdict")]
+    pub honor_unsubscribe_verdict: ::core::option::Option<HonorUnsubscribeVerdict>,
+    /// One-click unsubscribe compliance verdict.
+    #[serde(default, rename = "oneClickUnsubscribeVerdict")]
+    pub one_click_unsubscribe_verdict: ::core::option::Option<OneClickUnsubscribeVerdict>,
+    /// Data for each of the rows of the table. Each message contains all the data that backs a single row.
+    #[serde(default, rename = "rowData")]
+    pub row_data: ::core::option::Option<::std::vec::Vec<ComplianceRowData>>,
+}
+
+/// Information about a domain registered by the user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Domain {
+    /// Output only. Immutable. The timestamp at which the domain was added to the user''s account.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The timestamp at which the domain was last verified by the user.
+    #[serde(default, rename = "lastVerifyTime")]
+    pub last_verify_time: ::core::option::Option<String>,
+    /// Identifier. The resource name of the domain. Format: domains/{domain_name}, where domain_name is the fully qualified domain name (i.e., mymail.mydomain.com).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. User''s permission of this domain. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "READER", "OWNER", "NONE"]
+    #[serde(default)]
+    pub permission: ::core::option::Option<String>,
+    /// Output only. Information about a user''s verification history and properties for the domain. // TODO: enum values: ["VERIFICATION_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED"]
+    #[serde(default, rename = "verificationState")]
+    pub verification_state: ::core::option::Option<String>,
+}
+
+/// Defines a specific metric to query, including a user-defined name, the base metric type, and optional filters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricDefinition {
+    /// Required. The underlying metric to query.
+    #[serde(default, rename = "baseMetric")]
+    pub base_metric: ::core::option::Option<BaseMetric>,
+    /// Optional. Optional filters to apply to the metric.
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Required. The user-defined name for this metric. This name will be used as the key for this metric''s value in the response.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The date ranges or specific dates for which you want to retrieve data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeQuery {
+    /// A list of specific dates.
+    #[serde(default, rename = "dateList")]
+    pub date_list: ::core::option::Option<DateList>,
+    /// A list of date ranges.
+    #[serde(default, rename = "dateRanges")]
+    pub date_ranges: ::core::option::Option<DateRanges>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
 /// Response message for QueryDomainStats.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryDomainStatsResponse {
@@ -252,6 +178,99 @@ pub struct QueryDomainStatsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Compliance verdict for whether a sender meets the unsubscribe honoring compliance requirement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HonorUnsubscribeVerdict {
+    /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NOT_HONORING", "NOT_HONORING_TOO_FEW_CAMPAIGNS", "NOT_HONORING_TOO_MANY_CAMPAIGNS"]
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// The compliance status.
+    #[serde(default)]
+    pub status: ::core::option::Option<ComplianceStatus>,
+}
+
+/// Compliance verdict for whether a sender meets the one-click unsubscribe compliance requirement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneClickUnsubscribeVerdict {
+    /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NO_UNSUB_GENERAL", "NO_UNSUB_SPAM_REPORTS", "NO_UNSUB_PROMO_SPAM_REPORTS"]
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// The compliance status.
+    #[serde(default)]
+    pub status: ::core::option::Option<ComplianceStatus>,
+}
+
+/// Data for a single row of the compliance status table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplianceRowData {
+    /// The compliance requirement. // TODO: enum values: ["COMPLIANCE_REQUIREMENT_UNSPECIFIED", "SPF", "DKIM", "SPF_AND_DKIM", "DMARC_POLICY", "DMARC_ALIGNMENT", "MESSAGE_FORMATTING", "DNS_RECORDS", "ENCRYPTION", "USER_REPORTED_SPAM_RATE", "ONE_CLICK_UNSUBSCRIBE", "HONOR_UNSUBSCRIBE"]
+    #[serde(default)]
+    pub requirement: ::core::option::Option<String>,
+    /// The compliance status for the requirement.
+    #[serde(default)]
+    pub status: ::core::option::Option<ComplianceStatus>,
+}
+
+/// Specifies the base metric to query, which can be a predefined standard metric or a user-defined custom metric (if supported in the future).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaseMetric {
+    /// A predefined standard metric. // TODO: enum values: ["STANDARD_METRIC_UNSPECIFIED", "FEEDBACK_LOOP_ID", "FEEDBACK_LOOP_SPAM_RATE", "SPAM_RATE", "AUTH_SUCCESS_RATE", "TLS_ENCRYPTION_MESSAGE_COUNT", "TLS_ENCRYPTION_RATE", "DELIVERY_ERROR_COUNT", "DELIVERY_ERROR_RATE"]
+    #[serde(default, rename = "standardMetric")]
+    pub standard_metric: ::core::option::Option<String>,
+}
+
+/// A set of specific dates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateList {
+    /// Required. The list of specific dates for which to retrieve data.
+    #[serde(default)]
+    pub dates: ::core::option::Option<::std::vec::Vec<Date>>,
+}
+
+/// A set of date ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateRanges {
+    /// Required. The list of date ranges for which to retrieve data.
+    #[serde(default, rename = "dateRanges")]
+    pub date_ranges: ::core::option::Option<::std::vec::Vec<DateRange>>,
+}
+
+/// Email statistics for a domain for a specified time period or date.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainStat {
+    /// Optional. The specific date for these stats, if granularity is DAILY. This field is populated if the QueryDomainStatsRequest specified a DAILY aggregation granularity.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// The user-defined name from MetricDefinition.name in the request, used to correlate this result with the requested metric.
+    #[serde(default)]
+    pub metric: ::core::option::Option<String>,
+    /// Output only. The resource name of the DomainStat resource. Format: domains/{domain}/domainStats/{domain_stat} The {domain_stat} segment is an opaque, server-generated ID. We recommend using the metric field to identify queried metrics instead of parsing the name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The value of the corresponding metric.
+    #[serde(default)]
+    pub value: ::core::option::Option<StatisticValue>,
+}
+
+/// The status of a sender compliance requirement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplianceStatus {
+    /// Output only. The compliance status. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "NEEDS_WORK"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// A single date range defined by a start and end date.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateRange {
+    /// Required. The inclusive end date of the date range.
+    #[serde(default)]
+    pub end: ::core::option::Option<Date>,
+    /// Required. The inclusive start date of the date range.
+    #[serde(default)]
+    pub start: ::core::option::Option<Date>,
 }
 
 /// The actual value of a statistic.
@@ -274,35 +293,16 @@ pub struct StatisticValue {
     pub string_value: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Represents a list of strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringList {
-    /// The string values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The date ranges or specific dates for which you want to retrieve data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeQuery {
-    /// A list of specific dates.
-    #[serde(default, rename = "dateList")]
-    pub date_list: ::core::option::Option<DateList>,
-    /// A list of date ranges.
-    #[serde(default, rename = "dateRanges")]
-    pub date_ranges: ::core::option::Option<DateRanges>,
+    pub year: ::core::option::Option<i32>,
 }

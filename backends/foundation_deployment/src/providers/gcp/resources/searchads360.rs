@@ -10,1208 +10,508 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an AdSchedule criterion. AdSchedule is specified as the day of the week and a time interval within which ads will be shown. No more than six AdSchedules can be added for the same day.
+/// Describes how a Search Ads 360 API call failed. It''s returned inside google.rpc.Status.details when a call fails.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAdScheduleInfo {
-    /// Day of the week the schedule applies to. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: ::core::option::Option<String>,
-    /// Ending hour in 24 hour time; 24 signifies end of the day. This field must be between 0 and 24, inclusive. This field is required for CREATE operations and is prohibited on UPDATE operations.
-    #[serde(default, rename = "endHour")]
-    pub end_hour: ::core::option::Option<i32>,
-    /// Minutes after the end hour at which this schedule ends. The schedule is exclusive of the end minute. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ZERO", "FIFTEEN", "THIRTY", "FORTY_FIVE"]
-    #[serde(default, rename = "endMinute")]
-    pub end_minute: ::core::option::Option<String>,
-    /// Starting hour in 24 hour time. This field must be between 0 and 23, inclusive. This field is required for CREATE operations and is prohibited on UPDATE operations.
-    #[serde(default, rename = "startHour")]
-    pub start_hour: ::core::option::Option<i32>,
-    /// Minutes after the start hour at which this schedule starts. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ZERO", "FIFTEEN", "THIRTY", "FORTY_FIVE"]
-    #[serde(default, rename = "startMinute")]
-    pub start_minute: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {
+    /// The list of errors that occurred.
+    #[serde(default)]
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ErrorsSearchAds360Error>>,
+    /// The unique ID of the request that is used for debugging purposes.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
 }
 
-/// A text asset used inside an ad.
+/// Response message for CustomerService.ListAccessibleCustomers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAdTextAsset {
-    /// Asset text.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0ServicesListAccessibleCustomersResponse {
+    /// Resource name of customers directly accessible by the user authenticating the call.
+    #[serde(default, rename = "resourceNames")]
+    pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// An age range criterion.
+/// Response message for fetching all custom columns associated with a customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAgeRangeInfo {
-    /// Type of the age range. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_UP", "AGE_RANGE_UNDETERMINED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0ServicesListCustomColumnsResponse {
+    /// The CustomColumns owned by the provided customer.
+    #[serde(default, rename = "customColumns")]
+    pub custom_columns:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ResourcesCustomColumn>>,
 }
 
-/// An AssetInteractionTarget segment.
+/// Request message for SearchAds360FieldService.SearchSearchAds360Fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAssetInteractionTarget {
-    /// The asset resource name.
+pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsRequest {
+    /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Token of the page to retrieve. If not specified, the first page of results will be returned. Use the value obtained from next_page_token in the previous response in order to request the next page of results.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Required. The query string.
     #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-    /// Only used with CustomerAsset, CampaignAsset and AdGroupAsset metrics. Indicates whether the interaction metrics occurred on the asset itself or a different asset or ad unit.
-    #[serde(default, rename = "interactionOnThisAsset")]
-    pub interaction_on_this_asset: ::core::option::Option<bool>,
+    pub query: ::core::option::Option<String>,
 }
 
-/// Contains the usage information of the asset.
+/// Response message for SearchAds360FieldService.SearchSearchAds360Fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAssetUsage {
-    /// Resource name of the asset.
+pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsResponse {
+    /// Pagination token used to retrieve the next page of results. Pass the content of this string as the page_token attribute of the next request. next_page_token is not returned for the last page.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of fields that matched the query.
     #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-    /// The served field type of the asset. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "HEADLINE_1", "HEADLINE_2", "HEADLINE_3", "DESCRIPTION_1", "DESCRIPTION_2", "HEADLINE", "HEADLINE_IN_PORTRAIT", "LONG_HEADLINE", "DESCRIPTION", "DESCRIPTION_IN_PORTRAIT", "BUSINESS_NAME_IN_PORTRAIT", "BUSINESS_NAME", "MARKETING_IMAGE", "MARKETING_IMAGE_IN_PORTRAIT", "SQUARE_MARKETING_IMAGE", "PORTRAIT_MARKETING_IMAGE", "LOGO", "LANDSCAPE_LOGO", "CALL_TO_ACTION", "YOU_TUBE_VIDEO", "SITELINK", "CALL", "MOBILE_APP", "CALLOUT", "STRUCTURED_SNIPPET", "PRICE", "PROMOTION", "AD_IMAGE", "LEAD_FORM", "BUSINESS_LOGO", "DESCRIPTION_PREFIX", "APP_ICON", "APP_TITLE", "APP_SCREENSHOT", "APP_COVER_PHOTO", "APP_SHORT_DESCRIPTION", "APP_DEVELOPER_NAME", "HEADLINE_AS_SITELINK_POSITION_ONE", "HEADLINE_AS_SITELINK_POSITION_TWO", "DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_ONE", "DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_TWO"]
-    #[serde(default, rename = "servedAssetFieldType")]
-    pub served_asset_field_type: ::core::option::Option<String>,
+    pub results:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ResourcesSearchAds360Field>>,
+    /// Total number of results that match the query ignoring the LIMIT clause.
+    #[serde(default, rename = "totalResultsCount")]
+    pub total_results_count: ::core::option::Option<String>,
 }
 
-/// An audience criterion.
+/// Request message for SearchAds360Service.Search.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonAudienceInfo {
-    /// The Audience resource name.
+pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Request {
+    /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Token of the page to retrieve. If not specified, the first page of results will be returned. Use the value obtained from next_page_token in the previous response in order to request the next page of results.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Required. The query string.
     #[serde(default)]
-    pub audience: ::core::option::Option<String>,
+    pub query: ::core::option::Option<String>,
+    /// If true, the total number of results that match the query ignoring the LIMIT clause will be included in the response. Default is false.
+    #[serde(default, rename = "returnTotalResultsCount")]
+    pub return_total_results_count: ::core::option::Option<bool>,
+    /// Determines whether a summary row will be returned. By default, summary row is not returned. If requested, the summary row will be sent in a response by itself after all other query results are returned. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NO_SUMMARY_ROW", "SUMMARY_ROW_WITH_RESULTS", "SUMMARY_ROW_ONLY"]
+    #[serde(default, rename = "summaryRowSetting")]
+    pub summary_row_setting: ::core::option::Option<String>,
+    /// If true, the request is validated but not executed.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
 }
 
-/// Business Profile location data synced from the linked Business Profile account.
+/// Response message for SearchAds360Service.Search.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonBusinessProfileLocation {
-    /// Advertiser specified label for the location on the Business Profile account. This is synced from the Business Profile account.
+pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Response {
+    /// The headers of the conversion custom dimensions in the results.
+    #[serde(default, rename = "conversionCustomDimensionHeaders")]
+    pub conversion_custom_dimension_headers: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader>,
+    >,
+    /// The headers of the conversion custom metrics in the results.
+    #[serde(default, rename = "conversionCustomMetricHeaders")]
+    pub conversion_custom_metric_headers: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader>,
+    >,
+    /// The headers of the custom columns in the results.
+    #[serde(default, rename = "customColumnHeaders")]
+    pub custom_column_headers:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ServicesCustomColumnHeader>>,
+    /// FieldMask that represents what fields were requested by the user.
+    #[serde(default, rename = "fieldMask")]
+    pub field_mask: ::core::option::Option<String>,
+    /// Pagination token used to retrieve the next page of results. Pass the content of this string as the page_token attribute of the next request. next_page_token is not returned for the last page.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The headers of the raw event conversion dimensions in the results.
+    #[serde(default, rename = "rawEventConversionDimensionHeaders")]
+    pub raw_event_conversion_dimension_headers: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader>,
+    >,
+    /// The headers of the raw event conversion metrics in the results.
+    #[serde(default, rename = "rawEventConversionMetricHeaders")]
+    pub raw_event_conversion_metric_headers: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader>,
+    >,
+    /// The list of rows that matched the query.
     #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Listing ID of this Business Profile location. This is synced from the linked Business Profile account.
-    #[serde(default, rename = "listingId")]
-    pub listing_id: ::core::option::Option<String>,
-    /// Business Profile store code of this location. This is synced from the Business Profile account.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
+    pub results:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ServicesSearchAds360Row>>,
+    /// Summary row that contains summary of metrics in results. Summary of metrics means aggregation of metrics across all results, here aggregation could be sum, average, rate, etc.
+    #[serde(default, rename = "summaryRow")]
+    pub summary_row: ::core::option::Option<GoogleAdsSearchads360v0ServicesSearchAds360Row>,
+    /// Total number of results that match the query ignoring the LIMIT clause.
+    #[serde(default, rename = "totalResultsCount")]
+    pub total_results_count: ::core::option::Option<String>,
 }
 
-/// A call to action asset.
+/// Search Ads 360-specific error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonCallToActionAsset {
-    /// Call to action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
-    #[serde(default, rename = "callToAction")]
-    pub call_to_action: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Error {
+    /// Additional error details, which are returned by certain error codes. Most error codes do not include details.
+    #[serde(default)]
+    pub details: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorDetails>,
+    /// An enum value that indicates which error occurred.
+    #[serde(default, rename = "errorCode")]
+    pub error_code: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorCode>,
+    /// Describes the part of the request proto that caused the error.
+    #[serde(default)]
+    pub location: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorLocation>,
+    /// A human-readable description of the error.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The value that triggered the error.
+    #[serde(default)]
+    pub trigger: ::core::option::Option<GoogleAdsSearchads360v0CommonValue>,
 }
 
-/// A mapping that can be used by custom parameter tags in a tracking_url_template, final_urls, or mobile_final_urls.
+/// A custom column. See Search Ads 360 custom column at https://support.google.com/sa360/answer/9633916
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonCustomParameter {
-    /// The key matching the parameter tag name.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// The value to be substituted.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A device criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonDeviceInfo {
-    /// Type of the device. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MOBILE", "TABLET", "DESKTOP", "CONNECTED_TV", "OTHER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A URL for deep linking into an app for the given operating system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonFinalAppUrl {
-    /// The operating system targeted by this URL. Required. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "IOS", "ANDROID"]
-    #[serde(default, rename = "osType")]
-    pub os_type: ::core::option::Option<String>,
-    /// The app deep link URL. Deep links specify a location in an app that corresponds to the content you''d like to show, and should be of the form {scheme}://{host_path} The scheme identifies which app to open. For your app, you can use a custom scheme that starts with the app''s name. The host and path specify the unique location in the app where your content exists. Example: "exampleapp://productid_1234". Required.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// A gender criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonGenderInfo {
-    /// Type of the gender. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MALE", "FEMALE", "UNDETERMINED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An Image asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonImageAsset {
-    /// File size of the image asset in bytes.
-    #[serde(default, rename = "fileSize")]
-    pub file_size: ::core::option::Option<String>,
-    /// Metadata for this image at its original size.
-    #[serde(default, rename = "fullSize")]
-    pub full_size: ::core::option::Option<GoogleAdsSearchads360v0CommonImageDimension>,
-    /// MIME type of the image asset. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "IMAGE_JPEG", "IMAGE_GIF", "IMAGE_PNG", "FLASH", "TEXT_HTML", "PDF", "MSWORD", "MSEXCEL", "RTF", "AUDIO_WAV", "AUDIO_MP3", "HTML5_AD_ZIP"]
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// Metadata for an image at a certain size, either original or resized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonImageDimension {
-    /// Height of the image.
-    #[serde(default, rename = "heightPixels")]
-    pub height_pixels: ::core::option::Option<String>,
-    /// A URL that returns the image with this height and width.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// Width of the image.
-    #[serde(default, rename = "widthPixels")]
-    pub width_pixels: ::core::option::Option<String>,
-}
-
-/// A Keyword criterion segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonKeyword {
-    /// The AdGroupCriterion resource name.
-    #[serde(default, rename = "adGroupCriterion")]
-    pub ad_group_criterion: ::core::option::Option<String>,
-    /// Keyword info.
-    #[serde(default)]
-    pub info: ::core::option::Option<GoogleAdsSearchads360v0CommonKeywordInfo>,
-}
-
-/// A keyword criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonKeywordInfo {
-    /// The match type of the keyword. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXACT", "PHRASE", "BROAD"]
-    #[serde(default, rename = "matchType")]
-    pub match_type: ::core::option::Option<String>,
-    /// The text of the keyword (at most 80 characters and 10 words).
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A language criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonLanguageInfo {
-    /// The language constant resource name.
-    #[serde(default, rename = "languageConstant")]
-    pub language_constant: ::core::option::Option<String>,
-}
-
-/// A listing group criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonListingGroupInfo {
-    /// Type of the listing group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SUBDIVISION", "UNIT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A radius around a list of locations specified through a feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonLocationGroupInfo {
-    /// FeedItemSets whose FeedItems are targeted. If multiple IDs are specified, then all items that appear in at least one set are targeted. This field cannot be used with geo_target_constants. This is optional and can only be set in CREATE operations.
-    #[serde(default, rename = "feedItemSets")]
-    pub feed_item_sets: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Geo target constant(s) restricting the scope of the geographic area within the feed. Currently only one geo target constant is allowed.
-    #[serde(default, rename = "geoTargetConstants")]
-    pub geo_target_constants: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Distance in units specifying the radius around targeted locations. This is required and must be set in CREATE operations.
-    #[serde(default)]
-    pub radius: ::core::option::Option<String>,
-    /// Unit of the radius. Miles and meters are supported for geo target constants. Milli miles and meters are supported for feed item sets. This is required and must be set in CREATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "METERS", "MILES", "MILLI_MILES"]
-    #[serde(default, rename = "radiusUnits")]
-    pub radius_units: ::core::option::Option<String>,
-}
-
-/// A location criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonLocationInfo {
-    /// The geo target constant resource name.
-    #[serde(default, rename = "geoTargetConstant")]
-    pub geo_target_constant: ::core::option::Option<String>,
-}
-
-/// Manual click-based bidding where user pays per click.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonManualCpc {
-    /// Whether bids are to be enhanced based on conversion optimizer data.
-    #[serde(default, rename = "enhancedCpcEnabled")]
-    pub enhanced_cpc_enabled: ::core::option::Option<bool>,
-}
-
-/// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonMaximizeConversionValue {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
-    #[serde(default, rename = "cpcBidFloorMicros")]
-    pub cpc_bid_floor_micros: ::core::option::Option<String>,
-    /// The target return on ad spend (ROAS) option. If set, the bid strategy will maximize revenue while averaging the target return on ad spend. If the target ROAS is high, the bid strategy may not be able to spend the full budget. If the target ROAS is not set, the bid strategy will aim to achieve the highest possible ROAS for the budget.
-    #[serde(default, rename = "targetRoas")]
-    pub target_roas: ::core::option::Option<f64>,
-}
-
-/// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonMaximizeConversions {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
-    #[serde(default, rename = "cpcBidFloorMicros")]
-    pub cpc_bid_floor_micros: ::core::option::Option<String>,
-    /// The target cost-per-action (CPA) option. This is the average amount that you would like to spend per conversion action specified in micro units of the bidding strategy''s currency. If set, the bid strategy will get as many conversions as possible at or below the target cost-per-action. If the target CPA is not set, the bid strategy will aim to achieve the lowest possible CPA given the budget.
-    #[serde(default, rename = "targetCpaMicros")]
-    pub target_cpa_micros: ::core::option::Option<String>,
-}
-
-/// Metrics data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonMetrics {
-    /// Search absolute top impression share is the percentage of your Search ad impressions that are shown in the most prominent Search position.
-    #[serde(default, rename = "absoluteTopImpressionPercentage")]
-    pub absolute_top_impression_percentage: ::core::option::Option<f64>,
-    /// The total number of conversions. This includes all conversions regardless of the value of include_in_conversions_metric.
-    #[serde(default, rename = "allConversions")]
-    pub all_conversions: ::core::option::Option<f64>,
-    /// The total number of conversions. This includes all conversions regardless of the value of include_in_conversions_metric. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
-    #[serde(default, rename = "allConversionsByConversionDate")]
-    pub all_conversions_by_conversion_date: ::core::option::Option<f64>,
-    /// The number of times people clicked the "Call" button to call a business during or after clicking an ad. This number doesn''t include whether or not calls were connected, or the duration of any calls. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromClickToCall")]
-    pub all_conversions_from_click_to_call: ::core::option::Option<f64>,
-    /// The number of times people clicked a "Get directions" button to navigate to a business after clicking an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromDirections")]
-    pub all_conversions_from_directions: ::core::option::Option<f64>,
-    /// All conversions from interactions (as oppose to view through conversions) divided by the number of ad interactions.
-    #[serde(default, rename = "allConversionsFromInteractionsRate")]
-    pub all_conversions_from_interactions_rate: ::core::option::Option<f64>,
-    /// The value of all conversions from interactions divided by the total number of interactions.
-    #[serde(default, rename = "allConversionsFromInteractionsValuePerInteraction")]
-    pub all_conversions_from_interactions_value_per_interaction: ::core::option::Option<f64>,
-    /// The number of times people clicked a link to view a business''s menu after clicking an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromMenu")]
-    pub all_conversions_from_menu: ::core::option::Option<f64>,
-    /// The number of times people placed an order at a business after clicking an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromOrder")]
-    pub all_conversions_from_order: ::core::option::Option<f64>,
-    /// The number of other conversions (for example, posting a review or saving a location for a business) that occurred after people clicked an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromOtherEngagement")]
-    pub all_conversions_from_other_engagement: ::core::option::Option<f64>,
-    /// Estimated number of times people visited a business after clicking an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromStoreVisit")]
-    pub all_conversions_from_store_visit: ::core::option::Option<f64>,
-    /// The number of times that people were taken to a business''s URL after clicking an ad. This metric applies to feed items only.
-    #[serde(default, rename = "allConversionsFromStoreWebsite")]
-    pub all_conversions_from_store_website: ::core::option::Option<f64>,
-    /// The value of all conversions.
-    #[serde(default, rename = "allConversionsValue")]
-    pub all_conversions_value: ::core::option::Option<f64>,
-    /// The value of all conversions. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
-    #[serde(default, rename = "allConversionsValueByConversionDate")]
-    pub all_conversions_value_by_conversion_date: ::core::option::Option<f64>,
-    /// The value of all conversions divided by the total cost of ad interactions (such as clicks for text ads or views for video ads).
-    #[serde(default, rename = "allConversionsValuePerCost")]
-    pub all_conversions_value_per_cost: ::core::option::Option<f64>,
-    /// Average cart size is the average number of products in each order attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Average cart size is the total number of products sold divided by the total number of orders you received. Example: You received 2 orders, the first included 3 products and the second included 2. The average cart size is 2.5 products = (3+2)/2. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "averageCartSize")]
-    pub average_cart_size: ::core::option::Option<f64>,
-    /// The average amount you pay per interaction. This amount is the total cost of your ads divided by the total number of interactions.
-    #[serde(default, rename = "averageCost")]
-    pub average_cost: ::core::option::Option<f64>,
-    /// The total cost of all clicks divided by the total number of clicks received. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "averageCpc")]
-    pub average_cpc: ::core::option::Option<f64>,
-    /// Average cost-per-thousand impressions (CPM). This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "averageCpm")]
-    pub average_cpm: ::core::option::Option<f64>,
-    /// The average number of times a unique user saw your ad during the requested time period. This metric cannot be aggregated, and can only be requested for date ranges of 92 days or less. This metric is available for following campaign types - Display, Video, Discovery and App.
-    #[serde(default, rename = "averageImpressionFrequencyPerUser")]
-    pub average_impression_frequency_per_user: ::core::option::Option<f64>,
-    /// Average order value is the average revenue you made per order attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Average order value is the total revenue from your orders divided by the total number of orders. Example: You received 3 orders which made $10, $15 and $20 worth of revenue. The average order value is $15 = ($10 + $15 + $20)/3. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "averageOrderValueMicros")]
-    pub average_order_value_micros: ::core::option::Option<String>,
-    /// The average quality score.
-    #[serde(default, rename = "averageQualityScore")]
-    pub average_quality_score: ::core::option::Option<f64>,
-    /// The number of clicks.
-    #[serde(default)]
-    pub clicks: ::core::option::Option<String>,
-    /// The number of client account conversions. This only includes conversion actions which include_in_client_account_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
-    #[serde(default, rename = "clientAccountConversions")]
-    pub client_account_conversions: ::core::option::Option<f64>,
-    /// The value of client account conversions. This only includes conversion actions which include_in_client_account_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
-    #[serde(default, rename = "clientAccountConversionsValue")]
-    pub client_account_conversions_value: ::core::option::Option<f64>,
-    /// Client account cross-sell cost of goods sold (COGS) is the total cost of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell cost of goods sold is the total cost of the products sold that weren''t advertised. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cross-sell cost of goods sold for this order is $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountCrossSellCostOfGoodsSoldMicros")]
-    pub client_account_cross_sell_cost_of_goods_sold_micros: ::core::option::Option<String>,
-    /// Client account cross-sell gross profit is the profit you made from products sold as a result of advertising a different product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the purchase is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell gross profit is the revenue you made from cross-sell attributed to your ads minus the cost of the goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The shirt is priced $20 and has a cost of goods sold value of $5. The cross-sell gross profit of this order is $15 = $20 - $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountCrossSellGrossProfitMicros")]
-    pub client_account_cross_sell_gross_profit_micros: ::core::option::Option<String>,
-    /// Client account cross-sell revenue is the total amount you made from products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell revenue is the total value you made from cross-sell attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The cross-sell revenue of this order is $20. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountCrossSellRevenueMicros")]
-    pub client_account_cross_sell_revenue_micros: ::core::option::Option<String>,
-    /// Client account cross-sell units sold is the total number of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell units sold is the total number of cross-sold products from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The cross-sell units sold in this order is 2. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "clientAccountCrossSellUnitsSold")]
-    pub client_account_cross_sell_units_sold: ::core::option::Option<f64>,
-    /// Client account lead cost of goods sold (COGS) is the total cost of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the cost of these goods is counted under lead cost of goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The lead cost of goods sold for this order is $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountLeadCostOfGoodsSoldMicros")]
-    pub client_account_lead_cost_of_goods_sold_micros: ::core::option::Option<String>,
-    /// Client account lead gross profit is the profit you made from products sold as a result of advertising the same product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the revenue you made from these sales minus the cost of goods sold is your lead gross profit. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and has a cost of goods sold value of $3. The lead gross profit of this order is $7 = $10 - $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountLeadGrossProfitMicros")]
-    pub client_account_lead_gross_profit_micros: ::core::option::Option<String>,
-    /// Client account lead revenue is the total amount you made from products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total value you made from the sales of these products is shown under lead revenue. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The lead revenue of this order is $10. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "clientAccountLeadRevenueMicros")]
-    pub client_account_lead_revenue_micros: ::core::option::Option<String>,
-    /// Client account lead units sold is the total number of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total number of these products sold is shown under lead units sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The lead units sold in this order is 1. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "clientAccountLeadUnitsSold")]
-    pub client_account_lead_units_sold: ::core::option::Option<f64>,
-    /// The total number of view-through conversions. These happen when a customer sees an image or rich media ad, then later completes a conversion on your site without interacting with (for example, clicking on) another ad.
-    #[serde(default, rename = "clientAccountViewThroughConversions")]
-    pub client_account_view_through_conversions: ::core::option::Option<String>,
-    /// The estimated percent of times that your ad was eligible to show on the Display Network but didn''t because your budget was too low. Note: Content budget lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "contentBudgetLostImpressionShare")]
-    pub content_budget_lost_impression_share: ::core::option::Option<f64>,
-    /// The impressions you''ve received on the Display Network divided by the estimated number of impressions you were eligible to receive. Note: Content impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
-    #[serde(default, rename = "contentImpressionShare")]
-    pub content_impression_share: ::core::option::Option<f64>,
-    /// The estimated percentage of impressions on the Display Network that your ads didn''t receive due to poor Ad Rank. Note: Content rank lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "contentRankLostImpressionShare")]
-    pub content_rank_lost_impression_share: ::core::option::Option<f64>,
-    /// The conversion custom metrics.
-    #[serde(default, rename = "conversionCustomMetrics")]
-    pub conversion_custom_metrics:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
-    /// The number of conversions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
-    #[serde(default)]
-    pub conversions: ::core::option::Option<f64>,
-    /// The sum of conversions by conversion date for biddable conversion types. Can be fractional due to attribution modeling. When this column is selected with date, the values in date column means the conversion date.
-    #[serde(default, rename = "conversionsByConversionDate")]
-    pub conversions_by_conversion_date: ::core::option::Option<f64>,
-    /// Average biddable conversions (from interaction) per conversion eligible interaction. Shows how often, on average, an ad interaction leads to a biddable conversion.
-    #[serde(default, rename = "conversionsFromInteractionsRate")]
-    pub conversions_from_interactions_rate: ::core::option::Option<f64>,
-    /// The value of conversions from interactions divided by the number of ad interactions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
-    #[serde(default, rename = "conversionsFromInteractionsValuePerInteraction")]
-    pub conversions_from_interactions_value_per_interaction: ::core::option::Option<f64>,
-    /// The sum of conversion values for the conversions included in the "conversions" field. This metric is useful only if you entered a value for your conversion actions.
-    #[serde(default, rename = "conversionsValue")]
-    pub conversions_value: ::core::option::Option<f64>,
-    /// The sum of biddable conversions value by conversion date. When this column is selected with date, the values in date column means the conversion date.
-    #[serde(default, rename = "conversionsValueByConversionDate")]
-    pub conversions_value_by_conversion_date: ::core::option::Option<f64>,
-    /// The value of biddable conversion divided by the total cost of conversion eligible interactions.
-    #[serde(default, rename = "conversionsValuePerCost")]
-    pub conversions_value_per_cost: ::core::option::Option<f64>,
-    /// The sum of your cost-per-click (CPC) and cost-per-thousand impressions (CPM) costs during this period. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "costMicros")]
-    pub cost_micros: ::core::option::Option<String>,
-    /// Cost of goods sold (COGS) is the total cost of the products you sold in orders attributed to your ads. How it works: You can add a cost of goods sold value to every product in Merchant Center. If you report conversions with cart data, the products you sold are matched with their cost of goods sold value and this can be used to calculate the gross profit you made on each order. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cost of goods sold for this order is $8 = $3 + $5. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "costOfGoodsSoldMicros")]
-    pub cost_of_goods_sold_micros: ::core::option::Option<String>,
-    /// The cost of ad interactions divided by all conversions.
-    #[serde(default, rename = "costPerAllConversions")]
-    pub cost_per_all_conversions: ::core::option::Option<f64>,
-    /// Average conversion eligible cost per biddable conversion.
-    #[serde(default, rename = "costPerConversion")]
-    pub cost_per_conversion: ::core::option::Option<f64>,
-    /// The cost of ad interactions divided by current model attributed conversions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
-    #[serde(default, rename = "costPerCurrentModelAttributedConversion")]
-    pub cost_per_current_model_attributed_conversion: ::core::option::Option<f64>,
-    /// Conversions from when a customer clicks on an ad on one device, then converts on a different device or browser. Cross-device conversions are already included in all_conversions.
-    #[serde(default, rename = "crossDeviceConversions")]
-    pub cross_device_conversions: ::core::option::Option<f64>,
-    /// The number of cross-device conversions by conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
-    #[serde(default, rename = "crossDeviceConversionsByConversionDate")]
-    pub cross_device_conversions_by_conversion_date: ::core::option::Option<f64>,
-    /// The sum of the value of cross-device conversions.
-    #[serde(default, rename = "crossDeviceConversionsValue")]
-    pub cross_device_conversions_value: ::core::option::Option<f64>,
-    /// The sum of cross-device conversions value by conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
-    #[serde(default, rename = "crossDeviceConversionsValueByConversionDate")]
-    pub cross_device_conversions_value_by_conversion_date: ::core::option::Option<f64>,
-    /// Cross-sell cost of goods sold (COGS) is the total cost of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell cost of goods sold is the total cost of the products sold that weren''t advertised. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cross-sell cost of goods sold for this order is $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "crossSellCostOfGoodsSoldMicros")]
-    pub cross_sell_cost_of_goods_sold_micros: ::core::option::Option<String>,
-    /// Cross-sell gross profit is the profit you made from products sold as a result of advertising a different product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the purchase is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell gross profit is the revenue you made from cross-sell attributed to your ads minus the cost of the goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The shirt is priced $20 and has a cost of goods sold value of $5. The cross-sell gross profit of this order is $15 = $20 - $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "crossSellGrossProfitMicros")]
-    pub cross_sell_gross_profit_micros: ::core::option::Option<String>,
-    /// Cross-sell revenue is the total amount you made from products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell revenue is the total value you made from cross-sell attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The cross-sell revenue of this order is $20. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "crossSellRevenueMicros")]
-    pub cross_sell_revenue_micros: ::core::option::Option<String>,
-    /// Cross-sell units sold is the total number of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell units sold is the total number of cross-sold products from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The cross-sell units sold in this order is 2. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "crossSellUnitsSold")]
-    pub cross_sell_units_sold: ::core::option::Option<f64>,
-    /// The number of clicks your ad receives (Clicks) divided by the number of times your ad is shown (Impressions).
-    #[serde(default)]
-    pub ctr: ::core::option::Option<f64>,
-    /// The percentage of clicks that have been filtered out of your total number of clicks (filtered + non-filtered clicks) due to being general invalid clicks. These are clicks Google considers illegitimate that are detected through routine means of filtration (that is, known invalid data-center traffic, bots and spiders or other crawlers, irregular patterns, etc). You''re not charged for them, and they don''t affect your account statistics. See the help page at https://support.google.com/campaignmanager/answer/6076504 for details.
-    #[serde(default, rename = "generalInvalidClickRate")]
-    pub general_invalid_click_rate: ::core::option::Option<f64>,
-    /// Number of general invalid clicks. These are a subset of your invalid clicks that are detected through routine means of filtration (such as known invalid data-center traffic, bots and spiders or other crawlers, irregular patterns, etc.). You''re not charged for them, and they don''t affect your account statistics. See the help page at https://support.google.com/campaignmanager/answer/6076504 for details.
-    #[serde(default, rename = "generalInvalidClicks")]
-    pub general_invalid_clicks: ::core::option::Option<String>,
-    /// Gross profit margin is the percentage gross profit you made from orders attributed to your ads, after taking out the cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. Gross profit margin is the gross profit you made divided by your total revenue and multiplied by 100%. Gross profit margin calculations only include products that have a cost of goods sold value in Merchant Center. Example: Someone bought a hat and a shirt in an order on your website. The hat is priced $10 and has a cost of goods sold value of $3. The shirt is priced $20 but has no cost of goods sold value. Gross profit margin for this order will only take into account the hat because it has a cost of goods sold value, so it''s 70% = ($10 - $3)/$10 x 100%. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "grossProfitMargin")]
-    pub gross_profit_margin: ::core::option::Option<f64>,
-    /// Gross profit is the profit you made from orders attributed to your ads minus the cost of goods sold (COGS). How it works: Gross profit is the revenue you made from sales attributed to your ads minus cost of goods sold. Gross profit calculations only include products that have a cost of goods sold value in Merchant Center. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order from your website. The hat is priced $10 and the shirt is priced $20. The hat has a cost of goods sold value of $3, but the shirt has no cost of goods sold value. Gross profit for this order will only take into account the hat, so it''s $7 = $10 - $3. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "grossProfitMicros")]
-    pub gross_profit_micros: ::core::option::Option<String>,
-    /// The creative historical quality score. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
-    #[serde(default, rename = "historicalCreativeQualityScore")]
-    pub historical_creative_quality_score: ::core::option::Option<String>,
-    /// The quality of historical landing page experience. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
-    #[serde(default, rename = "historicalLandingPageQualityScore")]
-    pub historical_landing_page_quality_score: ::core::option::Option<String>,
-    /// The historical quality score.
-    #[serde(default, rename = "historicalQualityScore")]
-    pub historical_quality_score: ::core::option::Option<String>,
-    /// The historical search predicted click through rate (CTR). // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
-    #[serde(default, rename = "historicalSearchPredictedCtr")]
-    pub historical_search_predicted_ctr: ::core::option::Option<String>,
-    /// Count of how often your ad has appeared on a search results page or website on the Google Network.
-    #[serde(default)]
-    pub impressions: ::core::option::Option<String>,
-    /// The types of payable and free interactions.
-    #[serde(default, rename = "interactionEventTypes")]
-    pub interaction_event_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// How often people interact with your ad after it is shown to them. This is the number of interactions divided by the number of times your ad is shown.
-    #[serde(default, rename = "interactionRate")]
-    pub interaction_rate: ::core::option::Option<f64>,
-    /// The number of interactions. An interaction is the main user action associated with an ad format-clicks for text and shopping ads, views for video ads, and so on.
-    #[serde(default)]
-    pub interactions: ::core::option::Option<String>,
-    /// The percentage of clicks filtered out of your total number of clicks (filtered + non-filtered clicks) during the reporting period.
-    #[serde(default, rename = "invalidClickRate")]
-    pub invalid_click_rate: ::core::option::Option<f64>,
-    /// Number of clicks Google considers illegitimate and doesn''t charge you for.
-    #[serde(default, rename = "invalidClicks")]
-    pub invalid_clicks: ::core::option::Option<String>,
-    /// Lead cost of goods sold (COGS) is the total cost of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the cost of these goods is counted under lead cost of goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The lead cost of goods sold for this order is $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "leadCostOfGoodsSoldMicros")]
-    pub lead_cost_of_goods_sold_micros: ::core::option::Option<String>,
-    /// Lead gross profit is the profit you made from products sold as a result of advertising the same product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the revenue you made from these sales minus the cost of goods sold is your lead gross profit. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and has a cost of goods sold value of $3. The lead gross profit of this order is $7 = $10 - $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "leadGrossProfitMicros")]
-    pub lead_gross_profit_micros: ::core::option::Option<String>,
-    /// Lead revenue is the total amount you made from products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total value you made from the sales of these products is shown under lead revenue. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The lead revenue of this order is $10. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
-    #[serde(default, rename = "leadRevenueMicros")]
-    pub lead_revenue_micros: ::core::option::Option<String>,
-    /// Lead units sold is the total number of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total number of these products sold is shown under lead units sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The lead units sold in this order is 1. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "leadUnitsSold")]
-    pub lead_units_sold: ::core::option::Option<f64>,
-    /// The percentage of mobile clicks that go to a mobile-friendly page.
-    #[serde(default, rename = "mobileFriendlyClicksPercentage")]
-    pub mobile_friendly_clicks_percentage: ::core::option::Option<f64>,
-    /// Orders is the total number of purchase conversions you received attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. If a conversion is attributed to previous interactions with your ads (clicks for text or Shopping ads, views for video ads etc.) it''s counted as an order. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order on your website. Even though they bought 2 products, this would count as 1 order. This metric is only available if you report conversions with cart data.
-    #[serde(default)]
-    pub orders: ::core::option::Option<f64>,
-    /// The raw event conversion metrics.
-    #[serde(default, rename = "rawEventConversionMetrics")]
-    pub raw_event_conversion_metrics:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
-    /// Revenue is the total amount you made from orders attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Revenue is the total value of all the orders you received attributed to your ads, minus any discount. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order from your website. The hat is priced $10 and the shirt is priced $20. The entire order has a $5 discount. The revenue from this order is $25 = ($10 + $20) - $5. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "revenueMicros")]
-    pub revenue_micros: ::core::option::Option<String>,
-    /// The percentage of the customer''s Shopping or Search ad impressions that are shown in the most prominent Shopping position. See https://support.google.com/sa360/answer/9566729 for details. Any value below 0.1 is reported as 0.0999.
-    #[serde(default, rename = "searchAbsoluteTopImpressionShare")]
-    pub search_absolute_top_impression_share: ::core::option::Option<f64>,
-    /// The number estimating how often your ad wasn''t the very first ad among the top ads in the search results due to a low budget. Note: Search budget lost absolute top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchBudgetLostAbsoluteTopImpressionShare")]
-    pub search_budget_lost_absolute_top_impression_share: ::core::option::Option<f64>,
-    /// The estimated percent of times that your ad was eligible to show on the Search Network but didn''t because your budget was too low. Note: Search budget lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchBudgetLostImpressionShare")]
-    pub search_budget_lost_impression_share: ::core::option::Option<f64>,
-    /// The number estimating how often your ad didn''t show adjacent to the top organic search results due to a low budget. Note: Search budget lost top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchBudgetLostTopImpressionShare")]
-    pub search_budget_lost_top_impression_share: ::core::option::Option<f64>,
-    /// The number of clicks you''ve received on the Search Network divided by the estimated number of clicks you were eligible to receive. Note: Search click share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
-    #[serde(default, rename = "searchClickShare")]
-    pub search_click_share: ::core::option::Option<f64>,
-    /// The impressions you''ve received divided by the estimated number of impressions you were eligible to receive on the Search Network for search terms that matched your keywords exactly (or were close variants of your keyword), regardless of your keyword match types. Note: Search exact match impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
-    #[serde(default, rename = "searchExactMatchImpressionShare")]
-    pub search_exact_match_impression_share: ::core::option::Option<f64>,
-    /// The impressions you''ve received on the Search Network divided by the estimated number of impressions you were eligible to receive. Note: Search impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
-    #[serde(default, rename = "searchImpressionShare")]
-    pub search_impression_share: ::core::option::Option<f64>,
-    /// The number estimating how often your ad wasn''t the very first ad among the top ads in the search results due to poor Ad Rank. Note: Search rank lost absolute top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchRankLostAbsoluteTopImpressionShare")]
-    pub search_rank_lost_absolute_top_impression_share: ::core::option::Option<f64>,
-    /// The estimated percentage of impressions on the Search Network that your ads didn''t receive due to poor Ad Rank. Note: Search rank lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchRankLostImpressionShare")]
-    pub search_rank_lost_impression_share: ::core::option::Option<f64>,
-    /// The number estimating how often your ad didn''t show adjacent to the top organic search results due to poor Ad Rank. Note: Search rank lost top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
-    #[serde(default, rename = "searchRankLostTopImpressionShare")]
-    pub search_rank_lost_top_impression_share: ::core::option::Option<f64>,
-    /// The impressions you''ve received among the top ads compared to the estimated number of impressions you were eligible to receive among the top ads. Note: Search top impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999. Top ads are generally above the top organic results, although they may show below the top organic results on certain queries.
-    #[serde(default, rename = "searchTopImpressionShare")]
-    pub search_top_impression_share: ::core::option::Option<f64>,
-    /// The percent of your ad impressions that are shown adjacent to the top organic search results.
-    #[serde(default, rename = "topImpressionPercentage")]
-    pub top_impression_percentage: ::core::option::Option<f64>,
-    /// The number of unique users who saw your ad during the requested time period. This metric cannot be aggregated, and can only be requested for date ranges of 92 days or less. This metric is available for following campaign types - Display, Video, Discovery and App.
-    #[serde(default, rename = "uniqueUsers")]
-    pub unique_users: ::core::option::Option<String>,
-    /// Units sold is the total number of products sold from orders attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Units sold is the total number of products sold from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The units sold in this order is 3. This metric is only available if you report conversions with cart data.
-    #[serde(default, rename = "unitsSold")]
-    pub units_sold: ::core::option::Option<f64>,
-    /// The value of all conversions divided by the number of all conversions.
-    #[serde(default, rename = "valuePerAllConversions")]
-    pub value_per_all_conversions: ::core::option::Option<f64>,
-    /// The value of all conversions divided by the number of all conversions. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
-    #[serde(default, rename = "valuePerAllConversionsByConversionDate")]
-    pub value_per_all_conversions_by_conversion_date: ::core::option::Option<f64>,
-    /// The value of biddable conversion divided by the number of biddable conversions. Shows how much, on average, each of the biddable conversions is worth.
-    #[serde(default, rename = "valuePerConversion")]
-    pub value_per_conversion: ::core::option::Option<f64>,
-    /// Biddable conversions value by conversion date divided by biddable conversions by conversion date. Shows how much, on average, each of the biddable conversions is worth (by conversion date). When this column is selected with date, the values in date column means the conversion date.
-    #[serde(default, rename = "valuePerConversionsByConversionDate")]
-    pub value_per_conversions_by_conversion_date: ::core::option::Option<f64>,
-    /// Clicks that Search Ads 360 has successfully recorded and forwarded to an advertiser''s landing page.
-    #[serde(default)]
-    pub visits: ::core::option::Option<f64>,
-}
-
-/// An asset representing a mobile app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonMobileAppAsset {
-    /// Required. A string that uniquely identifies a mobile application. It should just contain the platform native id, like "com.android.ebay" for Android or "12345689" for iOS.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// Required. The application store that distributes this specific app. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "APPLE_APP_STORE", "GOOGLE_APP_STORE"]
-    #[serde(default, rename = "appStore")]
-    pub app_store: ::core::option::Option<String>,
-}
-
-/// A bidding strategy where bids are a fraction of the advertised price for some good or service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonPercentCpc {
-    /// Maximum bid limit that can be set by the bid strategy. This is an optional field entered by the advertiser and specified in local micros. Note: A zero value is interpreted in the same way as having bid_ceiling undefined.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Adjusts the bid for each auction upward or downward, depending on the likelihood of a conversion. Individual bids may exceed cpc_bid_ceiling_micros, but the average bid amount for a campaign should not.
-    #[serde(default, rename = "enhancedCpcEnabled")]
-    pub enhanced_cpc_enabled: ::core::option::Option<bool>,
-}
-
-/// Settings for Real-Time Bidding, a feature only available for campaigns targeting the Ad Exchange network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonRealTimeBiddingSetting {
-    /// Whether the campaign is opted in to real-time bidding.
-    #[serde(default, rename = "optIn")]
-    pub opt_in: ::core::option::Option<bool>,
-}
-
-/// An expanded dynamic search ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo {
-    /// The tracking id of the ad.
-    #[serde(default, rename = "adTrackingId")]
-    pub ad_tracking_id: ::core::option::Option<String>,
-    /// The first line of the ad''s description.
-    #[serde(default)]
-    pub description1: ::core::option::Option<String>,
-    /// The second line of the ad''s description.
-    #[serde(default)]
-    pub description2: ::core::option::Option<String>,
-}
-
-/// A Search Ads 360 expanded text ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo {
-    /// The tracking id of the ad.
-    #[serde(default, rename = "adTrackingId")]
-    pub ad_tracking_id: ::core::option::Option<String>,
-    /// The first line of the ad''s description.
-    #[serde(default)]
-    pub description1: ::core::option::Option<String>,
-    /// The second line of the ad''s description.
-    #[serde(default)]
-    pub description2: ::core::option::Option<String>,
-    /// The headline of the ad.
-    #[serde(default)]
-    pub headline: ::core::option::Option<String>,
-    /// The second headline of the ad.
-    #[serde(default)]
-    pub headline2: ::core::option::Option<String>,
-    /// The third headline of the ad.
-    #[serde(default)]
-    pub headline3: ::core::option::Option<String>,
-    /// Text appended to the auto-generated visible URL with a delimiter.
-    #[serde(default)]
-    pub path1: ::core::option::Option<String>,
-    /// Text appended to path1 with a delimiter.
-    #[serde(default)]
-    pub path2: ::core::option::Option<String>,
-}
-
-/// A Search Ads 360 responsive search ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo {
-    /// The tracking id of the ad.
-    #[serde(default, rename = "adTrackingId")]
-    pub ad_tracking_id: ::core::option::Option<String>,
-    /// List of text assets for descriptions. When the ad serves the descriptions will be selected from this list.
-    #[serde(default)]
-    pub descriptions:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdTextAsset>>,
-    /// List of text assets for headlines. When the ad serves the headlines will be selected from this list.
-    #[serde(default)]
-    pub headlines:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdTextAsset>>,
-    /// Text appended to the auto-generated visible URL with a delimiter.
-    #[serde(default)]
-    pub path1: ::core::option::Option<String>,
-    /// Text appended to path1 with a delimiter.
-    #[serde(default)]
-    pub path2: ::core::option::Option<String>,
-}
-
-/// A Search Ads 360 text ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo {
-    /// The tracking id of the ad.
-    #[serde(default, rename = "adTrackingId")]
-    pub ad_tracking_id: ::core::option::Option<String>,
-    /// The first line of the ad''s description.
-    #[serde(default)]
-    pub description1: ::core::option::Option<String>,
-    /// The second line of the ad''s description.
-    #[serde(default)]
-    pub description2: ::core::option::Option<String>,
-    /// The displayed mobile URL of the ad.
-    #[serde(default, rename = "displayMobileUrl")]
-    pub display_mobile_url: ::core::option::Option<String>,
-    /// The displayed URL of the ad.
-    #[serde(default, rename = "displayUrl")]
-    pub display_url: ::core::option::Option<String>,
-    /// The headline of the ad.
-    #[serde(default)]
-    pub headline: ::core::option::Option<String>,
-}
-
-/// Segment only fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonSegments {
-    /// Ad Format type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "VERTICAL_ADS_PROMOTION", "VERTICAL_ADS_BOOKING_LINK", "TEXT"]
-    #[serde(default, rename = "adFormatType")]
-    pub ad_format_type: ::core::option::Option<String>,
-    /// Ad network type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SEARCH", "SEARCH_PARTNERS", "CONTENT", "YOUTUBE_SEARCH", "YOUTUBE_WATCH", "MIXED"]
-    #[serde(default, rename = "adNetworkType")]
-    pub ad_network_type: ::core::option::Option<String>,
-    /// Only used with CustomerAsset, CampaignAsset and AdGroupAsset metrics. Indicates whether the interaction metrics occurred on the asset itself or a different asset or ad unit. Interactions (for example, clicks) are counted across all the parts of the served ad (for example, Ad itself and other components like Sitelinks) when they are served together. When interaction_on_this_asset is true, it means the interactions are on this specific asset and when interaction_on_this_asset is false, it means the interactions is not on this specific asset but on other parts of the served ad this asset is served with.
-    #[serde(default, rename = "assetInteractionTarget")]
-    pub asset_interaction_target:
-        ::core::option::Option<GoogleAdsSearchads360v0CommonAssetInteractionTarget>,
-    /// Resource name of the conversion action.
-    #[serde(default, rename = "conversionAction")]
-    pub conversion_action: ::core::option::Option<String>,
-    /// Conversion action category. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DEFAULT", "PAGE_VIEW", "PURCHASE", "SIGNUP", "LEAD", "DOWNLOAD", "ADD_TO_CART", "BEGIN_CHECKOUT", "SUBSCRIBE_PAID", "PHONE_CALL_LEAD", "IMPORTED_LEAD", "SUBMIT_LEAD_FORM", "BOOK_APPOINTMENT", "REQUEST_QUOTE", "GET_DIRECTIONS", "OUTBOUND_CLICK", "CONTACT", "ENGAGEMENT", "STORE_VISIT", "STORE_SALE", "QUALIFIED_LEAD", "CONVERTED_LEAD", "YOUTUBE_FOLLOW_ON_VIEWS"]
-    #[serde(default, rename = "conversionActionCategory")]
-    pub conversion_action_category: ::core::option::Option<String>,
-    /// Conversion action name.
-    #[serde(default, rename = "conversionActionName")]
-    pub conversion_action_name: ::core::option::Option<String>,
-    /// The conversion custom dimensions.
-    #[serde(default, rename = "conversionCustomDimensions")]
-    pub conversion_custom_dimensions:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
-    /// Date to which metrics apply. yyyy-MM-dd format, for example, 2018-04-17.
-    #[serde(default)]
-    pub date: ::core::option::Option<String>,
-    /// Day of the week, for example, MONDAY. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: ::core::option::Option<String>,
-    /// Device to which metrics apply. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MOBILE", "TABLET", "DESKTOP", "CONNECTED_TV", "OTHER"]
-    #[serde(default)]
-    pub device: ::core::option::Option<String>,
-    /// Resource name of the geo target constant that represents a city.
-    #[serde(default, rename = "geoTargetCity")]
-    pub geo_target_city: ::core::option::Option<String>,
-    /// Resource name of the geo target constant that represents a country.
-    #[serde(default, rename = "geoTargetCountry")]
-    pub geo_target_country: ::core::option::Option<String>,
-    /// Resource name of the geo target constant that represents a metro.
-    #[serde(default, rename = "geoTargetMetro")]
-    pub geo_target_metro: ::core::option::Option<String>,
-    /// Resource name of the geo target constant that represents a postal code.
-    #[serde(default, rename = "geoTargetPostalCode")]
-    pub geo_target_postal_code: ::core::option::Option<String>,
-    /// Resource name of the geo target constant that represents a region.
-    #[serde(default, rename = "geoTargetRegion")]
-    pub geo_target_region: ::core::option::Option<String>,
-    /// Hour of day as a number between 0 and 23, inclusive.
-    #[serde(default)]
-    pub hour: ::core::option::Option<i32>,
-    /// Keyword criterion.
-    #[serde(default)]
-    pub keyword: ::core::option::Option<GoogleAdsSearchads360v0CommonKeyword>,
-    /// Month as represented by the date of the first day of a month. Formatted as yyyy-MM-dd.
-    #[serde(default)]
-    pub month: ::core::option::Option<String>,
-    /// Bidding category (level 1) of the product.
-    #[serde(default, rename = "productBiddingCategoryLevel1")]
-    pub product_bidding_category_level1: ::core::option::Option<String>,
-    /// Bidding category (level 2) of the product.
-    #[serde(default, rename = "productBiddingCategoryLevel2")]
-    pub product_bidding_category_level2: ::core::option::Option<String>,
-    /// Bidding category (level 3) of the product.
-    #[serde(default, rename = "productBiddingCategoryLevel3")]
-    pub product_bidding_category_level3: ::core::option::Option<String>,
-    /// Bidding category (level 4) of the product.
-    #[serde(default, rename = "productBiddingCategoryLevel4")]
-    pub product_bidding_category_level4: ::core::option::Option<String>,
-    /// Bidding category (level 5) of the product.
-    #[serde(default, rename = "productBiddingCategoryLevel5")]
-    pub product_bidding_category_level5: ::core::option::Option<String>,
-    /// Brand of the product.
-    #[serde(default, rename = "productBrand")]
-    pub product_brand: ::core::option::Option<String>,
-    /// Channel of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ONLINE", "LOCAL"]
-    #[serde(default, rename = "productChannel")]
-    pub product_channel: ::core::option::Option<String>,
-    /// Channel exclusivity of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SINGLE_CHANNEL", "MULTI_CHANNEL"]
-    #[serde(default, rename = "productChannelExclusivity")]
-    pub product_channel_exclusivity: ::core::option::Option<String>,
-    /// Condition of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "OLD", "NEW", "REFURBISHED", "USED"]
-    #[serde(default, rename = "productCondition")]
-    pub product_condition: ::core::option::Option<String>,
-    /// Resource name of the geo target constant for the country of sale of the product.
-    #[serde(default, rename = "productCountry")]
-    pub product_country: ::core::option::Option<String>,
-    /// Custom attribute 0 of the product.
-    #[serde(default, rename = "productCustomAttribute0")]
-    pub product_custom_attribute0: ::core::option::Option<String>,
-    /// Custom attribute 1 of the product.
-    #[serde(default, rename = "productCustomAttribute1")]
-    pub product_custom_attribute1: ::core::option::Option<String>,
-    /// Custom attribute 2 of the product.
-    #[serde(default, rename = "productCustomAttribute2")]
-    pub product_custom_attribute2: ::core::option::Option<String>,
-    /// Custom attribute 3 of the product.
-    #[serde(default, rename = "productCustomAttribute3")]
-    pub product_custom_attribute3: ::core::option::Option<String>,
-    /// Custom attribute 4 of the product.
-    #[serde(default, rename = "productCustomAttribute4")]
-    pub product_custom_attribute4: ::core::option::Option<String>,
-    /// Item ID of the product.
-    #[serde(default, rename = "productItemId")]
-    pub product_item_id: ::core::option::Option<String>,
-    /// Resource name of the language constant for the language of the product.
-    #[serde(default, rename = "productLanguage")]
-    pub product_language: ::core::option::Option<String>,
-    /// Bidding category (level 1) of the product sold.
-    #[serde(default, rename = "productSoldBiddingCategoryLevel1")]
-    pub product_sold_bidding_category_level1: ::core::option::Option<String>,
-    /// Bidding category (level 2) of the product sold.
-    #[serde(default, rename = "productSoldBiddingCategoryLevel2")]
-    pub product_sold_bidding_category_level2: ::core::option::Option<String>,
-    /// Bidding category (level 3) of the product sold.
-    #[serde(default, rename = "productSoldBiddingCategoryLevel3")]
-    pub product_sold_bidding_category_level3: ::core::option::Option<String>,
-    /// Bidding category (level 4) of the product sold.
-    #[serde(default, rename = "productSoldBiddingCategoryLevel4")]
-    pub product_sold_bidding_category_level4: ::core::option::Option<String>,
-    /// Bidding category (level 5) of the product sold.
-    #[serde(default, rename = "productSoldBiddingCategoryLevel5")]
-    pub product_sold_bidding_category_level5: ::core::option::Option<String>,
-    /// Brand of the product sold.
-    #[serde(default, rename = "productSoldBrand")]
-    pub product_sold_brand: ::core::option::Option<String>,
-    /// Condition of the product sold. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "OLD", "NEW", "REFURBISHED", "USED"]
-    #[serde(default, rename = "productSoldCondition")]
-    pub product_sold_condition: ::core::option::Option<String>,
-    /// Custom attribute 0 of the product sold.
-    #[serde(default, rename = "productSoldCustomAttribute0")]
-    pub product_sold_custom_attribute0: ::core::option::Option<String>,
-    /// Custom attribute 1 of the product sold.
-    #[serde(default, rename = "productSoldCustomAttribute1")]
-    pub product_sold_custom_attribute1: ::core::option::Option<String>,
-    /// Custom attribute 2 of the product sold.
-    #[serde(default, rename = "productSoldCustomAttribute2")]
-    pub product_sold_custom_attribute2: ::core::option::Option<String>,
-    /// Custom attribute 3 of the product sold.
-    #[serde(default, rename = "productSoldCustomAttribute3")]
-    pub product_sold_custom_attribute3: ::core::option::Option<String>,
-    /// Custom attribute 4 of the product sold.
-    #[serde(default, rename = "productSoldCustomAttribute4")]
-    pub product_sold_custom_attribute4: ::core::option::Option<String>,
-    /// Item ID of the product sold.
-    #[serde(default, rename = "productSoldItemId")]
-    pub product_sold_item_id: ::core::option::Option<String>,
-    /// Title of the product sold.
-    #[serde(default, rename = "productSoldTitle")]
-    pub product_sold_title: ::core::option::Option<String>,
-    /// Type (level 1) of the product sold.
-    #[serde(default, rename = "productSoldTypeL1")]
-    pub product_sold_type_l1: ::core::option::Option<String>,
-    /// Type (level 2) of the product sold.
-    #[serde(default, rename = "productSoldTypeL2")]
-    pub product_sold_type_l2: ::core::option::Option<String>,
-    /// Type (level 3) of the product sold.
-    #[serde(default, rename = "productSoldTypeL3")]
-    pub product_sold_type_l3: ::core::option::Option<String>,
-    /// Type (level 4) of the product sold.
-    #[serde(default, rename = "productSoldTypeL4")]
-    pub product_sold_type_l4: ::core::option::Option<String>,
-    /// Type (level 5) of the product sold.
-    #[serde(default, rename = "productSoldTypeL5")]
-    pub product_sold_type_l5: ::core::option::Option<String>,
-    /// Store ID of the product.
-    #[serde(default, rename = "productStoreId")]
-    pub product_store_id: ::core::option::Option<String>,
-    /// Title of the product.
-    #[serde(default, rename = "productTitle")]
-    pub product_title: ::core::option::Option<String>,
-    /// Type (level 1) of the product.
-    #[serde(default, rename = "productTypeL1")]
-    pub product_type_l1: ::core::option::Option<String>,
-    /// Type (level 2) of the product.
-    #[serde(default, rename = "productTypeL2")]
-    pub product_type_l2: ::core::option::Option<String>,
-    /// Type (level 3) of the product.
-    #[serde(default, rename = "productTypeL3")]
-    pub product_type_l3: ::core::option::Option<String>,
-    /// Type (level 4) of the product.
-    #[serde(default, rename = "productTypeL4")]
-    pub product_type_l4: ::core::option::Option<String>,
-    /// Type (level 5) of the product.
-    #[serde(default, rename = "productTypeL5")]
-    pub product_type_l5: ::core::option::Option<String>,
-    /// Quarter as represented by the date of the first day of a quarter. Uses the calendar year for quarters, for example, the second quarter of 2018 starts on 2018-04-01. Formatted as yyyy-MM-dd.
-    #[serde(default)]
-    pub quarter: ::core::option::Option<String>,
-    /// The raw event conversion dimensions.
-    #[serde(default, rename = "rawEventConversionDimensions")]
-    pub raw_event_conversion_dimensions:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
-    /// The display names of participants in an event listing, like performers, speakers, or teams.
-    #[serde(default, rename = "verticalAdsEventParticipantDisplayNames")]
-    pub vertical_ads_event_participant_display_names: ::core::option::Option<String>,
-    /// The class of the hotel. Generally in the range of 1 to 5 stars, but fully customizable in the hotel feed.
-    #[serde(default, rename = "verticalAdsHotelClass")]
-    pub vertical_ads_hotel_class: ::core::option::Option<String>,
-    /// The listing associated with a listing impression, click or conversion.
-    #[serde(default, rename = "verticalAdsListing")]
-    pub vertical_ads_listing: ::core::option::Option<String>,
-    /// The brand associated with a specific listing within a Vertical Ads context, for example, the brand of a car rental, a vacation home, or an event.
-    #[serde(default, rename = "verticalAdsListingBrand")]
-    pub vertical_ads_listing_brand: ::core::option::Option<String>,
-    /// The city where the vertical ads listing is located.
-    #[serde(default, rename = "verticalAdsListingCity")]
-    pub vertical_ads_listing_city: ::core::option::Option<String>,
-    /// The country where the vertical ads listing is located.
-    #[serde(default, rename = "verticalAdsListingCountry")]
-    pub vertical_ads_listing_country: ::core::option::Option<String>,
-    /// The region where the vertical ads listing is located.
-    #[serde(default, rename = "verticalAdsListingRegion")]
-    pub vertical_ads_listing_region: ::core::option::Option<String>,
-    /// A specific partner account within a Partner Center (for example, Hotel Center) that supplies inventory feed data for Vertical Ads.
-    #[serde(default, rename = "verticalAdsPartnerAccount")]
-    pub vertical_ads_partner_account: ::core::option::Option<String>,
-    /// Type of vertical ad, such as Vacation Rentals, Car Rentals, or Events, used to categorize and segment data in the context of Vertical Ads. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "HOTELS", "VACATION_RENTALS", "RENTAL_CARS", "EVENTS", "THINGS_TO_DO", "FLIGHTS"]
-    #[serde(default, rename = "verticalAdsVertical")]
-    pub vertical_ads_vertical: ::core::option::Option<String>,
-    /// Week as defined as Monday through Sunday, and represented by the date of Monday. Formatted as yyyy-MM-dd.
-    #[serde(default)]
-    pub week: ::core::option::Option<String>,
-    /// Year, formatted as yyyy.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetCpa {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
-    #[serde(default, rename = "cpcBidFloorMicros")]
-    pub cpc_bid_floor_micros: ::core::option::Option<String>,
-    /// Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
-    #[serde(default, rename = "targetCpaMicros")]
-    pub target_cpa_micros: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetImpressionShare {
-    /// The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// The targeted location on the search results page. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ANYWHERE_ON_PAGE", "TOP_OF_PAGE", "ABSOLUTE_TOP_OF_PAGE"]
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The chosen fraction of ads to be shown in the targeted location in micros. For example, 1% equals 10,000.
-    #[serde(default, rename = "locationFractionMicros")]
-    pub location_fraction_micros: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy that sets bids based on the target fraction of auctions where the advertiser should outrank a specific competitor. This strategy is deprecated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetOutrankShare {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-}
-
-/// The list of per-targeting-dimension targeting settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetRestriction {
-    /// Indicates whether to restrict your ads to show only for the criteria you have selected for this targeting_dimension, or to target all values for this targeting_dimension and show ads based on your targeting in other TargetingDimensions. A value of true means that these criteria will only apply bid modifiers, and not affect targeting. A value of false means that these criteria will restrict targeting as well as applying bid modifiers.
-    #[serde(default, rename = "bidOnly")]
-    pub bid_only: ::core::option::Option<bool>,
-    /// The targeting dimension that these settings apply to. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "KEYWORD", "AUDIENCE", "TOPIC", "GENDER", "AGE_RANGE", "PLACEMENT", "PARENTAL_STATUS", "INCOME_RANGE"]
-    #[serde(default, rename = "targetingDimension")]
-    pub targeting_dimension: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetRoas {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
-    #[serde(default, rename = "cpcBidFloorMicros")]
-    pub cpc_bid_floor_micros: ::core::option::Option<String>,
-    /// Required. The chosen revenue (based on conversion data) per unit of spend. Value must be between 0.01 and 1000.0, inclusive.
-    #[serde(default, rename = "targetRoas")]
-    pub target_roas: ::core::option::Option<f64>,
-}
-
-/// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetSpend {
-    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Deprecated: The spend target under which to maximize clicks. A TargetSpend bidder will attempt to spend the smaller of this value or the natural throttling spend amount. If not specified, the budget is used as the spend target. This field is deprecated and should no longer be used. See https://ads-developers.googleblog.com/2020/05/reminder-about-sunset-creation-of.html for details.
-    #[serde(default, rename = "targetSpendMicros")]
-    pub target_spend_micros: ::core::option::Option<String>,
-}
-
-/// Settings for the targeting-related features, at the campaign and ad group levels. For more details about the targeting setting, visit https://support.google.com/google-ads/answer/7365594
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTargetingSetting {
-    /// The per-targeting-dimension setting to restrict the reach of your campaign or ad group.
-    #[serde(default, rename = "targetRestrictions")]
-    pub target_restrictions:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonTargetRestriction>>,
-}
-
-/// A Text asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTextAsset {
-    /// Text content of the text asset.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A type of label displaying text on a colored background.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonTextLabel {
-    /// Background color of the label in HEX format. This string must match the regular expression ''^\#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$''. Note: The background color may not be visible for manager accounts.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<String>,
-    /// A short description of the label. The length must be no more than 200 characters.
+pub struct GoogleAdsSearchads360v0ResourcesCustomColumn {
+    /// Output only. User-defined description of the custom column.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-}
-
-/// A unified call asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUnifiedCallAsset {
-    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
-    #[serde(default, rename = "adScheduleTargets")]
-    pub ad_schedule_targets:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
-    /// The conversion action to attribute a call conversion to. If not set, the default conversion action is used. This field only has effect if call_conversion_reporting_state is set to USE_RESOURCE_LEVEL_CALL_CONVERSION_ACTION.
-    #[serde(default, rename = "callConversionAction")]
-    pub call_conversion_action: ::core::option::Option<String>,
-    /// Output only. Indicates whether this CallAsset should use its own call conversion setting, follow the account level setting, or disable call conversion. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DISABLED", "USE_ACCOUNT_LEVEL_CALL_CONVERSION_ACTION", "USE_RESOURCE_LEVEL_CALL_CONVERSION_ACTION"]
-    #[serde(default, rename = "callConversionReportingState")]
-    pub call_conversion_reporting_state: ::core::option::Option<String>,
-    /// Whether the call only shows the phone number without a link to the website. Applies to Microsoft Ads.
-    #[serde(default, rename = "callOnly")]
-    pub call_only: ::core::option::Option<bool>,
-    /// Whether the call should be enabled on call tracking. Applies to Microsoft Ads.
-    #[serde(default, rename = "callTrackingEnabled")]
-    pub call_tracking_enabled: ::core::option::Option<bool>,
-    /// Two-letter country code of the phone number. Examples: ''US'', ''us''.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<String>,
-    /// The advertiser''s raw phone number. Examples: ''1234567890'', ''(123)456-7890''
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<String>,
-    /// Whether to show the call extension in search user''s time zone. Applies to Microsoft Ads.
-    #[serde(default, rename = "useSearcherTimeZone")]
-    pub use_searcher_time_zone: ::core::option::Option<bool>,
-}
-
-/// A unified callout asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUnifiedCalloutAsset {
-    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
-    #[serde(default, rename = "adScheduleTargets")]
-    pub ad_schedule_targets:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
-    /// The callout text. The length of this string should be between 1 and 25, inclusive.
-    #[serde(default, rename = "calloutText")]
-    pub callout_text: ::core::option::Option<String>,
-    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<String>,
-    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<String>,
-    /// Whether to show the asset in search user''s time zone. Applies to Microsoft Ads.
-    #[serde(default, rename = "useSearcherTimeZone")]
-    pub use_searcher_time_zone: ::core::option::Option<bool>,
-}
-
-/// A unified location asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUnifiedLocationAsset {
-    /// The list of business locations for the customer. This will only be returned if the Location Asset is syncing from the Business Profile account. It is possible to have multiple Business Profile listings under the same account that point to the same Place ID.
-    #[serde(default, rename = "businessProfileLocations")]
-    pub business_profile_locations: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0CommonBusinessProfileLocation>,
-    >,
-    /// The type of location ownership. If the type is BUSINESS_OWNER, it will be served as a location extension. If the type is AFFILIATE, it will be served as an affiliate location. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BUSINESS_OWNER", "AFFILIATE"]
-    #[serde(default, rename = "locationOwnershipType")]
-    pub location_ownership_type: ::core::option::Option<String>,
-    /// Place IDs uniquely identify a place in the Google Places database and on Google Maps. This field is unique for a given customer ID and asset type. See https://developers.google.com/places/web-service/place-id to learn more about Place ID.
-    #[serde(default, rename = "placeId")]
-    pub place_id: ::core::option::Option<String>,
-}
-
-/// A Unified Page Feed asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUnifiedPageFeedAsset {
-    /// Labels used to group the page urls.
+    /// Output only. ID of the custom column.
     #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The webpage that advertisers want to target.
-    #[serde(default, rename = "pageUrl")]
-    pub page_url: ::core::option::Option<String>,
+    pub id: ::core::option::Option<String>,
+    /// Output only. User-defined name of the custom column.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. True when the custom column is available to be used in the query of SearchAds360Service.Search and SearchAds360Service.SearchStream.
+    #[serde(default)]
+    pub queryable: ::core::option::Option<bool>,
+    /// Output only. The list of the referenced system columns of this custom column. For example, A custom column "sum of impressions and clicks" has referenced system columns of {"metrics.clicks", "metrics.impressions"}.
+    #[serde(default, rename = "referencedSystemColumns")]
+    pub referenced_system_columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. True when the custom column is referring to one or more attributes.
+    #[serde(default, rename = "referencesAttributes")]
+    pub references_attributes: ::core::option::Option<bool>,
+    /// Output only. True when the custom column is referring to one or more metrics.
+    #[serde(default, rename = "referencesMetrics")]
+    pub references_metrics: ::core::option::Option<bool>,
+    /// Output only. How the result value of the custom column should be interpreted. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NUMBER", "PERCENT", "MONEY", "STRING", "BOOLEAN", "DATE"]
+    #[serde(default, rename = "renderType")]
+    pub render_type: ::core::option::Option<String>,
+    /// Immutable. The resource name of the custom column. Custom column resource names have the form: customers/{customer_id}/customColumns/{custom_column_id}
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Output only. The type of the result value of the custom column. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "STRING", "INT64", "DOUBLE", "BOOLEAN", "DATE"]
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
 }
 
-/// A unified sitelink asset.
+/// A field or resource (artifact) used by SearchAds360Service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUnifiedSitelinkAsset {
-    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
-    #[serde(default, rename = "adScheduleTargets")]
-    pub ad_schedule_targets:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
-    /// First line of the description for the sitelink. If set, the length should be between 1 and 35, inclusive, and description2 must also be set.
+pub struct GoogleAdsSearchads360v0ResourcesSearchAds360Field {
+    /// Output only. The names of all resources that are selectable with the described artifact. Fields from these resources do not segment metrics when included in search queries. This field is only set for artifacts whose category is RESOURCE.
+    #[serde(default, rename = "attributeResources")]
+    pub attribute_resources: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The category of the artifact. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "RESOURCE", "ATTRIBUTE", "SEGMENT", "METRIC"]
     #[serde(default)]
-    pub description1: ::core::option::Option<String>,
-    /// Second line of the description for the sitelink. If set, the length should be between 1 and 35, inclusive, and description1 must also be set.
+    pub category: ::core::option::Option<String>,
+    /// Output only. This field determines the operators that can be used with the artifact in WHERE clauses. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BOOLEAN", "DATE", "DOUBLE", "ENUM", "FLOAT", "INT32", "INT64", "MESSAGE", "RESOURCE_NAME", "STRING", "UINT64"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Output only. Values the artifact can assume if it is a field of type ENUM. This field is only set for artifacts of category SEGMENT or ATTRIBUTE.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Whether the artifact can be used in a WHERE clause in search queries.
     #[serde(default)]
-    pub description2: ::core::option::Option<String>,
-    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<String>,
-    /// URL display text for the sitelink. The length of this string should be between 1 and 25, inclusive.
-    #[serde(default, rename = "linkText")]
-    pub link_text: ::core::option::Option<String>,
-    /// Whether the preference is for the sitelink asset to be displayed on mobile devices. Applies to Microsoft Ads.
-    #[serde(default, rename = "mobilePreferred")]
-    pub mobile_preferred: ::core::option::Option<bool>,
-    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<String>,
-    /// ID used for tracking clicks for the sitelink asset. This is a Yahoo! Japan only field.
-    #[serde(default, rename = "trackingId")]
-    pub tracking_id: ::core::option::Option<String>,
-    /// Whether to show the sitelink asset in search user''s time zone. Applies to Microsoft Ads.
-    #[serde(default, rename = "useSearcherTimeZone")]
-    pub use_searcher_time_zone: ::core::option::Option<bool>,
+    pub filterable: ::core::option::Option<bool>,
+    /// Output only. Whether the field artifact is repeated.
+    #[serde(default, rename = "isRepeated")]
+    pub is_repeated: ::core::option::Option<bool>,
+    /// Output only. This field lists the names of all metrics that are selectable with the described artifact when it is used in the FROM clause. It is only set for artifacts whose category is RESOURCE.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The name of the artifact.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The resource name of the artifact. Artifact resource names have the form: SearchAds360Fields/{name}
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Output only. This field lists the names of all artifacts, whether a segment or another resource, that segment metrics when included in search queries and when the described artifact is used in the FROM clause. It is only set for artifacts whose category is RESOURCE.
+    #[serde(default)]
+    pub segments: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Whether the artifact can be used in a SELECT clause in search queries.
+    #[serde(default)]
+    pub selectable: ::core::option::Option<bool>,
+    /// Output only. The names of all resources, segments, and metrics that are selectable with the described artifact.
+    #[serde(default, rename = "selectableWith")]
+    pub selectable_with: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Whether the artifact can be used in a ORDER BY clause in search queries.
+    #[serde(default)]
+    pub sortable: ::core::option::Option<bool>,
+    /// Output only. The URL of proto describing the artifact''s data type.
+    #[serde(default, rename = "typeUrl")]
+    pub type_url: ::core::option::Option<String>,
 }
 
-/// A User List criterion. Represents a user list that is defined by the advertiser to be targeted.
+/// Message for conversion custom dimension header.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonUserListInfo {
-    /// The User List resource name.
+pub struct GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader {
+    /// The conversion custom dimension ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user defined name of the conversion custom dimension.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Message for conversion custom metric header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader {
+    /// The conversion custom metric ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user defined name of the conversion custom metric.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Message for custom column header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ServicesCustomColumnHeader {
+    /// The custom column ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user defined name of the custom column.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// True when the custom column references metrics.
+    #[serde(default, rename = "referencesMetrics")]
+    pub references_metrics: ::core::option::Option<bool>,
+}
+
+/// Message for raw event conversion dimension header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader {
+    /// The conversion custom variable ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user defined name of the raw event dimension.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Message for raw event conversion metric header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader {
+    /// The conversion custom variable ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user defined name of the raw event metric.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A returned row from the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ServicesSearchAds360Row {
+    /// The accessible bidding strategy referenced in the query.
+    #[serde(default, rename = "accessibleBiddingStrategy")]
+    pub accessible_bidding_strategy:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategy>,
+    /// The ad group referenced in the query.
+    #[serde(default, rename = "adGroup")]
+    pub ad_group: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroup>,
+    /// The ad referenced in the query.
+    #[serde(default, rename = "adGroupAd")]
+    pub ad_group_ad: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAd>,
+    /// The ad group ad effective label referenced in the query.
+    #[serde(default, rename = "adGroupAdEffectiveLabel")]
+    pub ad_group_ad_effective_label:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAdEffectiveLabel>,
+    /// The ad group ad label referenced in the query.
+    #[serde(default, rename = "adGroupAdLabel")]
+    pub ad_group_ad_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAdLabel>,
+    /// The ad group asset referenced in the query.
+    #[serde(default, rename = "adGroupAsset")]
+    pub ad_group_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAsset>,
+    /// The ad group asset set referenced in the query.
+    #[serde(default, rename = "adGroupAssetSet")]
+    pub ad_group_asset_set: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAssetSet>,
+    /// The ad group audience view referenced in the query.
+    #[serde(default, rename = "adGroupAudienceView")]
+    pub ad_group_audience_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAudienceView>,
+    /// The bid modifier referenced in the query.
+    #[serde(default, rename = "adGroupBidModifier")]
+    pub ad_group_bid_modifier:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupBidModifier>,
+    /// The criterion referenced in the query.
+    #[serde(default, rename = "adGroupCriterion")]
+    pub ad_group_criterion:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterion>,
+    /// The ad group criterion effective label referenced in the query.
+    #[serde(default, rename = "adGroupCriterionEffectiveLabel")]
+    pub ad_group_criterion_effective_label:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterionEffectiveLabel>,
+    /// The ad group criterion label referenced in the query.
+    #[serde(default, rename = "adGroupCriterionLabel")]
+    pub ad_group_criterion_label:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterionLabel>,
+    /// The ad group effective label referenced in the query.
+    #[serde(default, rename = "adGroupEffectiveLabel")]
+    pub ad_group_effective_label:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupEffectiveLabel>,
+    /// The ad group label referenced in the query.
+    #[serde(default, rename = "adGroupLabel")]
+    pub ad_group_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupLabel>,
+    /// The age range view referenced in the query.
+    #[serde(default, rename = "ageRangeView")]
+    pub age_range_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAgeRangeView>,
+    /// The asset referenced in the query.
+    #[serde(default)]
+    pub asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAsset>,
+    /// The asset group referenced in the query.
+    #[serde(default, rename = "assetGroup")]
+    pub asset_group: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroup>,
+    /// The asset group asset referenced in the query.
+    #[serde(default, rename = "assetGroupAsset")]
+    pub asset_group_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupAsset>,
+    /// The asset group listing group filter referenced in the query.
+    #[serde(default, rename = "assetGroupListingGroupFilter")]
+    pub asset_group_listing_group_filter:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupListingGroupFilter>,
+    /// The asset group signal referenced in the query.
+    #[serde(default, rename = "assetGroupSignal")]
+    pub asset_group_signal:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupSignal>,
+    /// The asset group top combination view referenced in the query.
+    #[serde(default, rename = "assetGroupTopCombinationView")]
+    pub asset_group_top_combination_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupTopCombinationView>,
+    /// The asset set referenced in the query.
+    #[serde(default, rename = "assetSet")]
+    pub asset_set: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetSet>,
+    /// The asset set asset referenced in the query.
+    #[serde(default, rename = "assetSetAsset")]
+    pub asset_set_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetSetAsset>,
+    /// The Audience referenced in the query.
+    #[serde(default)]
+    pub audience: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAudience>,
+    /// The bidding strategy referenced in the query.
+    #[serde(default, rename = "biddingStrategy")]
+    pub bidding_strategy: ::core::option::Option<GoogleAdsSearchads360v0ResourcesBiddingStrategy>,
+    /// The campaign referenced in the query.
+    #[serde(default)]
+    pub campaign: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaign>,
+    /// The campaign asset referenced in the query.
+    #[serde(default, rename = "campaignAsset")]
+    pub campaign_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAsset>,
+    /// The campaign asset set referenced in the query.
+    #[serde(default, rename = "campaignAssetSet")]
+    pub campaign_asset_set:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAssetSet>,
+    /// The campaign audience view referenced in the query.
+    #[serde(default, rename = "campaignAudienceView")]
+    pub campaign_audience_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAudienceView>,
+    /// The campaign budget referenced in the query.
+    #[serde(default, rename = "campaignBudget")]
+    pub campaign_budget: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignBudget>,
+    /// The campaign criterion referenced in the query.
+    #[serde(default, rename = "campaignCriterion")]
+    pub campaign_criterion:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignCriterion>,
+    /// The campaign effective label referenced in the query.
+    #[serde(default, rename = "campaignEffectiveLabel")]
+    pub campaign_effective_label:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignEffectiveLabel>,
+    /// The campaign label referenced in the query.
+    #[serde(default, rename = "campaignLabel")]
+    pub campaign_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignLabel>,
+    /// The cart data sales view referenced in the query.
+    #[serde(default, rename = "cartDataSalesView")]
+    pub cart_data_sales_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCartDataSalesView>,
+    /// The event level conversion referenced in the query.
+    #[serde(default)]
+    pub conversion: ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversion>,
+    /// The conversion action referenced in the query.
+    #[serde(default, rename = "conversionAction")]
+    pub conversion_action: ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversionAction>,
+    /// The conversion custom variable referenced in the query.
+    #[serde(default, rename = "conversionCustomVariable")]
+    pub conversion_custom_variable:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversionCustomVariable>,
+    /// The custom columns.
+    #[serde(default, rename = "customColumns")]
+    pub custom_columns: ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
+    /// The customer referenced in the query.
+    #[serde(default)]
+    pub customer: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomer>,
+    /// The customer asset referenced in the query.
+    #[serde(default, rename = "customerAsset")]
+    pub customer_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerAsset>,
+    /// The customer asset set referenced in the query.
+    #[serde(default, rename = "customerAssetSet")]
+    pub customer_asset_set:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerAssetSet>,
+    /// The CustomerClient referenced in the query.
+    #[serde(default, rename = "customerClient")]
+    pub customer_client: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerClient>,
+    /// The CustomerManagerLink referenced in the query.
+    #[serde(default, rename = "customerManagerLink")]
+    pub customer_manager_link:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerManagerLink>,
+    /// The dynamic search ads search term view referenced in the query.
+    #[serde(default, rename = "dynamicSearchAdsSearchTermView")]
+    pub dynamic_search_ads_search_term_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesDynamicSearchAdsSearchTermView>,
+    /// The gender view referenced in the query.
+    #[serde(default, rename = "genderView")]
+    pub gender_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesGenderView>,
+    /// The geo target constant referenced in the query.
+    #[serde(default, rename = "geoTargetConstant")]
+    pub geo_target_constant:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesGeoTargetConstant>,
+    /// The keyword view referenced in the query.
+    #[serde(default, rename = "keywordView")]
+    pub keyword_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesKeywordView>,
+    /// The label referenced in the query.
+    #[serde(default)]
+    pub label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLabel>,
+    /// The language constant referenced in the query.
+    #[serde(default, rename = "languageConstant")]
+    pub language_constant: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLanguageConstant>,
+    /// The location view referenced in the query.
+    #[serde(default, rename = "locationView")]
+    pub location_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLocationView>,
+    /// The metrics.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<GoogleAdsSearchads360v0CommonMetrics>,
+    /// The Product Bidding Category referenced in the query.
+    #[serde(default, rename = "productBiddingCategoryConstant")]
+    pub product_bidding_category_constant:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesProductBiddingCategoryConstant>,
+    /// The product group view referenced in the query.
+    #[serde(default, rename = "productGroupView")]
+    pub product_group_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesProductGroupView>,
+    /// The segments.
+    #[serde(default)]
+    pub segments: ::core::option::Option<GoogleAdsSearchads360v0CommonSegments>,
+    /// The shopping performance view referenced in the query.
+    #[serde(default, rename = "shoppingPerformanceView")]
+    pub shopping_performance_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesShoppingPerformanceView>,
+    /// The user list referenced in the query.
     #[serde(default, rename = "userList")]
-    pub user_list: ::core::option::Option<String>,
+    pub user_list: ::core::option::Option<GoogleAdsSearchads360v0ResourcesUserList>,
+    /// The user location view referenced in the query.
+    #[serde(default, rename = "userLocationView")]
+    pub user_location_view:
+        ::core::option::Option<GoogleAdsSearchads360v0ResourcesUserLocationView>,
+    /// The event level visit referenced in the query.
+    #[serde(default)]
+    pub visit: ::core::option::Option<GoogleAdsSearchads360v0ResourcesVisit>,
+    /// The webpage view referenced in the query.
+    #[serde(default, rename = "webpageView")]
+    pub webpage_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesWebpageView>,
 }
 
-/// A generic data container.
+/// Additional error details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonValue {
-    /// A boolean.
-    #[serde(default, rename = "booleanValue")]
-    pub boolean_value: ::core::option::Option<bool>,
-    /// A double.
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// A float.
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<f32>,
-    /// An int64.
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// A string.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-}
-
-/// Logical expression for targeting webpages of an advertiser''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonWebpageConditionInfo {
-    /// Argument of webpage targeting condition.
-    #[serde(default)]
-    pub argument: ::core::option::Option<String>,
-    /// Operand of webpage targeting condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "URL", "CATEGORY", "PAGE_TITLE", "PAGE_CONTENT", "CUSTOM_LABEL"]
-    #[serde(default)]
-    pub operand: ::core::option::Option<String>,
-    /// Operator of webpage targeting condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EQUALS", "CONTAINS"]
-    #[serde(default)]
-    pub operator: ::core::option::Option<String>,
-}
-
-/// Represents a criterion for targeting webpages of an advertiser''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonWebpageInfo {
-    /// Conditions, or logical expressions, for webpage targeting. The list of webpage targeting conditions are and-ed together when evaluated for targeting. An empty list of conditions indicates all pages of the campaign''s website are targeted. This field is required for CREATE operations and is prohibited on UPDATE operations.
-    #[serde(default)]
-    pub conditions:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonWebpageConditionInfo>>,
-    /// Website criteria coverage percentage. This is the computed percentage of website coverage based on the website target, negative website target and negative keywords in the ad group and campaign. For instance, when coverage returns as 1, it indicates it has 100% coverage. This field is read-only.
-    #[serde(default, rename = "coveragePercentage")]
-    pub coverage_percentage: ::core::option::Option<f64>,
-    /// The name of the criterion that is defined by this parameter. The name value will be used for identifying, sorting and filtering criteria with this type of parameters. This field is required for CREATE operations and is prohibited on UPDATE operations.
-    #[serde(default, rename = "criterionName")]
-    pub criterion_name: ::core::option::Option<String>,
-}
-
-/// A YouTube asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0CommonYoutubeVideoAsset {
-    /// YouTube video id. This is the 11 character string value used in the YouTube video URL.
-    #[serde(default, rename = "youtubeVideoId")]
-    pub youtube_video_id: ::core::option::Option<String>,
-    /// YouTube video title.
-    #[serde(default, rename = "youtubeVideoTitle")]
-    pub youtube_video_title: ::core::option::Option<String>,
-}
-
-/// A part of a field path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ErrorsErrorLocationFieldPathElement {
-    /// The name of a field or a oneof
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<String>,
-    /// If field_name is a repeated field, this is the element that failed
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
+pub struct GoogleAdsSearchads360v0ErrorsErrorDetails {
+    /// Details on the quota error, including the scope (account or developer), the rate bucket name and the retry delay.
+    #[serde(default, rename = "quotaErrorDetails")]
+    pub quota_error_details: ::core::option::Option<GoogleAdsSearchads360v0ErrorsQuotaErrorDetails>,
+    /// The error code that should have been returned, but wasn''t. This is used when the error code is not published in the client specified version.
+    #[serde(default, rename = "unpublishedErrorCode")]
+    pub unpublished_error_code: ::core::option::Option<String>,
 }
 
 /// The error reason represented by type and enum.
@@ -1261,17 +561,6 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorCode {
     pub size_limit_error: ::core::option::Option<String>,
 }
 
-/// Additional error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ErrorsErrorDetails {
-    /// Details on the quota error, including the scope (account or developer), the rate bucket name and the retry delay.
-    #[serde(default, rename = "quotaErrorDetails")]
-    pub quota_error_details: ::core::option::Option<GoogleAdsSearchads360v0ErrorsQuotaErrorDetails>,
-    /// The error code that should have been returned, but wasn''t. This is used when the error code is not published in the client specified version.
-    #[serde(default, rename = "unpublishedErrorCode")]
-    pub unpublished_error_code: ::core::option::Option<String>,
-}
-
 /// Describes the part of the request proto that caused the error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsSearchads360v0ErrorsErrorLocation {
@@ -1280,333 +569,6 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorLocation {
     pub field_path_elements: ::core::option::Option<
         ::std::vec::Vec<GoogleAdsSearchads360v0ErrorsErrorLocationFieldPathElement>,
     >,
-}
-
-/// Additional quota error details when there is QuotaError.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ErrorsQuotaErrorDetails {
-    /// The high level description of the quota bucket. Examples are "Get requests for standard access" or "Requests per account".
-    #[serde(default, rename = "rateName")]
-    pub rate_name: ::core::option::Option<String>,
-    /// The rate scope of the quota limit. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ACCOUNT", "DEVELOPER"]
-    #[serde(default, rename = "rateScope")]
-    pub rate_scope: ::core::option::Option<String>,
-    /// Backoff period that customers should wait before sending next request.
-    #[serde(default, rename = "retryDelay")]
-    pub retry_delay: ::core::option::Option<String>,
-}
-
-/// Search Ads 360-specific error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Error {
-    /// Additional error details, which are returned by certain error codes. Most error codes do not include details.
-    #[serde(default)]
-    pub details: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorDetails>,
-    /// An enum value that indicates which error occurred.
-    #[serde(default, rename = "errorCode")]
-    pub error_code: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorCode>,
-    /// Describes the part of the request proto that caused the error.
-    #[serde(default)]
-    pub location: ::core::option::Option<GoogleAdsSearchads360v0ErrorsErrorLocation>,
-    /// A human-readable description of the error.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The value that triggered the error.
-    #[serde(default)]
-    pub trigger: ::core::option::Option<GoogleAdsSearchads360v0CommonValue>,
-}
-
-/// Describes how a Search Ads 360 API call failed. It''s returned inside google.rpc.Status.details when a call fails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {
-    /// The list of errors that occurred.
-    #[serde(default)]
-    pub errors:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ErrorsSearchAds360Error>>,
-    /// The unique ID of the request that is used for debugging purposes.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversionValue {
-    /// Output only. The target return on ad spend (ROAS) option. If set, the bid strategy will maximize revenue while averaging the target return on ad spend. If the target ROAS is high, the bid strategy may not be able to spend the full budget. If the target ROAS is not set, the bid strategy will aim to achieve the highest possible ROAS for the budget.
-    #[serde(default, rename = "targetRoas")]
-    pub target_roas: ::core::option::Option<f64>,
-}
-
-/// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversions {
-    /// Output only. The target cost per acquisition (CPA) option. This is the average amount that you would like to spend per acquisition.
-    #[serde(default, rename = "targetCpa")]
-    pub target_cpa: ::core::option::Option<String>,
-    /// Output only. The target cost per acquisition (CPA) option. This is the average amount that you would like to spend per acquisition.
-    #[serde(default, rename = "targetCpaMicros")]
-    pub target_cpa_micros: ::core::option::Option<String>,
-}
-
-/// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetCpa {
-    /// Output only. Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
-    #[serde(default, rename = "targetCpaMicros")]
-    pub target_cpa_micros: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetImpressionShare {
-    /// Output only. The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Output only. The targeted location on the search results page. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ANYWHERE_ON_PAGE", "TOP_OF_PAGE", "ABSOLUTE_TOP_OF_PAGE"]
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The chosen fraction of ads to be shown in the targeted location in micros. For example, 1% equals 10,000.
-    #[serde(default, rename = "locationFractionMicros")]
-    pub location_fraction_micros: ::core::option::Option<String>,
-}
-
-/// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetRoas {
-    /// Output only. The chosen revenue (based on conversion data) per unit of spend.
-    #[serde(default, rename = "targetRoas")]
-    pub target_roas: ::core::option::Option<f64>,
-}
-
-/// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetSpend {
-    /// Output only. Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
-    #[serde(default, rename = "cpcBidCeilingMicros")]
-    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
-    /// Output only. The spend target under which to maximize clicks. A TargetSpend bidder will attempt to spend the smaller of this value or the natural throttling spend amount. If not specified, the budget is used as the spend target. This field is deprecated and should no longer be used. See https://ads-developers.googleblog.com/2020/05/reminder-about-sunset-creation-of.html for details.
-    #[serde(default, rename = "targetSpendMicros")]
-    pub target_spend_micros: ::core::option::Option<String>,
-}
-
-/// Estimates for criterion bids at various positions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionPositionEstimates {
-    /// Output only. The estimate of the CPC bid required for ad to be displayed at the top of the first page of search results.
-    #[serde(default, rename = "topOfPageCpcMicros")]
-    pub top_of_page_cpc_micros: ::core::option::Option<String>,
-}
-
-/// A container for ad group criterion quality information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionQualityInfo {
-    /// Output only. The quality score. This field may not be populated if Google does not have enough information to determine a value.
-    #[serde(default, rename = "qualityScore")]
-    pub quality_score: ::core::option::Option<i32>,
-}
-
-/// The setting for controlling Dynamic Search Ads (DSA).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignDynamicSearchAdsSetting {
-    /// Required. The Internet domain name that this setting represents, for example, "google.com" or "www.google.com".
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-    /// Required. The language code specifying the language of the domain, for example, "en".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Whether the campaign uses advertiser supplied URLs exclusively.
-    #[serde(default, rename = "useSuppliedUrlsOnly")]
-    pub use_supplied_urls_only: ::core::option::Option<bool>,
-}
-
-/// Represents a collection of settings related to ads geotargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
-    /// The setting used for negative geotargeting in this particular campaign. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PRESENCE_OR_INTEREST", "PRESENCE"]
-    #[serde(default, rename = "negativeGeoTargetType")]
-    pub negative_geo_target_type: ::core::option::Option<String>,
-    /// The setting used for positive geotargeting in this particular campaign. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PRESENCE_OR_INTEREST", "SEARCH_INTEREST", "PRESENCE"]
-    #[serde(default, rename = "positiveGeoTargetType")]
-    pub positive_geo_target_type: ::core::option::Option<String>,
-}
-
-/// The network settings for the campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignNetworkSettings {
-    /// Whether ads will be served on specified placements in the Google Display Network. Placements are specified using the Placement criterion.
-    #[serde(default, rename = "targetContentNetwork")]
-    pub target_content_network: ::core::option::Option<bool>,
-    /// Whether ads will be served with google.com search results.
-    #[serde(default, rename = "targetGoogleSearch")]
-    pub target_google_search: ::core::option::Option<bool>,
-    /// Whether ads will be served on the partner network. This is available only to some select partner accounts. Unless you have been instructed to use this field, it likely does not apply to your account. This does not control whether ads will be served on Google Search Partners Network; use target_search_network for that instead.
-    #[serde(default, rename = "targetPartnerSearchNetwork")]
-    pub target_partner_search_network: ::core::option::Option<bool>,
-    /// Whether ads will be served on sites in the Google Search Partners Network (requires target_google_search to also be true).
-    #[serde(default, rename = "targetSearchNetwork")]
-    pub target_search_network: ::core::option::Option<bool>,
-}
-
-/// Optimization goal setting for this campaign, which includes a set of optimization goal types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignOptimizationGoalSetting {
-    /// The list of optimization goal types.
-    #[serde(default, rename = "optimizationGoalTypes")]
-    pub optimization_goal_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Selective optimization setting for this campaign, which includes a set of conversion actions to optimize this campaign towards. This feature only applies to app campaigns that use MULTI_CHANNEL as AdvertisingChannelType and APP_CAMPAIGN or APP_CAMPAIGN_FOR_ENGAGEMENT as AdvertisingChannelSubType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignSelectiveOptimization {
-    /// The selected set of resource names for conversion actions for optimizing this campaign.
-    #[serde(default, rename = "conversionActions")]
-    pub conversion_actions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The setting for Shopping campaigns. Defines the universe of products that can be advertised by the campaign, and how this campaign interacts with other Shopping campaigns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignShoppingSetting {
-    /// Priority of the campaign. Campaigns with numerically higher priorities take precedence over those with lower priorities. This field is required for Shopping campaigns, with values between 0 and 2, inclusive. This field is optional for Smart Shopping campaigns, but must be equal to 3 if set.
-    #[serde(default, rename = "campaignPriority")]
-    pub campaign_priority: ::core::option::Option<i32>,
-    /// Whether to include local products.
-    #[serde(default, rename = "enableLocal")]
-    pub enable_local: ::core::option::Option<bool>,
-    /// Feed label of products to include in the campaign. Valid feed labels may contain a maximum of 20 characters including uppercase letters, numbers, hyphens, and underscores. If you previously used the deprecated sales_country in the two-letter country code (XX) format, the feed_label field should be used instead. For more information see the [feed label](//support.google.com/merchants/answer/12453549) support article.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// Immutable. ID of the Merchant Center account. This field is required for create operations. This field is immutable for Shopping campaigns.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// Sales country of products to include in the campaign.
-    #[serde(default, rename = "salesCountry")]
-    pub sales_country: ::core::option::Option<String>,
-    /// Immutable. Whether to target Vehicle Listing inventory.
-    #[serde(default, rename = "useVehicleInventory")]
-    pub use_vehicle_inventory: ::core::option::Option<bool>,
-}
-
-/// Campaign-level settings for tracking information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCampaignTrackingSetting {
-    /// Output only. The url used for dynamic tracking.
-    #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: ::core::option::Option<String>,
-}
-
-/// Settings related to this conversion action''s attribution model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesConversionActionAttributionModelSettings {
-    /// The attribution model type of this conversion action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXTERNAL", "GOOGLE_ADS_LAST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_FIRST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_LINEAR", "GOOGLE_SEARCH_ATTRIBUTION_TIME_DECAY", "GOOGLE_SEARCH_ATTRIBUTION_POSITION_BASED", "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN"]
-    #[serde(default, rename = "attributionModel")]
-    pub attribution_model: ::core::option::Option<String>,
-    /// Output only. The status of the data-driven attribution model for the conversion action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AVAILABLE", "STALE", "EXPIRED", "NEVER_GENERATED"]
-    #[serde(default, rename = "dataDrivenModelStatus")]
-    pub data_driven_model_status: ::core::option::Option<String>,
-}
-
-/// Settings related to a Floodlight conversion action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesConversionActionFloodlightSettings {
-    /// Output only. String used to identify a Floodlight activity group when reporting conversions.
-    #[serde(default, rename = "activityGroupTag")]
-    pub activity_group_tag: ::core::option::Option<String>,
-    /// Output only. ID of the Floodlight activity in DoubleClick Campaign Manager (DCM).
-    #[serde(default, rename = "activityId")]
-    pub activity_id: ::core::option::Option<String>,
-    /// Output only. String used to identify a Floodlight activity when reporting conversions.
-    #[serde(default, rename = "activityTag")]
-    pub activity_tag: ::core::option::Option<String>,
-}
-
-/// Settings related to the value for conversion events associated with this conversion action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesConversionActionValueSettings {
-    /// Controls whether the default value and default currency code are used in place of the value and currency code specified in conversion events for this conversion action.
-    #[serde(default, rename = "alwaysUseDefaultValue")]
-    pub always_use_default_value: ::core::option::Option<bool>,
-    /// The currency code to use when conversion events for this conversion action are sent with an invalid or missing currency code, or when this conversion action is configured to always use the default value.
-    #[serde(default, rename = "defaultCurrencyCode")]
-    pub default_currency_code: ::core::option::Option<String>,
-    /// The value to use when conversion events for this conversion action are sent with an invalid, disallowed or missing value, or when this conversion action is configured to always use the default value.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<f64>,
-}
-
-/// Information for Search Ads 360 Floodlight Conversion Custom Variables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariableFloodlightConversionCustomVariableInfo
-{
-    /// Output only. Floodlight variable data type defined in Search Ads 360. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NUMBER", "STRING"]
-    #[serde(default, rename = "floodlightVariableDataType")]
-    pub floodlight_variable_data_type: ::core::option::Option<String>,
-    /// Output only. Floodlight variable type defined in Search Ads 360. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DIMENSION", "METRIC", "UNSET"]
-    #[serde(default, rename = "floodlightVariableType")]
-    pub floodlight_variable_type: ::core::option::Option<String>,
-}
-
-/// One element of a bidding category at a certain level. Top-level categories are at level 1, their children at level 2, and so on. We currently support up to 5 levels. The user must specify a dimension type that indicates the level of the category. All cases of the same subdivision must have the same dimension type (category level).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBiddingCategory {
-    /// ID of the product bidding category. This ID is equivalent to the google_product_category ID as described in this article: https://support.google.com/merchants/answer/6324436
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Indicates the level of the category in the taxonomy. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]
-    #[serde(default)]
-    pub level: ::core::option::Option<String>,
-}
-
-/// Brand of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBrand {
-    /// String value of the product brand.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Locality of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductChannel {
-    /// Value of the locality. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ONLINE", "LOCAL"]
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-}
-
-/// Condition of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCondition {
-    /// Value of the condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NEW", "REFURBISHED", "USED"]
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-}
-
-/// Custom attribute of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCustomAttribute {
-    /// Indicates the index of the custom attribute. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "INDEX0", "INDEX1", "INDEX2", "INDEX3", "INDEX4"]
-    #[serde(default)]
-    pub index: ::core::option::Option<String>,
-    /// String value of the product custom attribute.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Item id of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductItemId {
-    /// Value of the id.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Type of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductType {
-    /// Level of the type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]
-    #[serde(default)]
-    pub level: ::core::option::Option<String>,
-    /// Value of the type.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// Represents a view of BiddingStrategies owned by and shared with the customer. In contrast to BiddingStrategy, this resource includes strategies owned by managers of the customer and shared with this customer - in addition to strategies owned by this customer. This resource does not provide metrics and only exposes a limited subset of the BiddingStrategy attributes.
@@ -1656,61 +618,6 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategy {
         GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetSpend,
     >,
     /// Output only. The type of the bidding strategy. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "COMMISSION", "ENHANCED_CPC", "INVALID", "MANUAL_CPA", "MANUAL_CPC", "MANUAL_CPM", "MANUAL_CPV", "MAXIMIZE_CONVERSIONS", "MAXIMIZE_CONVERSION_VALUE", "PAGE_ONE_PROMOTED", "PERCENT_CPC", "TARGET_CPA", "TARGET_CPM", "TARGET_IMPRESSION_SHARE", "TARGET_OUTRANK_SHARE", "TARGET_ROAS", "TARGET_SPEND"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAd {
-    /// The URL that appears in the ad description for some ad formats.
-    #[serde(default, rename = "displayUrl")]
-    pub display_url: ::core::option::Option<String>,
-    /// Immutable. Details pertaining to an expanded dynamic search ad.
-    #[serde(default, rename = "expandedDynamicSearchAd")]
-    pub expanded_dynamic_search_ad: ::core::option::Option<
-        GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo,
-    >,
-    /// Immutable. Details pertaining to an expanded text ad.
-    #[serde(default, rename = "expandedTextAd")]
-    pub expanded_text_ad:
-        ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo>,
-    /// A list of final app URLs that will be used on mobile if the user has the specific app installed.
-    #[serde(default, rename = "finalAppUrls")]
-    pub final_app_urls:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonFinalAppUrl>>,
-    /// The list of possible final mobile URLs after all cross-domain redirects for the ad.
-    #[serde(default, rename = "finalMobileUrls")]
-    pub final_mobile_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suffix to use when constructing a final URL.
-    #[serde(default, rename = "finalUrlSuffix")]
-    pub final_url_suffix: ::core::option::Option<String>,
-    /// The list of possible final URLs after all cross-domain redirects for the ad.
-    #[serde(default, rename = "finalUrls")]
-    pub final_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The ID of the ad.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Immutable. The name of the ad. This is only used to be able to identify the ad. It does not need to be unique and does not affect the served ad.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. Details pertaining to a product ad.
-    #[serde(default, rename = "productAd")]
-    pub product_ad: ::core::option::Option<serde_json::Value>,
-    /// Immutable. The resource name of the ad. Ad resource names have the form: customers/{customer_id}/ads/{ad_id}
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Immutable. Details pertaining to a responsive search ad.
-    #[serde(default, rename = "responsiveSearchAd")]
-    pub responsive_search_ad:
-        ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo>,
-    /// Immutable. Details pertaining to a text ad.
-    #[serde(default, rename = "textAd")]
-    pub text_ad: ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo>,
-    /// The URL template for constructing a tracking URL.
-    #[serde(default, rename = "trackingUrlTemplate")]
-    pub tracking_url_template: ::core::option::Option<String>,
-    /// Output only. The type of ad. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "TEXT_AD", "EXPANDED_TEXT_AD", "CALL_ONLY_AD", "EXPANDED_DYNAMIC_SEARCH_AD", "HOTEL_AD", "SHOPPING_SMART_AD", "SHOPPING_PRODUCT_AD", "VIDEO_AD", "GMAIL_AD", "IMAGE_AD", "RESPONSIVE_SEARCH_AD", "LEGACY_RESPONSIVE_DISPLAY_AD", "APP_AD", "LEGACY_APP_INSTALL_AD", "RESPONSIVE_DISPLAY_AD", "LOCAL_AD", "HTML5_UPLOAD_AD", "DYNAMIC_HTML5_AD", "APP_ENGAGEMENT_AD", "SHOPPING_COMPARISON_LISTING_AD", "VIDEO_BUMPER_AD", "VIDEO_NON_SKIPPABLE_IN_STREAM_AD", "VIDEO_OUTSTREAM_AD", "VIDEO_TRUEVIEW_DISCOVERY_AD", "VIDEO_TRUEVIEW_IN_STREAM_AD", "VIDEO_RESPONSIVE_AD", "SMART_CAMPAIGN_AD", "APP_PRE_REGISTRATION_AD", "DISCOVERY_MULTI_ASSET_AD", "DISCOVERY_CAROUSEL_AD", "TRAVEL_AD", "DISCOVERY_VIDEO_RESPONSIVE_AD", "MULTIMEDIA_AD"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
@@ -2199,15 +1106,6 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAsset {
     /// The status of the link between an asset and asset group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ENABLED", "REMOVED", "PAUSED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-}
-
-/// Asset group asset combination data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAssetCombinationData {
-    /// Output only. Served assets.
-    #[serde(default, rename = "assetCombinationServedAssets")]
-    pub asset_combination_served_assets:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAssetUsage>>,
 }
 
 /// AssetGroupListingGroupFilter represents a listing group filter tree node in an asset group.
@@ -2857,67 +1755,6 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariable {
     pub tag: ::core::option::Option<String>,
 }
 
-/// A collection of customer-wide settings related to Search Ads 360 Conversion Tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesConversionTrackingSetting {
-    /// Output only. Whether the customer has accepted customer data terms. If using cross-account conversion tracking, this value is inherited from the manager. This field is read-only. For more information, see https://support.google.com/adspolicy/answer/7475709.
-    #[serde(default, rename = "acceptedCustomerDataTerms")]
-    pub accepted_customer_data_terms: ::core::option::Option<bool>,
-    /// Output only. The conversion tracking id used for this account. This id doesn''t indicate whether the customer uses conversion tracking (conversion_tracking_status does). This field is read-only.
-    #[serde(default, rename = "conversionTrackingId")]
-    pub conversion_tracking_id: ::core::option::Option<String>,
-    /// Output only. Conversion tracking status. It indicates whether the customer is using conversion tracking, and who is the conversion tracking owner of this customer. If this customer is using cross-account conversion tracking, the value returned will differ based on the login-customer-id of the request. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NOT_CONVERSION_TRACKED", "CONVERSION_TRACKING_MANAGED_BY_SELF", "CONVERSION_TRACKING_MANAGED_BY_THIS_MANAGER", "CONVERSION_TRACKING_MANAGED_BY_ANOTHER_MANAGER"]
-    #[serde(default, rename = "conversionTrackingStatus")]
-    pub conversion_tracking_status: ::core::option::Option<String>,
-    /// Output only. The conversion tracking id of the customer''s manager. This is set when the customer is opted into cross-account conversion tracking, and it overrides conversion_tracking_id.
-    #[serde(default, rename = "crossAccountConversionTrackingId")]
-    pub cross_account_conversion_tracking_id: ::core::option::Option<String>,
-    /// Output only. Whether the customer is opted-in for enhanced conversions for leads. If using cross-account conversion tracking, this value is inherited from the manager. This field is read-only.
-    #[serde(default, rename = "enhancedConversionsForLeadsEnabled")]
-    pub enhanced_conversions_for_leads_enabled: ::core::option::Option<bool>,
-    /// Output only. The resource name of the customer where conversions are created and managed. This field is read-only.
-    #[serde(default, rename = "googleAdsConversionCustomer")]
-    pub google_ads_conversion_customer: ::core::option::Option<String>,
-    /// Output only. The conversion tracking id of the customer''s manager. This is set when the customer is opted into conversion tracking, and it overrides conversion_tracking_id. This field can only be managed through the Google Ads UI. This field is read-only.
-    #[serde(default, rename = "googleAdsCrossAccountConversionTrackingId")]
-    pub google_ads_cross_account_conversion_tracking_id: ::core::option::Option<String>,
-}
-
-/// A custom column. See Search Ads 360 custom column at https://support.google.com/sa360/answer/9633916
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesCustomColumn {
-    /// Output only. User-defined description of the custom column.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. ID of the custom column.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. User-defined name of the custom column.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. True when the custom column is available to be used in the query of SearchAds360Service.Search and SearchAds360Service.SearchStream.
-    #[serde(default)]
-    pub queryable: ::core::option::Option<bool>,
-    /// Output only. The list of the referenced system columns of this custom column. For example, A custom column "sum of impressions and clicks" has referenced system columns of {"metrics.clicks", "metrics.impressions"}.
-    #[serde(default, rename = "referencedSystemColumns")]
-    pub referenced_system_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. True when the custom column is referring to one or more attributes.
-    #[serde(default, rename = "referencesAttributes")]
-    pub references_attributes: ::core::option::Option<bool>,
-    /// Output only. True when the custom column is referring to one or more metrics.
-    #[serde(default, rename = "referencesMetrics")]
-    pub references_metrics: ::core::option::Option<bool>,
-    /// Output only. How the result value of the custom column should be interpreted. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NUMBER", "PERCENT", "MONEY", "STRING", "BOOLEAN", "DATE"]
-    #[serde(default, rename = "renderType")]
-    pub render_type: ::core::option::Option<String>,
-    /// Immutable. The resource name of the custom column. Custom column resource names have the form: customers/{customer_id}/customColumns/{custom_column_id}
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Output only. The type of the result value of the custom column. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "STRING", "INT64", "DOUBLE", "BOOLEAN", "DATE"]
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
 /// A customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomer {
@@ -3089,20 +1926,6 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomerManagerLink {
     pub status: ::core::option::Option<String>,
 }
 
-/// DoubleClick Campaign Manager (DCM) setting for a manager customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesDoubleClickCampaignManagerSetting {
-    /// Output only. ID of the Campaign Manager advertiser associated with this customer.
-    #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: ::core::option::Option<String>,
-    /// Output only. ID of the Campaign Manager network associated with this customer.
-    #[serde(default, rename = "networkId")]
-    pub network_id: ::core::option::Option<String>,
-    /// Output only. Time zone of the Campaign Manager network associated with this customer in IANA Time Zone Database format, such as America/New_York.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-}
-
 /// A dynamic search ads search term view.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsSearchads360v0ResourcesDynamicSearchAdsSearchTermView {
@@ -3199,62 +2022,319 @@ pub struct GoogleAdsSearchads360v0ResourcesLanguageConstant {
     pub targetable: ::core::option::Option<bool>,
 }
 
-/// Listing dimensions for the asset group listing group filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension {
-    /// Bidding category of a product offer.
-    #[serde(default, rename = "productBiddingCategory")]
-    pub product_bidding_category: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBiddingCategory,
-    >,
-    /// Brand of a product offer.
-    #[serde(default, rename = "productBrand")]
-    pub product_brand: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBrand,
-    >,
-    /// Locality of a product offer.
-    #[serde(default, rename = "productChannel")]
-    pub product_channel: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductChannel,
-    >,
-    /// Condition of a product offer.
-    #[serde(default, rename = "productCondition")]
-    pub product_condition: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCondition,
-    >,
-    /// Custom attribute of a product offer.
-    #[serde(default, rename = "productCustomAttribute")]
-    pub product_custom_attribute: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCustomAttribute,
-    >,
-    /// Item id of a product offer.
-    #[serde(default, rename = "productItemId")]
-    pub product_item_id: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductItemId,
-    >,
-    /// Type of a product offer.
-    #[serde(default, rename = "productType")]
-    pub product_type: ::core::option::Option<
-        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductType,
-    >,
-}
-
-/// The path defining of dimensions defining a listing group filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionPath {
-    /// Output only. The complete path of dimensions through the listing group filter hierarchy (excluding the root node) to this listing group filter.
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension>,
-    >,
-}
-
 /// A location view summarizes the performance of campaigns by a Location criterion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsSearchads360v0ResourcesLocationView {
     /// Output only. The resource name of the location view. Location view resource names have the form: customers/{customer_id}/locationViews/{campaign_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
     pub resource_name: ::core::option::Option<String>,
+}
+
+/// Metrics data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonMetrics {
+    /// Search absolute top impression share is the percentage of your Search ad impressions that are shown in the most prominent Search position.
+    #[serde(default, rename = "absoluteTopImpressionPercentage")]
+    pub absolute_top_impression_percentage: ::core::option::Option<f64>,
+    /// The total number of conversions. This includes all conversions regardless of the value of include_in_conversions_metric.
+    #[serde(default, rename = "allConversions")]
+    pub all_conversions: ::core::option::Option<f64>,
+    /// The total number of conversions. This includes all conversions regardless of the value of include_in_conversions_metric. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
+    #[serde(default, rename = "allConversionsByConversionDate")]
+    pub all_conversions_by_conversion_date: ::core::option::Option<f64>,
+    /// The number of times people clicked the "Call" button to call a business during or after clicking an ad. This number doesn''t include whether or not calls were connected, or the duration of any calls. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromClickToCall")]
+    pub all_conversions_from_click_to_call: ::core::option::Option<f64>,
+    /// The number of times people clicked a "Get directions" button to navigate to a business after clicking an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromDirections")]
+    pub all_conversions_from_directions: ::core::option::Option<f64>,
+    /// All conversions from interactions (as oppose to view through conversions) divided by the number of ad interactions.
+    #[serde(default, rename = "allConversionsFromInteractionsRate")]
+    pub all_conversions_from_interactions_rate: ::core::option::Option<f64>,
+    /// The value of all conversions from interactions divided by the total number of interactions.
+    #[serde(default, rename = "allConversionsFromInteractionsValuePerInteraction")]
+    pub all_conversions_from_interactions_value_per_interaction: ::core::option::Option<f64>,
+    /// The number of times people clicked a link to view a business''s menu after clicking an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromMenu")]
+    pub all_conversions_from_menu: ::core::option::Option<f64>,
+    /// The number of times people placed an order at a business after clicking an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromOrder")]
+    pub all_conversions_from_order: ::core::option::Option<f64>,
+    /// The number of other conversions (for example, posting a review or saving a location for a business) that occurred after people clicked an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromOtherEngagement")]
+    pub all_conversions_from_other_engagement: ::core::option::Option<f64>,
+    /// Estimated number of times people visited a business after clicking an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromStoreVisit")]
+    pub all_conversions_from_store_visit: ::core::option::Option<f64>,
+    /// The number of times that people were taken to a business''s URL after clicking an ad. This metric applies to feed items only.
+    #[serde(default, rename = "allConversionsFromStoreWebsite")]
+    pub all_conversions_from_store_website: ::core::option::Option<f64>,
+    /// The value of all conversions.
+    #[serde(default, rename = "allConversionsValue")]
+    pub all_conversions_value: ::core::option::Option<f64>,
+    /// The value of all conversions. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
+    #[serde(default, rename = "allConversionsValueByConversionDate")]
+    pub all_conversions_value_by_conversion_date: ::core::option::Option<f64>,
+    /// The value of all conversions divided by the total cost of ad interactions (such as clicks for text ads or views for video ads).
+    #[serde(default, rename = "allConversionsValuePerCost")]
+    pub all_conversions_value_per_cost: ::core::option::Option<f64>,
+    /// Average cart size is the average number of products in each order attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Average cart size is the total number of products sold divided by the total number of orders you received. Example: You received 2 orders, the first included 3 products and the second included 2. The average cart size is 2.5 products = (3+2)/2. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "averageCartSize")]
+    pub average_cart_size: ::core::option::Option<f64>,
+    /// The average amount you pay per interaction. This amount is the total cost of your ads divided by the total number of interactions.
+    #[serde(default, rename = "averageCost")]
+    pub average_cost: ::core::option::Option<f64>,
+    /// The total cost of all clicks divided by the total number of clicks received. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "averageCpc")]
+    pub average_cpc: ::core::option::Option<f64>,
+    /// Average cost-per-thousand impressions (CPM). This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "averageCpm")]
+    pub average_cpm: ::core::option::Option<f64>,
+    /// The average number of times a unique user saw your ad during the requested time period. This metric cannot be aggregated, and can only be requested for date ranges of 92 days or less. This metric is available for following campaign types - Display, Video, Discovery and App.
+    #[serde(default, rename = "averageImpressionFrequencyPerUser")]
+    pub average_impression_frequency_per_user: ::core::option::Option<f64>,
+    /// Average order value is the average revenue you made per order attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Average order value is the total revenue from your orders divided by the total number of orders. Example: You received 3 orders which made $10, $15 and $20 worth of revenue. The average order value is $15 = ($10 + $15 + $20)/3. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "averageOrderValueMicros")]
+    pub average_order_value_micros: ::core::option::Option<String>,
+    /// The average quality score.
+    #[serde(default, rename = "averageQualityScore")]
+    pub average_quality_score: ::core::option::Option<f64>,
+    /// The number of clicks.
+    #[serde(default)]
+    pub clicks: ::core::option::Option<String>,
+    /// The number of client account conversions. This only includes conversion actions which include_in_client_account_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
+    #[serde(default, rename = "clientAccountConversions")]
+    pub client_account_conversions: ::core::option::Option<f64>,
+    /// The value of client account conversions. This only includes conversion actions which include_in_client_account_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
+    #[serde(default, rename = "clientAccountConversionsValue")]
+    pub client_account_conversions_value: ::core::option::Option<f64>,
+    /// Client account cross-sell cost of goods sold (COGS) is the total cost of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell cost of goods sold is the total cost of the products sold that weren''t advertised. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cross-sell cost of goods sold for this order is $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountCrossSellCostOfGoodsSoldMicros")]
+    pub client_account_cross_sell_cost_of_goods_sold_micros: ::core::option::Option<String>,
+    /// Client account cross-sell gross profit is the profit you made from products sold as a result of advertising a different product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the purchase is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell gross profit is the revenue you made from cross-sell attributed to your ads minus the cost of the goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The shirt is priced $20 and has a cost of goods sold value of $5. The cross-sell gross profit of this order is $15 = $20 - $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountCrossSellGrossProfitMicros")]
+    pub client_account_cross_sell_gross_profit_micros: ::core::option::Option<String>,
+    /// Client account cross-sell revenue is the total amount you made from products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell revenue is the total value you made from cross-sell attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The cross-sell revenue of this order is $20. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountCrossSellRevenueMicros")]
+    pub client_account_cross_sell_revenue_micros: ::core::option::Option<String>,
+    /// Client account cross-sell units sold is the total number of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell units sold is the total number of cross-sold products from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The cross-sell units sold in this order is 2. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "clientAccountCrossSellUnitsSold")]
+    pub client_account_cross_sell_units_sold: ::core::option::Option<f64>,
+    /// Client account lead cost of goods sold (COGS) is the total cost of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the cost of these goods is counted under lead cost of goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The lead cost of goods sold for this order is $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountLeadCostOfGoodsSoldMicros")]
+    pub client_account_lead_cost_of_goods_sold_micros: ::core::option::Option<String>,
+    /// Client account lead gross profit is the profit you made from products sold as a result of advertising the same product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the revenue you made from these sales minus the cost of goods sold is your lead gross profit. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and has a cost of goods sold value of $3. The lead gross profit of this order is $7 = $10 - $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountLeadGrossProfitMicros")]
+    pub client_account_lead_gross_profit_micros: ::core::option::Option<String>,
+    /// Client account lead revenue is the total amount you made from products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total value you made from the sales of these products is shown under lead revenue. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The lead revenue of this order is $10. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "clientAccountLeadRevenueMicros")]
+    pub client_account_lead_revenue_micros: ::core::option::Option<String>,
+    /// Client account lead units sold is the total number of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total number of these products sold is shown under lead units sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The lead units sold in this order is 1. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "clientAccountLeadUnitsSold")]
+    pub client_account_lead_units_sold: ::core::option::Option<f64>,
+    /// The total number of view-through conversions. These happen when a customer sees an image or rich media ad, then later completes a conversion on your site without interacting with (for example, clicking on) another ad.
+    #[serde(default, rename = "clientAccountViewThroughConversions")]
+    pub client_account_view_through_conversions: ::core::option::Option<String>,
+    /// The estimated percent of times that your ad was eligible to show on the Display Network but didn''t because your budget was too low. Note: Content budget lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "contentBudgetLostImpressionShare")]
+    pub content_budget_lost_impression_share: ::core::option::Option<f64>,
+    /// The impressions you''ve received on the Display Network divided by the estimated number of impressions you were eligible to receive. Note: Content impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
+    #[serde(default, rename = "contentImpressionShare")]
+    pub content_impression_share: ::core::option::Option<f64>,
+    /// The estimated percentage of impressions on the Display Network that your ads didn''t receive due to poor Ad Rank. Note: Content rank lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "contentRankLostImpressionShare")]
+    pub content_rank_lost_impression_share: ::core::option::Option<f64>,
+    /// The conversion custom metrics.
+    #[serde(default, rename = "conversionCustomMetrics")]
+    pub conversion_custom_metrics:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
+    /// The number of conversions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
+    #[serde(default)]
+    pub conversions: ::core::option::Option<f64>,
+    /// The sum of conversions by conversion date for biddable conversion types. Can be fractional due to attribution modeling. When this column is selected with date, the values in date column means the conversion date.
+    #[serde(default, rename = "conversionsByConversionDate")]
+    pub conversions_by_conversion_date: ::core::option::Option<f64>,
+    /// Average biddable conversions (from interaction) per conversion eligible interaction. Shows how often, on average, an ad interaction leads to a biddable conversion.
+    #[serde(default, rename = "conversionsFromInteractionsRate")]
+    pub conversions_from_interactions_rate: ::core::option::Option<f64>,
+    /// The value of conversions from interactions divided by the number of ad interactions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
+    #[serde(default, rename = "conversionsFromInteractionsValuePerInteraction")]
+    pub conversions_from_interactions_value_per_interaction: ::core::option::Option<f64>,
+    /// The sum of conversion values for the conversions included in the "conversions" field. This metric is useful only if you entered a value for your conversion actions.
+    #[serde(default, rename = "conversionsValue")]
+    pub conversions_value: ::core::option::Option<f64>,
+    /// The sum of biddable conversions value by conversion date. When this column is selected with date, the values in date column means the conversion date.
+    #[serde(default, rename = "conversionsValueByConversionDate")]
+    pub conversions_value_by_conversion_date: ::core::option::Option<f64>,
+    /// The value of biddable conversion divided by the total cost of conversion eligible interactions.
+    #[serde(default, rename = "conversionsValuePerCost")]
+    pub conversions_value_per_cost: ::core::option::Option<f64>,
+    /// The sum of your cost-per-click (CPC) and cost-per-thousand impressions (CPM) costs during this period. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "costMicros")]
+    pub cost_micros: ::core::option::Option<String>,
+    /// Cost of goods sold (COGS) is the total cost of the products you sold in orders attributed to your ads. How it works: You can add a cost of goods sold value to every product in Merchant Center. If you report conversions with cart data, the products you sold are matched with their cost of goods sold value and this can be used to calculate the gross profit you made on each order. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cost of goods sold for this order is $8 = $3 + $5. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "costOfGoodsSoldMicros")]
+    pub cost_of_goods_sold_micros: ::core::option::Option<String>,
+    /// The cost of ad interactions divided by all conversions.
+    #[serde(default, rename = "costPerAllConversions")]
+    pub cost_per_all_conversions: ::core::option::Option<f64>,
+    /// Average conversion eligible cost per biddable conversion.
+    #[serde(default, rename = "costPerConversion")]
+    pub cost_per_conversion: ::core::option::Option<f64>,
+    /// The cost of ad interactions divided by current model attributed conversions. This only includes conversion actions which include_in_conversions_metric attribute is set to true. If you use conversion-based bidding, your bid strategies will optimize for these conversions.
+    #[serde(default, rename = "costPerCurrentModelAttributedConversion")]
+    pub cost_per_current_model_attributed_conversion: ::core::option::Option<f64>,
+    /// Conversions from when a customer clicks on an ad on one device, then converts on a different device or browser. Cross-device conversions are already included in all_conversions.
+    #[serde(default, rename = "crossDeviceConversions")]
+    pub cross_device_conversions: ::core::option::Option<f64>,
+    /// The number of cross-device conversions by conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
+    #[serde(default, rename = "crossDeviceConversionsByConversionDate")]
+    pub cross_device_conversions_by_conversion_date: ::core::option::Option<f64>,
+    /// The sum of the value of cross-device conversions.
+    #[serde(default, rename = "crossDeviceConversionsValue")]
+    pub cross_device_conversions_value: ::core::option::Option<f64>,
+    /// The sum of cross-device conversions value by conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
+    #[serde(default, rename = "crossDeviceConversionsValueByConversionDate")]
+    pub cross_device_conversions_value_by_conversion_date: ::core::option::Option<f64>,
+    /// Cross-sell cost of goods sold (COGS) is the total cost of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell cost of goods sold is the total cost of the products sold that weren''t advertised. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The cross-sell cost of goods sold for this order is $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "crossSellCostOfGoodsSoldMicros")]
+    pub cross_sell_cost_of_goods_sold_micros: ::core::option::Option<String>,
+    /// Cross-sell gross profit is the profit you made from products sold as a result of advertising a different product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the purchase is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell gross profit is the revenue you made from cross-sell attributed to your ads minus the cost of the goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The shirt is priced $20 and has a cost of goods sold value of $5. The cross-sell gross profit of this order is $15 = $20 - $5. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "crossSellGrossProfitMicros")]
+    pub cross_sell_gross_profit_micros: ::core::option::Option<String>,
+    /// Cross-sell revenue is the total amount you made from products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell revenue is the total value you made from cross-sell attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The cross-sell revenue of this order is $20. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "crossSellRevenueMicros")]
+    pub cross_sell_revenue_micros: ::core::option::Option<String>,
+    /// Cross-sell units sold is the total number of products sold as a result of advertising a different product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If these products don''t match then this is considered cross-sell. Cross-sell units sold is the total number of cross-sold products from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The cross-sell units sold in this order is 2. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "crossSellUnitsSold")]
+    pub cross_sell_units_sold: ::core::option::Option<f64>,
+    /// The number of clicks your ad receives (Clicks) divided by the number of times your ad is shown (Impressions).
+    #[serde(default)]
+    pub ctr: ::core::option::Option<f64>,
+    /// The percentage of clicks that have been filtered out of your total number of clicks (filtered + non-filtered clicks) due to being general invalid clicks. These are clicks Google considers illegitimate that are detected through routine means of filtration (that is, known invalid data-center traffic, bots and spiders or other crawlers, irregular patterns, etc). You''re not charged for them, and they don''t affect your account statistics. See the help page at https://support.google.com/campaignmanager/answer/6076504 for details.
+    #[serde(default, rename = "generalInvalidClickRate")]
+    pub general_invalid_click_rate: ::core::option::Option<f64>,
+    /// Number of general invalid clicks. These are a subset of your invalid clicks that are detected through routine means of filtration (such as known invalid data-center traffic, bots and spiders or other crawlers, irregular patterns, etc.). You''re not charged for them, and they don''t affect your account statistics. See the help page at https://support.google.com/campaignmanager/answer/6076504 for details.
+    #[serde(default, rename = "generalInvalidClicks")]
+    pub general_invalid_clicks: ::core::option::Option<String>,
+    /// Gross profit margin is the percentage gross profit you made from orders attributed to your ads, after taking out the cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. Gross profit margin is the gross profit you made divided by your total revenue and multiplied by 100%. Gross profit margin calculations only include products that have a cost of goods sold value in Merchant Center. Example: Someone bought a hat and a shirt in an order on your website. The hat is priced $10 and has a cost of goods sold value of $3. The shirt is priced $20 but has no cost of goods sold value. Gross profit margin for this order will only take into account the hat because it has a cost of goods sold value, so it''s 70% = ($10 - $3)/$10 x 100%. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "grossProfitMargin")]
+    pub gross_profit_margin: ::core::option::Option<f64>,
+    /// Gross profit is the profit you made from orders attributed to your ads minus the cost of goods sold (COGS). How it works: Gross profit is the revenue you made from sales attributed to your ads minus cost of goods sold. Gross profit calculations only include products that have a cost of goods sold value in Merchant Center. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order from your website. The hat is priced $10 and the shirt is priced $20. The hat has a cost of goods sold value of $3, but the shirt has no cost of goods sold value. Gross profit for this order will only take into account the hat, so it''s $7 = $10 - $3. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "grossProfitMicros")]
+    pub gross_profit_micros: ::core::option::Option<String>,
+    /// The creative historical quality score. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
+    #[serde(default, rename = "historicalCreativeQualityScore")]
+    pub historical_creative_quality_score: ::core::option::Option<String>,
+    /// The quality of historical landing page experience. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
+    #[serde(default, rename = "historicalLandingPageQualityScore")]
+    pub historical_landing_page_quality_score: ::core::option::Option<String>,
+    /// The historical quality score.
+    #[serde(default, rename = "historicalQualityScore")]
+    pub historical_quality_score: ::core::option::Option<String>,
+    /// The historical search predicted click through rate (CTR). // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_AVERAGE", "AVERAGE", "ABOVE_AVERAGE"]
+    #[serde(default, rename = "historicalSearchPredictedCtr")]
+    pub historical_search_predicted_ctr: ::core::option::Option<String>,
+    /// Count of how often your ad has appeared on a search results page or website on the Google Network.
+    #[serde(default)]
+    pub impressions: ::core::option::Option<String>,
+    /// The types of payable and free interactions.
+    #[serde(default, rename = "interactionEventTypes")]
+    pub interaction_event_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// How often people interact with your ad after it is shown to them. This is the number of interactions divided by the number of times your ad is shown.
+    #[serde(default, rename = "interactionRate")]
+    pub interaction_rate: ::core::option::Option<f64>,
+    /// The number of interactions. An interaction is the main user action associated with an ad format-clicks for text and shopping ads, views for video ads, and so on.
+    #[serde(default)]
+    pub interactions: ::core::option::Option<String>,
+    /// The percentage of clicks filtered out of your total number of clicks (filtered + non-filtered clicks) during the reporting period.
+    #[serde(default, rename = "invalidClickRate")]
+    pub invalid_click_rate: ::core::option::Option<f64>,
+    /// Number of clicks Google considers illegitimate and doesn''t charge you for.
+    #[serde(default, rename = "invalidClicks")]
+    pub invalid_clicks: ::core::option::Option<String>,
+    /// Lead cost of goods sold (COGS) is the total cost of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the cost of these goods is counted under lead cost of goods sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat has a cost of goods sold value of $3, the shirt has a cost of goods sold value of $5. The lead cost of goods sold for this order is $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "leadCostOfGoodsSoldMicros")]
+    pub lead_cost_of_goods_sold_micros: ::core::option::Option<String>,
+    /// Lead gross profit is the profit you made from products sold as a result of advertising the same product, minus cost of goods sold (COGS). How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the revenue you made from these sales minus the cost of goods sold is your lead gross profit. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and has a cost of goods sold value of $3. The lead gross profit of this order is $7 = $10 - $3. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "leadGrossProfitMicros")]
+    pub lead_gross_profit_micros: ::core::option::Option<String>,
+    /// Lead revenue is the total amount you made from products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total value you made from the sales of these products is shown under lead revenue. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt. The hat is priced $10 and the shirt is priced $20. The lead revenue of this order is $10. This metric is only available if you report conversions with cart data. This metric is a monetary value and returned in the customer''s currency by default. See the metrics_currency parameter at https://developers.google.com/search-ads/reporting/query/query-structure#parameters_clause
+    #[serde(default, rename = "leadRevenueMicros")]
+    pub lead_revenue_micros: ::core::option::Option<String>,
+    /// Lead units sold is the total number of products sold as a result of advertising the same product. How it works: You report conversions with cart data for completed purchases on your website. If the ad that was interacted with before the purchase has an associated product (see Shopping Ads) then this product is considered the advertised product. Any product included in the order the customer places is a sold product. If the advertised and sold products match, then the total number of these products sold is shown under lead units sold. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The lead units sold in this order is 1. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "leadUnitsSold")]
+    pub lead_units_sold: ::core::option::Option<f64>,
+    /// The percentage of mobile clicks that go to a mobile-friendly page.
+    #[serde(default, rename = "mobileFriendlyClicksPercentage")]
+    pub mobile_friendly_clicks_percentage: ::core::option::Option<f64>,
+    /// Orders is the total number of purchase conversions you received attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. If a conversion is attributed to previous interactions with your ads (clicks for text or Shopping ads, views for video ads etc.) it''s counted as an order. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order on your website. Even though they bought 2 products, this would count as 1 order. This metric is only available if you report conversions with cart data.
+    #[serde(default)]
+    pub orders: ::core::option::Option<f64>,
+    /// The raw event conversion metrics.
+    #[serde(default, rename = "rawEventConversionMetrics")]
+    pub raw_event_conversion_metrics:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
+    /// Revenue is the total amount you made from orders attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Revenue is the total value of all the orders you received attributed to your ads, minus any discount. Example: Someone clicked on a Shopping ad for a hat then bought the same hat and a shirt in an order from your website. The hat is priced $10 and the shirt is priced $20. The entire order has a $5 discount. The revenue from this order is $25 = ($10 + $20) - $5. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "revenueMicros")]
+    pub revenue_micros: ::core::option::Option<String>,
+    /// The percentage of the customer''s Shopping or Search ad impressions that are shown in the most prominent Shopping position. See https://support.google.com/sa360/answer/9566729 for details. Any value below 0.1 is reported as 0.0999.
+    #[serde(default, rename = "searchAbsoluteTopImpressionShare")]
+    pub search_absolute_top_impression_share: ::core::option::Option<f64>,
+    /// The number estimating how often your ad wasn''t the very first ad among the top ads in the search results due to a low budget. Note: Search budget lost absolute top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchBudgetLostAbsoluteTopImpressionShare")]
+    pub search_budget_lost_absolute_top_impression_share: ::core::option::Option<f64>,
+    /// The estimated percent of times that your ad was eligible to show on the Search Network but didn''t because your budget was too low. Note: Search budget lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchBudgetLostImpressionShare")]
+    pub search_budget_lost_impression_share: ::core::option::Option<f64>,
+    /// The number estimating how often your ad didn''t show adjacent to the top organic search results due to a low budget. Note: Search budget lost top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchBudgetLostTopImpressionShare")]
+    pub search_budget_lost_top_impression_share: ::core::option::Option<f64>,
+    /// The number of clicks you''ve received on the Search Network divided by the estimated number of clicks you were eligible to receive. Note: Search click share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
+    #[serde(default, rename = "searchClickShare")]
+    pub search_click_share: ::core::option::Option<f64>,
+    /// The impressions you''ve received divided by the estimated number of impressions you were eligible to receive on the Search Network for search terms that matched your keywords exactly (or were close variants of your keyword), regardless of your keyword match types. Note: Search exact match impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
+    #[serde(default, rename = "searchExactMatchImpressionShare")]
+    pub search_exact_match_impression_share: ::core::option::Option<f64>,
+    /// The impressions you''ve received on the Search Network divided by the estimated number of impressions you were eligible to receive. Note: Search impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999.
+    #[serde(default, rename = "searchImpressionShare")]
+    pub search_impression_share: ::core::option::Option<f64>,
+    /// The number estimating how often your ad wasn''t the very first ad among the top ads in the search results due to poor Ad Rank. Note: Search rank lost absolute top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchRankLostAbsoluteTopImpressionShare")]
+    pub search_rank_lost_absolute_top_impression_share: ::core::option::Option<f64>,
+    /// The estimated percentage of impressions on the Search Network that your ads didn''t receive due to poor Ad Rank. Note: Search rank lost impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchRankLostImpressionShare")]
+    pub search_rank_lost_impression_share: ::core::option::Option<f64>,
+    /// The number estimating how often your ad didn''t show adjacent to the top organic search results due to poor Ad Rank. Note: Search rank lost top impression share is reported in the range of 0 to 0.9. Any value above 0.9 is reported as 0.9001.
+    #[serde(default, rename = "searchRankLostTopImpressionShare")]
+    pub search_rank_lost_top_impression_share: ::core::option::Option<f64>,
+    /// The impressions you''ve received among the top ads compared to the estimated number of impressions you were eligible to receive among the top ads. Note: Search top impression share is reported in the range of 0.1 to 1. Any value below 0.1 is reported as 0.0999. Top ads are generally above the top organic results, although they may show below the top organic results on certain queries.
+    #[serde(default, rename = "searchTopImpressionShare")]
+    pub search_top_impression_share: ::core::option::Option<f64>,
+    /// The percent of your ad impressions that are shown adjacent to the top organic search results.
+    #[serde(default, rename = "topImpressionPercentage")]
+    pub top_impression_percentage: ::core::option::Option<f64>,
+    /// The number of unique users who saw your ad during the requested time period. This metric cannot be aggregated, and can only be requested for date ranges of 92 days or less. This metric is available for following campaign types - Display, Video, Discovery and App.
+    #[serde(default, rename = "uniqueUsers")]
+    pub unique_users: ::core::option::Option<String>,
+    /// Units sold is the total number of products sold from orders attributed to your ads. How it works: You report conversions with cart data for completed purchases on your website. Units sold is the total number of products sold from all orders attributed to your ads. Example: Someone clicked on a Shopping ad for a hat then bought the same hat, a shirt and a jacket. The units sold in this order is 3. This metric is only available if you report conversions with cart data.
+    #[serde(default, rename = "unitsSold")]
+    pub units_sold: ::core::option::Option<f64>,
+    /// The value of all conversions divided by the number of all conversions.
+    #[serde(default, rename = "valuePerAllConversions")]
+    pub value_per_all_conversions: ::core::option::Option<f64>,
+    /// The value of all conversions divided by the number of all conversions. When this column is selected with date, the values in date column means the conversion date. Details for the by_conversion_date columns are available at https://support.google.com/sa360/answer/9250611.
+    #[serde(default, rename = "valuePerAllConversionsByConversionDate")]
+    pub value_per_all_conversions_by_conversion_date: ::core::option::Option<f64>,
+    /// The value of biddable conversion divided by the number of biddable conversions. Shows how much, on average, each of the biddable conversions is worth.
+    #[serde(default, rename = "valuePerConversion")]
+    pub value_per_conversion: ::core::option::Option<f64>,
+    /// Biddable conversions value by conversion date divided by biddable conversions by conversion date. Shows how much, on average, each of the biddable conversions is worth (by conversion date). When this column is selected with date, the values in date column means the conversion date.
+    #[serde(default, rename = "valuePerConversionsByConversionDate")]
+    pub value_per_conversions_by_conversion_date: ::core::option::Option<f64>,
+    /// Clicks that Search Ads 360 has successfully recorded and forwarded to an advertiser''s landing page.
+    #[serde(default)]
+    pub visits: ::core::option::Option<f64>,
 }
 
 /// A Product Bidding Category.
@@ -3294,51 +2374,234 @@ pub struct GoogleAdsSearchads360v0ResourcesProductGroupView {
     pub resource_name: ::core::option::Option<String>,
 }
 
-/// A field or resource (artifact) used by SearchAds360Service.
+/// Segment only fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ResourcesSearchAds360Field {
-    /// Output only. The names of all resources that are selectable with the described artifact. Fields from these resources do not segment metrics when included in search queries. This field is only set for artifacts whose category is RESOURCE.
-    #[serde(default, rename = "attributeResources")]
-    pub attribute_resources: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The category of the artifact. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "RESOURCE", "ATTRIBUTE", "SEGMENT", "METRIC"]
+pub struct GoogleAdsSearchads360v0CommonSegments {
+    /// Ad Format type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "VERTICAL_ADS_PROMOTION", "VERTICAL_ADS_BOOKING_LINK", "TEXT"]
+    #[serde(default, rename = "adFormatType")]
+    pub ad_format_type: ::core::option::Option<String>,
+    /// Ad network type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SEARCH", "SEARCH_PARTNERS", "CONTENT", "YOUTUBE_SEARCH", "YOUTUBE_WATCH", "MIXED"]
+    #[serde(default, rename = "adNetworkType")]
+    pub ad_network_type: ::core::option::Option<String>,
+    /// Only used with CustomerAsset, CampaignAsset and AdGroupAsset metrics. Indicates whether the interaction metrics occurred on the asset itself or a different asset or ad unit. Interactions (for example, clicks) are counted across all the parts of the served ad (for example, Ad itself and other components like Sitelinks) when they are served together. When interaction_on_this_asset is true, it means the interactions are on this specific asset and when interaction_on_this_asset is false, it means the interactions is not on this specific asset but on other parts of the served ad this asset is served with.
+    #[serde(default, rename = "assetInteractionTarget")]
+    pub asset_interaction_target:
+        ::core::option::Option<GoogleAdsSearchads360v0CommonAssetInteractionTarget>,
+    /// Resource name of the conversion action.
+    #[serde(default, rename = "conversionAction")]
+    pub conversion_action: ::core::option::Option<String>,
+    /// Conversion action category. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DEFAULT", "PAGE_VIEW", "PURCHASE", "SIGNUP", "LEAD", "DOWNLOAD", "ADD_TO_CART", "BEGIN_CHECKOUT", "SUBSCRIBE_PAID", "PHONE_CALL_LEAD", "IMPORTED_LEAD", "SUBMIT_LEAD_FORM", "BOOK_APPOINTMENT", "REQUEST_QUOTE", "GET_DIRECTIONS", "OUTBOUND_CLICK", "CONTACT", "ENGAGEMENT", "STORE_VISIT", "STORE_SALE", "QUALIFIED_LEAD", "CONVERTED_LEAD", "YOUTUBE_FOLLOW_ON_VIEWS"]
+    #[serde(default, rename = "conversionActionCategory")]
+    pub conversion_action_category: ::core::option::Option<String>,
+    /// Conversion action name.
+    #[serde(default, rename = "conversionActionName")]
+    pub conversion_action_name: ::core::option::Option<String>,
+    /// The conversion custom dimensions.
+    #[serde(default, rename = "conversionCustomDimensions")]
+    pub conversion_custom_dimensions:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
+    /// Date to which metrics apply. yyyy-MM-dd format, for example, 2018-04-17.
     #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Output only. This field determines the operators that can be used with the artifact in WHERE clauses. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BOOLEAN", "DATE", "DOUBLE", "ENUM", "FLOAT", "INT32", "INT64", "MESSAGE", "RESOURCE_NAME", "STRING", "UINT64"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Output only. Values the artifact can assume if it is a field of type ENUM. This field is only set for artifacts of category SEGMENT or ATTRIBUTE.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Whether the artifact can be used in a WHERE clause in search queries.
+    pub date: ::core::option::Option<String>,
+    /// Day of the week, for example, MONDAY. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "dayOfWeek")]
+    pub day_of_week: ::core::option::Option<String>,
+    /// Device to which metrics apply. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MOBILE", "TABLET", "DESKTOP", "CONNECTED_TV", "OTHER"]
     #[serde(default)]
-    pub filterable: ::core::option::Option<bool>,
-    /// Output only. Whether the field artifact is repeated.
-    #[serde(default, rename = "isRepeated")]
-    pub is_repeated: ::core::option::Option<bool>,
-    /// Output only. This field lists the names of all metrics that are selectable with the described artifact when it is used in the FROM clause. It is only set for artifacts whose category is RESOURCE.
+    pub device: ::core::option::Option<String>,
+    /// Resource name of the geo target constant that represents a city.
+    #[serde(default, rename = "geoTargetCity")]
+    pub geo_target_city: ::core::option::Option<String>,
+    /// Resource name of the geo target constant that represents a country.
+    #[serde(default, rename = "geoTargetCountry")]
+    pub geo_target_country: ::core::option::Option<String>,
+    /// Resource name of the geo target constant that represents a metro.
+    #[serde(default, rename = "geoTargetMetro")]
+    pub geo_target_metro: ::core::option::Option<String>,
+    /// Resource name of the geo target constant that represents a postal code.
+    #[serde(default, rename = "geoTargetPostalCode")]
+    pub geo_target_postal_code: ::core::option::Option<String>,
+    /// Resource name of the geo target constant that represents a region.
+    #[serde(default, rename = "geoTargetRegion")]
+    pub geo_target_region: ::core::option::Option<String>,
+    /// Hour of day as a number between 0 and 23, inclusive.
     #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The name of the artifact.
+    pub hour: ::core::option::Option<i32>,
+    /// Keyword criterion.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The resource name of the artifact. Artifact resource names have the form: SearchAds360Fields/{name}
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Output only. This field lists the names of all artifacts, whether a segment or another resource, that segment metrics when included in search queries and when the described artifact is used in the FROM clause. It is only set for artifacts whose category is RESOURCE.
+    pub keyword: ::core::option::Option<GoogleAdsSearchads360v0CommonKeyword>,
+    /// Month as represented by the date of the first day of a month. Formatted as yyyy-MM-dd.
     #[serde(default)]
-    pub segments: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Whether the artifact can be used in a SELECT clause in search queries.
+    pub month: ::core::option::Option<String>,
+    /// Bidding category (level 1) of the product.
+    #[serde(default, rename = "productBiddingCategoryLevel1")]
+    pub product_bidding_category_level1: ::core::option::Option<String>,
+    /// Bidding category (level 2) of the product.
+    #[serde(default, rename = "productBiddingCategoryLevel2")]
+    pub product_bidding_category_level2: ::core::option::Option<String>,
+    /// Bidding category (level 3) of the product.
+    #[serde(default, rename = "productBiddingCategoryLevel3")]
+    pub product_bidding_category_level3: ::core::option::Option<String>,
+    /// Bidding category (level 4) of the product.
+    #[serde(default, rename = "productBiddingCategoryLevel4")]
+    pub product_bidding_category_level4: ::core::option::Option<String>,
+    /// Bidding category (level 5) of the product.
+    #[serde(default, rename = "productBiddingCategoryLevel5")]
+    pub product_bidding_category_level5: ::core::option::Option<String>,
+    /// Brand of the product.
+    #[serde(default, rename = "productBrand")]
+    pub product_brand: ::core::option::Option<String>,
+    /// Channel of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ONLINE", "LOCAL"]
+    #[serde(default, rename = "productChannel")]
+    pub product_channel: ::core::option::Option<String>,
+    /// Channel exclusivity of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SINGLE_CHANNEL", "MULTI_CHANNEL"]
+    #[serde(default, rename = "productChannelExclusivity")]
+    pub product_channel_exclusivity: ::core::option::Option<String>,
+    /// Condition of the product. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "OLD", "NEW", "REFURBISHED", "USED"]
+    #[serde(default, rename = "productCondition")]
+    pub product_condition: ::core::option::Option<String>,
+    /// Resource name of the geo target constant for the country of sale of the product.
+    #[serde(default, rename = "productCountry")]
+    pub product_country: ::core::option::Option<String>,
+    /// Custom attribute 0 of the product.
+    #[serde(default, rename = "productCustomAttribute0")]
+    pub product_custom_attribute0: ::core::option::Option<String>,
+    /// Custom attribute 1 of the product.
+    #[serde(default, rename = "productCustomAttribute1")]
+    pub product_custom_attribute1: ::core::option::Option<String>,
+    /// Custom attribute 2 of the product.
+    #[serde(default, rename = "productCustomAttribute2")]
+    pub product_custom_attribute2: ::core::option::Option<String>,
+    /// Custom attribute 3 of the product.
+    #[serde(default, rename = "productCustomAttribute3")]
+    pub product_custom_attribute3: ::core::option::Option<String>,
+    /// Custom attribute 4 of the product.
+    #[serde(default, rename = "productCustomAttribute4")]
+    pub product_custom_attribute4: ::core::option::Option<String>,
+    /// Item ID of the product.
+    #[serde(default, rename = "productItemId")]
+    pub product_item_id: ::core::option::Option<String>,
+    /// Resource name of the language constant for the language of the product.
+    #[serde(default, rename = "productLanguage")]
+    pub product_language: ::core::option::Option<String>,
+    /// Bidding category (level 1) of the product sold.
+    #[serde(default, rename = "productSoldBiddingCategoryLevel1")]
+    pub product_sold_bidding_category_level1: ::core::option::Option<String>,
+    /// Bidding category (level 2) of the product sold.
+    #[serde(default, rename = "productSoldBiddingCategoryLevel2")]
+    pub product_sold_bidding_category_level2: ::core::option::Option<String>,
+    /// Bidding category (level 3) of the product sold.
+    #[serde(default, rename = "productSoldBiddingCategoryLevel3")]
+    pub product_sold_bidding_category_level3: ::core::option::Option<String>,
+    /// Bidding category (level 4) of the product sold.
+    #[serde(default, rename = "productSoldBiddingCategoryLevel4")]
+    pub product_sold_bidding_category_level4: ::core::option::Option<String>,
+    /// Bidding category (level 5) of the product sold.
+    #[serde(default, rename = "productSoldBiddingCategoryLevel5")]
+    pub product_sold_bidding_category_level5: ::core::option::Option<String>,
+    /// Brand of the product sold.
+    #[serde(default, rename = "productSoldBrand")]
+    pub product_sold_brand: ::core::option::Option<String>,
+    /// Condition of the product sold. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "OLD", "NEW", "REFURBISHED", "USED"]
+    #[serde(default, rename = "productSoldCondition")]
+    pub product_sold_condition: ::core::option::Option<String>,
+    /// Custom attribute 0 of the product sold.
+    #[serde(default, rename = "productSoldCustomAttribute0")]
+    pub product_sold_custom_attribute0: ::core::option::Option<String>,
+    /// Custom attribute 1 of the product sold.
+    #[serde(default, rename = "productSoldCustomAttribute1")]
+    pub product_sold_custom_attribute1: ::core::option::Option<String>,
+    /// Custom attribute 2 of the product sold.
+    #[serde(default, rename = "productSoldCustomAttribute2")]
+    pub product_sold_custom_attribute2: ::core::option::Option<String>,
+    /// Custom attribute 3 of the product sold.
+    #[serde(default, rename = "productSoldCustomAttribute3")]
+    pub product_sold_custom_attribute3: ::core::option::Option<String>,
+    /// Custom attribute 4 of the product sold.
+    #[serde(default, rename = "productSoldCustomAttribute4")]
+    pub product_sold_custom_attribute4: ::core::option::Option<String>,
+    /// Item ID of the product sold.
+    #[serde(default, rename = "productSoldItemId")]
+    pub product_sold_item_id: ::core::option::Option<String>,
+    /// Title of the product sold.
+    #[serde(default, rename = "productSoldTitle")]
+    pub product_sold_title: ::core::option::Option<String>,
+    /// Type (level 1) of the product sold.
+    #[serde(default, rename = "productSoldTypeL1")]
+    pub product_sold_type_l1: ::core::option::Option<String>,
+    /// Type (level 2) of the product sold.
+    #[serde(default, rename = "productSoldTypeL2")]
+    pub product_sold_type_l2: ::core::option::Option<String>,
+    /// Type (level 3) of the product sold.
+    #[serde(default, rename = "productSoldTypeL3")]
+    pub product_sold_type_l3: ::core::option::Option<String>,
+    /// Type (level 4) of the product sold.
+    #[serde(default, rename = "productSoldTypeL4")]
+    pub product_sold_type_l4: ::core::option::Option<String>,
+    /// Type (level 5) of the product sold.
+    #[serde(default, rename = "productSoldTypeL5")]
+    pub product_sold_type_l5: ::core::option::Option<String>,
+    /// Store ID of the product.
+    #[serde(default, rename = "productStoreId")]
+    pub product_store_id: ::core::option::Option<String>,
+    /// Title of the product.
+    #[serde(default, rename = "productTitle")]
+    pub product_title: ::core::option::Option<String>,
+    /// Type (level 1) of the product.
+    #[serde(default, rename = "productTypeL1")]
+    pub product_type_l1: ::core::option::Option<String>,
+    /// Type (level 2) of the product.
+    #[serde(default, rename = "productTypeL2")]
+    pub product_type_l2: ::core::option::Option<String>,
+    /// Type (level 3) of the product.
+    #[serde(default, rename = "productTypeL3")]
+    pub product_type_l3: ::core::option::Option<String>,
+    /// Type (level 4) of the product.
+    #[serde(default, rename = "productTypeL4")]
+    pub product_type_l4: ::core::option::Option<String>,
+    /// Type (level 5) of the product.
+    #[serde(default, rename = "productTypeL5")]
+    pub product_type_l5: ::core::option::Option<String>,
+    /// Quarter as represented by the date of the first day of a quarter. Uses the calendar year for quarters, for example, the second quarter of 2018 starts on 2018-04-01. Formatted as yyyy-MM-dd.
     #[serde(default)]
-    pub selectable: ::core::option::Option<bool>,
-    /// Output only. The names of all resources, segments, and metrics that are selectable with the described artifact.
-    #[serde(default, rename = "selectableWith")]
-    pub selectable_with: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Whether the artifact can be used in a ORDER BY clause in search queries.
+    pub quarter: ::core::option::Option<String>,
+    /// The raw event conversion dimensions.
+    #[serde(default, rename = "rawEventConversionDimensions")]
+    pub raw_event_conversion_dimensions:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
+    /// The display names of participants in an event listing, like performers, speakers, or teams.
+    #[serde(default, rename = "verticalAdsEventParticipantDisplayNames")]
+    pub vertical_ads_event_participant_display_names: ::core::option::Option<String>,
+    /// The class of the hotel. Generally in the range of 1 to 5 stars, but fully customizable in the hotel feed.
+    #[serde(default, rename = "verticalAdsHotelClass")]
+    pub vertical_ads_hotel_class: ::core::option::Option<String>,
+    /// The listing associated with a listing impression, click or conversion.
+    #[serde(default, rename = "verticalAdsListing")]
+    pub vertical_ads_listing: ::core::option::Option<String>,
+    /// The brand associated with a specific listing within a Vertical Ads context, for example, the brand of a car rental, a vacation home, or an event.
+    #[serde(default, rename = "verticalAdsListingBrand")]
+    pub vertical_ads_listing_brand: ::core::option::Option<String>,
+    /// The city where the vertical ads listing is located.
+    #[serde(default, rename = "verticalAdsListingCity")]
+    pub vertical_ads_listing_city: ::core::option::Option<String>,
+    /// The country where the vertical ads listing is located.
+    #[serde(default, rename = "verticalAdsListingCountry")]
+    pub vertical_ads_listing_country: ::core::option::Option<String>,
+    /// The region where the vertical ads listing is located.
+    #[serde(default, rename = "verticalAdsListingRegion")]
+    pub vertical_ads_listing_region: ::core::option::Option<String>,
+    /// A specific partner account within a Partner Center (for example, Hotel Center) that supplies inventory feed data for Vertical Ads.
+    #[serde(default, rename = "verticalAdsPartnerAccount")]
+    pub vertical_ads_partner_account: ::core::option::Option<String>,
+    /// Type of vertical ad, such as Vacation Rentals, Car Rentals, or Events, used to categorize and segment data in the context of Vertical Ads. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "HOTELS", "VACATION_RENTALS", "RENTAL_CARS", "EVENTS", "THINGS_TO_DO", "FLIGHTS"]
+    #[serde(default, rename = "verticalAdsVertical")]
+    pub vertical_ads_vertical: ::core::option::Option<String>,
+    /// Week as defined as Monday through Sunday, and represented by the date of Monday. Formatted as yyyy-MM-dd.
     #[serde(default)]
-    pub sortable: ::core::option::Option<bool>,
-    /// Output only. The URL of proto describing the artifact''s data type.
-    #[serde(default, rename = "typeUrl")]
-    pub type_url: ::core::option::Option<String>,
+    pub week: ::core::option::Option<String>,
+    /// Year, formatted as yyyy.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Shopping performance view. Provides Shopping campaign and Performance Max campaign statistics aggregated at several product dimension levels. Product dimension values from Merchant Center such as brand, category, custom attributes, product condition, and product type will reflect the state of each dimension as of the date and time when the corresponding event was recorded. The number of impressions and clicks that shopping_performance_view returns stats for may be different from campaign reports. shopping_performance_view shows impressions and clicks on products appearing in ads, while campaign reports show impressions and clicks on the ads themselves. Depending on the format, an ad can show from zero to several products, so the numbers may not match. In Search Ads 360 UI, you can query impressions and clicks of products appearing in ads by selecting a column from "Product attributes" in the report editor. For example, selecting the "Brand" column is equivalent to selecting segments.product_brand.
@@ -3435,381 +2698,1118 @@ pub struct GoogleAdsSearchads360v0ResourcesWebpageView {
     pub resource_name: ::core::option::Option<String>,
 }
 
-/// Message for conversion custom dimension header.
+/// Additional quota error details when there is QuotaError.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader {
-    /// The conversion custom dimension ID.
+pub struct GoogleAdsSearchads360v0ErrorsQuotaErrorDetails {
+    /// The high level description of the quota bucket. Examples are "Get requests for standard access" or "Requests per account".
+    #[serde(default, rename = "rateName")]
+    pub rate_name: ::core::option::Option<String>,
+    /// The rate scope of the quota limit. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ACCOUNT", "DEVELOPER"]
+    #[serde(default, rename = "rateScope")]
+    pub rate_scope: ::core::option::Option<String>,
+    /// Backoff period that customers should wait before sending next request.
+    #[serde(default, rename = "retryDelay")]
+    pub retry_delay: ::core::option::Option<String>,
+}
+
+/// A part of a field path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ErrorsErrorLocationFieldPathElement {
+    /// The name of a field or a oneof
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<String>,
+    /// If field_name is a repeated field, this is the element that failed
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+}
+
+/// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversionValue {
+    /// Output only. The target return on ad spend (ROAS) option. If set, the bid strategy will maximize revenue while averaging the target return on ad spend. If the target ROAS is high, the bid strategy may not be able to spend the full budget. If the target ROAS is not set, the bid strategy will aim to achieve the highest possible ROAS for the budget.
+    #[serde(default, rename = "targetRoas")]
+    pub target_roas: ::core::option::Option<f64>,
+}
+
+/// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversions {
+    /// Output only. The target cost per acquisition (CPA) option. This is the average amount that you would like to spend per acquisition.
+    #[serde(default, rename = "targetCpa")]
+    pub target_cpa: ::core::option::Option<String>,
+    /// Output only. The target cost per acquisition (CPA) option. This is the average amount that you would like to spend per acquisition.
+    #[serde(default, rename = "targetCpaMicros")]
+    pub target_cpa_micros: ::core::option::Option<String>,
+}
+
+/// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetCpa {
+    /// Output only. Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
+    #[serde(default, rename = "targetCpaMicros")]
+    pub target_cpa_micros: ::core::option::Option<String>,
+}
+
+/// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetImpressionShare {
+    /// Output only. The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Output only. The targeted location on the search results page. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ANYWHERE_ON_PAGE", "TOP_OF_PAGE", "ABSOLUTE_TOP_OF_PAGE"]
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The chosen fraction of ads to be shown in the targeted location in micros. For example, 1% equals 10,000.
+    #[serde(default, rename = "locationFractionMicros")]
+    pub location_fraction_micros: ::core::option::Option<String>,
+}
+
+/// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetRoas {
+    /// Output only. The chosen revenue (based on conversion data) per unit of spend.
+    #[serde(default, rename = "targetRoas")]
+    pub target_roas: ::core::option::Option<f64>,
+}
+
+/// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetSpend {
+    /// Output only. Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Output only. The spend target under which to maximize clicks. A TargetSpend bidder will attempt to spend the smaller of this value or the natural throttling spend amount. If not specified, the budget is used as the spend target. This field is deprecated and should no longer be used. See https://ads-developers.googleblog.com/2020/05/reminder-about-sunset-creation-of.html for details.
+    #[serde(default, rename = "targetSpendMicros")]
+    pub target_spend_micros: ::core::option::Option<String>,
+}
+
+/// Settings for the targeting-related features, at the campaign and ad group levels. For more details about the targeting setting, visit https://support.google.com/google-ads/answer/7365594
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetingSetting {
+    /// The per-targeting-dimension setting to restrict the reach of your campaign or ad group.
+    #[serde(default, rename = "targetRestrictions")]
+    pub target_restrictions:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonTargetRestriction>>,
+}
+
+/// An ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAd {
+    /// The URL that appears in the ad description for some ad formats.
+    #[serde(default, rename = "displayUrl")]
+    pub display_url: ::core::option::Option<String>,
+    /// Immutable. Details pertaining to an expanded dynamic search ad.
+    #[serde(default, rename = "expandedDynamicSearchAd")]
+    pub expanded_dynamic_search_ad: ::core::option::Option<
+        GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo,
+    >,
+    /// Immutable. Details pertaining to an expanded text ad.
+    #[serde(default, rename = "expandedTextAd")]
+    pub expanded_text_ad:
+        ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo>,
+    /// A list of final app URLs that will be used on mobile if the user has the specific app installed.
+    #[serde(default, rename = "finalAppUrls")]
+    pub final_app_urls:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonFinalAppUrl>>,
+    /// The list of possible final mobile URLs after all cross-domain redirects for the ad.
+    #[serde(default, rename = "finalMobileUrls")]
+    pub final_mobile_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suffix to use when constructing a final URL.
+    #[serde(default, rename = "finalUrlSuffix")]
+    pub final_url_suffix: ::core::option::Option<String>,
+    /// The list of possible final URLs after all cross-domain redirects for the ad.
+    #[serde(default, rename = "finalUrls")]
+    pub final_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The ID of the ad.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// The user defined name of the conversion custom dimension.
+    /// Immutable. The name of the ad. This is only used to be able to identify the ad. It does not need to be unique and does not affect the served ad.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Immutable. Details pertaining to a product ad.
+    #[serde(default, rename = "productAd")]
+    pub product_ad: ::core::option::Option<serde_json::Value>,
+    /// Immutable. The resource name of the ad. Ad resource names have the form: customers/{customer_id}/ads/{ad_id}
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Immutable. Details pertaining to a responsive search ad.
+    #[serde(default, rename = "responsiveSearchAd")]
+    pub responsive_search_ad:
+        ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo>,
+    /// Immutable. Details pertaining to a text ad.
+    #[serde(default, rename = "textAd")]
+    pub text_ad: ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo>,
+    /// The URL template for constructing a tracking URL.
+    #[serde(default, rename = "trackingUrlTemplate")]
+    pub tracking_url_template: ::core::option::Option<String>,
+    /// Output only. The type of ad. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "TEXT_AD", "EXPANDED_TEXT_AD", "CALL_ONLY_AD", "EXPANDED_DYNAMIC_SEARCH_AD", "HOTEL_AD", "SHOPPING_SMART_AD", "SHOPPING_PRODUCT_AD", "VIDEO_AD", "GMAIL_AD", "IMAGE_AD", "RESPONSIVE_SEARCH_AD", "LEGACY_RESPONSIVE_DISPLAY_AD", "APP_AD", "LEGACY_APP_INSTALL_AD", "RESPONSIVE_DISPLAY_AD", "LOCAL_AD", "HTML5_UPLOAD_AD", "DYNAMIC_HTML5_AD", "APP_ENGAGEMENT_AD", "SHOPPING_COMPARISON_LISTING_AD", "VIDEO_BUMPER_AD", "VIDEO_NON_SKIPPABLE_IN_STREAM_AD", "VIDEO_OUTSTREAM_AD", "VIDEO_TRUEVIEW_DISCOVERY_AD", "VIDEO_TRUEVIEW_IN_STREAM_AD", "VIDEO_RESPONSIVE_AD", "SMART_CAMPAIGN_AD", "APP_PRE_REGISTRATION_AD", "DISCOVERY_MULTI_ASSET_AD", "DISCOVERY_CAROUSEL_AD", "TRAVEL_AD", "DISCOVERY_VIDEO_RESPONSIVE_AD", "MULTIMEDIA_AD"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// Message for conversion custom metric header.
+/// A listing group criterion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader {
-    /// The conversion custom metric ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The user defined name of the conversion custom metric.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0CommonListingGroupInfo {
+    /// Type of the listing group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SUBDIVISION", "UNIT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// Message for custom column header.
+/// Estimates for criterion bids at various positions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesCustomColumnHeader {
-    /// The custom column ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The user defined name of the custom column.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// True when the custom column references metrics.
-    #[serde(default, rename = "referencesMetrics")]
-    pub references_metrics: ::core::option::Option<bool>,
+pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionPositionEstimates {
+    /// Output only. The estimate of the CPC bid required for ad to be displayed at the top of the first page of search results.
+    #[serde(default, rename = "topOfPageCpcMicros")]
+    pub top_of_page_cpc_micros: ::core::option::Option<String>,
 }
 
-/// Response message for CustomerService.ListAccessibleCustomers.
+/// A container for ad group criterion quality information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesListAccessibleCustomersResponse {
-    /// Resource name of customers directly accessible by the user authenticating the call.
-    #[serde(default, rename = "resourceNames")]
-    pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionQualityInfo {
+    /// Output only. The quality score. This field may not be populated if Google does not have enough information to determine a value.
+    #[serde(default, rename = "qualityScore")]
+    pub quality_score: ::core::option::Option<i32>,
 }
 
-/// Response message for fetching all custom columns associated with a customer.
+/// A unified call asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesListCustomColumnsResponse {
-    /// The CustomColumns owned by the provided customer.
-    #[serde(default, rename = "customColumns")]
-    pub custom_columns:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ResourcesCustomColumn>>,
+pub struct GoogleAdsSearchads360v0CommonUnifiedCallAsset {
+    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
+    #[serde(default, rename = "adScheduleTargets")]
+    pub ad_schedule_targets:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
+    /// The conversion action to attribute a call conversion to. If not set, the default conversion action is used. This field only has effect if call_conversion_reporting_state is set to USE_RESOURCE_LEVEL_CALL_CONVERSION_ACTION.
+    #[serde(default, rename = "callConversionAction")]
+    pub call_conversion_action: ::core::option::Option<String>,
+    /// Output only. Indicates whether this CallAsset should use its own call conversion setting, follow the account level setting, or disable call conversion. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DISABLED", "USE_ACCOUNT_LEVEL_CALL_CONVERSION_ACTION", "USE_RESOURCE_LEVEL_CALL_CONVERSION_ACTION"]
+    #[serde(default, rename = "callConversionReportingState")]
+    pub call_conversion_reporting_state: ::core::option::Option<String>,
+    /// Whether the call only shows the phone number without a link to the website. Applies to Microsoft Ads.
+    #[serde(default, rename = "callOnly")]
+    pub call_only: ::core::option::Option<bool>,
+    /// Whether the call should be enabled on call tracking. Applies to Microsoft Ads.
+    #[serde(default, rename = "callTrackingEnabled")]
+    pub call_tracking_enabled: ::core::option::Option<bool>,
+    /// Two-letter country code of the phone number. Examples: ''US'', ''us''.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<String>,
+    /// The advertiser''s raw phone number. Examples: ''1234567890'', ''(123)456-7890''
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<String>,
+    /// Whether to show the call extension in search user''s time zone. Applies to Microsoft Ads.
+    #[serde(default, rename = "useSearcherTimeZone")]
+    pub use_searcher_time_zone: ::core::option::Option<bool>,
 }
 
-/// Message for raw event conversion dimension header.
+/// A call to action asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader {
-    /// The conversion custom variable ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The user defined name of the raw event dimension.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0CommonCallToActionAsset {
+    /// Call to action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
+    #[serde(default, rename = "callToAction")]
+    pub call_to_action: ::core::option::Option<String>,
 }
 
-/// Message for raw event conversion metric header.
+/// A unified callout asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader {
-    /// The conversion custom variable ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The user defined name of the raw event metric.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0CommonUnifiedCalloutAsset {
+    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
+    #[serde(default, rename = "adScheduleTargets")]
+    pub ad_schedule_targets:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
+    /// The callout text. The length of this string should be between 1 and 25, inclusive.
+    #[serde(default, rename = "calloutText")]
+    pub callout_text: ::core::option::Option<String>,
+    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<String>,
+    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<String>,
+    /// Whether to show the asset in search user''s time zone. Applies to Microsoft Ads.
+    #[serde(default, rename = "useSearcherTimeZone")]
+    pub use_searcher_time_zone: ::core::option::Option<bool>,
 }
 
-/// A returned row from the query.
+/// An Image asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesSearchAds360Row {
-    /// The accessible bidding strategy referenced in the query.
-    #[serde(default, rename = "accessibleBiddingStrategy")]
-    pub accessible_bidding_strategy:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategy>,
-    /// The ad group referenced in the query.
-    #[serde(default, rename = "adGroup")]
-    pub ad_group: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroup>,
-    /// The ad referenced in the query.
-    #[serde(default, rename = "adGroupAd")]
-    pub ad_group_ad: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAd>,
-    /// The ad group ad effective label referenced in the query.
-    #[serde(default, rename = "adGroupAdEffectiveLabel")]
-    pub ad_group_ad_effective_label:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAdEffectiveLabel>,
-    /// The ad group ad label referenced in the query.
-    #[serde(default, rename = "adGroupAdLabel")]
-    pub ad_group_ad_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAdLabel>,
-    /// The ad group asset referenced in the query.
-    #[serde(default, rename = "adGroupAsset")]
-    pub ad_group_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAsset>,
-    /// The ad group asset set referenced in the query.
-    #[serde(default, rename = "adGroupAssetSet")]
-    pub ad_group_asset_set: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAssetSet>,
-    /// The ad group audience view referenced in the query.
-    #[serde(default, rename = "adGroupAudienceView")]
-    pub ad_group_audience_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupAudienceView>,
-    /// The bid modifier referenced in the query.
-    #[serde(default, rename = "adGroupBidModifier")]
-    pub ad_group_bid_modifier:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupBidModifier>,
-    /// The criterion referenced in the query.
-    #[serde(default, rename = "adGroupCriterion")]
-    pub ad_group_criterion:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterion>,
-    /// The ad group criterion effective label referenced in the query.
-    #[serde(default, rename = "adGroupCriterionEffectiveLabel")]
-    pub ad_group_criterion_effective_label:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterionEffectiveLabel>,
-    /// The ad group criterion label referenced in the query.
-    #[serde(default, rename = "adGroupCriterionLabel")]
-    pub ad_group_criterion_label:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupCriterionLabel>,
-    /// The ad group effective label referenced in the query.
-    #[serde(default, rename = "adGroupEffectiveLabel")]
-    pub ad_group_effective_label:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupEffectiveLabel>,
-    /// The ad group label referenced in the query.
-    #[serde(default, rename = "adGroupLabel")]
-    pub ad_group_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAdGroupLabel>,
-    /// The age range view referenced in the query.
-    #[serde(default, rename = "ageRangeView")]
-    pub age_range_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAgeRangeView>,
-    /// The asset referenced in the query.
+pub struct GoogleAdsSearchads360v0CommonImageAsset {
+    /// File size of the image asset in bytes.
+    #[serde(default, rename = "fileSize")]
+    pub file_size: ::core::option::Option<String>,
+    /// Metadata for this image at its original size.
+    #[serde(default, rename = "fullSize")]
+    pub full_size: ::core::option::Option<GoogleAdsSearchads360v0CommonImageDimension>,
+    /// MIME type of the image asset. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "IMAGE_JPEG", "IMAGE_GIF", "IMAGE_PNG", "FLASH", "TEXT_HTML", "PDF", "MSWORD", "MSEXCEL", "RTF", "AUDIO_WAV", "AUDIO_MP3", "HTML5_AD_ZIP"]
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// A unified location asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonUnifiedLocationAsset {
+    /// The list of business locations for the customer. This will only be returned if the Location Asset is syncing from the Business Profile account. It is possible to have multiple Business Profile listings under the same account that point to the same Place ID.
+    #[serde(default, rename = "businessProfileLocations")]
+    pub business_profile_locations: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0CommonBusinessProfileLocation>,
+    >,
+    /// The type of location ownership. If the type is BUSINESS_OWNER, it will be served as a location extension. If the type is AFFILIATE, it will be served as an affiliate location. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BUSINESS_OWNER", "AFFILIATE"]
+    #[serde(default, rename = "locationOwnershipType")]
+    pub location_ownership_type: ::core::option::Option<String>,
+    /// Place IDs uniquely identify a place in the Google Places database and on Google Maps. This field is unique for a given customer ID and asset type. See https://developers.google.com/places/web-service/place-id to learn more about Place ID.
+    #[serde(default, rename = "placeId")]
+    pub place_id: ::core::option::Option<String>,
+}
+
+/// An asset representing a mobile app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonMobileAppAsset {
+    /// Required. A string that uniquely identifies a mobile application. It should just contain the platform native id, like "com.android.ebay" for Android or "12345689" for iOS.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// Required. The application store that distributes this specific app. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "APPLE_APP_STORE", "GOOGLE_APP_STORE"]
+    #[serde(default, rename = "appStore")]
+    pub app_store: ::core::option::Option<String>,
+}
+
+/// A Unified Page Feed asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonUnifiedPageFeedAsset {
+    /// Labels used to group the page urls.
     #[serde(default)]
-    pub asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAsset>,
-    /// The asset group referenced in the query.
-    #[serde(default, rename = "assetGroup")]
-    pub asset_group: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroup>,
-    /// The asset group asset referenced in the query.
-    #[serde(default, rename = "assetGroupAsset")]
-    pub asset_group_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupAsset>,
-    /// The asset group listing group filter referenced in the query.
-    #[serde(default, rename = "assetGroupListingGroupFilter")]
-    pub asset_group_listing_group_filter:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupListingGroupFilter>,
-    /// The asset group signal referenced in the query.
-    #[serde(default, rename = "assetGroupSignal")]
-    pub asset_group_signal:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupSignal>,
-    /// The asset group top combination view referenced in the query.
-    #[serde(default, rename = "assetGroupTopCombinationView")]
-    pub asset_group_top_combination_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetGroupTopCombinationView>,
-    /// The asset set referenced in the query.
-    #[serde(default, rename = "assetSet")]
-    pub asset_set: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetSet>,
-    /// The asset set asset referenced in the query.
-    #[serde(default, rename = "assetSetAsset")]
-    pub asset_set_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAssetSetAsset>,
-    /// The Audience referenced in the query.
+    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The webpage that advertisers want to target.
+    #[serde(default, rename = "pageUrl")]
+    pub page_url: ::core::option::Option<String>,
+}
+
+/// A unified sitelink asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonUnifiedSitelinkAsset {
+    /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
+    #[serde(default, rename = "adScheduleTargets")]
+    pub ad_schedule_targets:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdScheduleInfo>>,
+    /// First line of the description for the sitelink. If set, the length should be between 1 and 35, inclusive, and description2 must also be set.
     #[serde(default)]
-    pub audience: ::core::option::Option<GoogleAdsSearchads360v0ResourcesAudience>,
-    /// The bidding strategy referenced in the query.
-    #[serde(default, rename = "biddingStrategy")]
-    pub bidding_strategy: ::core::option::Option<GoogleAdsSearchads360v0ResourcesBiddingStrategy>,
-    /// The campaign referenced in the query.
+    pub description1: ::core::option::Option<String>,
+    /// Second line of the description for the sitelink. If set, the length should be between 1 and 35, inclusive, and description1 must also be set.
     #[serde(default)]
-    pub campaign: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaign>,
-    /// The campaign asset referenced in the query.
-    #[serde(default, rename = "campaignAsset")]
-    pub campaign_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAsset>,
-    /// The campaign asset set referenced in the query.
-    #[serde(default, rename = "campaignAssetSet")]
-    pub campaign_asset_set:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAssetSet>,
-    /// The campaign audience view referenced in the query.
-    #[serde(default, rename = "campaignAudienceView")]
-    pub campaign_audience_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignAudienceView>,
-    /// The campaign budget referenced in the query.
-    #[serde(default, rename = "campaignBudget")]
-    pub campaign_budget: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignBudget>,
-    /// The campaign criterion referenced in the query.
-    #[serde(default, rename = "campaignCriterion")]
-    pub campaign_criterion:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignCriterion>,
-    /// The campaign effective label referenced in the query.
-    #[serde(default, rename = "campaignEffectiveLabel")]
-    pub campaign_effective_label:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignEffectiveLabel>,
-    /// The campaign label referenced in the query.
-    #[serde(default, rename = "campaignLabel")]
-    pub campaign_label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCampaignLabel>,
-    /// The cart data sales view referenced in the query.
-    #[serde(default, rename = "cartDataSalesView")]
-    pub cart_data_sales_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCartDataSalesView>,
-    /// The event level conversion referenced in the query.
+    pub description2: ::core::option::Option<String>,
+    /// Last date of when this asset is effective and still serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<String>,
+    /// URL display text for the sitelink. The length of this string should be between 1 and 25, inclusive.
+    #[serde(default, rename = "linkText")]
+    pub link_text: ::core::option::Option<String>,
+    /// Whether the preference is for the sitelink asset to be displayed on mobile devices. Applies to Microsoft Ads.
+    #[serde(default, rename = "mobilePreferred")]
+    pub mobile_preferred: ::core::option::Option<bool>,
+    /// Start date of when this asset is effective and can begin serving, in yyyy-MM-dd format.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<String>,
+    /// ID used for tracking clicks for the sitelink asset. This is a Yahoo! Japan only field.
+    #[serde(default, rename = "trackingId")]
+    pub tracking_id: ::core::option::Option<String>,
+    /// Whether to show the sitelink asset in search user''s time zone. Applies to Microsoft Ads.
+    #[serde(default, rename = "useSearcherTimeZone")]
+    pub use_searcher_time_zone: ::core::option::Option<bool>,
+}
+
+/// A Text asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTextAsset {
+    /// Text content of the text asset.
     #[serde(default)]
-    pub conversion: ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversion>,
-    /// The conversion action referenced in the query.
-    #[serde(default, rename = "conversionAction")]
-    pub conversion_action: ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversionAction>,
-    /// The conversion custom variable referenced in the query.
-    #[serde(default, rename = "conversionCustomVariable")]
-    pub conversion_custom_variable:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesConversionCustomVariable>,
-    /// The custom columns.
-    #[serde(default, rename = "customColumns")]
-    pub custom_columns: ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonValue>>,
-    /// The customer referenced in the query.
+    pub text: ::core::option::Option<String>,
+}
+
+/// A YouTube asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonYoutubeVideoAsset {
+    /// YouTube video id. This is the 11 character string value used in the YouTube video URL.
+    #[serde(default, rename = "youtubeVideoId")]
+    pub youtube_video_id: ::core::option::Option<String>,
+    /// YouTube video title.
+    #[serde(default, rename = "youtubeVideoTitle")]
+    pub youtube_video_title: ::core::option::Option<String>,
+}
+
+/// The path defining of dimensions defining a listing group filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionPath {
+    /// Output only. The complete path of dimensions through the listing group filter hierarchy (excluding the root node) to this listing group filter.
     #[serde(default)]
-    pub customer: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomer>,
-    /// The customer asset referenced in the query.
-    #[serde(default, rename = "customerAsset")]
-    pub customer_asset: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerAsset>,
-    /// The customer asset set referenced in the query.
-    #[serde(default, rename = "customerAssetSet")]
-    pub customer_asset_set:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerAssetSet>,
-    /// The CustomerClient referenced in the query.
-    #[serde(default, rename = "customerClient")]
-    pub customer_client: ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerClient>,
-    /// The CustomerManagerLink referenced in the query.
-    #[serde(default, rename = "customerManagerLink")]
-    pub customer_manager_link:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesCustomerManagerLink>,
-    /// The dynamic search ads search term view referenced in the query.
-    #[serde(default, rename = "dynamicSearchAdsSearchTermView")]
-    pub dynamic_search_ads_search_term_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesDynamicSearchAdsSearchTermView>,
-    /// The gender view referenced in the query.
-    #[serde(default, rename = "genderView")]
-    pub gender_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesGenderView>,
-    /// The geo target constant referenced in the query.
-    #[serde(default, rename = "geoTargetConstant")]
-    pub geo_target_constant:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesGeoTargetConstant>,
-    /// The keyword view referenced in the query.
-    #[serde(default, rename = "keywordView")]
-    pub keyword_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesKeywordView>,
-    /// The label referenced in the query.
+    pub dimensions: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension>,
+    >,
+}
+
+/// An audience criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAudienceInfo {
+    /// The Audience resource name.
     #[serde(default)]
-    pub label: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLabel>,
-    /// The language constant referenced in the query.
+    pub audience: ::core::option::Option<String>,
+}
+
+/// Asset group asset combination data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAssetCombinationData {
+    /// Output only. Served assets.
+    #[serde(default, rename = "assetCombinationServedAssets")]
+    pub asset_combination_served_assets:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAssetUsage>>,
+}
+
+/// An automated bidding strategy that sets bids based on the target fraction of auctions where the advertiser should outrank a specific competitor. This strategy is deprecated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetOutrankShare {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+}
+
+/// The setting for controlling Dynamic Search Ads (DSA).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignDynamicSearchAdsSetting {
+    /// Required. The Internet domain name that this setting represents, for example, "google.com" or "www.google.com".
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+    /// Required. The language code specifying the language of the domain, for example, "en".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Whether the campaign uses advertiser supplied URLs exclusively.
+    #[serde(default, rename = "useSuppliedUrlsOnly")]
+    pub use_supplied_urls_only: ::core::option::Option<bool>,
+}
+
+/// Represents a collection of settings related to ads geotargeting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
+    /// The setting used for negative geotargeting in this particular campaign. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PRESENCE_OR_INTEREST", "PRESENCE"]
+    #[serde(default, rename = "negativeGeoTargetType")]
+    pub negative_geo_target_type: ::core::option::Option<String>,
+    /// The setting used for positive geotargeting in this particular campaign. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PRESENCE_OR_INTEREST", "SEARCH_INTEREST", "PRESENCE"]
+    #[serde(default, rename = "positiveGeoTargetType")]
+    pub positive_geo_target_type: ::core::option::Option<String>,
+}
+
+/// Manual click-based bidding where user pays per click.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonManualCpc {
+    /// Whether bids are to be enhanced based on conversion optimizer data.
+    #[serde(default, rename = "enhancedCpcEnabled")]
+    pub enhanced_cpc_enabled: ::core::option::Option<bool>,
+}
+
+/// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonMaximizeConversionValue {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
+    #[serde(default, rename = "cpcBidFloorMicros")]
+    pub cpc_bid_floor_micros: ::core::option::Option<String>,
+    /// The target return on ad spend (ROAS) option. If set, the bid strategy will maximize revenue while averaging the target return on ad spend. If the target ROAS is high, the bid strategy may not be able to spend the full budget. If the target ROAS is not set, the bid strategy will aim to achieve the highest possible ROAS for the budget.
+    #[serde(default, rename = "targetRoas")]
+    pub target_roas: ::core::option::Option<f64>,
+}
+
+/// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonMaximizeConversions {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
+    #[serde(default, rename = "cpcBidFloorMicros")]
+    pub cpc_bid_floor_micros: ::core::option::Option<String>,
+    /// The target cost-per-action (CPA) option. This is the average amount that you would like to spend per conversion action specified in micro units of the bidding strategy''s currency. If set, the bid strategy will get as many conversions as possible at or below the target cost-per-action. If the target CPA is not set, the bid strategy will aim to achieve the lowest possible CPA given the budget.
+    #[serde(default, rename = "targetCpaMicros")]
+    pub target_cpa_micros: ::core::option::Option<String>,
+}
+
+/// The network settings for the campaign.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignNetworkSettings {
+    /// Whether ads will be served on specified placements in the Google Display Network. Placements are specified using the Placement criterion.
+    #[serde(default, rename = "targetContentNetwork")]
+    pub target_content_network: ::core::option::Option<bool>,
+    /// Whether ads will be served with google.com search results.
+    #[serde(default, rename = "targetGoogleSearch")]
+    pub target_google_search: ::core::option::Option<bool>,
+    /// Whether ads will be served on the partner network. This is available only to some select partner accounts. Unless you have been instructed to use this field, it likely does not apply to your account. This does not control whether ads will be served on Google Search Partners Network; use target_search_network for that instead.
+    #[serde(default, rename = "targetPartnerSearchNetwork")]
+    pub target_partner_search_network: ::core::option::Option<bool>,
+    /// Whether ads will be served on sites in the Google Search Partners Network (requires target_google_search to also be true).
+    #[serde(default, rename = "targetSearchNetwork")]
+    pub target_search_network: ::core::option::Option<bool>,
+}
+
+/// Optimization goal setting for this campaign, which includes a set of optimization goal types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignOptimizationGoalSetting {
+    /// The list of optimization goal types.
+    #[serde(default, rename = "optimizationGoalTypes")]
+    pub optimization_goal_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A bidding strategy where bids are a fraction of the advertised price for some good or service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonPercentCpc {
+    /// Maximum bid limit that can be set by the bid strategy. This is an optional field entered by the advertiser and specified in local micros. Note: A zero value is interpreted in the same way as having bid_ceiling undefined.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Adjusts the bid for each auction upward or downward, depending on the likelihood of a conversion. Individual bids may exceed cpc_bid_ceiling_micros, but the average bid amount for a campaign should not.
+    #[serde(default, rename = "enhancedCpcEnabled")]
+    pub enhanced_cpc_enabled: ::core::option::Option<bool>,
+}
+
+/// Settings for Real-Time Bidding, a feature only available for campaigns targeting the Ad Exchange network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonRealTimeBiddingSetting {
+    /// Whether the campaign is opted in to real-time bidding.
+    #[serde(default, rename = "optIn")]
+    pub opt_in: ::core::option::Option<bool>,
+}
+
+/// Selective optimization setting for this campaign, which includes a set of conversion actions to optimize this campaign towards. This feature only applies to app campaigns that use MULTI_CHANNEL as AdvertisingChannelType and APP_CAMPAIGN or APP_CAMPAIGN_FOR_ENGAGEMENT as AdvertisingChannelSubType.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignSelectiveOptimization {
+    /// The selected set of resource names for conversion actions for optimizing this campaign.
+    #[serde(default, rename = "conversionActions")]
+    pub conversion_actions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The setting for Shopping campaigns. Defines the universe of products that can be advertised by the campaign, and how this campaign interacts with other Shopping campaigns.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignShoppingSetting {
+    /// Priority of the campaign. Campaigns with numerically higher priorities take precedence over those with lower priorities. This field is required for Shopping campaigns, with values between 0 and 2, inclusive. This field is optional for Smart Shopping campaigns, but must be equal to 3 if set.
+    #[serde(default, rename = "campaignPriority")]
+    pub campaign_priority: ::core::option::Option<i32>,
+    /// Whether to include local products.
+    #[serde(default, rename = "enableLocal")]
+    pub enable_local: ::core::option::Option<bool>,
+    /// Feed label of products to include in the campaign. Valid feed labels may contain a maximum of 20 characters including uppercase letters, numbers, hyphens, and underscores. If you previously used the deprecated sales_country in the two-letter country code (XX) format, the feed_label field should be used instead. For more information see the [feed label](//support.google.com/merchants/answer/12453549) support article.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// Immutable. ID of the Merchant Center account. This field is required for create operations. This field is immutable for Shopping campaigns.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// Sales country of products to include in the campaign.
+    #[serde(default, rename = "salesCountry")]
+    pub sales_country: ::core::option::Option<String>,
+    /// Immutable. Whether to target Vehicle Listing inventory.
+    #[serde(default, rename = "useVehicleInventory")]
+    pub use_vehicle_inventory: ::core::option::Option<bool>,
+}
+
+/// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetCpa {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
+    #[serde(default, rename = "cpcBidFloorMicros")]
+    pub cpc_bid_floor_micros: ::core::option::Option<String>,
+    /// Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
+    #[serde(default, rename = "targetCpaMicros")]
+    pub target_cpa_micros: ::core::option::Option<String>,
+}
+
+/// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetImpressionShare {
+    /// The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// The targeted location on the search results page. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ANYWHERE_ON_PAGE", "TOP_OF_PAGE", "ABSOLUTE_TOP_OF_PAGE"]
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The chosen fraction of ads to be shown in the targeted location in micros. For example, 1% equals 10,000.
+    #[serde(default, rename = "locationFractionMicros")]
+    pub location_fraction_micros: ::core::option::Option<String>,
+}
+
+/// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetRoas {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Minimum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
+    #[serde(default, rename = "cpcBidFloorMicros")]
+    pub cpc_bid_floor_micros: ::core::option::Option<String>,
+    /// Required. The chosen revenue (based on conversion data) per unit of spend. Value must be between 0.01 and 1000.0, inclusive.
+    #[serde(default, rename = "targetRoas")]
+    pub target_roas: ::core::option::Option<f64>,
+}
+
+/// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetSpend {
+    /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
+    #[serde(default, rename = "cpcBidCeilingMicros")]
+    pub cpc_bid_ceiling_micros: ::core::option::Option<String>,
+    /// Deprecated: The spend target under which to maximize clicks. A TargetSpend bidder will attempt to spend the smaller of this value or the natural throttling spend amount. If not specified, the budget is used as the spend target. This field is deprecated and should no longer be used. See https://ads-developers.googleblog.com/2020/05/reminder-about-sunset-creation-of.html for details.
+    #[serde(default, rename = "targetSpendMicros")]
+    pub target_spend_micros: ::core::option::Option<String>,
+}
+
+/// Campaign-level settings for tracking information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesCampaignTrackingSetting {
+    /// Output only. The url used for dynamic tracking.
+    #[serde(default, rename = "trackingUrl")]
+    pub tracking_url: ::core::option::Option<String>,
+}
+
+/// A mapping that can be used by custom parameter tags in a tracking_url_template, final_urls, or mobile_final_urls.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonCustomParameter {
+    /// The key matching the parameter tag name.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// The value to be substituted.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// An age range criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAgeRangeInfo {
+    /// Type of the age range. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_UP", "AGE_RANGE_UNDETERMINED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A device criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonDeviceInfo {
+    /// Type of the device. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MOBILE", "TABLET", "DESKTOP", "CONNECTED_TV", "OTHER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A gender criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonGenderInfo {
+    /// Type of the gender. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MALE", "FEMALE", "UNDETERMINED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A language criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonLanguageInfo {
+    /// The language constant resource name.
     #[serde(default, rename = "languageConstant")]
-    pub language_constant: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLanguageConstant>,
-    /// The location view referenced in the query.
-    #[serde(default, rename = "locationView")]
-    pub location_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesLocationView>,
-    /// The metrics.
+    pub language_constant: ::core::option::Option<String>,
+}
+
+/// A location criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonLocationInfo {
+    /// The geo target constant resource name.
+    #[serde(default, rename = "geoTargetConstant")]
+    pub geo_target_constant: ::core::option::Option<String>,
+}
+
+/// A radius around a list of locations specified through a feed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonLocationGroupInfo {
+    /// FeedItemSets whose FeedItems are targeted. If multiple IDs are specified, then all items that appear in at least one set are targeted. This field cannot be used with geo_target_constants. This is optional and can only be set in CREATE operations.
+    #[serde(default, rename = "feedItemSets")]
+    pub feed_item_sets: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Geo target constant(s) restricting the scope of the geographic area within the feed. Currently only one geo target constant is allowed.
+    #[serde(default, rename = "geoTargetConstants")]
+    pub geo_target_constants: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Distance in units specifying the radius around targeted locations. This is required and must be set in CREATE operations.
     #[serde(default)]
-    pub metrics: ::core::option::Option<GoogleAdsSearchads360v0CommonMetrics>,
-    /// The Product Bidding Category referenced in the query.
-    #[serde(default, rename = "productBiddingCategoryConstant")]
-    pub product_bidding_category_constant:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesProductBiddingCategoryConstant>,
-    /// The product group view referenced in the query.
-    #[serde(default, rename = "productGroupView")]
-    pub product_group_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesProductGroupView>,
-    /// The segments.
-    #[serde(default)]
-    pub segments: ::core::option::Option<GoogleAdsSearchads360v0CommonSegments>,
-    /// The shopping performance view referenced in the query.
-    #[serde(default, rename = "shoppingPerformanceView")]
-    pub shopping_performance_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesShoppingPerformanceView>,
-    /// The user list referenced in the query.
+    pub radius: ::core::option::Option<String>,
+    /// Unit of the radius. Miles and meters are supported for geo target constants. Milli miles and meters are supported for feed item sets. This is required and must be set in CREATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "METERS", "MILES", "MILLI_MILES"]
+    #[serde(default, rename = "radiusUnits")]
+    pub radius_units: ::core::option::Option<String>,
+}
+
+/// A User List criterion. Represents a user list that is defined by the advertiser to be targeted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonUserListInfo {
+    /// The User List resource name.
     #[serde(default, rename = "userList")]
-    pub user_list: ::core::option::Option<GoogleAdsSearchads360v0ResourcesUserList>,
-    /// The user location view referenced in the query.
-    #[serde(default, rename = "userLocationView")]
-    pub user_location_view:
-        ::core::option::Option<GoogleAdsSearchads360v0ResourcesUserLocationView>,
-    /// The event level visit referenced in the query.
-    #[serde(default)]
-    pub visit: ::core::option::Option<GoogleAdsSearchads360v0ResourcesVisit>,
-    /// The webpage view referenced in the query.
-    #[serde(default, rename = "webpageView")]
-    pub webpage_view: ::core::option::Option<GoogleAdsSearchads360v0ResourcesWebpageView>,
+    pub user_list: ::core::option::Option<String>,
 }
 
-/// Request message for SearchAds360FieldService.SearchSearchAds360Fields.
+/// Represents a criterion for targeting webpages of an advertiser''s website.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsRequest {
-    /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Token of the page to retrieve. If not specified, the first page of results will be returned. Use the value obtained from next_page_token in the previous response in order to request the next page of results.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Required. The query string.
+pub struct GoogleAdsSearchads360v0CommonWebpageInfo {
+    /// Conditions, or logical expressions, for webpage targeting. The list of webpage targeting conditions are and-ed together when evaluated for targeting. An empty list of conditions indicates all pages of the campaign''s website are targeted. This field is required for CREATE operations and is prohibited on UPDATE operations.
     #[serde(default)]
-    pub query: ::core::option::Option<String>,
+    pub conditions:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonWebpageConditionInfo>>,
+    /// Website criteria coverage percentage. This is the computed percentage of website coverage based on the website target, negative website target and negative keywords in the ad group and campaign. For instance, when coverage returns as 1, it indicates it has 100% coverage. This field is read-only.
+    #[serde(default, rename = "coveragePercentage")]
+    pub coverage_percentage: ::core::option::Option<f64>,
+    /// The name of the criterion that is defined by this parameter. The name value will be used for identifying, sorting and filtering criteria with this type of parameters. This field is required for CREATE operations and is prohibited on UPDATE operations.
+    #[serde(default, rename = "criterionName")]
+    pub criterion_name: ::core::option::Option<String>,
 }
 
-/// Response message for SearchAds360FieldService.SearchSearchAds360Fields.
+/// Settings related to this conversion action''s attribution model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsResponse {
-    /// Pagination token used to retrieve the next page of results. Pass the content of this string as the page_token attribute of the next request. next_page_token is not returned for the last page.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of fields that matched the query.
-    #[serde(default)]
-    pub results:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ResourcesSearchAds360Field>>,
-    /// Total number of results that match the query ignoring the LIMIT clause.
-    #[serde(default, rename = "totalResultsCount")]
-    pub total_results_count: ::core::option::Option<String>,
+pub struct GoogleAdsSearchads360v0ResourcesConversionActionAttributionModelSettings {
+    /// The attribution model type of this conversion action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXTERNAL", "GOOGLE_ADS_LAST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_FIRST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_LINEAR", "GOOGLE_SEARCH_ATTRIBUTION_TIME_DECAY", "GOOGLE_SEARCH_ATTRIBUTION_POSITION_BASED", "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN"]
+    #[serde(default, rename = "attributionModel")]
+    pub attribution_model: ::core::option::Option<String>,
+    /// Output only. The status of the data-driven attribution model for the conversion action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AVAILABLE", "STALE", "EXPIRED", "NEVER_GENERATED"]
+    #[serde(default, rename = "dataDrivenModelStatus")]
+    pub data_driven_model_status: ::core::option::Option<String>,
 }
 
-/// Request message for SearchAds360Service.Search.
+/// Settings related to a Floodlight conversion action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Request {
-    /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Token of the page to retrieve. If not specified, the first page of results will be returned. Use the value obtained from next_page_token in the previous response in order to request the next page of results.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Required. The query string.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// If true, the total number of results that match the query ignoring the LIMIT clause will be included in the response. Default is false.
-    #[serde(default, rename = "returnTotalResultsCount")]
-    pub return_total_results_count: ::core::option::Option<bool>,
-    /// Determines whether a summary row will be returned. By default, summary row is not returned. If requested, the summary row will be sent in a response by itself after all other query results are returned. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NO_SUMMARY_ROW", "SUMMARY_ROW_WITH_RESULTS", "SUMMARY_ROW_ONLY"]
-    #[serde(default, rename = "summaryRowSetting")]
-    pub summary_row_setting: ::core::option::Option<String>,
-    /// If true, the request is validated but not executed.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
+pub struct GoogleAdsSearchads360v0ResourcesConversionActionFloodlightSettings {
+    /// Output only. String used to identify a Floodlight activity group when reporting conversions.
+    #[serde(default, rename = "activityGroupTag")]
+    pub activity_group_tag: ::core::option::Option<String>,
+    /// Output only. ID of the Floodlight activity in DoubleClick Campaign Manager (DCM).
+    #[serde(default, rename = "activityId")]
+    pub activity_id: ::core::option::Option<String>,
+    /// Output only. String used to identify a Floodlight activity when reporting conversions.
+    #[serde(default, rename = "activityTag")]
+    pub activity_tag: ::core::option::Option<String>,
 }
 
-/// Response message for SearchAds360Service.Search.
+/// Settings related to the value for conversion events associated with this conversion action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Response {
-    /// The headers of the conversion custom dimensions in the results.
-    #[serde(default, rename = "conversionCustomDimensionHeaders")]
-    pub conversion_custom_dimension_headers: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader>,
-    >,
-    /// The headers of the conversion custom metrics in the results.
-    #[serde(default, rename = "conversionCustomMetricHeaders")]
-    pub conversion_custom_metric_headers: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader>,
-    >,
-    /// The headers of the custom columns in the results.
-    #[serde(default, rename = "customColumnHeaders")]
-    pub custom_column_headers:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ServicesCustomColumnHeader>>,
-    /// FieldMask that represents what fields were requested by the user.
-    #[serde(default, rename = "fieldMask")]
-    pub field_mask: ::core::option::Option<String>,
-    /// Pagination token used to retrieve the next page of results. Pass the content of this string as the page_token attribute of the next request. next_page_token is not returned for the last page.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The headers of the raw event conversion dimensions in the results.
-    #[serde(default, rename = "rawEventConversionDimensionHeaders")]
-    pub raw_event_conversion_dimension_headers: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader>,
-    >,
-    /// The headers of the raw event conversion metrics in the results.
-    #[serde(default, rename = "rawEventConversionMetricHeaders")]
-    pub raw_event_conversion_metric_headers: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader>,
-    >,
-    /// The list of rows that matched the query.
+pub struct GoogleAdsSearchads360v0ResourcesConversionActionValueSettings {
+    /// Controls whether the default value and default currency code are used in place of the value and currency code specified in conversion events for this conversion action.
+    #[serde(default, rename = "alwaysUseDefaultValue")]
+    pub always_use_default_value: ::core::option::Option<bool>,
+    /// The currency code to use when conversion events for this conversion action are sent with an invalid or missing currency code, or when this conversion action is configured to always use the default value.
+    #[serde(default, rename = "defaultCurrencyCode")]
+    pub default_currency_code: ::core::option::Option<String>,
+    /// The value to use when conversion events for this conversion action are sent with an invalid, disallowed or missing value, or when this conversion action is configured to always use the default value.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<f64>,
+}
+
+/// Information for Search Ads 360 Floodlight Conversion Custom Variables.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariableFloodlightConversionCustomVariableInfo
+{
+    /// Output only. Floodlight variable data type defined in Search Ads 360. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NUMBER", "STRING"]
+    #[serde(default, rename = "floodlightVariableDataType")]
+    pub floodlight_variable_data_type: ::core::option::Option<String>,
+    /// Output only. Floodlight variable type defined in Search Ads 360. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "DIMENSION", "METRIC", "UNSET"]
+    #[serde(default, rename = "floodlightVariableType")]
+    pub floodlight_variable_type: ::core::option::Option<String>,
+}
+
+/// A collection of customer-wide settings related to Search Ads 360 Conversion Tracking.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesConversionTrackingSetting {
+    /// Output only. Whether the customer has accepted customer data terms. If using cross-account conversion tracking, this value is inherited from the manager. This field is read-only. For more information, see https://support.google.com/adspolicy/answer/7475709.
+    #[serde(default, rename = "acceptedCustomerDataTerms")]
+    pub accepted_customer_data_terms: ::core::option::Option<bool>,
+    /// Output only. The conversion tracking id used for this account. This id doesn''t indicate whether the customer uses conversion tracking (conversion_tracking_status does). This field is read-only.
+    #[serde(default, rename = "conversionTrackingId")]
+    pub conversion_tracking_id: ::core::option::Option<String>,
+    /// Output only. Conversion tracking status. It indicates whether the customer is using conversion tracking, and who is the conversion tracking owner of this customer. If this customer is using cross-account conversion tracking, the value returned will differ based on the login-customer-id of the request. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NOT_CONVERSION_TRACKED", "CONVERSION_TRACKING_MANAGED_BY_SELF", "CONVERSION_TRACKING_MANAGED_BY_THIS_MANAGER", "CONVERSION_TRACKING_MANAGED_BY_ANOTHER_MANAGER"]
+    #[serde(default, rename = "conversionTrackingStatus")]
+    pub conversion_tracking_status: ::core::option::Option<String>,
+    /// Output only. The conversion tracking id of the customer''s manager. This is set when the customer is opted into cross-account conversion tracking, and it overrides conversion_tracking_id.
+    #[serde(default, rename = "crossAccountConversionTrackingId")]
+    pub cross_account_conversion_tracking_id: ::core::option::Option<String>,
+    /// Output only. Whether the customer is opted-in for enhanced conversions for leads. If using cross-account conversion tracking, this value is inherited from the manager. This field is read-only.
+    #[serde(default, rename = "enhancedConversionsForLeadsEnabled")]
+    pub enhanced_conversions_for_leads_enabled: ::core::option::Option<bool>,
+    /// Output only. The resource name of the customer where conversions are created and managed. This field is read-only.
+    #[serde(default, rename = "googleAdsConversionCustomer")]
+    pub google_ads_conversion_customer: ::core::option::Option<String>,
+    /// Output only. The conversion tracking id of the customer''s manager. This is set when the customer is opted into conversion tracking, and it overrides conversion_tracking_id. This field can only be managed through the Google Ads UI. This field is read-only.
+    #[serde(default, rename = "googleAdsCrossAccountConversionTrackingId")]
+    pub google_ads_cross_account_conversion_tracking_id: ::core::option::Option<String>,
+}
+
+/// DoubleClick Campaign Manager (DCM) setting for a manager customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesDoubleClickCampaignManagerSetting {
+    /// Output only. ID of the Campaign Manager advertiser associated with this customer.
+    #[serde(default, rename = "advertiserId")]
+    pub advertiser_id: ::core::option::Option<String>,
+    /// Output only. ID of the Campaign Manager network associated with this customer.
+    #[serde(default, rename = "networkId")]
+    pub network_id: ::core::option::Option<String>,
+    /// Output only. Time zone of the Campaign Manager network associated with this customer in IANA Time Zone Database format, such as America/New_York.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+}
+
+/// A type of label displaying text on a colored background.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTextLabel {
+    /// Background color of the label in HEX format. This string must match the regular expression ''^\#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$''. Note: The background color may not be visible for manager accounts.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<String>,
+    /// A short description of the label. The length must be no more than 200 characters.
     #[serde(default)]
-    pub results:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0ServicesSearchAds360Row>>,
-    /// Summary row that contains summary of metrics in results. Summary of metrics means aggregation of metrics across all results, here aggregation could be sum, average, rate, etc.
-    #[serde(default, rename = "summaryRow")]
-    pub summary_row: ::core::option::Option<GoogleAdsSearchads360v0ServicesSearchAds360Row>,
-    /// Total number of results that match the query ignoring the LIMIT clause.
-    #[serde(default, rename = "totalResultsCount")]
-    pub total_results_count: ::core::option::Option<String>,
+    pub description: ::core::option::Option<String>,
+}
+
+/// An AssetInteractionTarget segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAssetInteractionTarget {
+    /// The asset resource name.
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+    /// Only used with CustomerAsset, CampaignAsset and AdGroupAsset metrics. Indicates whether the interaction metrics occurred on the asset itself or a different asset or ad unit.
+    #[serde(default, rename = "interactionOnThisAsset")]
+    pub interaction_on_this_asset: ::core::option::Option<bool>,
+}
+
+/// A generic data container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonValue {
+    /// A boolean.
+    #[serde(default, rename = "booleanValue")]
+    pub boolean_value: ::core::option::Option<bool>,
+    /// A double.
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// A float.
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<f32>,
+    /// An int64.
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// A string.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// A Keyword criterion segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonKeyword {
+    /// The AdGroupCriterion resource name.
+    #[serde(default, rename = "adGroupCriterion")]
+    pub ad_group_criterion: ::core::option::Option<String>,
+    /// Keyword info.
+    #[serde(default)]
+    pub info: ::core::option::Option<GoogleAdsSearchads360v0CommonKeywordInfo>,
+}
+
+/// The list of per-targeting-dimension targeting settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetRestriction {
+    /// Indicates whether to restrict your ads to show only for the criteria you have selected for this targeting_dimension, or to target all values for this targeting_dimension and show ads based on your targeting in other TargetingDimensions. A value of true means that these criteria will only apply bid modifiers, and not affect targeting. A value of false means that these criteria will restrict targeting as well as applying bid modifiers.
+    #[serde(default, rename = "bidOnly")]
+    pub bid_only: ::core::option::Option<bool>,
+    /// The targeting dimension that these settings apply to. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "KEYWORD", "AUDIENCE", "TOPIC", "GENDER", "AGE_RANGE", "PLACEMENT", "PARENTAL_STATUS", "INCOME_RANGE"]
+    #[serde(default, rename = "targetingDimension")]
+    pub targeting_dimension: ::core::option::Option<String>,
+}
+
+/// An expanded dynamic search ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo {
+    /// The tracking id of the ad.
+    #[serde(default, rename = "adTrackingId")]
+    pub ad_tracking_id: ::core::option::Option<String>,
+    /// The first line of the ad''s description.
+    #[serde(default)]
+    pub description1: ::core::option::Option<String>,
+    /// The second line of the ad''s description.
+    #[serde(default)]
+    pub description2: ::core::option::Option<String>,
+}
+
+/// A Search Ads 360 expanded text ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo {
+    /// The tracking id of the ad.
+    #[serde(default, rename = "adTrackingId")]
+    pub ad_tracking_id: ::core::option::Option<String>,
+    /// The first line of the ad''s description.
+    #[serde(default)]
+    pub description1: ::core::option::Option<String>,
+    /// The second line of the ad''s description.
+    #[serde(default)]
+    pub description2: ::core::option::Option<String>,
+    /// The headline of the ad.
+    #[serde(default)]
+    pub headline: ::core::option::Option<String>,
+    /// The second headline of the ad.
+    #[serde(default)]
+    pub headline2: ::core::option::Option<String>,
+    /// The third headline of the ad.
+    #[serde(default)]
+    pub headline3: ::core::option::Option<String>,
+    /// Text appended to the auto-generated visible URL with a delimiter.
+    #[serde(default)]
+    pub path1: ::core::option::Option<String>,
+    /// Text appended to path1 with a delimiter.
+    #[serde(default)]
+    pub path2: ::core::option::Option<String>,
+}
+
+/// A URL for deep linking into an app for the given operating system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonFinalAppUrl {
+    /// The operating system targeted by this URL. Required. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "IOS", "ANDROID"]
+    #[serde(default, rename = "osType")]
+    pub os_type: ::core::option::Option<String>,
+    /// The app deep link URL. Deep links specify a location in an app that corresponds to the content you''d like to show, and should be of the form {scheme}://{host_path} The scheme identifies which app to open. For your app, you can use a custom scheme that starts with the app''s name. The host and path specify the unique location in the app where your content exists. Example: "exampleapp://productid_1234". Required.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A Search Ads 360 responsive search ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo {
+    /// The tracking id of the ad.
+    #[serde(default, rename = "adTrackingId")]
+    pub ad_tracking_id: ::core::option::Option<String>,
+    /// List of text assets for descriptions. When the ad serves the descriptions will be selected from this list.
+    #[serde(default)]
+    pub descriptions:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdTextAsset>>,
+    /// List of text assets for headlines. When the ad serves the headlines will be selected from this list.
+    #[serde(default)]
+    pub headlines:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAdTextAsset>>,
+    /// Text appended to the auto-generated visible URL with a delimiter.
+    #[serde(default)]
+    pub path1: ::core::option::Option<String>,
+    /// Text appended to path1 with a delimiter.
+    #[serde(default)]
+    pub path2: ::core::option::Option<String>,
+}
+
+/// A Search Ads 360 text ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo {
+    /// The tracking id of the ad.
+    #[serde(default, rename = "adTrackingId")]
+    pub ad_tracking_id: ::core::option::Option<String>,
+    /// The first line of the ad''s description.
+    #[serde(default)]
+    pub description1: ::core::option::Option<String>,
+    /// The second line of the ad''s description.
+    #[serde(default)]
+    pub description2: ::core::option::Option<String>,
+    /// The displayed mobile URL of the ad.
+    #[serde(default, rename = "displayMobileUrl")]
+    pub display_mobile_url: ::core::option::Option<String>,
+    /// The displayed URL of the ad.
+    #[serde(default, rename = "displayUrl")]
+    pub display_url: ::core::option::Option<String>,
+    /// The headline of the ad.
+    #[serde(default)]
+    pub headline: ::core::option::Option<String>,
+}
+
+/// Metadata for an image at a certain size, either original or resized.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonImageDimension {
+    /// Height of the image.
+    #[serde(default, rename = "heightPixels")]
+    pub height_pixels: ::core::option::Option<String>,
+    /// A URL that returns the image with this height and width.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// Width of the image.
+    #[serde(default, rename = "widthPixels")]
+    pub width_pixels: ::core::option::Option<String>,
+}
+
+/// Business Profile location data synced from the linked Business Profile account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonBusinessProfileLocation {
+    /// Advertiser specified label for the location on the Business Profile account. This is synced from the Business Profile account.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Listing ID of this Business Profile location. This is synced from the linked Business Profile account.
+    #[serde(default, rename = "listingId")]
+    pub listing_id: ::core::option::Option<String>,
+    /// Business Profile store code of this location. This is synced from the Business Profile account.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+}
+
+/// Represents an AdSchedule criterion. AdSchedule is specified as the day of the week and a time interval within which ads will be shown. No more than six AdSchedules can be added for the same day.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAdScheduleInfo {
+    /// Day of the week the schedule applies to. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "dayOfWeek")]
+    pub day_of_week: ::core::option::Option<String>,
+    /// Ending hour in 24 hour time; 24 signifies end of the day. This field must be between 0 and 24, inclusive. This field is required for CREATE operations and is prohibited on UPDATE operations.
+    #[serde(default, rename = "endHour")]
+    pub end_hour: ::core::option::Option<i32>,
+    /// Minutes after the end hour at which this schedule ends. The schedule is exclusive of the end minute. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ZERO", "FIFTEEN", "THIRTY", "FORTY_FIVE"]
+    #[serde(default, rename = "endMinute")]
+    pub end_minute: ::core::option::Option<String>,
+    /// Starting hour in 24 hour time. This field must be between 0 and 23, inclusive. This field is required for CREATE operations and is prohibited on UPDATE operations.
+    #[serde(default, rename = "startHour")]
+    pub start_hour: ::core::option::Option<i32>,
+    /// Minutes after the start hour at which this schedule starts. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ZERO", "FIFTEEN", "THIRTY", "FORTY_FIVE"]
+    #[serde(default, rename = "startMinute")]
+    pub start_minute: ::core::option::Option<String>,
+}
+
+/// Listing dimensions for the asset group listing group filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension {
+    /// Bidding category of a product offer.
+    #[serde(default, rename = "productBiddingCategory")]
+    pub product_bidding_category: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBiddingCategory,
+    >,
+    /// Brand of a product offer.
+    #[serde(default, rename = "productBrand")]
+    pub product_brand: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBrand,
+    >,
+    /// Locality of a product offer.
+    #[serde(default, rename = "productChannel")]
+    pub product_channel: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductChannel,
+    >,
+    /// Condition of a product offer.
+    #[serde(default, rename = "productCondition")]
+    pub product_condition: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCondition,
+    >,
+    /// Custom attribute of a product offer.
+    #[serde(default, rename = "productCustomAttribute")]
+    pub product_custom_attribute: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCustomAttribute,
+    >,
+    /// Item id of a product offer.
+    #[serde(default, rename = "productItemId")]
+    pub product_item_id: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductItemId,
+    >,
+    /// Type of a product offer.
+    #[serde(default, rename = "productType")]
+    pub product_type: ::core::option::Option<
+        GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductType,
+    >,
+}
+
+/// Contains the usage information of the asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAssetUsage {
+    /// Resource name of the asset.
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+    /// The served field type of the asset. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "HEADLINE_1", "HEADLINE_2", "HEADLINE_3", "DESCRIPTION_1", "DESCRIPTION_2", "HEADLINE", "HEADLINE_IN_PORTRAIT", "LONG_HEADLINE", "DESCRIPTION", "DESCRIPTION_IN_PORTRAIT", "BUSINESS_NAME_IN_PORTRAIT", "BUSINESS_NAME", "MARKETING_IMAGE", "MARKETING_IMAGE_IN_PORTRAIT", "SQUARE_MARKETING_IMAGE", "PORTRAIT_MARKETING_IMAGE", "LOGO", "LANDSCAPE_LOGO", "CALL_TO_ACTION", "YOU_TUBE_VIDEO", "SITELINK", "CALL", "MOBILE_APP", "CALLOUT", "STRUCTURED_SNIPPET", "PRICE", "PROMOTION", "AD_IMAGE", "LEAD_FORM", "BUSINESS_LOGO", "DESCRIPTION_PREFIX", "APP_ICON", "APP_TITLE", "APP_SCREENSHOT", "APP_COVER_PHOTO", "APP_SHORT_DESCRIPTION", "APP_DEVELOPER_NAME", "HEADLINE_AS_SITELINK_POSITION_ONE", "HEADLINE_AS_SITELINK_POSITION_TWO", "DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_ONE", "DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_TWO"]
+    #[serde(default, rename = "servedAssetFieldType")]
+    pub served_asset_field_type: ::core::option::Option<String>,
+}
+
+/// Logical expression for targeting webpages of an advertiser''s website.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonWebpageConditionInfo {
+    /// Argument of webpage targeting condition.
+    #[serde(default)]
+    pub argument: ::core::option::Option<String>,
+    /// Operand of webpage targeting condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "URL", "CATEGORY", "PAGE_TITLE", "PAGE_CONTENT", "CUSTOM_LABEL"]
+    #[serde(default)]
+    pub operand: ::core::option::Option<String>,
+    /// Operator of webpage targeting condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EQUALS", "CONTAINS"]
+    #[serde(default)]
+    pub operator: ::core::option::Option<String>,
+}
+
+/// A keyword criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonKeywordInfo {
+    /// The match type of the keyword. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXACT", "PHRASE", "BROAD"]
+    #[serde(default, rename = "matchType")]
+    pub match_type: ::core::option::Option<String>,
+    /// The text of the keyword (at most 80 characters and 10 words).
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// A text asset used inside an ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonAdTextAsset {
+    /// Asset text.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// One element of a bidding category at a certain level. Top-level categories are at level 1, their children at level 2, and so on. We currently support up to 5 levels. The user must specify a dimension type that indicates the level of the category. All cases of the same subdivision must have the same dimension type (category level).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBiddingCategory {
+    /// ID of the product bidding category. This ID is equivalent to the google_product_category ID as described in this article: https://support.google.com/merchants/answer/6324436
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Indicates the level of the category in the taxonomy. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]
+    #[serde(default)]
+    pub level: ::core::option::Option<String>,
+}
+
+/// Brand of the product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBrand {
+    /// String value of the product brand.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Locality of a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductChannel {
+    /// Value of the locality. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ONLINE", "LOCAL"]
+    #[serde(default)]
+    pub channel: ::core::option::Option<String>,
+}
+
+/// Condition of a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCondition {
+    /// Value of the condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NEW", "REFURBISHED", "USED"]
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+}
+
+/// Custom attribute of a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCustomAttribute {
+    /// Indicates the index of the custom attribute. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "INDEX0", "INDEX1", "INDEX2", "INDEX3", "INDEX4"]
+    #[serde(default)]
+    pub index: ::core::option::Option<String>,
+    /// String value of the product custom attribute.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Item id of a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductItemId {
+    /// Value of the id.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Type of a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductType {
+    /// Level of the type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]
+    #[serde(default)]
+    pub level: ::core::option::Option<String>,
+    /// Value of the type.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

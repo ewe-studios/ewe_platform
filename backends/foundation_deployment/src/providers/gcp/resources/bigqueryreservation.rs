@@ -10,65 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An assignment allows a project to submit jobs of a certain type using slots from the specified reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Assignment {
-    /// Optional. The resource which will use the reservation. E.g. projects/myproject, folders/123, or organizations/456.
-    #[serde(default)]
-    pub assignee: ::core::option::Option<String>,
-    /// Optional. Deprecated: "Gemini in BigQuery" is now available by default for all BigQuery editions and should not be explicitly set. Controls if "Gemini in BigQuery" (https://cloud.google.com/gemini/docs/bigquery/overview) features should be enabled for this reservation assignment.
-    #[serde(default, rename = "enableGeminiInBigquery")]
-    pub enable_gemini_in_bigquery: ::core::option::Option<bool>,
-    /// Optional. Which type of jobs will use the reservation. // TODO: enum values: ["JOB_TYPE_UNSPECIFIED", "PIPELINE", "QUERY", "ML_EXTERNAL", "BACKGROUND", "CONTINUOUS", "BACKGROUND_CHANGE_DATA_CAPTURE", "BACKGROUND_COLUMN_METADATA_INDEX", "BACKGROUND_SEARCH_INDEX_REFRESH"]
-    #[serde(default, rename = "jobType")]
-    pub job_type: ::core::option::Option<String>,
-    /// Output only. Name of the resource. E.g.: projects/myproject/locations/US/reservations/team1-prod/assignments/123. The assignment_id must only contain lower case alphanumeric characters or dashes and the max length is 64 characters.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Represents the principal for this assignment. If not empty, jobs run by this principal will utilize the associated reservation. Otherwise, jobs will fall back to using the reservation assigned to the project, folder, or organization (in that order). If no reservation is assigned at any of these levels, on-demand capacity will be used. The supported formats are: * principal://goog/subject/USER_EMAIL_ADDRESS for users, * principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS for service accounts, * principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID for workload identity pool identities.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-    /// Optional. The scheduling policy to use for jobs and queries of this assignee when running under the associated reservation. The scheduling policy controls how the reservation''s resources are distributed. This overrides the default scheduling policy specified on the reservation. This feature is not yet generally available.
-    #[serde(default, rename = "schedulingPolicy")]
-    pub scheduling_policy: ::core::option::Option<SchedulingPolicy>,
-    /// Output only. State of the assignment. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Auto scaling settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Autoscale {
-    /// Output only. The slot capacity added to this reservation when autoscale happens. Will be between [0, max_slots]. Note: after users reduce max_slots, it may take a while before it can be propagated, so current_slots may stay in the original value and could be larger than max_slots for that brief period (less than one minute)
-    #[serde(default, rename = "currentSlots")]
-    pub current_slots: ::core::option::Option<String>,
-    /// Optional. Number of slots to be scaled when needed.
-    #[serde(default, rename = "maxSlots")]
-    pub max_slots: ::core::option::Option<String>,
-}
-
 /// Represents a BI Reservation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BiReservation {
@@ -84,75 +25,6 @@ pub struct BiReservation {
     /// Output only. The last update timestamp of a reservation.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Capacity commitment is a way to purchase compute capacity for BigQuery jobs (in the form of slots) with some committed period of usage. Annual commitments renew by default. Commitments can be removed after their commitment end time passes. In order to remove annual commitment, its plan needs to be changed to monthly or flex first. A capacity commitment resource exists as a child resource of the admin project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CapacityCommitment {
-    /// Output only. The end of the current commitment period. It is applicable only for ACTIVE capacity commitments. Note after renewal, commitment_end_time is the time the renewed commitment expires. So itwould be at a time after commitment_start_time + committed period, because we don''t change commitment_start_time ,
-    #[serde(default, rename = "commitmentEndTime")]
-    pub commitment_end_time: ::core::option::Option<String>,
-    /// Output only. The start of the current commitment period. It is applicable only for ACTIVE capacity commitments. Note after the commitment is renewed, commitment_start_time won''t be changed. It refers to the start time of the original commitment.
-    #[serde(default, rename = "commitmentStartTime")]
-    pub commitment_start_time: ::core::option::Option<String>,
-    /// Optional. Edition of the capacity commitment. // TODO: enum values: ["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"]
-    #[serde(default)]
-    pub edition: ::core::option::Option<String>,
-    /// Output only. For FAILED commitment plan, provides the reason of failure.
-    #[serde(default, rename = "failureStatus")]
-    pub failure_status: ::core::option::Option<Status>,
-    /// Output only. If true, the commitment is a flat-rate commitment, otherwise, it''s an edition commitment.
-    #[serde(default, rename = "isFlatRate")]
-    pub is_flat_rate: ::core::option::Option<bool>,
-    /// Applicable only for commitments located within one of the BigQuery multi-regions (US or EU). If set to true, this commitment is placed in the organization''s secondary region which is designated for disaster recovery purposes. If false, this commitment is placed in the organization''s default region. NOTE: this is a preview feature. Project must be allow-listed in order to set this field.
-    #[serde(default, rename = "multiRegionAuxiliary")]
-    pub multi_region_auxiliary: ::core::option::Option<bool>,
-    /// Output only. The resource name of the capacity commitment, e.g., projects/myproject/locations/US/capacityCommitments/123 The commitment_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Capacity commitment commitment plan. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "FLEX", "FLEX_FLAT_RATE", "TRIAL", "MONTHLY", "MONTHLY_FLAT_RATE", "ANNUAL", "ANNUAL_FLAT_RATE", "THREE_YEAR", "NONE"]
-    #[serde(default)]
-    pub plan: ::core::option::Option<String>,
-    /// Optional. The plan this capacity commitment is converted to after commitment_end_time passes. Once the plan is changed, committed period is extended according to commitment plan. Only applicable for ANNUAL and TRIAL commitments. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "FLEX", "FLEX_FLAT_RATE", "TRIAL", "MONTHLY", "MONTHLY_FLAT_RATE", "ANNUAL", "ANNUAL_FLAT_RATE", "THREE_YEAR", "NONE"]
-    #[serde(default, rename = "renewalPlan")]
-    pub renewal_plan: ::core::option::Option<String>,
-    /// Optional. Number of slots in this commitment.
-    #[serde(default, rename = "slotCount")]
-    pub slot_count: ::core::option::Option<String>,
-    /// Output only. State of the commitment. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
 }
 
 /// The request for ReservationService.FailoverReservation.
@@ -229,38 +101,94 @@ pub struct MoveAssignmentRequest {
     pub destination_id: ::core::option::Option<String>,
 }
 
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+/// The response for ReservationService.SearchAllAssignments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+pub struct SearchAllAssignmentsResponse {
+    /// List of assignments visible to the user.
     #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
+    pub assignments: ::core::option::Option<::std::vec::Vec<Assignment>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Disaster Recovery(DR) replication status of the reservation.
+/// The response for ReservationService.SearchAssignments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplicationStatus {
-    /// Output only. The last error encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.
+pub struct SearchAssignmentsResponse {
+    /// List of assignments visible to the user.
     #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Output only. The time at which the last error was encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.
-    #[serde(default, rename = "lastErrorTime")]
-    pub last_error_time: ::core::option::Option<String>,
-    /// Output only. A timestamp corresponding to the last change on the primary that was successfully replicated to the secondary.
-    #[serde(default, rename = "lastReplicationTime")]
-    pub last_replication_time: ::core::option::Option<String>,
-    /// Output only. The time at which a soft failover for the reservation and its associated datasets was initiated. After this field is set, all subsequent changes to the reservation will be rejected unless a hard failover overrides this operation. This field will be cleared once the failover is complete.
-    #[serde(default, rename = "softFailoverStartTime")]
-    pub soft_failover_start_time: ::core::option::Option<String>,
+    pub assignments: ::core::option::Option<::std::vec::Vec<Assignment>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// The request for ReservationService.SplitCapacityCommitment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SplitCapacityCommitmentRequest {
+    /// Number of slots in the capacity commitment after the split.
+    #[serde(default, rename = "slotCount")]
+    pub slot_count: ::core::option::Option<String>,
+}
+
+/// The response for ReservationService.SplitCapacityCommitment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SplitCapacityCommitmentResponse {
+    /// First capacity commitment, result of a split.
+    #[serde(default)]
+    pub first: ::core::option::Option<CapacityCommitment>,
+    /// Second capacity commitment, result of a split.
+    #[serde(default)]
+    pub second: ::core::option::Option<CapacityCommitment>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Fully qualified reference to BigQuery table. Internally stored as google.cloud.bi.v1.BqTableReference.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableReference {
+    /// Optional. The ID of the dataset in the above project.
+    #[serde(default, rename = "datasetId")]
+    pub dataset_id: ::core::option::Option<String>,
+    /// Optional. The assigned project ID of the project.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Optional. The ID of the table in the above dataset.
+    #[serde(default, rename = "tableId")]
+    pub table_id: ::core::option::Option<String>,
+}
+
+/// A reservation group is a container for reservations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReservationGroup {
+    /// Identifier. The resource name of the reservation group, e.g., projects/*/locations/*/reservationGroups/team1-prod. The reservation_group_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A reservation is a mechanism used to guarantee slots to users.
@@ -322,12 +250,113 @@ pub struct Reservation {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// A reservation group is a container for reservations.
+/// An assignment allows a project to submit jobs of a certain type using slots from the specified reservation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReservationGroup {
-    /// Identifier. The resource name of the reservation group, e.g., projects/*/locations/*/reservationGroups/team1-prod. The reservation_group_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.
+pub struct Assignment {
+    /// Optional. The resource which will use the reservation. E.g. projects/myproject, folders/123, or organizations/456.
+    #[serde(default)]
+    pub assignee: ::core::option::Option<String>,
+    /// Optional. Deprecated: "Gemini in BigQuery" is now available by default for all BigQuery editions and should not be explicitly set. Controls if "Gemini in BigQuery" (https://cloud.google.com/gemini/docs/bigquery/overview) features should be enabled for this reservation assignment.
+    #[serde(default, rename = "enableGeminiInBigquery")]
+    pub enable_gemini_in_bigquery: ::core::option::Option<bool>,
+    /// Optional. Which type of jobs will use the reservation. // TODO: enum values: ["JOB_TYPE_UNSPECIFIED", "PIPELINE", "QUERY", "ML_EXTERNAL", "BACKGROUND", "CONTINUOUS", "BACKGROUND_CHANGE_DATA_CAPTURE", "BACKGROUND_COLUMN_METADATA_INDEX", "BACKGROUND_SEARCH_INDEX_REFRESH"]
+    #[serde(default, rename = "jobType")]
+    pub job_type: ::core::option::Option<String>,
+    /// Output only. Name of the resource. E.g.: projects/myproject/locations/US/reservations/team1-prod/assignments/123. The assignment_id must only contain lower case alphanumeric characters or dashes and the max length is 64 characters.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Optional. Represents the principal for this assignment. If not empty, jobs run by this principal will utilize the associated reservation. Otherwise, jobs will fall back to using the reservation assigned to the project, folder, or organization (in that order). If no reservation is assigned at any of these levels, on-demand capacity will be used. The supported formats are: * principal://goog/subject/USER_EMAIL_ADDRESS for users, * principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS for service accounts, * principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID for workload identity pool identities.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+    /// Optional. The scheduling policy to use for jobs and queries of this assignee when running under the associated reservation. The scheduling policy controls how the reservation''s resources are distributed. This overrides the default scheduling policy specified on the reservation. This feature is not yet generally available.
+    #[serde(default, rename = "schedulingPolicy")]
+    pub scheduling_policy: ::core::option::Option<SchedulingPolicy>,
+    /// Output only. State of the assignment. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Capacity commitment is a way to purchase compute capacity for BigQuery jobs (in the form of slots) with some committed period of usage. Annual commitments renew by default. Commitments can be removed after their commitment end time passes. In order to remove annual commitment, its plan needs to be changed to monthly or flex first. A capacity commitment resource exists as a child resource of the admin project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapacityCommitment {
+    /// Output only. The end of the current commitment period. It is applicable only for ACTIVE capacity commitments. Note after renewal, commitment_end_time is the time the renewed commitment expires. So itwould be at a time after commitment_start_time + committed period, because we don''t change commitment_start_time ,
+    #[serde(default, rename = "commitmentEndTime")]
+    pub commitment_end_time: ::core::option::Option<String>,
+    /// Output only. The start of the current commitment period. It is applicable only for ACTIVE capacity commitments. Note after the commitment is renewed, commitment_start_time won''t be changed. It refers to the start time of the original commitment.
+    #[serde(default, rename = "commitmentStartTime")]
+    pub commitment_start_time: ::core::option::Option<String>,
+    /// Optional. Edition of the capacity commitment. // TODO: enum values: ["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"]
+    #[serde(default)]
+    pub edition: ::core::option::Option<String>,
+    /// Output only. For FAILED commitment plan, provides the reason of failure.
+    #[serde(default, rename = "failureStatus")]
+    pub failure_status: ::core::option::Option<Status>,
+    /// Output only. If true, the commitment is a flat-rate commitment, otherwise, it''s an edition commitment.
+    #[serde(default, rename = "isFlatRate")]
+    pub is_flat_rate: ::core::option::Option<bool>,
+    /// Applicable only for commitments located within one of the BigQuery multi-regions (US or EU). If set to true, this commitment is placed in the organization''s secondary region which is designated for disaster recovery purposes. If false, this commitment is placed in the organization''s default region. NOTE: this is a preview feature. Project must be allow-listed in order to set this field.
+    #[serde(default, rename = "multiRegionAuxiliary")]
+    pub multi_region_auxiliary: ::core::option::Option<bool>,
+    /// Output only. The resource name of the capacity commitment, e.g., projects/myproject/locations/US/capacityCommitments/123 The commitment_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Capacity commitment commitment plan. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "FLEX", "FLEX_FLAT_RATE", "TRIAL", "MONTHLY", "MONTHLY_FLAT_RATE", "ANNUAL", "ANNUAL_FLAT_RATE", "THREE_YEAR", "NONE"]
+    #[serde(default)]
+    pub plan: ::core::option::Option<String>,
+    /// Optional. The plan this capacity commitment is converted to after commitment_end_time passes. Once the plan is changed, committed period is extended according to commitment plan. Only applicable for ANNUAL and TRIAL commitments. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "FLEX", "FLEX_FLAT_RATE", "TRIAL", "MONTHLY", "MONTHLY_FLAT_RATE", "ANNUAL", "ANNUAL_FLAT_RATE", "THREE_YEAR", "NONE"]
+    #[serde(default, rename = "renewalPlan")]
+    pub renewal_plan: ::core::option::Option<String>,
+    /// Optional. Number of slots in this commitment.
+    #[serde(default, rename = "slotCount")]
+    pub slot_count: ::core::option::Option<String>,
+    /// Output only. State of the commitment. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Auto scaling settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Autoscale {
+    /// Output only. The slot capacity added to this reservation when autoscale happens. Will be between [0, max_slots]. Note: after users reduce max_slots, it may take a while before it can be propagated, so current_slots may stay in the original value and could be larger than max_slots for that brief period (less than one minute)
+    #[serde(default, rename = "currentSlots")]
+    pub current_slots: ::core::option::Option<String>,
+    /// Optional. Number of slots to be scaled when needed.
+    #[serde(default, rename = "maxSlots")]
+    pub max_slots: ::core::option::Option<String>,
+}
+
+/// Disaster Recovery(DR) replication status of the reservation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicationStatus {
+    /// Output only. The last error encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Output only. The time at which the last error was encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.
+    #[serde(default, rename = "lastErrorTime")]
+    pub last_error_time: ::core::option::Option<String>,
+    /// Output only. A timestamp corresponding to the last change on the primary that was successfully replicated to the secondary.
+    #[serde(default, rename = "lastReplicationTime")]
+    pub last_replication_time: ::core::option::Option<String>,
+    /// Output only. The time at which a soft failover for the reservation and its associated datasets was initiated. After this field is set, all subsequent changes to the reservation will be rejected unless a hard failover overrides this operation. This field will be cleared once the failover is complete.
+    #[serde(default, rename = "softFailoverStartTime")]
+    pub soft_failover_start_time: ::core::option::Option<String>,
 }
 
 /// The scheduling policy controls how a reservation''s resources are distributed.
@@ -341,56 +370,29 @@ pub struct SchedulingPolicy {
     pub max_slots: ::core::option::Option<String>,
 }
 
-/// The response for ReservationService.SearchAllAssignments.
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchAllAssignmentsResponse {
-    /// List of assignments visible to the user.
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub assignments: ::core::option::Option<::std::vec::Vec<Assignment>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
-/// The response for ReservationService.SearchAssignments.
+/// Associates members, or principals, with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchAssignmentsResponse {
-    /// List of assignments visible to the user.
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub assignments: ::core::option::Option<::std::vec::Vec<Assignment>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// The request for ReservationService.SplitCapacityCommitment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SplitCapacityCommitmentRequest {
-    /// Number of slots in the capacity commitment after the split.
-    #[serde(default, rename = "slotCount")]
-    pub slot_count: ::core::option::Option<String>,
-}
-
-/// The response for ReservationService.SplitCapacityCommitment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SplitCapacityCommitmentResponse {
-    /// First capacity commitment, result of a split.
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub first: ::core::option::Option<CapacityCommitment>,
-    /// Second capacity commitment, result of a split.
-    #[serde(default)]
-    pub second: ::core::option::Option<CapacityCommitment>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -407,32 +409,30 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Fully qualified reference to BigQuery table. Internally stored as google.cloud.bi.v1.BqTableReference.
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableReference {
-    /// Optional. The ID of the dataset in the above project.
-    #[serde(default, rename = "datasetId")]
-    pub dataset_id: ::core::option::Option<String>,
-    /// Optional. The assigned project ID of the project.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Optional. The ID of the table in the above dataset.
-    #[serde(default, rename = "tableId")]
-    pub table_id: ::core::option::Option<String>,
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
 }
 
-/// Request message for TestIamPermissions method.
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }

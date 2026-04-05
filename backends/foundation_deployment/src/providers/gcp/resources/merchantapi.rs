@@ -10,20 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A message that represents custom attributes. Exactly one of value or group_values must not be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomAttribute {
-    /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
-    #[serde(default, rename = "groupValues")]
-    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// The name of the attribute.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The value of the attribute. If value is not empty, group_values must be empty.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Response message for the ListMerchantsReview method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListMerchantReviewsResponse {
@@ -44,6 +30,38 @@ pub struct ListProductReviewsResponse {
     /// The product review.
     #[serde(default, rename = "productReviews")]
     pub product_reviews: ::core::option::Option<::std::vec::Vec<ProductReview>>,
+}
+
+/// The message that the merchant will receive to notify about product status change event
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductStatusChangeMessage {
+    /// The target account that owns the entity that changed. Format : accounts/{merchant_id}
+    #[serde(default)]
+    pub account: ::core::option::Option<String>,
+    /// The attribute in the resource that changed, in this case it will be always Status. // TODO: enum values: ["ATTRIBUTE_UNSPECIFIED", "STATUS"]
+    #[serde(default)]
+    pub attribute: ::core::option::Option<String>,
+    /// A message to describe the change that happened to the product
+    #[serde(default)]
+    pub changes: ::core::option::Option<::std::vec::Vec<ProductChange>>,
+    /// The time at which the event was generated. If you want to order the notification messages you receive you should rely on this field not on the order of receiving the notifications.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Optional. The product expiration time. This field will not be set if the notification is sent for a product deletion event.
+    #[serde(default, rename = "expirationTime")]
+    pub expiration_time: ::core::option::Option<String>,
+    /// The account that manages the merchant''s account. can be the same as merchant id if it is standalone account. Format : accounts/{service_provider_id}
+    #[serde(default, rename = "managingAccount")]
+    pub managing_account: ::core::option::Option<String>,
+    /// The product name. Format: accounts/{account}/products/{product}
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The product id.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+    /// The resource that changed, in this case it will always be Product. // TODO: enum values: ["RESOURCE_UNSPECIFIED", "PRODUCT"]
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
 }
 
 /// A review for a merchant. For more information, see [Introduction to Merchant Review Feeds](https://developers.google.com/merchant-review-feeds)
@@ -67,6 +85,46 @@ pub struct MerchantReview {
     /// Identifier. The name of the merchant review. Format: "{merchantreview.name=accounts/{account}/merchantReviews/{merchantReview}}"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// A review for a product. For more information, see [Introduction to Product Review Feeds](https://developers.google.com/product-review-feeds)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductReview {
+    /// Optional. A list of custom (merchant-provided) attributes.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// Output only. The primary data source of the product review.
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+    /// Identifier. The name of the product review. Format: "{productreview.name=accounts/{account}/productReviews/{productReview}}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. A list of product review attributes.
+    #[serde(default, rename = "productReviewAttributes")]
+    pub product_review_attributes: ::core::option::Option<ProductReviewAttributes>,
+    /// Required. The permanent, unique identifier for the product review in the publisher’s system.
+    #[serde(default, rename = "productReviewId")]
+    pub product_review_id: ::core::option::Option<String>,
+    /// Output only. The status of a product review, data validation issues, that is, information about a product review computed asynchronously.
+    #[serde(default, rename = "productReviewStatus")]
+    pub product_review_status: ::core::option::Option<ProductReviewStatus>,
+}
+
+/// The change that happened to the product including old value, new value, country code as the region code and reporting context.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductChange {
+    /// The new value of the changed resource or attribute. If empty, it means that the product was deleted. Will have one of these values : (approved, pending, disapproved, )
+    #[serde(default, rename = "newValue")]
+    pub new_value: ::core::option::Option<String>,
+    /// The old value of the changed resource or attribute. If empty, it means that the product was created. Will have one of these values : (approved, pending, disapproved, )
+    #[serde(default, rename = "oldValue")]
+    pub old_value: ::core::option::Option<String>,
+    /// Countries that have the change (if applicable). Represented in the ISO 3166 format.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// Reporting contexts that have the change (if applicable). Currently this field supports only (SHOPPING_ADS, LOCAL_INVENTORY_ADS, YOUTUBE_SHOPPING, YOUTUBE_CHECKOUT, YOUTUBE_AFFILIATE) from the enum value [ReportingContextEnum](/merchant/api/reference/rest/Shared.Types/ReportingContextEnum) // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
+    #[serde(default, rename = "reportingContext")]
+    pub reporting_context: ::core::option::Option<String>,
 }
 
 /// Attributes.
@@ -122,43 +180,6 @@ pub struct MerchantReviewAttributes {
     pub title: ::core::option::Option<String>,
 }
 
-/// The destination status of the merchant review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MerchantReviewDestinationStatus {
-    /// Output only. The name of the reporting context. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
-    #[serde(default, rename = "reportingContext")]
-    pub reporting_context: ::core::option::Option<String>,
-}
-
-/// The ItemLevelIssue of the merchant review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MerchantReviewItemLevelIssue {
-    /// Output only. The attribute''s name, if the issue is caused by a single attribute.
-    #[serde(default)]
-    pub attribute: ::core::option::Option<String>,
-    /// Output only. The error code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Output only. A short issue description in English.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. A detailed issue description in English.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// Output only. The URL of a web page to help with resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Output only. The reporting context the issue applies to. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
-    #[serde(default, rename = "reportingContext")]
-    pub reporting_context: ::core::option::Option<String>,
-    /// Output only. Whether the issue can be resolved by the merchant.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-    /// Output only. How this issue affects serving of the merchant review. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
 /// The status of a merchant review, data validation issues, that is, information about a merchant review computed asynchronously.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MerchantReviewStatus {
@@ -177,44 +198,18 @@ pub struct MerchantReviewStatus {
     pub last_update_time: ::core::option::Option<String>,
 }
 
-/// The change that happened to the product including old value, new value, country code as the region code and reporting context.
+/// A message that represents custom attributes. Exactly one of value or group_values must not be empty.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductChange {
-    /// The new value of the changed resource or attribute. If empty, it means that the product was deleted. Will have one of these values : (approved, pending, disapproved, )
-    #[serde(default, rename = "newValue")]
-    pub new_value: ::core::option::Option<String>,
-    /// The old value of the changed resource or attribute. If empty, it means that the product was created. Will have one of these values : (approved, pending, disapproved, )
-    #[serde(default, rename = "oldValue")]
-    pub old_value: ::core::option::Option<String>,
-    /// Countries that have the change (if applicable). Represented in the ISO 3166 format.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// Reporting contexts that have the change (if applicable). Currently this field supports only (SHOPPING_ADS, LOCAL_INVENTORY_ADS, YOUTUBE_SHOPPING, YOUTUBE_CHECKOUT, YOUTUBE_AFFILIATE) from the enum value [ReportingContextEnum](/merchant/api/reference/rest/Shared.Types/ReportingContextEnum) // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
-    #[serde(default, rename = "reportingContext")]
-    pub reporting_context: ::core::option::Option<String>,
-}
-
-/// A review for a product. For more information, see [Introduction to Product Review Feeds](https://developers.google.com/product-review-feeds)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductReview {
-    /// Optional. A list of custom (merchant-provided) attributes.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// Output only. The primary data source of the product review.
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-    /// Identifier. The name of the product review. Format: "{productreview.name=accounts/{account}/productReviews/{productReview}}"
+pub struct CustomAttribute {
+    /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
+    #[serde(default, rename = "groupValues")]
+    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// The name of the attribute.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Optional. A list of product review attributes.
-    #[serde(default, rename = "productReviewAttributes")]
-    pub product_review_attributes: ::core::option::Option<ProductReviewAttributes>,
-    /// Required. The permanent, unique identifier for the product review in the publisher’s system.
-    #[serde(default, rename = "productReviewId")]
-    pub product_review_id: ::core::option::Option<String>,
-    /// Output only. The status of a product review, data validation issues, that is, information about a product review computed asynchronously.
-    #[serde(default, rename = "productReviewStatus")]
-    pub product_review_status: ::core::option::Option<ProductReviewStatus>,
+    /// The value of the attribute. If value is not empty, group_values must be empty.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
 /// Attributes.
@@ -315,6 +310,72 @@ pub struct ProductReviewAttributes {
     pub transaction_id: ::core::option::Option<String>,
 }
 
+/// Product review status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductReviewStatus {
+    /// Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The intended destinations for the product review.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<ProductReviewDestinationStatus>>,
+    /// Output only. A list of all issues associated with the product review.
+    #[serde(default, rename = "itemLevelIssues")]
+    pub item_level_issues: ::core::option::Option<::std::vec::Vec<ProductReviewItemLevelIssue>>,
+    /// Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+}
+
+/// The destination status of the merchant review status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MerchantReviewDestinationStatus {
+    /// Output only. The name of the reporting context. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
+    #[serde(default, rename = "reportingContext")]
+    pub reporting_context: ::core::option::Option<String>,
+}
+
+/// The ItemLevelIssue of the merchant review status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MerchantReviewItemLevelIssue {
+    /// Output only. The attribute''s name, if the issue is caused by a single attribute.
+    #[serde(default)]
+    pub attribute: ::core::option::Option<String>,
+    /// Output only. The error code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Output only. A short issue description in English.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. A detailed issue description in English.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// Output only. The URL of a web page to help with resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Output only. The reporting context the issue applies to. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
+    #[serde(default, rename = "reportingContext")]
+    pub reporting_context: ::core::option::Option<String>,
+    /// Output only. Whether the issue can be resolved by the merchant.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+    /// Output only. How this issue affects serving of the merchant review. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// The URI of the review landing page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReviewLink {
+    /// Optional. The URI of the review landing page. For example: http://www.example.com/review_5.html.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Optional. Type of the review URI. // TODO: enum values: ["TYPE_UNSPECIFIED", "SINGLETON", "GROUP"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// The destination status of the product review status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductReviewDestinationStatus {
@@ -350,65 +411,4 @@ pub struct ProductReviewItemLevelIssue {
     /// Output only. How this issue affects serving of the product review. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"]
     #[serde(default)]
     pub severity: ::core::option::Option<String>,
-}
-
-/// Product review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductReviewStatus {
-    /// Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The intended destinations for the product review.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses:
-        ::core::option::Option<::std::vec::Vec<ProductReviewDestinationStatus>>,
-    /// Output only. A list of all issues associated with the product review.
-    #[serde(default, rename = "itemLevelIssues")]
-    pub item_level_issues: ::core::option::Option<::std::vec::Vec<ProductReviewItemLevelIssue>>,
-    /// Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-}
-
-/// The message that the merchant will receive to notify about product status change event
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductStatusChangeMessage {
-    /// The target account that owns the entity that changed. Format : accounts/{merchant_id}
-    #[serde(default)]
-    pub account: ::core::option::Option<String>,
-    /// The attribute in the resource that changed, in this case it will be always Status. // TODO: enum values: ["ATTRIBUTE_UNSPECIFIED", "STATUS"]
-    #[serde(default)]
-    pub attribute: ::core::option::Option<String>,
-    /// A message to describe the change that happened to the product
-    #[serde(default)]
-    pub changes: ::core::option::Option<::std::vec::Vec<ProductChange>>,
-    /// The time at which the event was generated. If you want to order the notification messages you receive you should rely on this field not on the order of receiving the notifications.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Optional. The product expiration time. This field will not be set if the notification is sent for a product deletion event.
-    #[serde(default, rename = "expirationTime")]
-    pub expiration_time: ::core::option::Option<String>,
-    /// The account that manages the merchant''s account. can be the same as merchant id if it is standalone account. Format : accounts/{service_provider_id}
-    #[serde(default, rename = "managingAccount")]
-    pub managing_account: ::core::option::Option<String>,
-    /// The product name. Format: accounts/{account}/products/{product}
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The product id.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-    /// The resource that changed, in this case it will always be Product. // TODO: enum values: ["RESOURCE_UNSPECIFIED", "PRODUCT"]
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// The URI of the review landing page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReviewLink {
-    /// Optional. The URI of the review landing page. For example: http://www.example.com/review_5.html.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Optional. Type of the review URI. // TODO: enum values: ["TYPE_UNSPECIFIED", "SINGLETON", "GROUP"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }

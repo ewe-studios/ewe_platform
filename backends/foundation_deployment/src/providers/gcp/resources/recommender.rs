@@ -10,107 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Contains metadata about how much money a recommendation can save or incur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1CostProjection {
-    /// An approximate projection on amount saved or amount incurred. Negative cost units indicate cost savings and positive cost units indicate increase. See google.type.Money documentation for positive/negative units. A user''s permissions may affect whether the cost is computed using list prices or custom contract prices.
-    #[serde(default)]
-    pub cost: ::core::option::Option<GoogleTypeMoney>,
-    /// The approximate cost savings in the billing account''s local currency.
-    #[serde(default, rename = "costInLocalCurrency")]
-    pub cost_in_local_currency: ::core::option::Option<GoogleTypeMoney>,
-    /// Duration for which this cost applies.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-}
-
-/// Contains the impact a recommendation can have for a given category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1Impact {
-    /// Category that is being targeted. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "COST", "SECURITY", "PERFORMANCE", "MANAGEABILITY", "SUSTAINABILITY", "RELIABILITY"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Use with CategoryType.COST
-    #[serde(default, rename = "costProjection")]
-    pub cost_projection: ::core::option::Option<GoogleCloudRecommenderV1CostProjection>,
-    /// Use with CategoryType.RELIABILITY
-    #[serde(default, rename = "reliabilityProjection")]
-    pub reliability_projection:
-        ::core::option::Option<GoogleCloudRecommenderV1ReliabilityProjection>,
-    /// Use with CategoryType.SECURITY
-    #[serde(default, rename = "securityProjection")]
-    pub security_projection: ::core::option::Option<GoogleCloudRecommenderV1SecurityProjection>,
-    /// The service that this impact is associated with.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Use with CategoryType.SUSTAINABILITY
-    #[serde(default, rename = "sustainabilityProjection")]
-    pub sustainability_projection:
-        ::core::option::Option<GoogleCloudRecommenderV1SustainabilityProjection>,
-}
-
-/// An insight along with the information used to derive the insight. The insight may have associated recommendations as well.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1Insight {
-    /// Recommendations derived from this insight.
-    #[serde(default, rename = "associatedRecommendations")]
-    pub associated_recommendations: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudRecommenderV1InsightRecommendationReference>,
-    >,
-    /// Category being targeted by the insight. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "COST", "SECURITY", "PERFORMANCE", "MANAGEABILITY", "SUSTAINABILITY", "RELIABILITY"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// A struct of custom fields to explain the insight. Example: "grantedPermissionsCount": "1000"
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Free-form human readable summary in English. The maximum length is 500 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Fingerprint of the Insight. Provides optimistic locking when updating states.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Insight subtype. Insight content schema will be stable for a given subtype.
-    #[serde(default, rename = "insightSubtype")]
-    pub insight_subtype: ::core::option::Option<String>,
-    /// Timestamp of the latest data used to generate the insight.
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Identifier. Name of the insight.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Observation period that led to the insight. The source data used to generate the insight ends at last_refresh_time and begins at (last_refresh_time - observation_period).
-    #[serde(default, rename = "observationPeriod")]
-    pub observation_period: ::core::option::Option<String>,
-    /// Insight''s severity. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Information state and metadata.
-    #[serde(default, rename = "stateInfo")]
-    pub state_info: ::core::option::Option<GoogleCloudRecommenderV1InsightStateInfo>,
-    /// Fully qualified resource names that this insight is targeting.
-    #[serde(default, rename = "targetResources")]
-    pub target_resources: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Reference to an associated recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1InsightRecommendationReference {
-    /// Recommendation resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/recommenders/[RECOMMENDER_ID]/recommendations/[RECOMMENDATION_ID]
-    #[serde(default)]
-    pub recommendation: ::core::option::Option<String>,
-}
-
-/// Information related to insight state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1InsightStateInfo {
-    /// Insight state. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ACCEPTED", "DISMISSED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A map of metadata for the state, provided by user or automations systems.
-    #[serde(default, rename = "stateMetadata")]
-    pub state_metadata: ::core::option::Option<serde_json::Value>,
-}
-
 /// Configuration for an InsightType.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommenderV1InsightTypeConfig {
@@ -213,47 +112,74 @@ pub struct GoogleCloudRecommenderV1MarkRecommendationSucceededRequest {
     pub state_metadata: ::core::option::Option<serde_json::Value>,
 }
 
-/// Contains an operation for a resource loosely based on the JSON-PATCH format with support for: * Custom filters for describing partial array patch. * Extended path values for describing nested arrays. * Custom fields for describing the resource for which the operation is being described. * Allows extension to custom operations not natively supported by RFC6902. See https://tools.ietf.org/html/rfc6902 for details on the original RFC.
+/// Configuration for a Recommender.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1Operation {
-    /// Type of this operation. Contains one of ''add'', ''remove'', ''replace'', ''move'', ''copy'', ''test'' and custom operations. This field is case-insensitive and always populated.
+pub struct GoogleCloudRecommenderV1RecommenderConfig {
+    /// Allows clients to store small amounts of arbitrary data. Annotations must follow the Kubernetes syntax. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Path to the target field being operated on. If the operation is at the resource level, then path should be "/". This field is always populated.
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// A user-settable field to provide a human-readable name to be used in user interfaces.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Fingerprint of the RecommenderConfig. Provides optimistic locking when updating.
     #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Set of filters to apply if path refers to array elements or nested array elements in order to narrow down to a single unique element that is being tested/modified. This is intended to be an exact match per filter. To perform advanced matching, use path_value_matchers. * Example:  { "/versions/*/name" : "it-123" "/versions/*/targetSize/percent": 20 }  * Example:  { "/bindings/*/role": "roles/owner" "/bindings/*/condition" : null }  * Example:  { "/bindings/*/role": "roles/owner" "/bindings/*/members/*" : ["x@example.com", "y@example.com"] }  When both path_filters and path_value_matchers are set, an implicit AND must be performed.
-    #[serde(default, rename = "pathFilters")]
-    pub path_filters: ::core::option::Option<serde_json::Value>,
-    /// Similar to path_filters, this contains set of filters to apply if path field refers to array elements. This is meant to support value matching beyond exact match. To perform exact match, use path_filters. When both path_filters and path_value_matchers are set, an implicit AND must be performed.
-    #[serde(default, rename = "pathValueMatchers")]
-    pub path_value_matchers: ::core::option::Option<serde_json::Value>,
-    /// Contains the fully qualified resource name. This field is always populated. ex: //cloudresourcemanager.googleapis.com/projects/foo.
+    pub etag: ::core::option::Option<String>,
+    /// Identifier. Name of recommender config. Eg, projects/[PROJECT_NUMBER]/locations/[LOCATION]/recommenders/[RECOMMENDER_ID]/config
     #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Type of GCP resource being modified/tested. This field is always populated. Example: cloudresourcemanager.googleapis.com/Project, compute.googleapis.com/Instance
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Can be set with action ''copy'' or ''move'' to indicate the source field within resource or source_resource, ignored if provided for other operation types.
-    #[serde(default, rename = "sourcePath")]
-    pub source_path: ::core::option::Option<String>,
-    /// Can be set with action ''copy'' to copy resource configuration across different resources of the same type. Example: A resource clone can be done via action = ''copy'', path = "/", from = "/", source_resource = and resource_name = . This field is empty for all other values of action.
-    #[serde(default, rename = "sourceResource")]
-    pub source_resource: ::core::option::Option<String>,
-    /// Value for the path field. Will be set for actions:''add''/''replace''. Maybe set for action: ''test''. Either this or value_matcher will be set for ''test'' operation. An exact match must be performed.
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
-    /// Can be set for action ''test'' for advanced matching for the value of ''path'' field. Either this or value will be set for ''test'' operation.
-    #[serde(default, rename = "valueMatcher")]
-    pub value_matcher: ::core::option::Option<GoogleCloudRecommenderV1ValueMatcher>,
+    pub name: ::core::option::Option<String>,
+    /// RecommenderGenerationConfig which configures the Generation of recommendations for this recommender.
+    #[serde(default, rename = "recommenderGenerationConfig")]
+    pub recommender_generation_config:
+        ::core::option::Option<GoogleCloudRecommenderV1RecommenderGenerationConfig>,
+    /// Output only. Immutable. The revision ID of the config. A new revision is committed whenever the config is changed in any way. The format is an 8-character hexadecimal string.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Last time when the config was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
-/// Group of operations that need to be performed atomically.
+/// An insight along with the information used to derive the insight. The insight may have associated recommendations as well.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1OperationGroup {
-    /// List of operations across one or more resources that belong to this group. Loosely based on RFC6902 and should be performed in the order they appear.
+pub struct GoogleCloudRecommenderV1Insight {
+    /// Recommendations derived from this insight.
+    #[serde(default, rename = "associatedRecommendations")]
+    pub associated_recommendations: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudRecommenderV1InsightRecommendationReference>,
+    >,
+    /// Category being targeted by the insight. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "COST", "SECURITY", "PERFORMANCE", "MANAGEABILITY", "SUSTAINABILITY", "RELIABILITY"]
     #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudRecommenderV1Operation>>,
+    pub category: ::core::option::Option<String>,
+    /// A struct of custom fields to explain the insight. Example: "grantedPermissionsCount": "1000"
+    #[serde(default)]
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Free-form human readable summary in English. The maximum length is 500 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Fingerprint of the Insight. Provides optimistic locking when updating states.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Insight subtype. Insight content schema will be stable for a given subtype.
+    #[serde(default, rename = "insightSubtype")]
+    pub insight_subtype: ::core::option::Option<String>,
+    /// Timestamp of the latest data used to generate the insight.
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Identifier. Name of the insight.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Observation period that led to the insight. The source data used to generate the insight ends at last_refresh_time and begins at (last_refresh_time - observation_period).
+    #[serde(default, rename = "observationPeriod")]
+    pub observation_period: ::core::option::Option<String>,
+    /// Insight''s severity. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// Information state and metadata.
+    #[serde(default, rename = "stateInfo")]
+    pub state_info: ::core::option::Option<GoogleCloudRecommenderV1InsightStateInfo>,
+    /// Fully qualified resource names that this insight is targeting.
+    #[serde(default, rename = "targetResources")]
+    pub target_resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A recommendation along with a suggested action. E.g., a rightsizing recommendation for an underutilized VM, IAM role recommendations, etc
@@ -302,6 +228,58 @@ pub struct GoogleCloudRecommenderV1Recommendation {
     pub xor_group_id: ::core::option::Option<String>,
 }
 
+/// Reference to an associated recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1InsightRecommendationReference {
+    /// Recommendation resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/recommenders/[RECOMMENDER_ID]/recommendations/[RECOMMENDATION_ID]
+    #[serde(default)]
+    pub recommendation: ::core::option::Option<String>,
+}
+
+/// Information related to insight state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1InsightStateInfo {
+    /// Insight state. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ACCEPTED", "DISMISSED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A map of metadata for the state, provided by user or automations systems.
+    #[serde(default, rename = "stateMetadata")]
+    pub state_metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// Contains the impact a recommendation can have for a given category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1Impact {
+    /// Category that is being targeted. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "COST", "SECURITY", "PERFORMANCE", "MANAGEABILITY", "SUSTAINABILITY", "RELIABILITY"]
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Use with CategoryType.COST
+    #[serde(default, rename = "costProjection")]
+    pub cost_projection: ::core::option::Option<GoogleCloudRecommenderV1CostProjection>,
+    /// Use with CategoryType.RELIABILITY
+    #[serde(default, rename = "reliabilityProjection")]
+    pub reliability_projection:
+        ::core::option::Option<GoogleCloudRecommenderV1ReliabilityProjection>,
+    /// Use with CategoryType.SECURITY
+    #[serde(default, rename = "securityProjection")]
+    pub security_projection: ::core::option::Option<GoogleCloudRecommenderV1SecurityProjection>,
+    /// The service that this impact is associated with.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Use with CategoryType.SUSTAINABILITY
+    #[serde(default, rename = "sustainabilityProjection")]
+    pub sustainability_projection:
+        ::core::option::Option<GoogleCloudRecommenderV1SustainabilityProjection>,
+}
+
+/// Reference to an associated insight.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
+    /// Insight resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/insightTypes/[INSIGHT_TYPE_ID]/insights/[INSIGHT_ID]
+    #[serde(default)]
+    pub insight: ::core::option::Option<String>,
+}
+
 /// Contains what resources are changing and how they are changing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommenderV1RecommendationContent {
@@ -312,14 +290,6 @@ pub struct GoogleCloudRecommenderV1RecommendationContent {
     /// Condensed overview information about the recommendation.
     #[serde(default)]
     pub overview: ::core::option::Option<serde_json::Value>,
-}
-
-/// Reference to an associated insight.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
-    /// Insight resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/insightTypes/[INSIGHT_TYPE_ID]/insights/[INSIGHT_ID]
-    #[serde(default)]
-    pub insight: ::core::option::Option<String>,
 }
 
 /// Information for state. Contains state and metadata.
@@ -333,31 +303,18 @@ pub struct GoogleCloudRecommenderV1RecommendationStateInfo {
     pub state_metadata: ::core::option::Option<serde_json::Value>,
 }
 
-/// Configuration for a Recommender.
+/// Contains metadata about how much money a recommendation can save or incur.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1RecommenderConfig {
-    /// Allows clients to store small amounts of arbitrary data. Annotations must follow the Kubernetes syntax. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
+pub struct GoogleCloudRecommenderV1CostProjection {
+    /// An approximate projection on amount saved or amount incurred. Negative cost units indicate cost savings and positive cost units indicate increase. See google.type.Money documentation for positive/negative units. A user''s permissions may affect whether the cost is computed using list prices or custom contract prices.
     #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// A user-settable field to provide a human-readable name to be used in user interfaces.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Fingerprint of the RecommenderConfig. Provides optimistic locking when updating.
+    pub cost: ::core::option::Option<GoogleTypeMoney>,
+    /// The approximate cost savings in the billing account''s local currency.
+    #[serde(default, rename = "costInLocalCurrency")]
+    pub cost_in_local_currency: ::core::option::Option<GoogleTypeMoney>,
+    /// Duration for which this cost applies.
     #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifier. Name of recommender config. Eg, projects/[PROJECT_NUMBER]/locations/[LOCATION]/recommenders/[RECOMMENDER_ID]/config
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// RecommenderGenerationConfig which configures the Generation of recommendations for this recommender.
-    #[serde(default, rename = "recommenderGenerationConfig")]
-    pub recommender_generation_config:
-        ::core::option::Option<GoogleCloudRecommenderV1RecommenderGenerationConfig>,
-    /// Output only. Immutable. The revision ID of the config. A new revision is committed whenever the config is changed in any way. The format is an 8-character hexadecimal string.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Last time when the config was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
+    pub duration: ::core::option::Option<String>,
 }
 
 /// Contains information on the impact of a reliability recommendation.
@@ -382,12 +339,12 @@ pub struct GoogleCloudRecommenderV1SustainabilityProjection {
     pub kg_c_o2e: ::core::option::Option<f64>,
 }
 
-/// Contains various matching options for values for a GCP resource field.
+/// Group of operations that need to be performed atomically.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommenderV1ValueMatcher {
-    /// To be used for full regex matching. The regular expression is using the Google RE2 syntax (https://github.com/google/re2/wiki/Syntax), so to be used with RE2::FullMatch
-    #[serde(default, rename = "matchesPattern")]
-    pub matches_pattern: ::core::option::Option<String>,
+pub struct GoogleCloudRecommenderV1OperationGroup {
+    /// List of operations across one or more resources that belong to this group. Loosely based on RFC6902 and should be performed in the order they appear.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudRecommenderV1Operation>>,
 }
 
 /// Represents an amount of money with its currency type.
@@ -402,4 +359,47 @@ pub struct GoogleTypeMoney {
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
     pub units: ::core::option::Option<String>,
+}
+
+/// Contains an operation for a resource loosely based on the JSON-PATCH format with support for: * Custom filters for describing partial array patch. * Extended path values for describing nested arrays. * Custom fields for describing the resource for which the operation is being described. * Allows extension to custom operations not natively supported by RFC6902. See https://tools.ietf.org/html/rfc6902 for details on the original RFC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1Operation {
+    /// Type of this operation. Contains one of ''add'', ''remove'', ''replace'', ''move'', ''copy'', ''test'' and custom operations. This field is case-insensitive and always populated.
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Path to the target field being operated on. If the operation is at the resource level, then path should be "/". This field is always populated.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Set of filters to apply if path refers to array elements or nested array elements in order to narrow down to a single unique element that is being tested/modified. This is intended to be an exact match per filter. To perform advanced matching, use path_value_matchers. * Example:  { "/versions/*/name" : "it-123" "/versions/*/targetSize/percent": 20 }  * Example:  { "/bindings/*/role": "roles/owner" "/bindings/*/condition" : null }  * Example:  { "/bindings/*/role": "roles/owner" "/bindings/*/members/*" : ["x@example.com", "y@example.com"] }  When both path_filters and path_value_matchers are set, an implicit AND must be performed.
+    #[serde(default, rename = "pathFilters")]
+    pub path_filters: ::core::option::Option<serde_json::Value>,
+    /// Similar to path_filters, this contains set of filters to apply if path field refers to array elements. This is meant to support value matching beyond exact match. To perform exact match, use path_filters. When both path_filters and path_value_matchers are set, an implicit AND must be performed.
+    #[serde(default, rename = "pathValueMatchers")]
+    pub path_value_matchers: ::core::option::Option<serde_json::Value>,
+    /// Contains the fully qualified resource name. This field is always populated. ex: //cloudresourcemanager.googleapis.com/projects/foo.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Type of GCP resource being modified/tested. This field is always populated. Example: cloudresourcemanager.googleapis.com/Project, compute.googleapis.com/Instance
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Can be set with action ''copy'' or ''move'' to indicate the source field within resource or source_resource, ignored if provided for other operation types.
+    #[serde(default, rename = "sourcePath")]
+    pub source_path: ::core::option::Option<String>,
+    /// Can be set with action ''copy'' to copy resource configuration across different resources of the same type. Example: A resource clone can be done via action = ''copy'', path = "/", from = "/", source_resource = and resource_name = . This field is empty for all other values of action.
+    #[serde(default, rename = "sourceResource")]
+    pub source_resource: ::core::option::Option<String>,
+    /// Value for the path field. Will be set for actions:''add''/''replace''. Maybe set for action: ''test''. Either this or value_matcher will be set for ''test'' operation. An exact match must be performed.
+    #[serde(default)]
+    pub value: ::core::option::Option<serde_json::Value>,
+    /// Can be set for action ''test'' for advanced matching for the value of ''path'' field. Either this or value will be set for ''test'' operation.
+    #[serde(default, rename = "valueMatcher")]
+    pub value_matcher: ::core::option::Option<GoogleCloudRecommenderV1ValueMatcher>,
+}
+
+/// Contains various matching options for values for a GCP resource field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1ValueMatcher {
+    /// To be used for full regex matching. The regular expression is using the Google RE2 syntax (https://github.com/google/re2/wiki/Syntax), so to be used with RE2::FullMatch
+    #[serde(default, rename = "matchesPattern")]
+    pub matches_pattern: ::core::option::Option<String>,
 }

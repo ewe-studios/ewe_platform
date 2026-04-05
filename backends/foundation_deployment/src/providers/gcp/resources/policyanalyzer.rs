@@ -10,6 +10,17 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response to the QueryActivity method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
+    /// The set of activities that match the filter included in the request.
+    #[serde(default)]
+    pub activities: ::core::option::Option<::std::vec::Vec<GoogleCloudPolicyanalyzerV1Activity>>,
+    /// If there might be more results than those appearing in this response, then nextPageToken is included. To get the next set of results, call this method again using the value of nextPageToken as pageToken.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// Represents Activity on a GCP resource over specific observation period.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudPolicyanalyzerV1Activity {
@@ -36,15 +47,4 @@ pub struct GoogleCloudPolicyanalyzerV1ObservationPeriod {
     /// The observation start time. The time in this timestamp is always 07:00:00Z.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
-}
-
-/// Response to the QueryActivity method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
-    /// The set of activities that match the filter included in the request.
-    #[serde(default)]
-    pub activities: ::core::option::Option<::std::vec::Vec<GoogleCloudPolicyanalyzerV1Activity>>,
-    /// If there might be more results than those appearing in this response, then nextPageToken is included. To get the next set of results, call this method again using the value of nextPageToken as pageToken.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }

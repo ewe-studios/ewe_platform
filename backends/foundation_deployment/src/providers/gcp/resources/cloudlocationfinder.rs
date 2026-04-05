@@ -10,32 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents resource cloud locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudLocation {
-    /// Optional. The carbon free energy percentage of the cloud location. This represents the average percentage of time customers'' application will be running on carbon-free energy. See https://cloud.google.com/sustainability/region-carbon for more details. There is a difference between default value 0 and unset value. 0 means the carbon free energy percentage is 0%, while unset value means the carbon footprint data is not available.
-    #[serde(default, rename = "carbonFreeEnergyPercentage")]
-    pub carbon_free_energy_percentage: ::core::option::Option<f32>,
-    /// Optional. The type of the cloud location. // TODO: enum values: ["CLOUD_LOCATION_TYPE_UNSPECIFIED", "CLOUD_LOCATION_TYPE_REGION", "CLOUD_LOCATION_TYPE_ZONE", "CLOUD_LOCATION_TYPE_REGION_EXTENSION", "CLOUD_LOCATION_TYPE_GDCC_ZONE"]
-    #[serde(default, rename = "cloudLocationType")]
-    pub cloud_location_type: ::core::option::Option<String>,
-    /// Optional. The provider of the cloud location. Values can be Google Cloud or third-party providers, including AWS, Azure, or Oracle Cloud Infrastructure. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "CLOUD_PROVIDER_GCP", "CLOUD_PROVIDER_AWS", "CLOUD_PROVIDER_AZURE", "CLOUD_PROVIDER_OCI"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. The containing cloud location in the strict nesting hierarchy. For example, the containing cloud location of a zone is a region.
-    #[serde(default, rename = "containingCloudLocation")]
-    pub containing_cloud_location: ::core::option::Option<String>,
-    /// Optional. The human-readable name of the cloud location. Example: us-east-2, us-east1.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Name of the cloud location. Unique name of the cloud location including project and location using the form: projects/{project_id}/locations/{location}/cloudLocations/{cloud_location}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The two-letter ISO 3166-1 alpha-2 code of the cloud location. Examples: US, JP, KR.
-    #[serde(default, rename = "territoryCode")]
-    pub territory_code: ::core::option::Option<String>,
-}
-
 /// Message for response to listing cloud locations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListCloudLocationsResponse {
@@ -54,6 +28,17 @@ pub struct ListLocationsResponse {
     #[serde(default)]
     pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
     /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Message for response to searching cloud locations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchCloudLocationsResponse {
+    /// Output only. List of cloud locations.
+    #[serde(default, rename = "cloudLocations")]
+    pub cloud_locations: ::core::option::Option<::std::vec::Vec<CloudLocation>>,
+    /// Output only. The continuation token, used to page through large result sets. Provide this value in a subsequent request as page_token in subsequent requests to retrieve the next page. If this field is not present, there are no subsequent results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
@@ -78,13 +63,28 @@ pub struct Location {
     pub name: ::core::option::Option<String>,
 }
 
-/// Message for response to searching cloud locations.
+/// Represents resource cloud locations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchCloudLocationsResponse {
-    /// Output only. List of cloud locations.
-    #[serde(default, rename = "cloudLocations")]
-    pub cloud_locations: ::core::option::Option<::std::vec::Vec<CloudLocation>>,
-    /// Output only. The continuation token, used to page through large result sets. Provide this value in a subsequent request as page_token in subsequent requests to retrieve the next page. If this field is not present, there are no subsequent results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+pub struct CloudLocation {
+    /// Optional. The carbon free energy percentage of the cloud location. This represents the average percentage of time customers'' application will be running on carbon-free energy. See https://cloud.google.com/sustainability/region-carbon for more details. There is a difference between default value 0 and unset value. 0 means the carbon free energy percentage is 0%, while unset value means the carbon footprint data is not available.
+    #[serde(default, rename = "carbonFreeEnergyPercentage")]
+    pub carbon_free_energy_percentage: ::core::option::Option<f32>,
+    /// Optional. The type of the cloud location. // TODO: enum values: ["CLOUD_LOCATION_TYPE_UNSPECIFIED", "CLOUD_LOCATION_TYPE_REGION", "CLOUD_LOCATION_TYPE_ZONE", "CLOUD_LOCATION_TYPE_REGION_EXTENSION", "CLOUD_LOCATION_TYPE_GDCC_ZONE"]
+    #[serde(default, rename = "cloudLocationType")]
+    pub cloud_location_type: ::core::option::Option<String>,
+    /// Optional. The provider of the cloud location. Values can be Google Cloud or third-party providers, including AWS, Azure, or Oracle Cloud Infrastructure. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "CLOUD_PROVIDER_GCP", "CLOUD_PROVIDER_AWS", "CLOUD_PROVIDER_AZURE", "CLOUD_PROVIDER_OCI"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. The containing cloud location in the strict nesting hierarchy. For example, the containing cloud location of a zone is a region.
+    #[serde(default, rename = "containingCloudLocation")]
+    pub containing_cloud_location: ::core::option::Option<String>,
+    /// Optional. The human-readable name of the cloud location. Example: us-east-2, us-east1.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Name of the cloud location. Unique name of the cloud location including project and location using the form: projects/{project_id}/locations/{location}/cloudLocations/{cloud_location}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The two-letter ISO 3166-1 alpha-2 code of the cloud location. Examples: US, JP, KR.
+    #[serde(default, rename = "territoryCode")]
+    pub territory_code: ::core::option::Option<String>,
 }

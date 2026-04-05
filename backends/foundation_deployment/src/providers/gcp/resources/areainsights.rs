@@ -10,20 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A circle is defined by a center point and radius in meters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Circle {
-    /// The latitude and longitude of the center of the circle.
-    #[serde(default, rename = "latLng")]
-    pub lat_lng: ::core::option::Option<LatLng>,
-    /// **Format:** Must be in the format places/PLACE_ID, where PLACE_ID is the unique identifier of a place. For example: places/ChIJgUbEo8cfqokR5lP9_Wh_DaM.
-    #[serde(default)]
-    pub place: ::core::option::Option<String>,
-    /// Optional. The radius of the circle in meters
-    #[serde(default)]
-    pub radius: ::core::option::Option<i32>,
-}
-
 /// Request for the ComputeInsights RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComputeInsightsRequest {
@@ -46,14 +32,6 @@ pub struct ComputeInsightsResponse {
     pub place_insights: ::core::option::Option<::std::vec::Vec<PlaceInsight>>,
 }
 
-/// Custom Area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomArea {
-    /// Required. The custom area represented as a polygon
-    #[serde(default)]
-    pub polygon: ::core::option::Option<Polygon>,
-}
-
 /// Filters for the ComputeInsights RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Filter {
@@ -74,15 +52,12 @@ pub struct Filter {
     pub type_filter: ::core::option::Option<TypeFilter>,
 }
 
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+/// Holds information about a place
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+pub struct PlaceInsight {
+    /// The unique identifier of the place. This resource name can be used to retrieve details about the place using the [Places API](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places/get).
     #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
+    pub place: ::core::option::Option<String>,
 }
 
 /// Location filters. Specifies the area of interest for the insight.
@@ -99,22 +74,6 @@ pub struct LocationFilter {
     pub region: ::core::option::Option<Region>,
 }
 
-/// Holds information about a place
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaceInsight {
-    /// The unique identifier of the place. This resource name can be used to retrieve details about the place using the [Places API](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places/get).
-    #[serde(default)]
-    pub place: ::core::option::Option<String>,
-}
-
-/// A polygon is represented by a series of connected coordinates in an counterclockwise ordered sequence. The coordinates form a closed loop and define a filled region. The first and last coordinates are equivalent, and they must contain identical values. The format is a simplified version of GeoJSON polygons (we only support one counterclockwise exterior ring).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Polygon {
-    /// Optional. The coordinates that define the polygon.
-    #[serde(default)]
-    pub coordinates: ::core::option::Option<::std::vec::Vec<LatLng>>,
-}
-
 /// Average user rating filters.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RatingFilter {
@@ -124,14 +83,6 @@ pub struct RatingFilter {
     /// Optional. Restricts results to places whose average user rating is greater than or equal to min_rating. Values must be between 1.0 and 5.0.
     #[serde(default, rename = "minRating")]
     pub min_rating: ::core::option::Option<f32>,
-}
-
-/// A region is a geographic boundary such as: cities, postal codes, counties, states, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Region {
-    /// The [place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of the geographic region. Not all region types are supported; see documentation for details. **Format:** Must be in the format places/PLACE_ID, where PLACE_ID is the unique identifier of a place. For example: places/ChIJPV4oX_65j4ARVW8IJ6IJUYs.
-    #[serde(default)]
-    pub place: ::core::option::Option<String>,
 }
 
 /// Place type filters. Only Place types from [Table a](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) are supported. A place can only have a single primary type associated with it. For example, the primary type might be "mexican_restaurant" or "steak_house". Use included_primary_types and excluded_primary_types to filter the results on a place''s primary type. A place can also have multiple type values associated with it. For example a restaurant might have the following types: "seafood_restaurant", "restaurant", "food", "point_of_interest", "establishment". Use included_types and excluded_types to filter the results on the list of types associated with a place. If a search is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if you specify {"included_types": ["restaurant"], "excluded_primary_types": ["steak_house"]}, the returned places provide "restaurant" related services but do not operate primarily as a "steak_house". If there are any conflicting types, i.e. a type appears in both included_types and excluded_types types or included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. One of included_types or included_primary_types must be set.
@@ -149,4 +100,53 @@ pub struct TypeFilter {
     /// Optional. Included Place types.
     #[serde(default, rename = "includedTypes")]
     pub included_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A circle is defined by a center point and radius in meters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Circle {
+    /// The latitude and longitude of the center of the circle.
+    #[serde(default, rename = "latLng")]
+    pub lat_lng: ::core::option::Option<LatLng>,
+    /// **Format:** Must be in the format places/PLACE_ID, where PLACE_ID is the unique identifier of a place. For example: places/ChIJgUbEo8cfqokR5lP9_Wh_DaM.
+    #[serde(default)]
+    pub place: ::core::option::Option<String>,
+    /// Optional. The radius of the circle in meters
+    #[serde(default)]
+    pub radius: ::core::option::Option<i32>,
+}
+
+/// Custom Area.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomArea {
+    /// Required. The custom area represented as a polygon
+    #[serde(default)]
+    pub polygon: ::core::option::Option<Polygon>,
+}
+
+/// A region is a geographic boundary such as: cities, postal codes, counties, states, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Region {
+    /// The [place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of the geographic region. Not all region types are supported; see documentation for details. **Format:** Must be in the format places/PLACE_ID, where PLACE_ID is the unique identifier of a place. For example: places/ChIJPV4oX_65j4ARVW8IJ6IJUYs.
+    #[serde(default)]
+    pub place: ::core::option::Option<String>,
+}
+
+/// A polygon is represented by a series of connected coordinates in an counterclockwise ordered sequence. The coordinates form a closed loop and define a filled region. The first and last coordinates are equivalent, and they must contain identical values. The format is a simplified version of GeoJSON polygons (we only support one counterclockwise exterior ring).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Polygon {
+    /// Optional. The coordinates that define the polygon.
+    #[serde(default)]
+    pub coordinates: ::core::option::Option<::std::vec::Vec<LatLng>>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
 }

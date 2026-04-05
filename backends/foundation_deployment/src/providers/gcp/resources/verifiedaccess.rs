@@ -10,14 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Antivirus information on a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Antivirus {
-    /// Output only. The state of the antivirus on the device. Introduced in Chrome M136. // TODO: enum values: ["STATE_UNSPECIFIED", "MISSING", "DISABLED", "ENABLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Result message for VerifiedAccess.GenerateChallenge.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Challenge {
@@ -26,15 +18,59 @@ pub struct Challenge {
     pub challenge: ::core::option::Option<String>,
 }
 
-/// Properties of the CrowdStrike agent installed on a device.
+/// Signed ChallengeResponse.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CrowdStrikeAgent {
-    /// Output only. The Agent ID of the Crowdstrike agent.
-    #[serde(default, rename = "agentId")]
-    pub agent_id: ::core::option::Option<String>,
-    /// Output only. The Customer ID to which the agent belongs to.
+pub struct VerifyChallengeResponseRequest {
+    /// Required. The generated response to the challenge, the bytes representation of SignedData.
+    #[serde(default, rename = "challengeResponse")]
+    pub challenge_response: ::core::option::Option<String>,
+    /// Optional. Service can optionally provide identity information about the device or user associated with the key. For an EMK, this value is the enrolled domain. For an EUK, this value is the user''s email address. If present, this value will be checked against contents of the response, and verification will fail if there is no match.
+    #[serde(default, rename = "expectedIdentity")]
+    pub expected_identity: ::core::option::Option<String>,
+}
+
+/// Result message for VerifiedAccess.VerifyChallengeResponse. The response returned when successful for Managed profiles on Unmanaged browsers will NOT have devicePermanentId, keyTrustLevel, virtualDeviceId and customerId fields. Managed profiles will INSTEAD have the profileCustomerId, virtualProfileId, profilePermanentId and profileKeyTrustLevel fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyChallengeResponseResult {
+    /// Output only. Attested device ID (ADID).
+    #[serde(default, rename = "attestedDeviceId")]
+    pub attested_device_id: ::core::option::Option<String>,
+    /// Output only. Unique customer id that this device belongs to, as defined by the Google Admin SDK at https://developers.google.com/admin-sdk/directory/v1/guides/manage-customers
     #[serde(default, rename = "customerId")]
     pub customer_id: ::core::option::Option<String>,
+    /// Output only. Device enrollment id for ChromeOS devices.
+    #[serde(default, rename = "deviceEnrollmentId")]
+    pub device_enrollment_id: ::core::option::Option<String>,
+    /// Output only. Device permanent id is returned in this field (for the machine response only).
+    #[serde(default, rename = "devicePermanentId")]
+    pub device_permanent_id: ::core::option::Option<String>,
+    /// Output only. Deprecated. Device signal in json string representation. Prefer using device_signals instead.
+    #[serde(default, rename = "deviceSignal")]
+    pub device_signal: ::core::option::Option<String>,
+    /// Output only. Device signals.
+    #[serde(default, rename = "deviceSignals")]
+    pub device_signals: ::core::option::Option<DeviceSignals>,
+    /// Output only. Device attested key trust level. // TODO: enum values: ["KEY_TRUST_LEVEL_UNSPECIFIED", "CHROME_OS_VERIFIED_MODE", "CHROME_OS_DEVELOPER_MODE", "CHROME_BROWSER_HW_KEY", "CHROME_BROWSER_OS_KEY", "CHROME_BROWSER_NO_KEY", "CHROME_OS_NO_KEY"]
+    #[serde(default, rename = "keyTrustLevel")]
+    pub key_trust_level: ::core::option::Option<String>,
+    /// Output only. Unique customer id that this profile belongs to, as defined by the Google Admin SDK at https://developers.google.com/admin-sdk/directory/v1/guides/manage-customers
+    #[serde(default, rename = "profileCustomerId")]
+    pub profile_customer_id: ::core::option::Option<String>,
+    /// Output only. Profile attested key trust level. // TODO: enum values: ["KEY_TRUST_LEVEL_UNSPECIFIED", "CHROME_OS_VERIFIED_MODE", "CHROME_OS_DEVELOPER_MODE", "CHROME_BROWSER_HW_KEY", "CHROME_BROWSER_OS_KEY", "CHROME_BROWSER_NO_KEY", "CHROME_OS_NO_KEY"]
+    #[serde(default, rename = "profileKeyTrustLevel")]
+    pub profile_key_trust_level: ::core::option::Option<String>,
+    /// Output only. The unique server-side ID of a profile on the device.
+    #[serde(default, rename = "profilePermanentId")]
+    pub profile_permanent_id: ::core::option::Option<String>,
+    /// Output only. Certificate Signing Request (in the SPKAC format, base64 encoded) is returned in this field. This field will be set only if device has included CSR in its challenge response. (the option to include CSR is now available for both user and machine responses)
+    #[serde(default, rename = "signedPublicKeyAndChallenge")]
+    pub signed_public_key_and_challenge: ::core::option::Option<String>,
+    /// Output only. Virtual device id of the device. The definition of virtual device id is platform-specific.
+    #[serde(default, rename = "virtualDeviceId")]
+    pub virtual_device_id: ::core::option::Option<String>,
+    /// Output only. The client-provided ID of a profile on the device.
+    #[serde(default, rename = "virtualProfileId")]
+    pub virtual_profile_id: ::core::option::Option<String>,
 }
 
 /// The device signals as reported by Chrome. Unless otherwise specified, signals are available on all platforms.
@@ -141,57 +177,21 @@ pub struct DeviceSignals {
     pub windows_user_domain: ::core::option::Option<String>,
 }
 
-/// Signed ChallengeResponse.
+/// Antivirus information on a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyChallengeResponseRequest {
-    /// Required. The generated response to the challenge, the bytes representation of SignedData.
-    #[serde(default, rename = "challengeResponse")]
-    pub challenge_response: ::core::option::Option<String>,
-    /// Optional. Service can optionally provide identity information about the device or user associated with the key. For an EMK, this value is the enrolled domain. For an EUK, this value is the user''s email address. If present, this value will be checked against contents of the response, and verification will fail if there is no match.
-    #[serde(default, rename = "expectedIdentity")]
-    pub expected_identity: ::core::option::Option<String>,
+pub struct Antivirus {
+    /// Output only. The state of the antivirus on the device. Introduced in Chrome M136. // TODO: enum values: ["STATE_UNSPECIFIED", "MISSING", "DISABLED", "ENABLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
 }
 
-/// Result message for VerifiedAccess.VerifyChallengeResponse. The response returned when successful for Managed profiles on Unmanaged browsers will NOT have devicePermanentId, keyTrustLevel, virtualDeviceId and customerId fields. Managed profiles will INSTEAD have the profileCustomerId, virtualProfileId, profilePermanentId and profileKeyTrustLevel fields.
+/// Properties of the CrowdStrike agent installed on a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyChallengeResponseResult {
-    /// Output only. Attested device ID (ADID).
-    #[serde(default, rename = "attestedDeviceId")]
-    pub attested_device_id: ::core::option::Option<String>,
-    /// Output only. Unique customer id that this device belongs to, as defined by the Google Admin SDK at https://developers.google.com/admin-sdk/directory/v1/guides/manage-customers
+pub struct CrowdStrikeAgent {
+    /// Output only. The Agent ID of the Crowdstrike agent.
+    #[serde(default, rename = "agentId")]
+    pub agent_id: ::core::option::Option<String>,
+    /// Output only. The Customer ID to which the agent belongs to.
     #[serde(default, rename = "customerId")]
     pub customer_id: ::core::option::Option<String>,
-    /// Output only. Device enrollment id for ChromeOS devices.
-    #[serde(default, rename = "deviceEnrollmentId")]
-    pub device_enrollment_id: ::core::option::Option<String>,
-    /// Output only. Device permanent id is returned in this field (for the machine response only).
-    #[serde(default, rename = "devicePermanentId")]
-    pub device_permanent_id: ::core::option::Option<String>,
-    /// Output only. Deprecated. Device signal in json string representation. Prefer using device_signals instead.
-    #[serde(default, rename = "deviceSignal")]
-    pub device_signal: ::core::option::Option<String>,
-    /// Output only. Device signals.
-    #[serde(default, rename = "deviceSignals")]
-    pub device_signals: ::core::option::Option<DeviceSignals>,
-    /// Output only. Device attested key trust level. // TODO: enum values: ["KEY_TRUST_LEVEL_UNSPECIFIED", "CHROME_OS_VERIFIED_MODE", "CHROME_OS_DEVELOPER_MODE", "CHROME_BROWSER_HW_KEY", "CHROME_BROWSER_OS_KEY", "CHROME_BROWSER_NO_KEY", "CHROME_OS_NO_KEY"]
-    #[serde(default, rename = "keyTrustLevel")]
-    pub key_trust_level: ::core::option::Option<String>,
-    /// Output only. Unique customer id that this profile belongs to, as defined by the Google Admin SDK at https://developers.google.com/admin-sdk/directory/v1/guides/manage-customers
-    #[serde(default, rename = "profileCustomerId")]
-    pub profile_customer_id: ::core::option::Option<String>,
-    /// Output only. Profile attested key trust level. // TODO: enum values: ["KEY_TRUST_LEVEL_UNSPECIFIED", "CHROME_OS_VERIFIED_MODE", "CHROME_OS_DEVELOPER_MODE", "CHROME_BROWSER_HW_KEY", "CHROME_BROWSER_OS_KEY", "CHROME_BROWSER_NO_KEY", "CHROME_OS_NO_KEY"]
-    #[serde(default, rename = "profileKeyTrustLevel")]
-    pub profile_key_trust_level: ::core::option::Option<String>,
-    /// Output only. The unique server-side ID of a profile on the device.
-    #[serde(default, rename = "profilePermanentId")]
-    pub profile_permanent_id: ::core::option::Option<String>,
-    /// Output only. Certificate Signing Request (in the SPKAC format, base64 encoded) is returned in this field. This field will be set only if device has included CSR in its challenge response. (the option to include CSR is now available for both user and machine responses)
-    #[serde(default, rename = "signedPublicKeyAndChallenge")]
-    pub signed_public_key_and_challenge: ::core::option::Option<String>,
-    /// Output only. Virtual device id of the device. The definition of virtual device id is platform-specific.
-    #[serde(default, rename = "virtualDeviceId")]
-    pub virtual_device_id: ::core::option::Option<String>,
-    /// Output only. The client-provided ID of a profile on the device.
-    #[serde(default, rename = "virtualProfileId")]
-    pub virtual_profile_id: ::core::option::Option<String>,
 }

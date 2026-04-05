@@ -25,47 +25,6 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
     pub name: ::core::option::Option<String>,
 }
 
-/// Defines how Lineage should be ingested for a given resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
-    /// Optional. List of rules for Data Lineage ingestion.
-    #[serde(default)]
-    pub rules: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule,
-        >,
-    >,
-}
-
-/// Ingestion rule for Data Lineage ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule {
-    /// Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
-    #[serde(default, rename = "integrationSelector")]
-    pub integration_selector: ::core::option::Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector>,
-    /// Required. Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children. If unspecified, the ingestion will be enabled only if it was configured in the resource''s parent.
-    #[serde(default, rename = "lineageEnablement")]
-    pub lineage_enablement: ::core::option::Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement>,
-}
-
-/// Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector
-{
-    /// Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied. // TODO: enum values: ["INTEGRATION_UNSPECIFIED", "DATAPROC", "LOOKER_CORE"]
-    #[serde(default)]
-    pub integration: ::core::option::Option<String>,
-}
-
-/// Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement
-{
-    /// Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
 /// Request message for BatchSearchLinkProcesses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest {
@@ -90,62 +49,6 @@ pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
     #[serde(default, rename = "processLinks")]
     pub process_links:
         ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogLineageV1ProcessLinks>>,
-}
-
-/// The soft reference to everything you can attach a lineage event to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1EntityReference {
-    /// Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.
-    #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: ::core::option::Option<String>,
-}
-
-/// A lineage between source and target entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1EventLink {
-    /// Required. Reference to the source entity
-    #[serde(default)]
-    pub source: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
-    /// Required. Reference to the target entity
-    #[serde(default)]
-    pub target: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
-}
-
-/// A lineage event represents an operation on assets. Within the operation, the data flows from the source to the target defined in the links field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
-    /// Optional. The end of the transformation which resulted in this lineage event. For streaming scenarios, it should be the end of the period from which the lineage is being reported.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. List of source-target pairs. Can''t contain more than 100 tuples.
-    #[serde(default)]
-    pub links: ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogLineageV1EventLink>>,
-    /// Immutable. The resource name of the lineage event. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}/lineageEvents/{lineage_event}. Can be specified or auto-assigned. {lineage_event} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The beginning of the transformation which resulted in this lineage event. For streaming scenarios, it should be the beginning of the period from which the lineage is being reported.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Links represent the data flow between **source** (upstream) and **target** (downstream) assets in transformation pipelines. Links are created when LineageEvents record data transformation between related assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1Link {
-    /// The end of the last event establishing this link.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Immutable. The name of the link. Format: projects/{project}/locations/{location}/links/{link}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The pointer to the entity that is the **source** of this link.
-    #[serde(default)]
-    pub source: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
-    /// The start of the first event establishing this link.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The pointer to the entity that is the **target** of this link.
-    #[serde(default)]
-    pub target: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
 }
 
 /// Response message for ListLineageEvents.
@@ -205,60 +108,6 @@ pub struct GoogleCloudDatacatalogLineageV1OperationMetadata {
     pub state: ::core::option::Option<String>,
 }
 
-/// Origin of a process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1Origin {
-    /// If the source_type isn''t CUSTOM, the value of this field should be a Google Cloud resource name of the system, which reports lineage. The project and location parts of the resource name must match the project and location of the lineage resource being created. Examples: - {source_type: COMPOSER, name: "projects/foo/locations/us/environments/bar"} - {source_type: BIGQUERY, name: "projects/foo/locations/eu"} - {source_type: CUSTOM, name: "myCustomIntegration"}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Type of the source. Use of a source_type other than CUSTOM for process creation or updating is highly discouraged. It might be restricted in the future without notice. There will be increase in cost if you use any of the source types other than CUSTOM. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "CUSTOM", "BIGQUERY", "DATA_FUSION", "COMPOSER", "LOOKER_STUDIO", "DATAPROC", "VERTEX_AI", "LOOKER_CORE"]
-    #[serde(default, rename = "sourceType")]
-    pub source_type: ::core::option::Option<String>,
-}
-
-/// A process is the definition of a data transformation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1Process {
-    /// Optional. The attributes of the process. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the process). Up to 100 attributes are allowed.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 200 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Immutable. The resource name of the lineage process. Format: projects/{project}/locations/{location}/processes/{process}. Can be specified or auto-assigned. {process} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The origin of this process and its runs and lineage events.
-    #[serde(default)]
-    pub origin: ::core::option::Option<GoogleCloudDatacatalogLineageV1Origin>,
-}
-
-/// Link details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
-    /// The end of the last event establishing this link-process tuple.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The name of the link in the format of projects/{project}/locations/{location}/links/{link}.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// The start of the first event establishing this link-process tuple.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Links associated with a specific process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
-    /// An array containing link details objects of the links provided in the original request. A single process can result in creating multiple links. If any of the links you provide in the request are created by the same process, they all are included in this array.
-    #[serde(default)]
-    pub links:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogLineageV1ProcessLinkInfo>>,
-    /// The process name in the format of projects/{project}/locations/{location}/processes/{process}.
-    #[serde(default)]
-    pub process: ::core::option::Option<String>,
-}
-
 /// Response message for ProcessOpenLineageRunEvent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
@@ -271,29 +120,6 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
     /// Created run name. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}.
     #[serde(default)]
     pub run: ::core::option::Option<String>,
-}
-
-/// A lineage run represents an execution of a process that creates lineage events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDatacatalogLineageV1Run {
-    /// Optional. The attributes of the run. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the run). Up to 100 attributes are allowed.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 1024 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The timestamp of the end of the run.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Immutable. The resource name of the run. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}. Can be specified or auto-assigned. {run} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The timestamp of the start of the run.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The state of the run. // TODO: enum values: ["UNKNOWN", "STARTED", "COMPLETED", "FAILED", "ABORTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for SearchLinks.
@@ -338,6 +164,107 @@ pub struct GoogleLongrunningListOperationsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Defines how Lineage should be ingested for a given resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
+    /// Optional. List of rules for Data Lineage ingestion.
+    #[serde(default)]
+    pub rules: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule,
+        >,
+    >,
+}
+
+/// Links associated with a specific process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
+    /// An array containing link details objects of the links provided in the original request. A single process can result in creating multiple links. If any of the links you provide in the request are created by the same process, they all are included in this array.
+    #[serde(default)]
+    pub links:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogLineageV1ProcessLinkInfo>>,
+    /// The process name in the format of projects/{project}/locations/{location}/processes/{process}.
+    #[serde(default)]
+    pub process: ::core::option::Option<String>,
+}
+
+/// A lineage event represents an operation on assets. Within the operation, the data flows from the source to the target defined in the links field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
+    /// Optional. The end of the transformation which resulted in this lineage event. For streaming scenarios, it should be the end of the period from which the lineage is being reported.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. List of source-target pairs. Can''t contain more than 100 tuples.
+    #[serde(default)]
+    pub links: ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogLineageV1EventLink>>,
+    /// Immutable. The resource name of the lineage event. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}/lineageEvents/{lineage_event}. Can be specified or auto-assigned. {lineage_event} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The beginning of the transformation which resulted in this lineage event. For streaming scenarios, it should be the beginning of the period from which the lineage is being reported.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// A process is the definition of a data transformation operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1Process {
+    /// Optional. The attributes of the process. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the process). Up to 100 attributes are allowed.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 200 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Immutable. The resource name of the lineage process. Format: projects/{project}/locations/{location}/processes/{process}. Can be specified or auto-assigned. {process} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The origin of this process and its runs and lineage events.
+    #[serde(default)]
+    pub origin: ::core::option::Option<GoogleCloudDatacatalogLineageV1Origin>,
+}
+
+/// A lineage run represents an execution of a process that creates lineage events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1Run {
+    /// Optional. The attributes of the run. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the run). Up to 100 attributes are allowed.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 1024 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The timestamp of the end of the run.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Immutable. The resource name of the run. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}. Can be specified or auto-assigned. {run} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The timestamp of the start of the run.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. The state of the run. // TODO: enum values: ["UNKNOWN", "STARTED", "COMPLETED", "FAILED", "ABORTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Links represent the data flow between **source** (upstream) and **target** (downstream) assets in transformation pipelines. Links are created when LineageEvents record data transformation between related assets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1Link {
+    /// The end of the last event establishing this link.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Immutable. The name of the link. Format: projects/{project}/locations/{location}/links/{link}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The pointer to the entity that is the **source** of this link.
+    #[serde(default)]
+    pub source: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    /// The start of the first event establishing this link.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The pointer to the entity that is the **target** of this link.
+    #[serde(default)]
+    pub target: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+}
+
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningOperation {
@@ -358,6 +285,53 @@ pub struct GoogleLongrunningOperation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
+/// Ingestion rule for Data Lineage ingestion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule {
+    /// Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
+    #[serde(default, rename = "integrationSelector")]
+    pub integration_selector: ::core::option::Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector>,
+    /// Required. Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children. If unspecified, the ingestion will be enabled only if it was configured in the resource''s parent.
+    #[serde(default, rename = "lineageEnablement")]
+    pub lineage_enablement: ::core::option::Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement>,
+}
+
+/// Link details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
+    /// The end of the last event establishing this link-process tuple.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The name of the link in the format of projects/{project}/locations/{location}/links/{link}.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// The start of the first event establishing this link-process tuple.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// A lineage between source and target entities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1EventLink {
+    /// Required. Reference to the source entity
+    #[serde(default)]
+    pub source: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    /// Required. Reference to the target entity
+    #[serde(default)]
+    pub target: ::core::option::Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+}
+
+/// Origin of a process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1Origin {
+    /// If the source_type isn''t CUSTOM, the value of this field should be a Google Cloud resource name of the system, which reports lineage. The project and location parts of the resource name must match the project and location of the lineage resource being created. Examples: - {source_type: COMPOSER, name: "projects/foo/locations/us/environments/bar"} - {source_type: BIGQUERY, name: "projects/foo/locations/eu"} - {source_type: CUSTOM, name: "myCustomIntegration"}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Type of the source. Use of a source_type other than CUSTOM for process creation or updating is highly discouraged. It might be restricted in the future without notice. There will be increase in cost if you use any of the source types other than CUSTOM. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "CUSTOM", "BIGQUERY", "DATA_FUSION", "COMPOSER", "LOOKER_STUDIO", "DATAPROC", "VERTEX_AI", "LOOKER_CORE"]
+    #[serde(default, rename = "sourceType")]
+    pub source_type: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleRpcStatus {
@@ -370,4 +344,30 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector
+{
+    /// Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied. // TODO: enum values: ["INTEGRATION_UNSPECIFIED", "DATAPROC", "LOOKER_CORE"]
+    #[serde(default)]
+    pub integration: ::core::option::Option<String>,
+}
+
+/// Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement
+{
+    /// Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// The soft reference to everything you can attach a lineage event to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogLineageV1EntityReference {
+    /// Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.
+    #[serde(default, rename = "fullyQualifiedName")]
+    pub fully_qualified_name: ::core::option::Option<String>,
 }

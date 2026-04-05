@@ -26,6 +26,14 @@ pub struct CreateOrUpdateTagsResponse {
     pub tags: ::core::option::Option<::std::vec::Vec<Tag>>,
 }
 
+/// Request message for VerifyToken.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyTokenRequest {
+    /// Required. Persona represented by the token. Format: personas/{persona}
+    #[serde(default)]
+    pub persona: ::core::option::Option<String>,
+}
+
 /// A tag is associated with exactly one package name and user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
@@ -44,12 +52,4 @@ pub struct Tag {
     /// A time value of the tag.
     #[serde(default, rename = "timeValue")]
     pub time_value: ::core::option::Option<String>,
-}
-
-/// Request message for VerifyToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyTokenRequest {
-    /// Required. Persona represented by the token. Format: personas/{persona}
-    #[serde(default)]
-    pub persona: ::core::option::Option<String>,
 }

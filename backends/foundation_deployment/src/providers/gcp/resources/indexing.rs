@@ -18,20 +18,6 @@ pub struct PublishUrlNotificationResponse {
     pub url_notification_metadata: ::core::option::Option<UrlNotificationMetadata>,
 }
 
-/// UrlNotification is the resource used in all Indexing API calls. It describes one event in the life cycle of a Web Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UrlNotification {
-    /// Creation timestamp for this notification. Users should _not_ specify it, the field is ignored at the request time.
-    #[serde(default, rename = "notifyTime")]
-    pub notify_time: ::core::option::Option<String>,
-    /// The URL life cycle event that Google is being notified about. // TODO: enum values: ["URL_NOTIFICATION_TYPE_UNSPECIFIED", "URL_UPDATED", "URL_DELETED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The object of this notification. The URL must be owned by the publisher of this notification and, in case of URL_UPDATED notifications, it _must_ be crawlable by Google.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
 /// Summary of the most recent Indexing API notifications successfully received, for a given URL.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UrlNotificationMetadata {
@@ -42,6 +28,20 @@ pub struct UrlNotificationMetadata {
     #[serde(default, rename = "latestUpdate")]
     pub latest_update: ::core::option::Option<UrlNotification>,
     /// URL to which this metadata refers.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// UrlNotification is the resource used in all Indexing API calls. It describes one event in the life cycle of a Web Document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UrlNotification {
+    /// Creation timestamp for this notification. Users should _not_ specify it, the field is ignored at the request time.
+    #[serde(default, rename = "notifyTime")]
+    pub notify_time: ::core::option::Option<String>,
+    /// The URL life cycle event that Google is being notified about. // TODO: enum values: ["URL_NOTIFICATION_TYPE_UNSPECIFIED", "URL_UPDATED", "URL_DELETED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The object of this notification. The URL must be owned by the publisher of this notification and, in case of URL_UPDATED notifications, it _must_ be crawlable by Google.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
 }

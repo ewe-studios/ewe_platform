@@ -10,6 +10,71 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for QuestionsAndAnswers.ListAnswers
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAnswersResponse {
+    /// The requested answers.
+    #[serde(default)]
+    pub answers: ::core::option::Option<::std::vec::Vec<Answer>>,
+    /// If the number of answers exceeds the requested max page size, this field is populated with a token to fetch the next page of answers on a subsequent call. If there are no more answers, this field is not present in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The total number of answers posted for this question across all pages.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Response message for QuestionsAndAnswers.ListQuestions
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListQuestionsResponse {
+    /// If the number of questions exceeds the requested max page size, this field is populated with a token to fetch the next page of questions on a subsequent call. If there are no more questions, this field is not present in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The requested questions,
+    #[serde(default)]
+    pub questions: ::core::option::Option<::std::vec::Vec<Question>>,
+    /// The total number of questions posted for this location across all pages.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Request message for QuestionsAndAnswers.UpsertAnswer
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpsertAnswerRequest {
+    /// Required. The new answer.
+    #[serde(default)]
+    pub answer: ::core::option::Option<Answer>,
+}
+
+/// Represents a single question and some of its answers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Question {
+    /// Output only. The author of the question.
+    #[serde(default)]
+    pub author: ::core::option::Option<Author>,
+    /// Output only. The timestamp for when the question was written.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Immutable. The unique name for the question. locations/*/questions/* This field will be ignored if set during question creation.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The text of the question. It should contain at least three words and the total length should be greater than or equal to 10 characters. The maximum length is 4096 characters.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Output only. A list of answers to the question, sorted by upvotes. This may not be a complete list of answers depending on the request parameters (answers_per_question)
+    #[serde(default, rename = "topAnswers")]
+    pub top_answers: ::core::option::Option<::std::vec::Vec<Answer>>,
+    /// Output only. The total number of answers posted for this question.
+    #[serde(default, rename = "totalAnswerCount")]
+    pub total_answer_count: ::core::option::Option<i32>,
+    /// Output only. The timestamp for when the question was last modified.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. The number of upvotes for the question.
+    #[serde(default, rename = "upvoteCount")]
+    pub upvote_count: ::core::option::Option<i32>,
+}
+
 /// Represents an answer to a question
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Answer {
@@ -45,69 +110,4 @@ pub struct Author {
     /// The type of user the author is. // TODO: enum values: ["AUTHOR_TYPE_UNSPECIFIED", "REGULAR_USER", "LOCAL_GUIDE", "MERCHANT"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-}
-
-/// Response message for QuestionsAndAnswers.ListAnswers
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAnswersResponse {
-    /// The requested answers.
-    #[serde(default)]
-    pub answers: ::core::option::Option<::std::vec::Vec<Answer>>,
-    /// If the number of answers exceeds the requested max page size, this field is populated with a token to fetch the next page of answers on a subsequent call. If there are no more answers, this field is not present in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The total number of answers posted for this question across all pages.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Response message for QuestionsAndAnswers.ListQuestions
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListQuestionsResponse {
-    /// If the number of questions exceeds the requested max page size, this field is populated with a token to fetch the next page of questions on a subsequent call. If there are no more questions, this field is not present in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The requested questions,
-    #[serde(default)]
-    pub questions: ::core::option::Option<::std::vec::Vec<Question>>,
-    /// The total number of questions posted for this location across all pages.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Represents a single question and some of its answers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Question {
-    /// Output only. The author of the question.
-    #[serde(default)]
-    pub author: ::core::option::Option<Author>,
-    /// Output only. The timestamp for when the question was written.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Immutable. The unique name for the question. locations/*/questions/* This field will be ignored if set during question creation.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The text of the question. It should contain at least three words and the total length should be greater than or equal to 10 characters. The maximum length is 4096 characters.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Output only. A list of answers to the question, sorted by upvotes. This may not be a complete list of answers depending on the request parameters (answers_per_question)
-    #[serde(default, rename = "topAnswers")]
-    pub top_answers: ::core::option::Option<::std::vec::Vec<Answer>>,
-    /// Output only. The total number of answers posted for this question.
-    #[serde(default, rename = "totalAnswerCount")]
-    pub total_answer_count: ::core::option::Option<i32>,
-    /// Output only. The timestamp for when the question was last modified.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. The number of upvotes for the question.
-    #[serde(default, rename = "upvoteCount")]
-    pub upvote_count: ::core::option::Option<i32>,
-}
-
-/// Request message for QuestionsAndAnswers.UpsertAnswer
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpsertAnswerRequest {
-    /// Required. The new answer.
-    #[serde(default)]
-    pub answer: ::core::option::Option<Answer>,
 }

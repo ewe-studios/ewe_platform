@@ -10,23 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A single entitlement for a publication reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entitlement {
-    /// The detail field can carry a description of the SKU that corresponds to what the user has been granted access to. This description, which is opaque to Google, can be displayed in the Google user subscription console for users who linked the subscription to a Google Account. Max 80 character limit.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// Required. Expiration time of the entitlement. Entitlements that have expired over 30 days will be purged. The max expire_time is 398 days from now().
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Required. The publication''s product ID that the user has access to. This is the same product ID as can be found in Schema.org markup (http://schema.org/productID). E.g. "dailybugle.com:basic"
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// A source-specific subscription token. This is an opaque string that the publisher provides to Google. This token is opaque and has no meaning to Google.
-    #[serde(default, rename = "subscriptionToken")]
-    pub subscription_token: ::core::option::Option<String>,
-}
-
 /// A reader of a publication.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reader {
@@ -56,4 +39,21 @@ pub struct ReaderEntitlements {
     /// Output only. The resource name of the singleton.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// A single entitlement for a publication reader
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entitlement {
+    /// The detail field can carry a description of the SKU that corresponds to what the user has been granted access to. This description, which is opaque to Google, can be displayed in the Google user subscription console for users who linked the subscription to a Google Account. Max 80 character limit.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// Required. Expiration time of the entitlement. Entitlements that have expired over 30 days will be purged. The max expire_time is 398 days from now().
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Required. The publication''s product ID that the user has access to. This is the same product ID as can be found in Schema.org markup (http://schema.org/productID). E.g. "dailybugle.com:basic"
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// A source-specific subscription token. This is an opaque string that the publisher provides to Google. This token is opaque and has no meaning to Google.
+    #[serde(default, rename = "subscriptionToken")]
+    pub subscription_token: ::core::option::Option<String>,
 }

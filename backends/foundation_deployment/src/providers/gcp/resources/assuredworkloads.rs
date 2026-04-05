@@ -66,21 +66,6 @@ pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateResponse {
     pub applied_update: ::core::option::Option<GoogleCloudAssuredworkloadsV1WorkloadUpdate>,
 }
 
-/// Represents move analysis results for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
-    /// List of eligible analyses performed for the asset.
-    #[serde(default, rename = "analysisGroups")]
-    pub analysis_groups:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveAnalysisGroup>>,
-    /// The full resource name of the asset being analyzed. Example: //compute.googleapis.com/projects/my_project_123/zones/zone1/instances/instance1
-    #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-    /// Type of the asset being analyzed. Possible values will be among the ones listed [here](https://cloud.google.com/asset-inventory/docs/supported-asset-types).
-    #[serde(default, rename = "assetType")]
-    pub asset_type: ::core::option::Option<String>,
-}
-
 /// Operation metadata to give request details of CreateWorkload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata {
@@ -132,39 +117,6 @@ pub struct GoogleCloudAssuredworkloadsV1ListWorkloadsResponse {
     pub workloads: ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1Workload>>,
 }
 
-/// Represents a logical group of checks performed for an asset. If successful, the group contains the analysis result, otherwise it contains an error with the failure reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
-    /// Result of a successful analysis.
-    #[serde(default, rename = "analysisResult")]
-    pub analysis_result: ::core::option::Option<GoogleCloudAssuredworkloadsV1MoveAnalysisResult>,
-    /// Name of the analysis group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Error details for a failed analysis.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// Represents the successful move analysis results for a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
-    /// List of blockers. If not resolved, these will result in compliance violations in the target.
-    #[serde(default)]
-    pub blockers: ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
-    /// List of warnings. These are risks that may or may not result in compliance violations.
-    #[serde(default)]
-    pub warnings: ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
-}
-
-/// Represents the impact of moving the asset to the target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1MoveImpact {
-    /// Explanation of the impact.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-}
-
 /// Request for updating permission settings for a partner workload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest {
@@ -180,44 +132,6 @@ pub struct GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// This assured workload service object is used to represent the org policy attached to a resource. It servces the same purpose as the orgpolicy.v2.Policy object but with functionality that is limited to what is supported by Assured Workloads(e.g. only one rule under one OrgPolicy object, no conditions, etc).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicy {
-    /// The constraint name of the OrgPolicy. e.g. "constraints/gcp.resourceLocations".
-    #[serde(default)]
-    pub constraint: ::core::option::Option<String>,
-    /// If inherit is true, policy rules of the lowest ancestor in the resource hierarchy chain are inherited. If it is false, policy rules are not inherited.
-    #[serde(default)]
-    pub inherit: ::core::option::Option<bool>,
-    /// Ignores policies set above this resource and restores to the constraint_default value. reset can only be true when rules is empty and inherit is false.
-    #[serde(default)]
-    pub reset: ::core::option::Option<bool>,
-    /// Resource that the OrgPolicy attaches to. Format: folders/123" projects/123".
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The rule of the OrgPolicy.
-    #[serde(default)]
-    pub rule: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule>,
-}
-
-/// A rule used to express this policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
-    /// ListPolicy only when all values are allowed.
-    #[serde(default, rename = "allowAll")]
-    pub allow_all: ::core::option::Option<bool>,
-    /// ListPolicy only when all values are denied.
-    #[serde(default, rename = "denyAll")]
-    pub deny_all: ::core::option::Option<bool>,
-    /// BooleanPolicy only.
-    #[serde(default)]
-    pub enforce: ::core::option::Option<bool>,
-    /// ListPolicy only when custom values are specified.
-    #[serde(default)]
-    pub values:
-        ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues>,
-}
-
 /// The values allowed for a ListPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
@@ -229,17 +143,6 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
     pub denied_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Represents an update for an org policy control applied on an Assured Workload resource. The inherited org policy is not considered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
-    /// The org policy currently applied on the assured workload resource.
-    #[serde(default, rename = "appliedPolicy")]
-    pub applied_policy: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
-    /// The suggested org policy that replaces the applied policy.
-    #[serde(default, rename = "suggestedPolicy")]
-    pub suggested_policy: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
-}
-
 /// Request for restricting list of available resources in Workload environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
@@ -248,12 +151,33 @@ pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
     pub restriction_type: ::core::option::Option<String>,
 }
 
-/// The details of the update.
+/// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
-    /// Update to one org policy, e.g. gcp.resourceLocation.
-    #[serde(default, rename = "orgPolicyUpdate")]
-    pub org_policy_update: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyUpdate>,
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents move analysis results for an asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
+    /// List of eligible analyses performed for the asset.
+    #[serde(default, rename = "analysisGroups")]
+    pub analysis_groups:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveAnalysisGroup>>,
+    /// The full resource name of the asset being analyzed. Example: //compute.googleapis.com/projects/my_project_123/zones/zone1/instances/instance1
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+    /// Type of the asset being analyzed. Possible values will be among the ones listed [here](https://cloud.google.com/asset-inventory/docs/supported-asset-types).
+    #[serde(default, rename = "assetType")]
+    pub asset_type: ::core::option::Option<String>,
 }
 
 /// Workload monitoring Violation.
@@ -323,75 +247,24 @@ pub struct GoogleCloudAssuredworkloadsV1Violation {
     pub violation_type: ::core::option::Option<String>,
 }
 
-/// Violation exception detail.
+/// A workload update is a change to the workload''s compliance configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
-    /// Timestamp when the violation was acknowledged.
-    #[serde(default, rename = "acknowledgementTime")]
-    pub acknowledgement_time: ::core::option::Option<String>,
-    /// Business justification provided towards the acknowledgement of the violation.
+pub struct GoogleCloudAssuredworkloadsV1WorkloadUpdate {
+    /// The time the update was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The details of the update.
     #[serde(default)]
-    pub comment: ::core::option::Option<String>,
-    /// Name of the user (or service account) who acknowledged the violation.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-}
-
-/// Represents remediation guidance to resolve compliance violation for AssuredWorkload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediation {
-    /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
-    #[serde(default, rename = "compliantValues")]
-    pub compliant_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Remediation instructions to resolve violations
+    pub details: ::core::option::Option<GoogleCloudAssuredworkloadsV1UpdateDetails>,
+    /// Output only. Immutable. Identifier. Resource name of the WorkloadUpdate. Format: organizations/{organization}/locations/{location}/workloads/{workload}/updates/{update}
     #[serde(default)]
-    pub instructions:
-        ::core::option::Option<GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions>,
-    /// Output only. Reemediation type based on the type of org policy values violated // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "REMEDIATION_BOOLEAN_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_ALLOWED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_DENIED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_RESTRICT_CMEK_CRYPTO_KEY_PROJECTS_ORG_POLICY_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION_NON_CMEK_SERVICES"]
-    #[serde(default, rename = "remediationType")]
-    pub remediation_type: ::core::option::Option<String>,
-}
-
-/// Instructions to remediate violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions {
-    /// Remediation instructions to resolve violation via cloud console
-    #[serde(default, rename = "consoleInstructions")]
-    pub console_instructions: ::core::option::Option<
-        GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole,
-    >,
-    /// Remediation instructions to resolve violation via gcloud cli
-    #[serde(default, rename = "gcloudInstructions")]
-    pub gcloud_instructions:
-        ::core::option::Option<GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud>,
-}
-
-/// Remediation instructions to resolve violation via cloud console
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole {
-    /// Additional urls for more information about steps
-    #[serde(default, rename = "additionalLinks")]
-    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Link to console page where violations can be resolved
-    #[serde(default, rename = "consoleUris")]
-    pub console_uris: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Steps to resolve violation via cloud console
+    pub name: ::core::option::Option<String>,
+    /// Output only. The state of the update. // TODO: enum values: ["STATE_UNSPECIFIED", "AVAILABLE", "APPLIED", "WITHDRAWN"]
     #[serde(default)]
-    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Remediation instructions to resolve violation via gcloud cli
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
-    /// Additional urls for more information about steps
-    #[serde(default, rename = "additionalLinks")]
-    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Gcloud command to resolve violation
-    #[serde(default, rename = "gcloudCommands")]
-    pub gcloud_commands: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Steps to resolve violation via gcloud cli
-    #[serde(default)]
-    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
+    pub state: ::core::option::Option<String>,
+    /// The time the update was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Workload object for managing highly regulated workloads of cloud customers.
@@ -476,6 +349,77 @@ pub struct GoogleCloudAssuredworkloadsV1Workload {
         ::core::option::Option<GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions>,
 }
 
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents a logical group of checks performed for an asset. If successful, the group contains the analysis result, otherwise it contains an error with the failure reason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
+    /// Result of a successful analysis.
+    #[serde(default, rename = "analysisResult")]
+    pub analysis_result: ::core::option::Option<GoogleCloudAssuredworkloadsV1MoveAnalysisResult>,
+    /// Name of the analysis group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Error details for a failed analysis.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Violation exception detail.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
+    /// Timestamp when the violation was acknowledged.
+    #[serde(default, rename = "acknowledgementTime")]
+    pub acknowledgement_time: ::core::option::Option<String>,
+    /// Business justification provided towards the acknowledgement of the violation.
+    #[serde(default)]
+    pub comment: ::core::option::Option<String>,
+    /// Name of the user (or service account) who acknowledged the violation.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+}
+
+/// Represents remediation guidance to resolve compliance violation for AssuredWorkload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediation {
+    /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
+    #[serde(default, rename = "compliantValues")]
+    pub compliant_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Remediation instructions to resolve violations
+    #[serde(default)]
+    pub instructions:
+        ::core::option::Option<GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions>,
+    /// Output only. Reemediation type based on the type of org policy values violated // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "REMEDIATION_BOOLEAN_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_ALLOWED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_DENIED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_RESTRICT_CMEK_CRYPTO_KEY_PROJECTS_ORG_POLICY_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION_NON_CMEK_SERVICES"]
+    #[serde(default, rename = "remediationType")]
+    pub remediation_type: ::core::option::Option<String>,
+}
+
+/// The details of the update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
+    /// Update to one org policy, e.g. gcp.resourceLocation.
+    #[serde(default, rename = "orgPolicyUpdate")]
+    pub org_policy_update: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyUpdate>,
+}
+
 /// Represents the Compliance Status of this workload
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadComplianceStatus {
@@ -535,17 +479,6 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadPartnerPermissions {
     pub service_access_approver: ::core::option::Option<bool>,
 }
 
-/// Represent the resources that are children of this Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
-    /// Output only. Resource identifier. For a project this represents project_number.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-    /// Indicates the type of resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "CONSUMER_PROJECT", "CONSUMER_FOLDER", "ENCRYPTION_KEYS_PROJECT", "KEYRING"]
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
 /// Represent the custom settings for the resources to be created.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
@@ -556,6 +489,17 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
     #[serde(default, rename = "resourceId")]
     pub resource_id: ::core::option::Option<String>,
     /// Indicates the type of resource. This field should be specified to correspond the id to the right project type (CONSUMER_PROJECT or ENCRYPTION_KEYS_PROJECT) // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "CONSUMER_PROJECT", "CONSUMER_FOLDER", "ENCRYPTION_KEYS_PROJECT", "KEYRING"]
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// Represent the resources that are children of this Workload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
+    /// Output only. Resource identifier. For a project this represents project_number.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+    /// Indicates the type of resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "CONSUMER_PROJECT", "CONSUMER_FOLDER", "ENCRYPTION_KEYS_PROJECT", "KEYRING"]
     #[serde(default, rename = "resourceType")]
     pub resource_type: ::core::option::Option<String>,
 }
@@ -571,26 +515,6 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse {
     pub setup_status: ::core::option::Option<String>,
 }
 
-/// A workload update is a change to the workload''s compliance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAssuredworkloadsV1WorkloadUpdate {
-    /// The time the update was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The details of the update.
-    #[serde(default)]
-    pub details: ::core::option::Option<GoogleCloudAssuredworkloadsV1UpdateDetails>,
-    /// Output only. Immutable. Identifier. Resource name of the WorkloadUpdate. Format: organizations/{organization}/locations/{location}/workloads/{workload}/updates/{update}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The state of the update. // TODO: enum values: ["STATE_UNSPECIFIED", "AVAILABLE", "APPLIED", "WITHDRAWN"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The time the update was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Options to be set for the given created workload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
@@ -599,38 +523,15 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
     pub kaj_enrollment_type: ::core::option::Option<String>,
 }
 
-/// The response message for Operations.ListOperations.
+/// Represents the successful move analysis results for a group.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
+pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
+    /// List of blockers. If not resolved, these will result in compliance violations in the target.
     #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    pub blockers: ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
+    /// List of warnings. These are risks that may or may not result in compliance violations.
     #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<GoogleCloudAssuredworkloadsV1MoveImpact>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -645,4 +546,103 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Instructions to remediate violation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions {
+    /// Remediation instructions to resolve violation via cloud console
+    #[serde(default, rename = "consoleInstructions")]
+    pub console_instructions: ::core::option::Option<
+        GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole,
+    >,
+    /// Remediation instructions to resolve violation via gcloud cli
+    #[serde(default, rename = "gcloudInstructions")]
+    pub gcloud_instructions:
+        ::core::option::Option<GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud>,
+}
+
+/// Represents an update for an org policy control applied on an Assured Workload resource. The inherited org policy is not considered.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
+    /// The org policy currently applied on the assured workload resource.
+    #[serde(default, rename = "appliedPolicy")]
+    pub applied_policy: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
+    /// The suggested org policy that replaces the applied policy.
+    #[serde(default, rename = "suggestedPolicy")]
+    pub suggested_policy: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicy>,
+}
+
+/// Represents the impact of moving the asset to the target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1MoveImpact {
+    /// Explanation of the impact.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+}
+
+/// Remediation instructions to resolve violation via cloud console
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole {
+    /// Additional urls for more information about steps
+    #[serde(default, rename = "additionalLinks")]
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Link to console page where violations can be resolved
+    #[serde(default, rename = "consoleUris")]
+    pub console_uris: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Steps to resolve violation via cloud console
+    #[serde(default)]
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Remediation instructions to resolve violation via gcloud cli
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
+    /// Additional urls for more information about steps
+    #[serde(default, rename = "additionalLinks")]
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Gcloud command to resolve violation
+    #[serde(default, rename = "gcloudCommands")]
+    pub gcloud_commands: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Steps to resolve violation via gcloud cli
+    #[serde(default)]
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// This assured workload service object is used to represent the org policy attached to a resource. It servces the same purpose as the orgpolicy.v2.Policy object but with functionality that is limited to what is supported by Assured Workloads(e.g. only one rule under one OrgPolicy object, no conditions, etc).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicy {
+    /// The constraint name of the OrgPolicy. e.g. "constraints/gcp.resourceLocations".
+    #[serde(default)]
+    pub constraint: ::core::option::Option<String>,
+    /// If inherit is true, policy rules of the lowest ancestor in the resource hierarchy chain are inherited. If it is false, policy rules are not inherited.
+    #[serde(default)]
+    pub inherit: ::core::option::Option<bool>,
+    /// Ignores policies set above this resource and restores to the constraint_default value. reset can only be true when rules is empty and inherit is false.
+    #[serde(default)]
+    pub reset: ::core::option::Option<bool>,
+    /// Resource that the OrgPolicy attaches to. Format: folders/123" projects/123".
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The rule of the OrgPolicy.
+    #[serde(default)]
+    pub rule: ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule>,
+}
+
+/// A rule used to express this policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
+    /// ListPolicy only when all values are allowed.
+    #[serde(default, rename = "allowAll")]
+    pub allow_all: ::core::option::Option<bool>,
+    /// ListPolicy only when all values are denied.
+    #[serde(default, rename = "denyAll")]
+    pub deny_all: ::core::option::Option<bool>,
+    /// BooleanPolicy only.
+    #[serde(default)]
+    pub enforce: ::core::option::Option<bool>,
+    /// ListPolicy only when custom values are specified.
+    #[serde(default)]
+    pub values:
+        ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues>,
 }

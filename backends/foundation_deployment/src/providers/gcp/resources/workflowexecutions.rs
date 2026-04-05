@@ -10,6 +10,67 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response for the ExportData method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportDataResponse {
+    /// The JSON string with customer data and metadata for an execution with the given name
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+}
+
+/// RPC response object for the ListCallbacks method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListCallbacksResponse {
+    /// The callbacks which match the request.
+    #[serde(default)]
+    pub callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for the ListExecutions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListExecutionsResponse {
+    /// The executions which match the request.
+    #[serde(default)]
+    pub executions: ::core::option::Option<::std::vec::Vec<Execution>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for ExecutionHistory.ListStepEntries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListStepEntriesResponse {
+    /// A token to retrieve next page of results. Pass this value in the ListStepEntriesRequest.page_token field in the subsequent call to ListStepEntries method to retrieve the next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of entries.
+    #[serde(default, rename = "stepEntries")]
+    pub step_entries: ::core::option::Option<::std::vec::Vec<StepEntry>>,
+    /// Indicates the total number of StepEntries that matched the request filter. For running executions, this number shows the number of StepEntries that are executed thus far.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Request for the TriggerPubsubExecution method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerPubsubExecutionRequest {
+    /// Required. LINT: LEGACY_NAMES The query parameter value for __GCP_CloudEventsMode, set by the Eventarc service when configuring triggers.
+    #[serde(default, rename = "GCPCloudEventsMode")]
+    pub g_c_p_cloud_events_mode: ::core::option::Option<String>,
+    /// The number of attempts that have been made to deliver this message. This is set by Pub/Sub for subscriptions that have the "dead letter" feature enabled, and hence provided here for compatibility, but is ignored by Workflows.
+    #[serde(default, rename = "deliveryAttempt")]
+    pub delivery_attempt: ::core::option::Option<i32>,
+    /// Required. The message of the Pub/Sub push notification.
+    #[serde(default)]
+    pub message: ::core::option::Option<PubsubMessage>,
+    /// Required. The subscription of the Pub/Sub push notification. Format: projects/{project}/subscriptions/{sub}
+    #[serde(default)]
+    pub subscription: ::core::option::Option<String>,
+}
+
 /// An instance of a Callback created by an execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Callback {
@@ -25,28 +86,6 @@ pub struct Callback {
     /// Output only. Number of execution steps waiting on this callback.
     #[serde(default)]
     pub waiters: ::core::option::Option<String>,
-}
-
-/// Error describes why the execution was abnormally terminated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Error {
-    /// Human-readable stack trace string.
-    #[serde(default)]
-    pub context: ::core::option::Option<String>,
-    /// Error message and data returned represented as a JSON string.
-    #[serde(default)]
-    pub payload: ::core::option::Option<String>,
-    /// Stack trace with detailed information of where error was generated.
-    #[serde(default, rename = "stackTrace")]
-    pub stack_trace: ::core::option::Option<StackTrace>,
-}
-
-/// Exception describes why the step entry failed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Exception {
-    /// Error message represented as a JSON string.
-    #[serde(default)]
-    pub payload: ::core::option::Option<String>,
 }
 
 /// A running instance of a [Workflow](/workflows/docs/reference/rest/v1/projects.locations.workflows).
@@ -102,153 +141,6 @@ pub struct Execution {
     pub workflow_revision_id: ::core::option::Option<String>,
 }
 
-/// Response for the ExportData method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportDataResponse {
-    /// The JSON string with customer data and metadata for an execution with the given name
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-}
-
-/// RPC response object for the ListCallbacks method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListCallbacksResponse {
-    /// The callbacks which match the request.
-    #[serde(default)]
-    pub callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for the ListExecutions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListExecutionsResponse {
-    /// The executions which match the request.
-    #[serde(default)]
-    pub executions: ::core::option::Option<::std::vec::Vec<Execution>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for ExecutionHistory.ListStepEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListStepEntriesResponse {
-    /// A token to retrieve next page of results. Pass this value in the ListStepEntriesRequest.page_token field in the subsequent call to ListStepEntries method to retrieve the next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of entries.
-    #[serde(default, rename = "stepEntries")]
-    pub step_entries: ::core::option::Option<::std::vec::Vec<StepEntry>>,
-    /// Indicates the total number of StepEntries that matched the request filter. For running executions, this number shows the number of StepEntries that are executed thus far.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// NavigationInfo describes what steps if any come before or after this step, or what steps are parents or children of this step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NavigationInfo {
-    /// Step entries that can be reached by "stepping into" e.g. a subworkflow call.
-    #[serde(default)]
-    pub children: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The index of the next step in the current workflow, if any.
-    #[serde(default)]
-    pub next: ::core::option::Option<String>,
-    /// The step entry, if any, that can be reached by "stepping out" of the current workflow being executed.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// The index of the previous step in the current workflow, if any.
-    #[serde(default)]
-    pub previous: ::core::option::Option<String>,
-}
-
-/// Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Position {
-    /// The source code column position (of the line) the current instruction was generated from.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// The number of bytes of source code making up this stack trace element.
-    #[serde(default)]
-    pub length: ::core::option::Option<String>,
-    /// The source code line number the current instruction was generated from.
-    #[serde(default)]
-    pub line: ::core::option::Option<String>,
-}
-
-/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubsubMessage {
-    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
-    #[serde(default, rename = "orderingKey")]
-    pub ordering_key: ::core::option::Option<String>,
-    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
-}
-
-/// A collection of stack elements (frames) where an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackTrace {
-    /// An array of stack elements.
-    #[serde(default)]
-    pub elements: ::core::option::Option<::std::vec::Vec<StackTraceElement>>,
-}
-
-/// A single stack element (frame) where an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackTraceElement {
-    /// The source position information of the stack trace element.
-    #[serde(default)]
-    pub position: ::core::option::Option<Position>,
-    /// The routine where the error occurred.
-    #[serde(default)]
-    pub routine: ::core::option::Option<String>,
-    /// The step the error occurred at.
-    #[serde(default)]
-    pub step: ::core::option::Option<String>,
-}
-
-/// Describes an error related to the current state of the Execution resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StateError {
-    /// Provides specifics about the error.
-    #[serde(default)]
-    pub details: ::core::option::Option<String>,
-    /// The type of this state error. // TODO: enum values: ["TYPE_UNSPECIFIED", "KMS_ERROR"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the current status of this execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the main subworkflow, and ending with the most deeply nested step.
-    #[serde(default, rename = "currentSteps")]
-    pub current_steps: ::core::option::Option<::std::vec::Vec<Step>>,
-}
-
-/// Represents a step of the workflow this execution is running.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Step {
-    /// Name of a routine within the workflow.
-    #[serde(default)]
-    pub routine: ::core::option::Option<String>,
-    /// Name of a step within the routine.
-    #[serde(default)]
-    pub step: ::core::option::Option<String>,
-}
-
 /// An StepEntry contains debugging information for a step transition in a workflow execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepEntry {
@@ -290,6 +182,84 @@ pub struct StepEntry {
     pub variable_data: ::core::option::Option<VariableData>,
 }
 
+/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubMessage {
+    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
+    #[serde(default, rename = "orderingKey")]
+    pub ordering_key: ::core::option::Option<String>,
+    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
+}
+
+/// Error describes why the execution was abnormally terminated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Error {
+    /// Human-readable stack trace string.
+    #[serde(default)]
+    pub context: ::core::option::Option<String>,
+    /// Error message and data returned represented as a JSON string.
+    #[serde(default)]
+    pub payload: ::core::option::Option<String>,
+    /// Stack trace with detailed information of where error was generated.
+    #[serde(default, rename = "stackTrace")]
+    pub stack_trace: ::core::option::Option<StackTrace>,
+}
+
+/// Describes an error related to the current state of the Execution resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StateError {
+    /// Provides specifics about the error.
+    #[serde(default)]
+    pub details: ::core::option::Option<String>,
+    /// The type of this state error. // TODO: enum values: ["TYPE_UNSPECIFIED", "KMS_ERROR"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the current status of this execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the main subworkflow, and ending with the most deeply nested step.
+    #[serde(default, rename = "currentSteps")]
+    pub current_steps: ::core::option::Option<::std::vec::Vec<Step>>,
+}
+
+/// Exception describes why the step entry failed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Exception {
+    /// Error message represented as a JSON string.
+    #[serde(default)]
+    pub payload: ::core::option::Option<String>,
+}
+
+/// NavigationInfo describes what steps if any come before or after this step, or what steps are parents or children of this step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NavigationInfo {
+    /// Step entries that can be reached by "stepping into" e.g. a subworkflow call.
+    #[serde(default)]
+    pub children: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The index of the next step in the current workflow, if any.
+    #[serde(default)]
+    pub next: ::core::option::Option<String>,
+    /// The step entry, if any, that can be reached by "stepping out" of the current workflow being executed.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// The index of the previous step in the current workflow, if any.
+    #[serde(default)]
+    pub previous: ::core::option::Option<String>,
+}
+
 /// StepEntryMetadata contains metadata information about this step.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepEntryMetadata {
@@ -307,19 +277,49 @@ pub struct StepEntryMetadata {
     pub thread_id: ::core::option::Option<String>,
 }
 
-/// Request for the TriggerPubsubExecution method.
+/// A collection of stack elements (frames) where an error occurred.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerPubsubExecutionRequest {
-    /// Required. LINT: LEGACY_NAMES The query parameter value for __GCP_CloudEventsMode, set by the Eventarc service when configuring triggers.
-    #[serde(default, rename = "GCPCloudEventsMode")]
-    pub g_c_p_cloud_events_mode: ::core::option::Option<String>,
-    /// The number of attempts that have been made to deliver this message. This is set by Pub/Sub for subscriptions that have the "dead letter" feature enabled, and hence provided here for compatibility, but is ignored by Workflows.
-    #[serde(default, rename = "deliveryAttempt")]
-    pub delivery_attempt: ::core::option::Option<i32>,
-    /// Required. The message of the Pub/Sub push notification.
+pub struct StackTrace {
+    /// An array of stack elements.
     #[serde(default)]
-    pub message: ::core::option::Option<PubsubMessage>,
-    /// Required. The subscription of the Pub/Sub push notification. Format: projects/{project}/subscriptions/{sub}
+    pub elements: ::core::option::Option<::std::vec::Vec<StackTraceElement>>,
+}
+
+/// Represents a step of the workflow this execution is running.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Step {
+    /// Name of a routine within the workflow.
     #[serde(default)]
-    pub subscription: ::core::option::Option<String>,
+    pub routine: ::core::option::Option<String>,
+    /// Name of a step within the routine.
+    #[serde(default)]
+    pub step: ::core::option::Option<String>,
+}
+
+/// A single stack element (frame) where an error occurred.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackTraceElement {
+    /// The source position information of the stack trace element.
+    #[serde(default)]
+    pub position: ::core::option::Option<Position>,
+    /// The routine where the error occurred.
+    #[serde(default)]
+    pub routine: ::core::option::Option<String>,
+    /// The step the error occurred at.
+    #[serde(default)]
+    pub step: ::core::option::Option<String>,
+}
+
+/// Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Position {
+    /// The source code column position (of the line) the current instruction was generated from.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// The number of bytes of source code making up this stack trace element.
+    #[serde(default)]
+    pub length: ::core::option::Option<String>,
+    /// The source code line number the current instruction was generated from.
+    #[serde(default)]
+    pub line: ::core::option::Option<String>,
 }

@@ -10,86 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleGeoTypeViewport {
-    /// Required. The high point of the viewport.
-    #[serde(default)]
-    pub high: ::core::option::Option<GoogleTypeLatLng>,
-    /// Required. The low point of the viewport.
-    #[serde(default)]
-    pub low: ::core::option::Option<GoogleTypeLatLng>,
-}
-
-/// A relational description of a location. Includes a ranked set of nearby landmarks and precise containing areas and their relationship to the target location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AddressDescriptor {
-    /// A ranked list of containing or adjacent areas. The most recognizable and precise areas are ranked first.
-    #[serde(default)]
-    pub areas: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
-    /// A ranked list of nearby landmarks. The most recognizable and nearby landmarks are ranked first.
-    #[serde(default)]
-    pub landmarks:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
-}
-
-/// Area information and the area''s relationship with the target location. Areas includes precise sublocality, neighborhoods, and large compounds that are useful for describing a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AddressDescriptorArea {
-    /// Defines the spatial relationship between the target location and the area. // TODO: enum values: ["CONTAINMENT_UNSPECIFIED", "WITHIN", "OUTSKIRTS", "NEAR"]
-    #[serde(default)]
-    pub containment: ::core::option::Option<String>,
-    /// The area''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// The area''s resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The area''s place id.
-    #[serde(default, rename = "placeId")]
-    pub place_id: ::core::option::Option<String>,
-}
-
-/// Basic landmark information and the landmark''s relationship with the target location. Landmarks are prominent places that can be used to describe a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
-    /// The landmark''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// The landmark''s resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The landmark''s place id.
-    #[serde(default, rename = "placeId")]
-    pub place_id: ::core::option::Option<String>,
-    /// Defines the spatial relationship between the target location and the landmark. // TODO: enum values: ["NEAR", "WITHIN", "BESIDE", "ACROSS_THE_ROAD", "DOWN_THE_ROAD", "AROUND_THE_CORNER", "BEHIND"]
-    #[serde(default, rename = "spatialRelationship")]
-    pub spatial_relationship: ::core::option::Option<String>,
-    /// The straight line distance, in meters, between the center point of the target and the center point of the landmark. In some situations, this value can be longer than travel_distance_meters.
-    #[serde(default, rename = "straightLineDistanceMeters")]
-    pub straight_line_distance_meters: ::core::option::Option<f32>,
-    /// The travel distance, in meters, along the road network from the target to the landmark, if known. This value does not take into account the mode of transportation, such as walking, driving, or biking.
-    #[serde(default, rename = "travelDistanceMeters")]
-    pub travel_distance_meters: ::core::option::Option<f32>,
-    /// A set of type tags for this landmark. For a complete list of possible values, see https://developers.google.com/maps/documentation/places/web-service/place-types.
-    #[serde(default)]
-    pub types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information about the author of the UGC data. Used in Photo, and Review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AuthorAttribution {
-    /// Name of the author of the Photo or Review.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Profile photo URI of the author of the Photo or Review.
-    #[serde(default, rename = "photoUri")]
-    pub photo_uri: ::core::option::Option<String>,
-    /// URI of the author of the Photo or Review.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// Request proto for AutocompletePlaces.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesRequest {
@@ -136,6 +56,175 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesRequest {
     pub session_token: ::core::option::Option<String>,
 }
 
+/// Response proto for AutocompletePlaces.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
+    /// Contains a list of suggestions, ordered in descending order of relevance.
+    #[serde(default)]
+    pub suggestions: ::core::option::Option<
+        ::std::vec::Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion>,
+    >,
+}
+
+/// Identifies a substring within a given text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
+    /// Zero-based offset of the last Unicode character (exclusive).
+    #[serde(default, rename = "endOffset")]
+    pub end_offset: ::core::option::Option<i32>,
+    /// Zero-based offset of the first Unicode character of the string (inclusive).
+    #[serde(default, rename = "startOffset")]
+    pub start_offset: ::core::option::Option<i32>,
+}
+
+/// A photo media from Places API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PhotoMedia {
+    /// The resource name of a photo media in the format: places/{place_id}/photos/{photo_reference}/media.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A short-lived uri that can be used to render the photo.
+    #[serde(default, rename = "photoUri")]
+    pub photo_uri: ::core::option::Option<String>,
+}
+
+/// Request proto for Search Nearby.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1SearchNearbyRequest {
+    /// Excluded primary Place type (e.g. "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting primary types, i.e. a type appears in both included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
+    #[serde(default, rename = "excludedPrimaryTypes")]
+    pub excluded_primary_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Excluded Place type (eg, "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If the client provides both included_types (e.g. restaurant) and excluded_types (e.g. cafe), then the response should include places that are restaurant but not cafe. The response includes places that match at least one of the included_types and none of the excluded_types. If there are any conflicting types, i.e. a type appears in both included_types and excluded_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
+    #[serde(default, rename = "excludedTypes")]
+    pub excluded_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. If true, include businesses that are not yet open but will open in the future.
+    #[serde(default, rename = "includeFutureOpeningBusinesses")]
+    pub include_future_opening_businesses: ::core::option::Option<bool>,
+    /// Included primary Place type (e.g. "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. A place can only have a single primary type from the supported types table associated with it. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting primary types, i.e. a type appears in both included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
+    #[serde(default, rename = "includedPrimaryTypes")]
+    pub included_primary_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Included Place type (eg, "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting types, i.e. a type appears in both included_types and excluded_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
+    #[serde(default, rename = "includedTypes")]
+    pub included_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Place details will be displayed with the preferred language if available. If the language code is unspecified or unrecognized, place details of any language may be returned, with a preference for English if such details exist. Current list of supported languages: https://developers.google.com/maps/faq#languagesupport.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Required. The region to search.
+    #[serde(default, rename = "locationRestriction")]
+    pub location_restriction:
+        ::core::option::Option<GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction>,
+    /// Maximum number of results to return. It must be between 1 and 20 (default), inclusively. If the number is unset, it falls back to the upper limit. If the number is set to negative or exceeds the upper limit, an INVALID_ARGUMENT error is returned.
+    #[serde(default, rename = "maxResultCount")]
+    pub max_result_count: ::core::option::Option<i32>,
+    /// How results will be ranked in the response. // TODO: enum values: ["RANK_PREFERENCE_UNSPECIFIED", "DISTANCE", "POPULARITY"]
+    #[serde(default, rename = "rankPreference")]
+    pub rank_preference: ::core::option::Option<String>,
+    /// The Unicode country/region code (CLDR) of the location where the request is coming from. This parameter is used to display the place details, like region-specific place name, if available. The parameter can affect results based on applicable law. For more information, see https://www.unicode.org/cldr/charts/latest/supplemental/territory_language_information.html. Note that 3-digit region codes are not currently supported.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// Optional. Parameters that affect the routing to the search results.
+    #[serde(default, rename = "routingParameters")]
+    pub routing_parameters: ::core::option::Option<GoogleMapsPlacesV1RoutingParameters>,
+}
+
+/// Response proto for Search Nearby.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1SearchNearbyResponse {
+    /// A list of places that meets user''s requirements like places types, number of places and specific location restriction.
+    #[serde(default)]
+    pub places: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1Place>>,
+    /// A list of routing summaries where each entry associates to the corresponding place in the same index in the places field. If the routing summary is not available for one of the places, it will contain an empty entry. This list should have as many entries as the list of places if requested.
+    #[serde(default, rename = "routingSummaries")]
+    pub routing_summaries:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummary>>,
+}
+
+/// Request proto for SearchText.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1SearchTextRequest {
+    /// Optional. Set the searchable EV options of a place search request.
+    #[serde(default, rename = "evOptions")]
+    pub ev_options: ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestEVOptions>,
+    /// Optional. If true, include businesses that are not yet open but will open in the future.
+    #[serde(default, rename = "includeFutureOpeningBusinesses")]
+    pub include_future_opening_businesses: ::core::option::Option<bool>,
+    /// Optional. Include pure service area businesses if the field is set to true. Pure service area business is a business that visits or delivers to customers directly but does not serve customers at their business address. For example, businesses like cleaning services or plumbers. Those businesses do not have a physical address or location on Google Maps. Places will not return fields including location, plus_code, and other location related fields for these businesses.
+    #[serde(default, rename = "includePureServiceAreaBusinesses")]
+    pub include_pure_service_area_businesses: ::core::option::Option<bool>,
+    /// The requested place type. Full list of types supported: https://developers.google.com/maps/documentation/places/web-service/place-types. Only support one included type.
+    #[serde(default, rename = "includedType")]
+    pub included_type: ::core::option::Option<String>,
+    /// Place details will be displayed with the preferred language if available. If the language code is unspecified or unrecognized, place details of any language may be returned, with a preference for English if such details exist. Current list of supported languages: https://developers.google.com/maps/faq#languagesupport.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// The region to search. This location serves as a bias which means results around given location might be returned. Cannot be set along with location_restriction.
+    #[serde(default, rename = "locationBias")]
+    pub location_bias: ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestLocationBias>,
+    /// The region to search. This location serves as a restriction which means results outside given location will not be returned. Cannot be set along with location_bias.
+    #[serde(default, rename = "locationRestriction")]
+    pub location_restriction:
+        ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestLocationRestriction>,
+    /// Deprecated: Use page_size instead. The maximum number of results per page that can be returned. If the number of available results is larger than max_result_count, a next_page_token is returned which can be passed to page_token to get the next page of results in subsequent requests. If 0 or no value is provided, a default of 20 is used. The maximum value is 20; values above 20 will be coerced to 20. Negative values will return an INVALID_ARGUMENT error. If both max_result_count and page_size are specified, max_result_count will be ignored.
+    #[serde(default, rename = "maxResultCount")]
+    pub max_result_count: ::core::option::Option<i32>,
+    /// Filter out results whose average user rating is strictly less than this limit. A valid value must be a float between 0 and 5 (inclusively) at a 0.5 cadence i.e. [0, 0.5, 1.0, ... , 5.0] inclusively. The input rating will round up to the nearest 0.5(ceiling). For instance, a rating of 0.6 will eliminate all results with a less than 1.0 rating.
+    #[serde(default, rename = "minRating")]
+    pub min_rating: ::core::option::Option<f64>,
+    /// Used to restrict the search to places that are currently open. The default is false.
+    #[serde(default, rename = "openNow")]
+    pub open_now: ::core::option::Option<bool>,
+    /// Optional. The maximum number of results per page that can be returned. If the number of available results is larger than page_size, a next_page_token is returned which can be passed to page_token to get the next page of results in subsequent requests. If 0 or no value is provided, a default of 20 is used. The maximum value is 20; values above 20 will be set to 20. Negative values will return an INVALID_ARGUMENT error. If both max_result_count and page_size are specified, max_result_count will be ignored.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Optional. A page token, received from a previous TextSearch call. Provide this to retrieve the subsequent page. When paginating, all parameters other than page_token, page_size, and max_result_count provided to TextSearch must match the initial call that provided the page token. Otherwise an INVALID_ARGUMENT error is returned.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Used to restrict the search to places that are marked as certain price levels. Users can choose any combinations of price levels. Default to select all price levels.
+    #[serde(default, rename = "priceLevels")]
+    pub price_levels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// How results will be ranked in the response. // TODO: enum values: ["RANK_PREFERENCE_UNSPECIFIED", "DISTANCE", "RELEVANCE"]
+    #[serde(default, rename = "rankPreference")]
+    pub rank_preference: ::core::option::Option<String>,
+    /// The Unicode country/region code (CLDR) of the location where the request is coming from. This parameter is used to display the place details, like region-specific place name, if available. The parameter can affect results based on applicable law. For more information, see https://www.unicode.org/cldr/charts/latest/supplemental/territory_language_information.html. Note that 3-digit region codes are not currently supported.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// Optional. Additional parameters for routing to results.
+    #[serde(default, rename = "routingParameters")]
+    pub routing_parameters: ::core::option::Option<GoogleMapsPlacesV1RoutingParameters>,
+    /// Optional. Additional parameters proto for searching along a route.
+    #[serde(default, rename = "searchAlongRouteParameters")]
+    pub search_along_route_parameters:
+        ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters>,
+    /// Used to set strict type filtering for included_type. If set to true, only results of the same type will be returned. Default to false.
+    #[serde(default, rename = "strictTypeFiltering")]
+    pub strict_type_filtering: ::core::option::Option<bool>,
+    /// Required. The text query for textual search.
+    #[serde(default, rename = "textQuery")]
+    pub text_query: ::core::option::Option<String>,
+}
+
+/// Response proto for SearchText.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1SearchTextResponse {
+    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. A list of contextual contents where each entry associates to the corresponding place in the same index in the places field. The contents that are relevant to the text_query in the request are preferred. If the contextual content is not available for one of the places, it will return non-contextual content. It will be empty only when the content is unavailable for this place. This list will have as many entries as the list of places if requested.
+    #[serde(default, rename = "contextualContents")]
+    pub contextual_contents:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1ContextualContent>>,
+    /// A token that can be sent as page_token to retrieve the next page. If this field is omitted or empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of places that meet the user''s text search criteria.
+    #[serde(default)]
+    pub places: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1Place>>,
+    /// A list of routing summaries where each entry associates to the corresponding place in the same index in the places field. If the routing summary is not available for one of the places, it will contain an empty entry. This list will have as many entries as the list of places if requested.
+    #[serde(default, rename = "routingSummaries")]
+    pub routing_summaries:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummary>>,
+    /// A link allows the user to search with the same text query as specified in the request on Google Maps.
+    #[serde(default, rename = "searchUri")]
+    pub search_uri: ::core::option::Option<String>,
+}
+
 /// The region to search. The results may be biased around the specified region.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias {
@@ -158,16 +247,6 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction {
     pub rectangle: ::core::option::Option<GoogleGeoTypeViewport>,
 }
 
-/// Response proto for AutocompletePlaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
-    /// Contains a list of suggestions, ordered in descending order of relevance.
-    #[serde(default)]
-    pub suggestions: ::core::option::Option<
-        ::std::vec::Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion>,
-    >,
-}
-
 /// An Autocomplete suggestion result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
@@ -183,107 +262,67 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
     >,
 }
 
-/// Text representing a Place or query prediction. The text may be used as is or formatted.
+/// The region to search.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
-    /// A list of string ranges identifying where the input request matched in text. The ranges can be used to format specific parts of text. The substrings may not be exact matches of input if the matching was determined by criteria other than string matching (for example, spell corrections or transliterations). These values are Unicode character offsets of text. The ranges are guaranteed to be ordered in increasing offset values.
+pub struct GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction {
+    /// A circle defined by center point and radius.
     #[serde(default)]
-    pub matches: ::core::option::Option<
-        ::std::vec::Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange>,
-    >,
-    /// Text that may be used as is or formatted with matches.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
+    pub circle: ::core::option::Option<GoogleMapsPlacesV1Circle>,
 }
 
-/// Prediction results for a Place Autocomplete prediction.
+/// Searchable EV options of a place search request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction {
-    /// The length of the geodesic in meters from origin if origin is specified. Certain predictions such as routes may not populate this field.
-    #[serde(default, rename = "distanceMeters")]
-    pub distance_meters: ::core::option::Option<i32>,
-    /// The resource name of the suggested Place. This name can be used in other APIs that accept Place names.
-    #[serde(default)]
-    pub place: ::core::option::Option<String>,
-    /// The unique identifier of the suggested Place. This identifier can be used in other APIs that accept Place IDs.
-    #[serde(default, rename = "placeId")]
-    pub place_id: ::core::option::Option<String>,
-    /// A breakdown of the Place prediction into main text containing the name of the Place and secondary text containing additional disambiguating features (such as a city or region). structured_format is recommended for developers who wish to show two separate, but related, UI elements. Developers who wish to show a single UI element may want to use text instead. They are two different ways to represent a Place prediction. Users should not try to parse structured_format into text or vice versa.
-    #[serde(default, rename = "structuredFormat")]
-    pub structured_format: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat,
-    >,
-    /// Contains the human-readable name for the returned result. For establishment results, this is usually the business name and address. text is recommended for developers who wish to show a single UI element. Developers who wish to show two separate, but related, UI elements may want to use structured_format instead. They are two different ways to represent a Place prediction. Users should not try to parse structured_format into text or vice versa. This text may be different from the display_name returned by GetPlace. May be in mixed languages if the request input and language_code are in different languages or if the Place does not have a translation from the local language to language_code.
-    #[serde(default)]
-    pub text: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
-    >,
-    /// List of types that apply to this Place from Table A or Table B in https://developers.google.com/maps/documentation/places/web-service/place-types. A type is a categorization of a Place. Places with shared types will share similar characteristics.
-    #[serde(default)]
-    pub types: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GoogleMapsPlacesV1SearchTextRequestEVOptions {
+    /// Optional. The list of preferred EV connector types. A place that does not support any of the listed connector types is filtered out.
+    #[serde(default, rename = "connectorTypes")]
+    pub connector_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Minimum required charging rate in kilowatts. A place with a charging rate less than the specified rate is filtered out.
+    #[serde(default, rename = "minimumChargingRateKw")]
+    pub minimum_charging_rate_kw: ::core::option::Option<f64>,
 }
 
-/// Prediction results for a Query Autocomplete prediction.
+/// The region to search. This location serves as a bias which means results around given location might be returned.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
-    /// A breakdown of the query prediction into main text containing the query and secondary text containing additional disambiguating features (such as a city or region). structured_format is recommended for developers who wish to show two separate, but related, UI elements. Developers who wish to show a single UI element may want to use text instead. They are two different ways to represent a query prediction. Users should not try to parse structured_format into text or vice versa.
-    #[serde(default, rename = "structuredFormat")]
-    pub structured_format: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat,
-    >,
-    /// The predicted text. This text does not represent a Place, but rather a text query that could be used in a search endpoint (for example, Text Search). text is recommended for developers who wish to show a single UI element. Developers who wish to show two separate, but related, UI elements may want to use structured_format instead. They are two different ways to represent a query prediction. Users should not try to parse structured_format into text or vice versa. May be in mixed languages if the request input and language_code are in different languages or if part of the query does not have a translation from the local language to language_code.
+pub struct GoogleMapsPlacesV1SearchTextRequestLocationBias {
+    /// A circle defined by center point and radius.
     #[serde(default)]
-    pub text: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
-    >,
+    pub circle: ::core::option::Option<GoogleMapsPlacesV1Circle>,
+    /// A rectangle box defined by northeast and southwest corner. rectangle.high() must be the northeast point of the rectangle viewport. rectangle.low() must be the southwest point of the rectangle viewport. rectangle.low().latitude() cannot be greater than rectangle.high().latitude(). This will result in an empty latitude range. A rectangle viewport cannot be wider than 180 degrees.
+    #[serde(default)]
+    pub rectangle: ::core::option::Option<GoogleGeoTypeViewport>,
 }
 
-/// Identifies a substring within a given text.
+/// The region to search. This location serves as a restriction which means results outside given location will not be returned.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
-    /// Zero-based offset of the last Unicode character (exclusive).
-    #[serde(default, rename = "endOffset")]
-    pub end_offset: ::core::option::Option<i32>,
-    /// Zero-based offset of the first Unicode character of the string (inclusive).
-    #[serde(default, rename = "startOffset")]
-    pub start_offset: ::core::option::Option<i32>,
+pub struct GoogleMapsPlacesV1SearchTextRequestLocationRestriction {
+    /// A rectangle box defined by northeast and southwest corner. rectangle.high() must be the northeast point of the rectangle viewport. rectangle.low() must be the southwest point of the rectangle viewport. rectangle.low().latitude() cannot be greater than rectangle.high().latitude(). This will result in an empty latitude range. A rectangle viewport cannot be wider than 180 degrees.
+    #[serde(default)]
+    pub rectangle: ::core::option::Option<GoogleGeoTypeViewport>,
 }
 
-/// Contains a breakdown of a Place or query prediction into main text and secondary text. For Place predictions, the main text contains the specific name of the Place. For query predictions, the main text contains the query. The secondary text contains additional disambiguating features (such as a city or region) to further identify the Place or refine the query.
+/// Parameters to configure the routing calculations to the places in the response, both along a route (where result ranking will be influenced) and for calculating travel times on results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat {
-    /// Represents the name of the Place or query.
-    #[serde(default, rename = "mainText")]
-    pub main_text: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
-    >,
-    /// Represents additional disambiguating features (such as a city or region) to further identify the Place or refine the query.
-    #[serde(default, rename = "secondaryText")]
-    pub secondary_text: ::core::option::Option<
-        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
-    >,
+pub struct GoogleMapsPlacesV1RoutingParameters {
+    /// Optional. An explicit routing origin that overrides the origin defined in the polyline. By default, the polyline origin is used.
+    #[serde(default)]
+    pub origin: ::core::option::Option<GoogleTypeLatLng>,
+    /// Optional. The route modifiers.
+    #[serde(default, rename = "routeModifiers")]
+    pub route_modifiers: ::core::option::Option<GoogleMapsPlacesV1RouteModifiers>,
+    /// Optional. Specifies how to compute the routing summaries. The server attempts to use the selected routing preference to compute the route. The traffic aware routing preference is only available for the DRIVE or TWO_WHEELER travelMode. // TODO: enum values: ["ROUTING_PREFERENCE_UNSPECIFIED", "TRAFFIC_UNAWARE", "TRAFFIC_AWARE", "TRAFFIC_AWARE_OPTIMAL"]
+    #[serde(default, rename = "routingPreference")]
+    pub routing_preference: ::core::option::Option<String>,
+    /// Optional. The travel mode. // TODO: enum values: ["TRAVEL_MODE_UNSPECIFIED", "DRIVE", "BICYCLE", "WALK", "TWO_WHEELER"]
+    #[serde(default, rename = "travelMode")]
+    pub travel_mode: ::core::option::Option<String>,
 }
 
-/// Circle with a LatLng as center and radius.
+/// Specifies a precalculated polyline from the [Routes API](https://developers.google.com/maps/documentation/routes) defining the route to search. Searching along a route is similar to using the locationBias or locationRestriction request option to bias the search results. However, while the locationBias and locationRestriction options let you specify a region to bias the search results, this option lets you bias the results along a trip route. Results are not guaranteed to be along the route provided, but rather are ranked within the search area defined by the polyline and, optionally, by the locationBias or locationRestriction based on minimal detour times from origin to destination. The results might be along an alternate route, especially if the provided polyline does not define an optimal route from origin to destination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1Circle {
-    /// Required. Center latitude and longitude. The range of latitude must be within [-90.0, 90.0]. The range of the longitude must be within [-180.0, 180.0].
+pub struct GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters {
+    /// Required. The route polyline.
     #[serde(default)]
-    pub center: ::core::option::Option<GoogleTypeLatLng>,
-    /// Required. Radius measured in meters. The radius must be within [0.0, 50000.0].
-    #[serde(default)]
-    pub radius: ::core::option::Option<f64>,
-}
-
-/// A block of content that can be served individually.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContentBlock {
-    /// Content related to the topic.
-    #[serde(default)]
-    pub content: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// The list of resource names of the referenced places. This name can be used in other APIs that accept Place resource names.
-    #[serde(default, rename = "referencedPlaces")]
-    pub referenced_places: ::core::option::Option<::std::vec::Vec<String>>,
+    pub polyline: ::core::option::Option<GoogleMapsPlacesV1Polyline>,
 }
 
 /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Content that is contextual to the place query.
@@ -299,161 +338,6 @@ pub struct GoogleMapsPlacesV1ContextualContent {
     /// List of reviews about this place, contextual to the place query.
     #[serde(default)]
     pub reviews: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1Review>>,
-}
-
-/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Justifications for the place. Justifications answers the question of why a place could interest an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContextualContentJustification {
-    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details.
-    #[serde(default, rename = "businessAvailabilityAttributesJustification")]
-    pub business_availability_attributes_justification: ::core::option::Option<
-        GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification,
-    >,
-    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details.
-    #[serde(default, rename = "reviewJustification")]
-    pub review_justification:
-        ::core::option::Option<GoogleMapsPlacesV1ContextualContentJustificationReviewJustification>,
-}
-
-/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. BusinessAvailabilityAttributes justifications. This shows some attributes a business has that could interest an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification
-{
-    /// If a place provides delivery.
-    #[serde(default)]
-    pub delivery: ::core::option::Option<bool>,
-    /// If a place provides dine-in.
-    #[serde(default, rename = "dineIn")]
-    pub dine_in: ::core::option::Option<bool>,
-    /// If a place provides takeout.
-    #[serde(default)]
-    pub takeout: ::core::option::Option<bool>,
-}
-
-/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. User review justifications. This highlights a section of the user review that would interest an end user. For instance, if the search query is "firewood pizza", the review justification highlights the text relevant to the search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustification {
-    #[serde(default, rename = "highlightedText")]
-    pub highlighted_text: ::core::option::Option<
-        GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText,
-    >,
-    /// The review that the highlighted text is generated from.
-    #[serde(default)]
-    pub review: ::core::option::Option<GoogleMapsPlacesV1Review>,
-}
-
-/// The text highlighted by the justification. This is a subset of the review itself. The exact word to highlight is marked by the HighlightedTextRange. There could be several words in the text being highlighted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText {
-    /// The list of the ranges of the highlighted text.
-    #[serde(default, rename = "highlightedTextRanges")]
-    pub highlighted_text_ranges: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange>>,
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// The range of highlighted text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange
-{
-    #[serde(default, rename = "endIndex")]
-    pub end_index: ::core::option::Option<i32>,
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-}
-
-/// Information about the EV Charge Station hosted in Place. Terminology follows https://afdc.energy.gov/fuels/electricity_infrastructure.html One port could charge one car at a time. One port has one or more connectors. One station has one or more ports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1eVChargeOptions {
-    /// A list of EV charging connector aggregations that contain connectors of the same type and same charge rate.
-    #[serde(default, rename = "connectorAggregation")]
-    pub connector_aggregation: ::core::option::Option<
-        ::std::vec::Vec<GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation>,
-    >,
-    /// Number of connectors at this station. However, because some ports can have multiple connectors but only be able to charge one car at a time (e.g.) the number of connectors may be greater than the total number of cars which can charge simultaneously.
-    #[serde(default, rename = "connectorCount")]
-    pub connector_count: ::core::option::Option<i32>,
-}
-
-/// EV charging information grouped by [type, max_charge_rate_kw]. Shows EV charge aggregation of connectors that have the same type and max charge rate in kw.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation {
-    /// The timestamp when the connector availability information in this aggregation was last updated.
-    #[serde(default, rename = "availabilityLastUpdateTime")]
-    pub availability_last_update_time: ::core::option::Option<String>,
-    /// Number of connectors in this aggregation that are currently available.
-    #[serde(default, rename = "availableCount")]
-    pub available_count: ::core::option::Option<i32>,
-    /// Number of connectors in this aggregation.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// The static max charging rate in kw of each connector in the aggregation.
-    #[serde(default, rename = "maxChargeRateKw")]
-    pub max_charge_rate_kw: ::core::option::Option<f64>,
-    /// Number of connectors in this aggregation that are currently out of service.
-    #[serde(default, rename = "outOfServiceCount")]
-    pub out_of_service_count: ::core::option::Option<i32>,
-    /// The connector type of this aggregation. // TODO: enum values: ["EV_CONNECTOR_TYPE_UNSPECIFIED", "EV_CONNECTOR_TYPE_OTHER", "EV_CONNECTOR_TYPE_J1772", "EV_CONNECTOR_TYPE_TYPE_2", "EV_CONNECTOR_TYPE_CHADEMO", "EV_CONNECTOR_TYPE_CCS_COMBO_1", "EV_CONNECTOR_TYPE_CCS_COMBO_2", "EV_CONNECTOR_TYPE_TESLA", "EV_CONNECTOR_TYPE_UNSPECIFIED_GB_T", "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET", "EV_CONNECTOR_TYPE_NACS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The most recent information about fuel options in a gas station. This information is updated regularly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1FuelOptions {
-    /// The last known fuel price for each type of fuel this station has. There is one entry per fuel type this station has. Order is not important.
-    #[serde(default, rename = "fuelPrices")]
-    pub fuel_prices:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
-}
-
-/// Fuel price information for a given type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
-    /// The price of the fuel.
-    #[serde(default)]
-    pub price: ::core::option::Option<GoogleTypeMoney>,
-    /// The type of fuel. // TODO: enum values: ["FUEL_TYPE_UNSPECIFIED", "DIESEL", "DIESEL_PLUS", "REGULAR_UNLEADED", "MIDGRADE", "PREMIUM", "SP91", "SP91_E10", "SP92", "SP95", "SP95_E10", "SP98", "SP99", "SP100", "LPG", "E80", "E85", "E100", "METHANE", "BIO_DIESEL", "TRUCK_DIESEL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The time the fuel price was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Information about a photo of a place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1Photo {
-    /// This photo''s authors.
-    #[serde(default, rename = "authorAttributions")]
-    pub author_attributions:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AuthorAttribution>>,
-    /// A link where users can flag a problem with the photo.
-    #[serde(default, rename = "flagContentUri")]
-    pub flag_content_uri: ::core::option::Option<String>,
-    /// A link to show the photo on Google Maps.
-    #[serde(default, rename = "googleMapsUri")]
-    pub google_maps_uri: ::core::option::Option<String>,
-    /// The maximum available height, in pixels.
-    #[serde(default, rename = "heightPx")]
-    pub height_px: ::core::option::Option<i32>,
-    /// Identifier. A reference representing this place photo which may be used to look up this place photo again (also called the API "resource" name: places/{place_id}/photos/{photo}).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The maximum available width, in pixels.
-    #[serde(default, rename = "widthPx")]
-    pub width_px: ::core::option::Option<i32>,
-}
-
-/// A photo media from Places API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PhotoMedia {
-    /// The resource name of a photo media in the format: places/{place_id}/photos/{photo_reference}/media.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A short-lived uri that can be used to render the photo.
-    #[serde(default, rename = "photoUri")]
-    pub photo_uri: ::core::option::Option<String>,
 }
 
 /// All the information representing a Place.
@@ -698,6 +582,109 @@ pub struct GoogleMapsPlacesV1Place {
     pub website_uri: ::core::option::Option<String>,
 }
 
+/// The duration and distance from the routing origin to a place in the response, and a second leg from that place to the destination, if requested. **Note:** Adding routingSummaries in the field mask without also including either the routingParameters.origin parameter or the searchAlongRouteParameters.polyline.encodedPolyline parameter in the request causes an error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1RoutingSummary {
+    /// A link to show directions on Google Maps using the waypoints from the given routing summary. The route generated by this link is not guaranteed to be the same as the route used to generate the routing summary. The link uses information provided in the request, from fields including routingParameters and searchAlongRouteParameters when applicable, to generate the directions link.
+    #[serde(default, rename = "directionsUri")]
+    pub directions_uri: ::core::option::Option<String>,
+    /// The legs of the trip. When you calculate travel duration and distance from a set origin, legs contains a single leg containing the duration and distance from the origin to the destination. When you do a search along route, legs contains two legs: one from the origin to place, and one from the place to the destination.
+    #[serde(default)]
+    pub legs: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummaryLeg>>,
+}
+
+/// Prediction results for a Place Autocomplete prediction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction {
+    /// The length of the geodesic in meters from origin if origin is specified. Certain predictions such as routes may not populate this field.
+    #[serde(default, rename = "distanceMeters")]
+    pub distance_meters: ::core::option::Option<i32>,
+    /// The resource name of the suggested Place. This name can be used in other APIs that accept Place names.
+    #[serde(default)]
+    pub place: ::core::option::Option<String>,
+    /// The unique identifier of the suggested Place. This identifier can be used in other APIs that accept Place IDs.
+    #[serde(default, rename = "placeId")]
+    pub place_id: ::core::option::Option<String>,
+    /// A breakdown of the Place prediction into main text containing the name of the Place and secondary text containing additional disambiguating features (such as a city or region). structured_format is recommended for developers who wish to show two separate, but related, UI elements. Developers who wish to show a single UI element may want to use text instead. They are two different ways to represent a Place prediction. Users should not try to parse structured_format into text or vice versa.
+    #[serde(default, rename = "structuredFormat")]
+    pub structured_format: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat,
+    >,
+    /// Contains the human-readable name for the returned result. For establishment results, this is usually the business name and address. text is recommended for developers who wish to show a single UI element. Developers who wish to show two separate, but related, UI elements may want to use structured_format instead. They are two different ways to represent a Place prediction. Users should not try to parse structured_format into text or vice versa. This text may be different from the display_name returned by GetPlace. May be in mixed languages if the request input and language_code are in different languages or if the Place does not have a translation from the local language to language_code.
+    #[serde(default)]
+    pub text: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
+    >,
+    /// List of types that apply to this Place from Table A or Table B in https://developers.google.com/maps/documentation/places/web-service/place-types. A type is a categorization of a Place. Places with shared types will share similar characteristics.
+    #[serde(default)]
+    pub types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Prediction results for a Query Autocomplete prediction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
+    /// A breakdown of the query prediction into main text containing the query and secondary text containing additional disambiguating features (such as a city or region). structured_format is recommended for developers who wish to show two separate, but related, UI elements. Developers who wish to show a single UI element may want to use text instead. They are two different ways to represent a query prediction. Users should not try to parse structured_format into text or vice versa.
+    #[serde(default, rename = "structuredFormat")]
+    pub structured_format: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat,
+    >,
+    /// The predicted text. This text does not represent a Place, but rather a text query that could be used in a search endpoint (for example, Text Search). text is recommended for developers who wish to show a single UI element. Developers who wish to show two separate, but related, UI elements may want to use structured_format instead. They are two different ways to represent a query prediction. Users should not try to parse structured_format into text or vice versa. May be in mixed languages if the request input and language_code are in different languages or if part of the query does not have a translation from the local language to language_code.
+    #[serde(default)]
+    pub text: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
+    >,
+}
+
+/// Circle with a LatLng as center and radius.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1Circle {
+    /// Required. Center latitude and longitude. The range of latitude must be within [-90.0, 90.0]. The range of the longitude must be within [-180.0, 180.0].
+    #[serde(default)]
+    pub center: ::core::option::Option<GoogleTypeLatLng>,
+    /// Required. Radius measured in meters. The radius must be within [0.0, 50000.0].
+    #[serde(default)]
+    pub radius: ::core::option::Option<f64>,
+}
+
+/// Encapsulates a set of optional conditions to satisfy when calculating the routes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1RouteModifiers {
+    /// Optional. When set to true, avoids ferries where reasonable, giving preference to routes not containing ferries. Applies only to the DRIVE and TWO_WHEELER TravelMode.
+    #[serde(default, rename = "avoidFerries")]
+    pub avoid_ferries: ::core::option::Option<bool>,
+    /// Optional. When set to true, avoids highways where reasonable, giving preference to routes not containing highways. Applies only to the DRIVE and TWO_WHEELER TravelMode.
+    #[serde(default, rename = "avoidHighways")]
+    pub avoid_highways: ::core::option::Option<bool>,
+    /// Optional. When set to true, avoids navigating indoors where reasonable, giving preference to routes not containing indoor navigation. Applies only to the WALK TravelMode.
+    #[serde(default, rename = "avoidIndoor")]
+    pub avoid_indoor: ::core::option::Option<bool>,
+    /// Optional. When set to true, avoids toll roads where reasonable, giving preference to routes not containing toll roads. Applies only to the DRIVE and TWO_WHEELER TravelMode.
+    #[serde(default, rename = "avoidTolls")]
+    pub avoid_tolls: ::core::option::Option<bool>,
+}
+
+/// A route polyline. Only supports an [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be passed as a string and includes compression with minimal lossiness. This is the Routes API default output.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1Polyline {
+    /// An [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), as returned by the [Routes API by default](https://developers.google.com/maps/documentation/routes/reference/rest/v2/TopLevel/computeRoutes#polylineencoding). See the [encoder](https://developers.google.com/maps/documentation/utilities/polylineutility) and [decoder](https://developers.google.com/maps/documentation/routes/polylinedecoder) tools.
+    #[serde(default, rename = "encodedPolyline")]
+    pub encoded_polyline: ::core::option::Option<String>,
+}
+
+/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Justifications for the place. Justifications answers the question of why a place could interest an end user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContextualContentJustification {
+    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details.
+    #[serde(default, rename = "businessAvailabilityAttributesJustification")]
+    pub business_availability_attributes_justification: ::core::option::Option<
+        GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification,
+    >,
+    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details.
+    #[serde(default, rename = "reviewJustification")]
+    pub review_justification:
+        ::core::option::Option<GoogleMapsPlacesV1ContextualContentJustificationReviewJustification>,
+}
+
 /// Information about the accessibility options a place offers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
@@ -732,6 +719,18 @@ pub struct GoogleMapsPlacesV1PlaceAddressComponent {
     pub types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// A relational description of a location. Includes a ranked set of nearby landmarks and precise containing areas and their relationship to the target location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AddressDescriptor {
+    /// A ranked list of containing or adjacent areas. The most recognizable and precise areas are ranked first.
+    #[serde(default)]
+    pub areas: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AddressDescriptorArea>>,
+    /// A ranked list of nearby landmarks. The most recognizable and nearby landmarks are ranked first.
+    #[serde(default)]
+    pub landmarks:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AddressDescriptorLandmark>>,
+}
+
 /// Information about data providers of this place.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1PlaceAttribution {
@@ -757,31 +756,6 @@ pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
     pub overview: ::core::option::Option<String>,
 }
 
-/// The details of the consumer alert message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
-    /// The link to show together with the description to provide more information.
-    #[serde(default, rename = "aboutLink")]
-    pub about_link: ::core::option::Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
-    /// The description of the consumer alert message.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The title to show together with the description.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// The link to show together with the description to provide more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
-    /// The title to show for the link.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The uri of the link.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// Info about the place in which this place is located.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1PlaceContainingPlace {
@@ -791,6 +765,33 @@ pub struct GoogleMapsPlacesV1PlaceContainingPlace {
     /// The resource name of the place in which this place is located.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// Information about business hour of the place.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHours {
+    /// The next time the current opening hours period ends up to 7 days in the future. This field is only populated if the opening hours period is active at the time of serving the request.
+    #[serde(default, rename = "nextCloseTime")]
+    pub next_close_time: ::core::option::Option<String>,
+    /// The next time the current opening hours period starts up to 7 days in the future. This field is only populated if the opening hours period is not active at the time of serving the request.
+    #[serde(default, rename = "nextOpenTime")]
+    pub next_open_time: ::core::option::Option<String>,
+    /// Whether the opening hours period is currently active. For regular opening hours and current opening hours, this field means whether the place is open. For secondary opening hours and current secondary opening hours, this field means whether the secondary hours of this place is active.
+    #[serde(default, rename = "openNow")]
+    pub open_now: ::core::option::Option<bool>,
+    /// The periods that this place is open during the week. The periods are in chronological order, in the place-local timezone. An empty (but not absent) value indicates a place that is never open, e.g. because it is closed temporarily for renovations. The starting day of periods is NOT fixed and should not be assumed to be Sunday. The API determines the start day based on a variety of factors. For example, for a 24/7 business, the first period may begin on the day of the request. For other businesses, it might be the first day of the week that they are open. NOTE: The ordering of the periods array is independent of the ordering of the weekday_descriptions array. Do not assume they will begin on the same day.
+    #[serde(default)]
+    pub periods: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
+    /// A type string used to identify the type of secondary hours. // TODO: enum values: ["SECONDARY_HOURS_TYPE_UNSPECIFIED", "DRIVE_THROUGH", "HAPPY_HOUR", "DELIVERY", "TAKEOUT", "KITCHEN", "BREAKFAST", "LUNCH", "DINNER", "BRUNCH", "PICKUP", "ACCESS", "SENIOR_HOURS", "ONLINE_SERVICE_HOURS"]
+    #[serde(default, rename = "secondaryHoursType")]
+    pub secondary_hours_type: ::core::option::Option<String>,
+    /// Structured information for special days that fall within the period that the returned opening hours cover. Special days are days that could impact the business hours of a place, e.g. Christmas day. Set for current_opening_hours and current_secondary_opening_hours if there are exceptional hours.
+    #[serde(default, rename = "specialDays")]
+    pub special_days:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
+    /// Localized strings describing the opening hours of this place, one string for each day of the week. NOTE: The order of the days and the start of the week is determined by the locale (language and region). The ordering of the periods array is independent of the ordering of the weekday_descriptions array. Do not assume they will begin on the same day. Will be empty if the hours are unknown or could not be converted to localized text. Example: "Sun: 18:00–06:00"
+    #[serde(default, rename = "weekdayDescriptions")]
+    pub weekday_descriptions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The summary of amenities near the EV charging station. This only applies to places with type electric_vehicle_charging_station. The overview field is guaranteed to be provided while the other fields are optional.
@@ -814,6 +815,28 @@ pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
     /// A summary of the nearby stores.
     #[serde(default)]
     pub store: ::core::option::Option<GoogleMapsPlacesV1ContentBlock>,
+}
+
+/// Information about the EV Charge Station hosted in Place. Terminology follows https://afdc.energy.gov/fuels/electricity_infrastructure.html One port could charge one car at a time. One port has one or more connectors. One station has one or more ports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1eVChargeOptions {
+    /// A list of EV charging connector aggregations that contain connectors of the same type and same charge rate.
+    #[serde(default, rename = "connectorAggregation")]
+    pub connector_aggregation: ::core::option::Option<
+        ::std::vec::Vec<GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation>,
+    >,
+    /// Number of connectors at this station. However, because some ports can have multiple connectors but only be able to charge one car at a time (e.g.) the number of connectors may be greater than the total number of cars which can charge simultaneously.
+    #[serde(default, rename = "connectorCount")]
+    pub connector_count: ::core::option::Option<i32>,
+}
+
+/// The most recent information about fuel options in a gas station. This information is updated regularly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1FuelOptions {
+    /// The last known fuel price for each type of fuel this station has. There is one entry per fuel type this station has. Order is not important.
+    #[serde(default, rename = "fuelPrices")]
+    pub fuel_prices:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1FuelOptionsFuelPrice>>,
 }
 
 /// AI-generated summary of the place.
@@ -867,72 +890,6 @@ pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
     pub overview: ::core::option::Option<GoogleMapsPlacesV1ContentBlock>,
 }
 
-/// Information about business hour of the place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHours {
-    /// The next time the current opening hours period ends up to 7 days in the future. This field is only populated if the opening hours period is active at the time of serving the request.
-    #[serde(default, rename = "nextCloseTime")]
-    pub next_close_time: ::core::option::Option<String>,
-    /// The next time the current opening hours period starts up to 7 days in the future. This field is only populated if the opening hours period is not active at the time of serving the request.
-    #[serde(default, rename = "nextOpenTime")]
-    pub next_open_time: ::core::option::Option<String>,
-    /// Whether the opening hours period is currently active. For regular opening hours and current opening hours, this field means whether the place is open. For secondary opening hours and current secondary opening hours, this field means whether the secondary hours of this place is active.
-    #[serde(default, rename = "openNow")]
-    pub open_now: ::core::option::Option<bool>,
-    /// The periods that this place is open during the week. The periods are in chronological order, in the place-local timezone. An empty (but not absent) value indicates a place that is never open, e.g. because it is closed temporarily for renovations. The starting day of periods is NOT fixed and should not be assumed to be Sunday. The API determines the start day based on a variety of factors. For example, for a 24/7 business, the first period may begin on the day of the request. For other businesses, it might be the first day of the week that they are open. NOTE: The ordering of the periods array is independent of the ordering of the weekday_descriptions array. Do not assume they will begin on the same day.
-    #[serde(default)]
-    pub periods: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1PlaceOpeningHoursPeriod>>,
-    /// A type string used to identify the type of secondary hours. // TODO: enum values: ["SECONDARY_HOURS_TYPE_UNSPECIFIED", "DRIVE_THROUGH", "HAPPY_HOUR", "DELIVERY", "TAKEOUT", "KITCHEN", "BREAKFAST", "LUNCH", "DINNER", "BRUNCH", "PICKUP", "ACCESS", "SENIOR_HOURS", "ONLINE_SERVICE_HOURS"]
-    #[serde(default, rename = "secondaryHoursType")]
-    pub secondary_hours_type: ::core::option::Option<String>,
-    /// Structured information for special days that fall within the period that the returned opening hours cover. Special days are days that could impact the business hours of a place, e.g. Christmas day. Set for current_opening_hours and current_secondary_opening_hours if there are exceptional hours.
-    #[serde(default, rename = "specialDays")]
-    pub special_days:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay>>,
-    /// Localized strings describing the opening hours of this place, one string for each day of the week. NOTE: The order of the days and the start of the week is determined by the locale (language and region). The ordering of the periods array is independent of the ordering of the weekday_descriptions array. Do not assume they will begin on the same day. Will be empty if the hours are unknown or could not be converted to localized text. Example: "Sun: 18:00–06:00"
-    #[serde(default, rename = "weekdayDescriptions")]
-    pub weekday_descriptions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A period the place remains in open_now status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
-    /// The time that the place starts to be closed.
-    #[serde(default)]
-    pub close: ::core::option::Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-    /// The time that the place starts to be open.
-    #[serde(default)]
-    pub open: ::core::option::Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
-}
-
-/// Status changing points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
-    /// Date in the local timezone for the place.
-    #[serde(default)]
-    pub date: ::core::option::Option<GoogleTypeDate>,
-    /// A day of the week, as an integer in the range 0-6. 0 is Sunday, 1 is Monday, etc.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// The hour in 24 hour format. Ranges from 0 to 23.
-    #[serde(default)]
-    pub hour: ::core::option::Option<i32>,
-    /// The minute. Ranges from 0 to 59.
-    #[serde(default)]
-    pub minute: ::core::option::Option<i32>,
-    /// Whether or not this endpoint was truncated. Truncation occurs when the real hours are outside the times we are willing to return hours between, so we truncate the hours back to these boundaries. This ensures that at most 24 * 7 hours from midnight of the day of the request are returned.
-    #[serde(default)]
-    pub truncated: ::core::option::Option<bool>,
-}
-
-/// Structured information for special days that fall within the period that the returned opening hours cover. Special days are days that could impact the business hours of a place, e.g. Christmas day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
-    /// The date of this special day.
-    #[serde(default)]
-    pub date: ::core::option::Option<GoogleTypeDate>,
-}
-
 /// Information about parking options for the place. A parking lot could support more than one option at the same time.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1PlaceParkingOptions {
@@ -976,6 +933,30 @@ pub struct GoogleMapsPlacesV1PlacePaymentOptions {
     pub accepts_nfc: ::core::option::Option<bool>,
 }
 
+/// Information about a photo of a place.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1Photo {
+    /// This photo''s authors.
+    #[serde(default, rename = "authorAttributions")]
+    pub author_attributions:
+        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1AuthorAttribution>>,
+    /// A link where users can flag a problem with the photo.
+    #[serde(default, rename = "flagContentUri")]
+    pub flag_content_uri: ::core::option::Option<String>,
+    /// A link to show the photo on Google Maps.
+    #[serde(default, rename = "googleMapsUri")]
+    pub google_maps_uri: ::core::option::Option<String>,
+    /// The maximum available height, in pixels.
+    #[serde(default, rename = "heightPx")]
+    pub height_px: ::core::option::Option<i32>,
+    /// Identifier. A reference representing this place photo which may be used to look up this place photo again (also called the API "resource" name: places/{place_id}/photos/{photo}).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The maximum available width, in pixels.
+    #[serde(default, rename = "widthPx")]
+    pub width_px: ::core::option::Option<i32>,
+}
+
 /// Plus code (http://plus.codes) is a location reference with two formats: global code defining a 14mx14m (1/8000th of a degree) or smaller rectangle, and compound code, replacing the prefix with a reference location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsPlacesV1PlacePlusCode {
@@ -985,377 +966,6 @@ pub struct GoogleMapsPlacesV1PlacePlusCode {
     /// Place''s global (full) code, such as "9FWM33GV+HQ", representing an 1/8000 by 1/8000 degree area (~14 by 14 meters).
     #[serde(default, rename = "globalCode")]
     pub global_code: ::core::option::Option<String>,
-}
-
-/// AI-generated summary of the place using user reviews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceReviewSummary {
-    /// The AI disclosure message "Summarized with Gemini" (and its localized variants). This will be in the language specified in the request if available.
-    #[serde(default, rename = "disclosureText")]
-    pub disclosure_text: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// A link where users can flag a problem with the summary.
-    #[serde(default, rename = "flagContentUri")]
-    pub flag_content_uri: ::core::option::Option<String>,
-    /// A link to show reviews of this place on Google Maps.
-    #[serde(default, rename = "reviewsUri")]
-    pub reviews_uri: ::core::option::Option<String>,
-    /// The summary of user reviews.
-    #[serde(default)]
-    pub text: ::core::option::Option<GoogleTypeLocalizedText>,
-}
-
-/// Sub-destinations are specific places associated with a main place. These provide more specific destinations for users who are searching within a large or complex place, like an airport, national park, university, or stadium. For example, sub-destinations at an airport might include associated terminals and parking lots. Sub-destinations return the place ID and place resource name, which can be used in subsequent Place Details (New) requests to fetch richer details, including the sub-destination''s display name and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PlaceSubDestination {
-    /// The place id of the sub-destination.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The resource name of the sub-destination.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A route polyline. Only supports an [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be passed as a string and includes compression with minimal lossiness. This is the Routes API default output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1Polyline {
-    /// An [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), as returned by the [Routes API by default](https://developers.google.com/maps/documentation/routes/reference/rest/v2/TopLevel/computeRoutes#polylineencoding). See the [encoder](https://developers.google.com/maps/documentation/utilities/polylineutility) and [decoder](https://developers.google.com/maps/documentation/routes/polylinedecoder) tools.
-    #[serde(default, rename = "encodedPolyline")]
-    pub encoded_polyline: ::core::option::Option<String>,
-}
-
-/// The price range associated with a Place. end_price could be unset, which indicates a range without upper bound (e.g. "More than $100").
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1PriceRange {
-    /// The high end of the price range (exclusive). Price should be lower than this amount.
-    #[serde(default, rename = "endPrice")]
-    pub end_price: ::core::option::Option<GoogleTypeMoney>,
-    /// The low end of the price range (inclusive). Price should be at or above this amount.
-    #[serde(default, rename = "startPrice")]
-    pub start_price: ::core::option::Option<GoogleTypeMoney>,
-}
-
-/// Information about a review of a place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1Review {
-    /// This review''s author.
-    #[serde(default, rename = "authorAttribution")]
-    pub author_attribution: ::core::option::Option<GoogleMapsPlacesV1AuthorAttribution>,
-    /// A link where users can flag a problem with the review.
-    #[serde(default, rename = "flagContentUri")]
-    pub flag_content_uri: ::core::option::Option<String>,
-    /// A link to show the review on Google Maps.
-    #[serde(default, rename = "googleMapsUri")]
-    pub google_maps_uri: ::core::option::Option<String>,
-    /// A reference representing this place review which may be used to look up this place review again (also called the API "resource" name: places/{place_id}/reviews/{review}).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The review text in its original language.
-    #[serde(default, rename = "originalText")]
-    pub original_text: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// Timestamp for the review.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
-    /// A number between 1.0 and 5.0, also called the number of stars.
-    #[serde(default)]
-    pub rating: ::core::option::Option<f64>,
-    /// A string of formatted recent time, expressing the review time relative to the current time in a form appropriate for the language and country.
-    #[serde(default, rename = "relativePublishTimeDescription")]
-    pub relative_publish_time_description: ::core::option::Option<String>,
-    /// The localized text of the review.
-    #[serde(default)]
-    pub text: ::core::option::Option<GoogleTypeLocalizedText>,
-    /// The date when the author visited the place. This is truncated to the year and month of the visit.
-    #[serde(default, rename = "visitDate")]
-    pub visit_date: ::core::option::Option<GoogleTypeDate>,
-}
-
-/// Encapsulates a set of optional conditions to satisfy when calculating the routes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1RouteModifiers {
-    /// Optional. When set to true, avoids ferries where reasonable, giving preference to routes not containing ferries. Applies only to the DRIVE and TWO_WHEELER TravelMode.
-    #[serde(default, rename = "avoidFerries")]
-    pub avoid_ferries: ::core::option::Option<bool>,
-    /// Optional. When set to true, avoids highways where reasonable, giving preference to routes not containing highways. Applies only to the DRIVE and TWO_WHEELER TravelMode.
-    #[serde(default, rename = "avoidHighways")]
-    pub avoid_highways: ::core::option::Option<bool>,
-    /// Optional. When set to true, avoids navigating indoors where reasonable, giving preference to routes not containing indoor navigation. Applies only to the WALK TravelMode.
-    #[serde(default, rename = "avoidIndoor")]
-    pub avoid_indoor: ::core::option::Option<bool>,
-    /// Optional. When set to true, avoids toll roads where reasonable, giving preference to routes not containing toll roads. Applies only to the DRIVE and TWO_WHEELER TravelMode.
-    #[serde(default, rename = "avoidTolls")]
-    pub avoid_tolls: ::core::option::Option<bool>,
-}
-
-/// Parameters to configure the routing calculations to the places in the response, both along a route (where result ranking will be influenced) and for calculating travel times on results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1RoutingParameters {
-    /// Optional. An explicit routing origin that overrides the origin defined in the polyline. By default, the polyline origin is used.
-    #[serde(default)]
-    pub origin: ::core::option::Option<GoogleTypeLatLng>,
-    /// Optional. The route modifiers.
-    #[serde(default, rename = "routeModifiers")]
-    pub route_modifiers: ::core::option::Option<GoogleMapsPlacesV1RouteModifiers>,
-    /// Optional. Specifies how to compute the routing summaries. The server attempts to use the selected routing preference to compute the route. The traffic aware routing preference is only available for the DRIVE or TWO_WHEELER travelMode. // TODO: enum values: ["ROUTING_PREFERENCE_UNSPECIFIED", "TRAFFIC_UNAWARE", "TRAFFIC_AWARE", "TRAFFIC_AWARE_OPTIMAL"]
-    #[serde(default, rename = "routingPreference")]
-    pub routing_preference: ::core::option::Option<String>,
-    /// Optional. The travel mode. // TODO: enum values: ["TRAVEL_MODE_UNSPECIFIED", "DRIVE", "BICYCLE", "WALK", "TWO_WHEELER"]
-    #[serde(default, rename = "travelMode")]
-    pub travel_mode: ::core::option::Option<String>,
-}
-
-/// The duration and distance from the routing origin to a place in the response, and a second leg from that place to the destination, if requested. **Note:** Adding routingSummaries in the field mask without also including either the routingParameters.origin parameter or the searchAlongRouteParameters.polyline.encodedPolyline parameter in the request causes an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1RoutingSummary {
-    /// A link to show directions on Google Maps using the waypoints from the given routing summary. The route generated by this link is not guaranteed to be the same as the route used to generate the routing summary. The link uses information provided in the request, from fields including routingParameters and searchAlongRouteParameters when applicable, to generate the directions link.
-    #[serde(default, rename = "directionsUri")]
-    pub directions_uri: ::core::option::Option<String>,
-    /// The legs of the trip. When you calculate travel duration and distance from a set origin, legs contains a single leg containing the duration and distance from the origin to the destination. When you do a search along route, legs contains two legs: one from the origin to place, and one from the place to the destination.
-    #[serde(default)]
-    pub legs: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummaryLeg>>,
-}
-
-/// A leg is a single portion of a journey from one location to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1RoutingSummaryLeg {
-    /// The distance of this leg of the trip.
-    #[serde(default, rename = "distanceMeters")]
-    pub distance_meters: ::core::option::Option<i32>,
-    /// The time it takes to complete this leg of the trip.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-}
-
-/// Request proto for Search Nearby.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchNearbyRequest {
-    /// Excluded primary Place type (e.g. "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting primary types, i.e. a type appears in both included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
-    #[serde(default, rename = "excludedPrimaryTypes")]
-    pub excluded_primary_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Excluded Place type (eg, "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If the client provides both included_types (e.g. restaurant) and excluded_types (e.g. cafe), then the response should include places that are restaurant but not cafe. The response includes places that match at least one of the included_types and none of the excluded_types. If there are any conflicting types, i.e. a type appears in both included_types and excluded_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
-    #[serde(default, rename = "excludedTypes")]
-    pub excluded_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. If true, include businesses that are not yet open but will open in the future.
-    #[serde(default, rename = "includeFutureOpeningBusinesses")]
-    pub include_future_opening_businesses: ::core::option::Option<bool>,
-    /// Included primary Place type (e.g. "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. A place can only have a single primary type from the supported types table associated with it. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting primary types, i.e. a type appears in both included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
-    #[serde(default, rename = "includedPrimaryTypes")]
-    pub included_primary_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Included Place type (eg, "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting types, i.e. a type appears in both included_types and excluded_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
-    #[serde(default, rename = "includedTypes")]
-    pub included_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Place details will be displayed with the preferred language if available. If the language code is unspecified or unrecognized, place details of any language may be returned, with a preference for English if such details exist. Current list of supported languages: https://developers.google.com/maps/faq#languagesupport.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Required. The region to search.
-    #[serde(default, rename = "locationRestriction")]
-    pub location_restriction:
-        ::core::option::Option<GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction>,
-    /// Maximum number of results to return. It must be between 1 and 20 (default), inclusively. If the number is unset, it falls back to the upper limit. If the number is set to negative or exceeds the upper limit, an INVALID_ARGUMENT error is returned.
-    #[serde(default, rename = "maxResultCount")]
-    pub max_result_count: ::core::option::Option<i32>,
-    /// How results will be ranked in the response. // TODO: enum values: ["RANK_PREFERENCE_UNSPECIFIED", "DISTANCE", "POPULARITY"]
-    #[serde(default, rename = "rankPreference")]
-    pub rank_preference: ::core::option::Option<String>,
-    /// The Unicode country/region code (CLDR) of the location where the request is coming from. This parameter is used to display the place details, like region-specific place name, if available. The parameter can affect results based on applicable law. For more information, see https://www.unicode.org/cldr/charts/latest/supplemental/territory_language_information.html. Note that 3-digit region codes are not currently supported.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// Optional. Parameters that affect the routing to the search results.
-    #[serde(default, rename = "routingParameters")]
-    pub routing_parameters: ::core::option::Option<GoogleMapsPlacesV1RoutingParameters>,
-}
-
-/// The region to search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction {
-    /// A circle defined by center point and radius.
-    #[serde(default)]
-    pub circle: ::core::option::Option<GoogleMapsPlacesV1Circle>,
-}
-
-/// Response proto for Search Nearby.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchNearbyResponse {
-    /// A list of places that meets user''s requirements like places types, number of places and specific location restriction.
-    #[serde(default)]
-    pub places: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1Place>>,
-    /// A list of routing summaries where each entry associates to the corresponding place in the same index in the places field. If the routing summary is not available for one of the places, it will contain an empty entry. This list should have as many entries as the list of places if requested.
-    #[serde(default, rename = "routingSummaries")]
-    pub routing_summaries:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummary>>,
-}
-
-/// Request proto for SearchText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextRequest {
-    /// Optional. Set the searchable EV options of a place search request.
-    #[serde(default, rename = "evOptions")]
-    pub ev_options: ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestEVOptions>,
-    /// Optional. If true, include businesses that are not yet open but will open in the future.
-    #[serde(default, rename = "includeFutureOpeningBusinesses")]
-    pub include_future_opening_businesses: ::core::option::Option<bool>,
-    /// Optional. Include pure service area businesses if the field is set to true. Pure service area business is a business that visits or delivers to customers directly but does not serve customers at their business address. For example, businesses like cleaning services or plumbers. Those businesses do not have a physical address or location on Google Maps. Places will not return fields including location, plus_code, and other location related fields for these businesses.
-    #[serde(default, rename = "includePureServiceAreaBusinesses")]
-    pub include_pure_service_area_businesses: ::core::option::Option<bool>,
-    /// The requested place type. Full list of types supported: https://developers.google.com/maps/documentation/places/web-service/place-types. Only support one included type.
-    #[serde(default, rename = "includedType")]
-    pub included_type: ::core::option::Option<String>,
-    /// Place details will be displayed with the preferred language if available. If the language code is unspecified or unrecognized, place details of any language may be returned, with a preference for English if such details exist. Current list of supported languages: https://developers.google.com/maps/faq#languagesupport.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// The region to search. This location serves as a bias which means results around given location might be returned. Cannot be set along with location_restriction.
-    #[serde(default, rename = "locationBias")]
-    pub location_bias: ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestLocationBias>,
-    /// The region to search. This location serves as a restriction which means results outside given location will not be returned. Cannot be set along with location_bias.
-    #[serde(default, rename = "locationRestriction")]
-    pub location_restriction:
-        ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestLocationRestriction>,
-    /// Deprecated: Use page_size instead. The maximum number of results per page that can be returned. If the number of available results is larger than max_result_count, a next_page_token is returned which can be passed to page_token to get the next page of results in subsequent requests. If 0 or no value is provided, a default of 20 is used. The maximum value is 20; values above 20 will be coerced to 20. Negative values will return an INVALID_ARGUMENT error. If both max_result_count and page_size are specified, max_result_count will be ignored.
-    #[serde(default, rename = "maxResultCount")]
-    pub max_result_count: ::core::option::Option<i32>,
-    /// Filter out results whose average user rating is strictly less than this limit. A valid value must be a float between 0 and 5 (inclusively) at a 0.5 cadence i.e. [0, 0.5, 1.0, ... , 5.0] inclusively. The input rating will round up to the nearest 0.5(ceiling). For instance, a rating of 0.6 will eliminate all results with a less than 1.0 rating.
-    #[serde(default, rename = "minRating")]
-    pub min_rating: ::core::option::Option<f64>,
-    /// Used to restrict the search to places that are currently open. The default is false.
-    #[serde(default, rename = "openNow")]
-    pub open_now: ::core::option::Option<bool>,
-    /// Optional. The maximum number of results per page that can be returned. If the number of available results is larger than page_size, a next_page_token is returned which can be passed to page_token to get the next page of results in subsequent requests. If 0 or no value is provided, a default of 20 is used. The maximum value is 20; values above 20 will be set to 20. Negative values will return an INVALID_ARGUMENT error. If both max_result_count and page_size are specified, max_result_count will be ignored.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Optional. A page token, received from a previous TextSearch call. Provide this to retrieve the subsequent page. When paginating, all parameters other than page_token, page_size, and max_result_count provided to TextSearch must match the initial call that provided the page token. Otherwise an INVALID_ARGUMENT error is returned.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Used to restrict the search to places that are marked as certain price levels. Users can choose any combinations of price levels. Default to select all price levels.
-    #[serde(default, rename = "priceLevels")]
-    pub price_levels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// How results will be ranked in the response. // TODO: enum values: ["RANK_PREFERENCE_UNSPECIFIED", "DISTANCE", "RELEVANCE"]
-    #[serde(default, rename = "rankPreference")]
-    pub rank_preference: ::core::option::Option<String>,
-    /// The Unicode country/region code (CLDR) of the location where the request is coming from. This parameter is used to display the place details, like region-specific place name, if available. The parameter can affect results based on applicable law. For more information, see https://www.unicode.org/cldr/charts/latest/supplemental/territory_language_information.html. Note that 3-digit region codes are not currently supported.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// Optional. Additional parameters for routing to results.
-    #[serde(default, rename = "routingParameters")]
-    pub routing_parameters: ::core::option::Option<GoogleMapsPlacesV1RoutingParameters>,
-    /// Optional. Additional parameters proto for searching along a route.
-    #[serde(default, rename = "searchAlongRouteParameters")]
-    pub search_along_route_parameters:
-        ::core::option::Option<GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters>,
-    /// Used to set strict type filtering for included_type. If set to true, only results of the same type will be returned. Default to false.
-    #[serde(default, rename = "strictTypeFiltering")]
-    pub strict_type_filtering: ::core::option::Option<bool>,
-    /// Required. The text query for textual search.
-    #[serde(default, rename = "textQuery")]
-    pub text_query: ::core::option::Option<String>,
-}
-
-/// Searchable EV options of a place search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextRequestEVOptions {
-    /// Optional. The list of preferred EV connector types. A place that does not support any of the listed connector types is filtered out.
-    #[serde(default, rename = "connectorTypes")]
-    pub connector_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Minimum required charging rate in kilowatts. A place with a charging rate less than the specified rate is filtered out.
-    #[serde(default, rename = "minimumChargingRateKw")]
-    pub minimum_charging_rate_kw: ::core::option::Option<f64>,
-}
-
-/// The region to search. This location serves as a bias which means results around given location might be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextRequestLocationBias {
-    /// A circle defined by center point and radius.
-    #[serde(default)]
-    pub circle: ::core::option::Option<GoogleMapsPlacesV1Circle>,
-    /// A rectangle box defined by northeast and southwest corner. rectangle.high() must be the northeast point of the rectangle viewport. rectangle.low() must be the southwest point of the rectangle viewport. rectangle.low().latitude() cannot be greater than rectangle.high().latitude(). This will result in an empty latitude range. A rectangle viewport cannot be wider than 180 degrees.
-    #[serde(default)]
-    pub rectangle: ::core::option::Option<GoogleGeoTypeViewport>,
-}
-
-/// The region to search. This location serves as a restriction which means results outside given location will not be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextRequestLocationRestriction {
-    /// A rectangle box defined by northeast and southwest corner. rectangle.high() must be the northeast point of the rectangle viewport. rectangle.low() must be the southwest point of the rectangle viewport. rectangle.low().latitude() cannot be greater than rectangle.high().latitude(). This will result in an empty latitude range. A rectangle viewport cannot be wider than 180 degrees.
-    #[serde(default)]
-    pub rectangle: ::core::option::Option<GoogleGeoTypeViewport>,
-}
-
-/// Specifies a precalculated polyline from the [Routes API](https://developers.google.com/maps/documentation/routes) defining the route to search. Searching along a route is similar to using the locationBias or locationRestriction request option to bias the search results. However, while the locationBias and locationRestriction options let you specify a region to bias the search results, this option lets you bias the results along a trip route. Results are not guaranteed to be along the route provided, but rather are ranked within the search area defined by the polyline and, optionally, by the locationBias or locationRestriction based on minimal detour times from origin to destination. The results might be along an alternate route, especially if the provided polyline does not define an optimal route from origin to destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters {
-    /// Required. The route polyline.
-    #[serde(default)]
-    pub polyline: ::core::option::Option<GoogleMapsPlacesV1Polyline>,
-}
-
-/// Response proto for SearchText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsPlacesV1SearchTextResponse {
-    /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. A list of contextual contents where each entry associates to the corresponding place in the same index in the places field. The contents that are relevant to the text_query in the request are preferred. If the contextual content is not available for one of the places, it will return non-contextual content. It will be empty only when the content is unavailable for this place. This list will have as many entries as the list of places if requested.
-    #[serde(default, rename = "contextualContents")]
-    pub contextual_contents:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1ContextualContent>>,
-    /// A token that can be sent as page_token to retrieve the next page. If this field is omitted or empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of places that meet the user''s text search criteria.
-    #[serde(default)]
-    pub places: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1Place>>,
-    /// A list of routing summaries where each entry associates to the corresponding place in the same index in the places field. If the routing summary is not available for one of the places, it will contain an empty entry. This list will have as many entries as the list of places if requested.
-    #[serde(default, rename = "routingSummaries")]
-    pub routing_summaries:
-        ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1RoutingSummary>>,
-    /// A link allows the user to search with the same text query as specified in the request on Google Maps.
-    #[serde(default, rename = "searchUri")]
-    pub search_uri: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeLatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// Localized variant of a text in a particular language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeLocalizedText {
-    /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Localized string in the language corresponding to language_code below.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeMoney {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
@@ -1396,6 +1006,45 @@ pub struct GoogleTypePostalAddress {
     pub sublocality: ::core::option::Option<String>,
 }
 
+/// The price range associated with a Place. end_price could be unset, which indicates a range without upper bound (e.g. "More than $100").
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PriceRange {
+    /// The high end of the price range (exclusive). Price should be lower than this amount.
+    #[serde(default, rename = "endPrice")]
+    pub end_price: ::core::option::Option<GoogleTypeMoney>,
+    /// The low end of the price range (inclusive). Price should be at or above this amount.
+    #[serde(default, rename = "startPrice")]
+    pub start_price: ::core::option::Option<GoogleTypeMoney>,
+}
+
+/// AI-generated summary of the place using user reviews.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceReviewSummary {
+    /// The AI disclosure message "Summarized with Gemini" (and its localized variants). This will be in the language specified in the request if available.
+    #[serde(default, rename = "disclosureText")]
+    pub disclosure_text: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// A link where users can flag a problem with the summary.
+    #[serde(default, rename = "flagContentUri")]
+    pub flag_content_uri: ::core::option::Option<String>,
+    /// A link to show reviews of this place on Google Maps.
+    #[serde(default, rename = "reviewsUri")]
+    pub reviews_uri: ::core::option::Option<String>,
+    /// The summary of user reviews.
+    #[serde(default)]
+    pub text: ::core::option::Option<GoogleTypeLocalizedText>,
+}
+
+/// Sub-destinations are specific places associated with a main place. These provide more specific destinations for users who are searching within a large or complex place, like an airport, national park, university, or stadium. For example, sub-destinations at an airport might include associated terminals and parking lots. Sub-destinations return the place ID and place resource name, which can be used in subsequent Place Details (New) requests to fetch richer details, including the sub-destination''s display name and location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceSubDestination {
+    /// The place id of the sub-destination.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The resource name of the sub-destination.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleTypeTimeZone {
@@ -1405,4 +1054,355 @@ pub struct GoogleTypeTimeZone {
     /// Optional. IANA Time Zone Database version number. For example "2019a".
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleGeoTypeViewport {
+    /// Required. The high point of the viewport.
+    #[serde(default)]
+    pub high: ::core::option::Option<GoogleTypeLatLng>,
+    /// Required. The low point of the viewport.
+    #[serde(default)]
+    pub low: ::core::option::Option<GoogleTypeLatLng>,
+}
+
+/// A leg is a single portion of a journey from one location to another.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1RoutingSummaryLeg {
+    /// The distance of this leg of the trip.
+    #[serde(default, rename = "distanceMeters")]
+    pub distance_meters: ::core::option::Option<i32>,
+    /// The time it takes to complete this leg of the trip.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+}
+
+/// Contains a breakdown of a Place or query prediction into main text and secondary text. For Place predictions, the main text contains the specific name of the Place. For query predictions, the main text contains the query. The secondary text contains additional disambiguating features (such as a city or region) to further identify the Place or refine the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat {
+    /// Represents the name of the Place or query.
+    #[serde(default, rename = "mainText")]
+    pub main_text: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
+    >,
+    /// Represents additional disambiguating features (such as a city or region) to further identify the Place or refine the query.
+    #[serde(default, rename = "secondaryText")]
+    pub secondary_text: ::core::option::Option<
+        GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText,
+    >,
+}
+
+/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. BusinessAvailabilityAttributes justifications. This shows some attributes a business has that could interest an end user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification
+{
+    /// If a place provides delivery.
+    #[serde(default)]
+    pub delivery: ::core::option::Option<bool>,
+    /// If a place provides dine-in.
+    #[serde(default, rename = "dineIn")]
+    pub dine_in: ::core::option::Option<bool>,
+    /// If a place provides takeout.
+    #[serde(default)]
+    pub takeout: ::core::option::Option<bool>,
+}
+
+/// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. User review justifications. This highlights a section of the user review that would interest an end user. For instance, if the search query is "firewood pizza", the review justification highlights the text relevant to the search query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustification {
+    #[serde(default, rename = "highlightedText")]
+    pub highlighted_text: ::core::option::Option<
+        GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText,
+    >,
+    /// The review that the highlighted text is generated from.
+    #[serde(default)]
+    pub review: ::core::option::Option<GoogleMapsPlacesV1Review>,
+}
+
+/// Area information and the area''s relationship with the target location. Areas includes precise sublocality, neighborhoods, and large compounds that are useful for describing a location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AddressDescriptorArea {
+    /// Defines the spatial relationship between the target location and the area. // TODO: enum values: ["CONTAINMENT_UNSPECIFIED", "WITHIN", "OUTSKIRTS", "NEAR"]
+    #[serde(default)]
+    pub containment: ::core::option::Option<String>,
+    /// The area''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// The area''s resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The area''s place id.
+    #[serde(default, rename = "placeId")]
+    pub place_id: ::core::option::Option<String>,
+}
+
+/// Basic landmark information and the landmark''s relationship with the target location. Landmarks are prominent places that can be used to describe a location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
+    /// The landmark''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// The landmark''s resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The landmark''s place id.
+    #[serde(default, rename = "placeId")]
+    pub place_id: ::core::option::Option<String>,
+    /// Defines the spatial relationship between the target location and the landmark. // TODO: enum values: ["NEAR", "WITHIN", "BESIDE", "ACROSS_THE_ROAD", "DOWN_THE_ROAD", "AROUND_THE_CORNER", "BEHIND"]
+    #[serde(default, rename = "spatialRelationship")]
+    pub spatial_relationship: ::core::option::Option<String>,
+    /// The straight line distance, in meters, between the center point of the target and the center point of the landmark. In some situations, this value can be longer than travel_distance_meters.
+    #[serde(default, rename = "straightLineDistanceMeters")]
+    pub straight_line_distance_meters: ::core::option::Option<f32>,
+    /// The travel distance, in meters, along the road network from the target to the landmark, if known. This value does not take into account the mode of transportation, such as walking, driving, or biking.
+    #[serde(default, rename = "travelDistanceMeters")]
+    pub travel_distance_meters: ::core::option::Option<f32>,
+    /// A set of type tags for this landmark. For a complete list of possible values, see https://developers.google.com/maps/documentation/places/web-service/place-types.
+    #[serde(default)]
+    pub types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The details of the consumer alert message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
+    /// The link to show together with the description to provide more information.
+    #[serde(default, rename = "aboutLink")]
+    pub about_link: ::core::option::Option<GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink>,
+    /// The description of the consumer alert message.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The title to show together with the description.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A period the place remains in open_now status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
+    /// The time that the place starts to be closed.
+    #[serde(default)]
+    pub close: ::core::option::Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
+    /// The time that the place starts to be open.
+    #[serde(default)]
+    pub open: ::core::option::Option<GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint>,
+}
+
+/// Structured information for special days that fall within the period that the returned opening hours cover. Special days are days that could impact the business hours of a place, e.g. Christmas day.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
+    /// The date of this special day.
+    #[serde(default)]
+    pub date: ::core::option::Option<GoogleTypeDate>,
+}
+
+/// EV charging information grouped by [type, max_charge_rate_kw]. Shows EV charge aggregation of connectors that have the same type and max charge rate in kw.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation {
+    /// The timestamp when the connector availability information in this aggregation was last updated.
+    #[serde(default, rename = "availabilityLastUpdateTime")]
+    pub availability_last_update_time: ::core::option::Option<String>,
+    /// Number of connectors in this aggregation that are currently available.
+    #[serde(default, rename = "availableCount")]
+    pub available_count: ::core::option::Option<i32>,
+    /// Number of connectors in this aggregation.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// The static max charging rate in kw of each connector in the aggregation.
+    #[serde(default, rename = "maxChargeRateKw")]
+    pub max_charge_rate_kw: ::core::option::Option<f64>,
+    /// Number of connectors in this aggregation that are currently out of service.
+    #[serde(default, rename = "outOfServiceCount")]
+    pub out_of_service_count: ::core::option::Option<i32>,
+    /// The connector type of this aggregation. // TODO: enum values: ["EV_CONNECTOR_TYPE_UNSPECIFIED", "EV_CONNECTOR_TYPE_OTHER", "EV_CONNECTOR_TYPE_J1772", "EV_CONNECTOR_TYPE_TYPE_2", "EV_CONNECTOR_TYPE_CHADEMO", "EV_CONNECTOR_TYPE_CCS_COMBO_1", "EV_CONNECTOR_TYPE_CCS_COMBO_2", "EV_CONNECTOR_TYPE_TESLA", "EV_CONNECTOR_TYPE_UNSPECIFIED_GB_T", "EV_CONNECTOR_TYPE_UNSPECIFIED_WALL_OUTLET", "EV_CONNECTOR_TYPE_NACS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Fuel price information for a given type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
+    /// The price of the fuel.
+    #[serde(default)]
+    pub price: ::core::option::Option<GoogleTypeMoney>,
+    /// The type of fuel. // TODO: enum values: ["FUEL_TYPE_UNSPECIFIED", "DIESEL", "DIESEL_PLUS", "REGULAR_UNLEADED", "MIDGRADE", "PREMIUM", "SP91", "SP91_E10", "SP92", "SP95", "SP95_E10", "SP98", "SP99", "SP100", "LPG", "E80", "E85", "E100", "METHANE", "BIO_DIESEL", "TRUCK_DIESEL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The time the fuel price was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A block of content that can be served individually.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContentBlock {
+    /// Content related to the topic.
+    #[serde(default)]
+    pub content: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// The list of resource names of the referenced places. This name can be used in other APIs that accept Place resource names.
+    #[serde(default, rename = "referencedPlaces")]
+    pub referenced_places: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeLatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
+/// Text representing a Place or query prediction. The text may be used as is or formatted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
+    /// A list of string ranges identifying where the input request matched in text. The ranges can be used to format specific parts of text. The substrings may not be exact matches of input if the matching was determined by criteria other than string matching (for example, spell corrections or transliterations). These values are Unicode character offsets of text. The ranges are guaranteed to be ordered in increasing offset values.
+    #[serde(default)]
+    pub matches: ::core::option::Option<
+        ::std::vec::Vec<GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange>,
+    >,
+    /// Text that may be used as is or formatted with matches.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// The text highlighted by the justification. This is a subset of the review itself. The exact word to highlight is marked by the HighlightedTextRange. There could be several words in the text being highlighted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText {
+    /// The list of the ranges of the highlighted text.
+    #[serde(default, rename = "highlightedTextRanges")]
+    pub highlighted_text_ranges: ::core::option::Option<::std::vec::Vec<GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange>>,
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Information about a review of a place.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1Review {
+    /// This review''s author.
+    #[serde(default, rename = "authorAttribution")]
+    pub author_attribution: ::core::option::Option<GoogleMapsPlacesV1AuthorAttribution>,
+    /// A link where users can flag a problem with the review.
+    #[serde(default, rename = "flagContentUri")]
+    pub flag_content_uri: ::core::option::Option<String>,
+    /// A link to show the review on Google Maps.
+    #[serde(default, rename = "googleMapsUri")]
+    pub google_maps_uri: ::core::option::Option<String>,
+    /// A reference representing this place review which may be used to look up this place review again (also called the API "resource" name: places/{place_id}/reviews/{review}).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The review text in its original language.
+    #[serde(default, rename = "originalText")]
+    pub original_text: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// Timestamp for the review.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
+    /// A number between 1.0 and 5.0, also called the number of stars.
+    #[serde(default)]
+    pub rating: ::core::option::Option<f64>,
+    /// A string of formatted recent time, expressing the review time relative to the current time in a form appropriate for the language and country.
+    #[serde(default, rename = "relativePublishTimeDescription")]
+    pub relative_publish_time_description: ::core::option::Option<String>,
+    /// The localized text of the review.
+    #[serde(default)]
+    pub text: ::core::option::Option<GoogleTypeLocalizedText>,
+    /// The date when the author visited the place. This is truncated to the year and month of the visit.
+    #[serde(default, rename = "visitDate")]
+    pub visit_date: ::core::option::Option<GoogleTypeDate>,
+}
+
+/// The link to show together with the description to provide more information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
+    /// The title to show for the link.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The uri of the link.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Status changing points.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
+    /// Date in the local timezone for the place.
+    #[serde(default)]
+    pub date: ::core::option::Option<GoogleTypeDate>,
+    /// A day of the week, as an integer in the range 0-6. 0 is Sunday, 1 is Monday, etc.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// The hour in 24 hour format. Ranges from 0 to 23.
+    #[serde(default)]
+    pub hour: ::core::option::Option<i32>,
+    /// The minute. Ranges from 0 to 59.
+    #[serde(default)]
+    pub minute: ::core::option::Option<i32>,
+    /// Whether or not this endpoint was truncated. Truncation occurs when the real hours are outside the times we are willing to return hours between, so we truncate the hours back to these boundaries. This ensures that at most 24 * 7 hours from midnight of the day of the request are returned.
+    #[serde(default)]
+    pub truncated: ::core::option::Option<bool>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeMoney {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
+}
+
+/// The range of highlighted text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange
+{
+    #[serde(default, rename = "endIndex")]
+    pub end_index: ::core::option::Option<i32>,
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+}
+
+/// Information about the author of the UGC data. Used in Photo, and Review.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsPlacesV1AuthorAttribution {
+    /// Name of the author of the Photo or Review.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Profile photo URI of the author of the Photo or Review.
+    #[serde(default, rename = "photoUri")]
+    pub photo_uri: ::core::option::Option<String>,
+    /// URI of the author of the Photo or Review.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Localized variant of a text in a particular language.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeLocalizedText {
+    /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Localized string in the language corresponding to language_code below.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

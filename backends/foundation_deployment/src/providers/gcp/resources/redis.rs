@@ -10,12 +10,633 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Configuration of the AOF based persistence.
+/// Request message for AddAuthToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AOFConfig {
-    /// Optional. fsync configuration. // TODO: enum values: ["APPEND_FSYNC_UNSPECIFIED", "NO", "EVERYSEC", "ALWAYS"]
-    #[serde(default, rename = "appendFsync")]
-    pub append_fsync: ::core::option::Option<String>,
+pub struct AddAuthTokenRequest {
+    /// Required. The auth token to add.
+    #[serde(default, rename = "authToken")]
+    pub auth_token: ::core::option::Option<AuthToken>,
+}
+
+/// Request message for AddTokenAuthUser.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddTokenAuthUserRequest {
+    /// Required. The id of the token auth user to add.
+    #[serde(default, rename = "tokenAuthUser")]
+    pub token_auth_user: ::core::option::Option<String>,
+}
+
+/// Request for [BackupCluster].
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupClusterRequest {
+    /// Optional. The id of the backup to be created. If not specified, the default value ([YYYYMMDDHHMMSS]_[Shortened Cluster UID] is used.
+    #[serde(default, rename = "backupId")]
+    pub backup_id: ::core::option::Option<String>,
+    /// Optional. TTL for the backup to expire. Value range is 1 day to 100 years. If not specified, the default value is 100 years.
+    #[serde(default)]
+    pub ttl: ::core::option::Option<String>,
+}
+
+/// Redis cluster certificate authority
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateAuthority {
+    #[serde(default, rename = "managedServerCa")]
+    pub managed_server_ca: ::core::option::Option<ManagedCertificateAuthority>,
+    /// Identifier. Unique name of the resource in this scope including project, location and cluster using the form: projects/{project}/locations/{location}/clusters/{cluster}/certificateAuthority
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceFeed {
+    /// BackupDR metadata is used to ingest metadata from BackupDR.
+    #[serde(default, rename = "backupdrMetadata")]
+    pub backupdr_metadata: ::core::option::Option<BackupDRMetadata>,
+    /// Config based signal data is used to ingest signals that are generated based on the configuration of the database resource.
+    #[serde(default, rename = "configBasedSignalData")]
+    pub config_based_signal_data: ::core::option::Option<ConfigBasedSignalData>,
+    /// Database resource signal data is used to ingest signals from database resource signal feeds.
+    #[serde(default, rename = "databaseResourceSignalData")]
+    pub database_resource_signal_data: ::core::option::Option<DatabaseResourceSignalData>,
+    /// Required. Timestamp when feed is generated.
+    #[serde(default, rename = "feedTimestamp")]
+    pub feed_timestamp: ::core::option::Option<String>,
+    /// Required. Type feed to be ingested into condor // TODO: enum values: ["FEEDTYPE_UNSPECIFIED", "RESOURCE_METADATA", "OBSERVABILITY_DATA", "SECURITY_FINDING_DATA", "RECOMMENDATION_SIGNAL_DATA", "CONFIG_BASED_SIGNAL_DATA", "BACKUPDR_METADATA", "DATABASE_RESOURCE_SIGNAL_DATA"]
+    #[serde(default, rename = "feedType")]
+    pub feed_type: ::core::option::Option<String>,
+    #[serde(default, rename = "observabilityMetricData")]
+    pub observability_metric_data: ::core::option::Option<ObservabilityMetricData>,
+    #[serde(default, rename = "recommendationSignalData")]
+    pub recommendation_signal_data:
+        ::core::option::Option<DatabaseResourceRecommendationSignalData>,
+    #[serde(default, rename = "resourceHealthSignalData")]
+    pub resource_health_signal_data: ::core::option::Option<DatabaseResourceHealthSignalData>,
+    /// Primary key associated with the Resource. resource_id is available in individual feed level as well.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<DatabaseResourceId>,
+    #[serde(default, rename = "resourceMetadata")]
+    pub resource_metadata: ::core::option::Option<DatabaseResourceMetadata>,
+    /// Optional. If true, the feed won''t be ingested by DB Center. This indicates that the feed is intentionally skipped. For example, BackupDR feeds are only needed for resources integrated with DB Center (e.g., CloudSQL, AlloyDB). Feeds for non-integrated resources (e.g., Compute Engine, Persistent Disk) can be skipped.
+    #[serde(default, rename = "skipIngestion")]
+    pub skip_ingestion: ::core::option::Option<bool>,
+}
+
+/// Request for [ExportBackup].
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportBackupRequest {
+    /// Google Cloud Storage bucket, like "my-bucket".
+    #[serde(default, rename = "gcsBucket")]
+    pub gcs_bucket: ::core::option::Option<String>,
+}
+
+/// Request for Export.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportInstanceRequest {
+    /// Required. Specify data to be exported.
+    #[serde(default, rename = "outputConfig")]
+    pub output_config: ::core::option::Option<OutputConfig>,
+}
+
+/// Request for Failover.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FailoverInstanceRequest {
+    /// Optional. Available data protection modes that the user can choose. If it''s unspecified, data protection mode will be LIMITED_DATA_LOSS by default. // TODO: enum values: ["DATA_PROTECTION_MODE_UNSPECIFIED", "LIMITED_DATA_LOSS", "FORCE_DATA_LOSS"]
+    #[serde(default, rename = "dataProtectionMode")]
+    pub data_protection_mode: ::core::option::Option<String>,
+}
+
+/// Represents the v1 metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRedisV1OperationMetadata {
+    /// API version.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Specifies if cancellation was requested for the operation.
+    #[serde(default, rename = "cancelRequested")]
+    pub cancel_requested: ::core::option::Option<bool>,
+    /// Creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// End timestamp.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Operation status details.
+    #[serde(default, rename = "statusDetail")]
+    pub status_detail: ::core::option::Option<String>,
+    /// Operation target.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Operation verb.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request for Import.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportInstanceRequest {
+    /// Required. Specify data to be imported.
+    #[serde(default, rename = "inputConfig")]
+    pub input_config: ::core::option::Option<InputConfig>,
+}
+
+/// Instance AUTH string details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceAuthString {
+    /// AUTH string set on the instance.
+    #[serde(default, rename = "authString")]
+    pub auth_string: ::core::option::Option<String>,
+}
+
+/// Response for ListAclPolicies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAclPoliciesResponse {
+    /// A list of ACL policies in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
+    #[serde(default, rename = "aclPolicies")]
+    pub acl_policies: ::core::option::Option<::std::vec::Vec<AclPolicy>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for ListAuthTokens.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAuthTokensResponse {
+    /// A list of auth tokens in the project.
+    #[serde(default, rename = "authTokens")]
+    pub auth_tokens: ::core::option::Option<::std::vec::Vec<AuthToken>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Unordered list. Auth tokens that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response for [ListBackupCollections].
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBackupCollectionsResponse {
+    /// A list of backupCollections in the project. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder backupCollection entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/backupCollections/- and the status field set to ERROR and status_message field set to "location not available for ListBackupCollections".
+    #[serde(default, rename = "backupCollections")]
+    pub backup_collections: ::core::option::Option<::std::vec::Vec<BackupCollection>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response for [ListBackups].
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBackupsResponse {
+    /// A list of backups in the project.
+    #[serde(default)]
+    pub backups: ::core::option::Option<::std::vec::Vec<Backup>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Backups that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response for ListClusters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListClustersResponse {
+    /// A list of Redis clusters in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/clusters/- and the status field set to ERROR and status_message field set to "location not available for ListClusters".
+    #[serde(default)]
+    pub clusters: ::core::option::Option<::std::vec::Vec<Cluster>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response for ListInstances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstancesResponse {
+    /// A list of Redis instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/instances/- and the status field set to ERROR and status_message field set to "location not available for ListInstances".
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for ListTokenAuthUsers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListTokenAuthUsersResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of token auth users in the project.
+    #[serde(default, rename = "tokenAuthUsers")]
+    pub token_auth_users: ::core::option::Option<::std::vec::Vec<TokenAuthUser>>,
+    /// Unordered list. Token auth users that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Pre-defined metadata fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Operation metadata returned by the CLH during resource state reconciliation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReconciliationOperationMetadata {
+    /// DEPRECATED. Use exclusive_action instead.
+    #[serde(default, rename = "deleteResource")]
+    pub delete_resource: ::core::option::Option<bool>,
+    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
+    #[serde(default, rename = "exclusiveAction")]
+    pub exclusive_action: ::core::option::Option<String>,
+}
+
+/// Request for rescheduling a cluster maintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RescheduleClusterMaintenanceRequest {
+    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "SPECIFIC_TIME"]
+    #[serde(default, rename = "rescheduleType")]
+    pub reschedule_type: ::core::option::Option<String>,
+    /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
+    #[serde(default, rename = "scheduleTime")]
+    pub schedule_time: ::core::option::Option<String>,
+}
+
+/// Request for RescheduleMaintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RescheduleMaintenanceRequest {
+    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
+    #[serde(default, rename = "rescheduleType")]
+    pub reschedule_type: ::core::option::Option<String>,
+    /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
+    #[serde(default, rename = "scheduleTime")]
+    pub schedule_time: ::core::option::Option<String>,
+}
+
+/// Shared regional certificate authority
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharedRegionalCertificateAuthority {
+    /// CA certificate chains for redis managed server authentication.
+    #[serde(default, rename = "managedServerCa")]
+    pub managed_server_ca: ::core::option::Option<RegionalManagedCertificateAuthority>,
+    /// Identifier. Unique name of the resource in this scope including project and location using the form: projects/{project}/locations/{location}/sharedRegionalCertificateAuthority
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Request for UpgradeInstance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeInstanceRequest {
+    /// Required. Specifies the target version of Redis software to upgrade to.
+    #[serde(default, rename = "redisVersion")]
+    pub redis_version: ::core::option::Option<String>,
+}
+
+/// ManagedCertificateAuthority resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedCertificateAuthority {
+    /// The PEM encoded CA certificate chains for redis managed server authentication
+    #[serde(default, rename = "caCerts")]
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<CertChain>>,
+}
+
+/// BackupDRMetadata contains information about the backup and disaster recovery metadata of a database resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDRMetadata {
+    /// Backup configuration for this instance.
+    #[serde(default, rename = "backupConfiguration")]
+    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
+    /// Latest backup run information for this instance.
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<BackupRun>,
+    /// BackupDR configuration for this instance.
+    #[serde(default, rename = "backupdrConfiguration")]
+    pub backupdr_configuration: ::core::option::Option<BackupDRConfiguration>,
+    /// Required. Full resource name of this instance.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// Required. Last time backup configuration was refreshed.
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Required. Database resource id.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<DatabaseResourceId>,
+}
+
+/// Config based signal data. This is used to send signals to Condor which are based on the DB level configurations. These will be used to send signals for self managed databases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigBasedSignalData {
+    /// Required. Full Resource name of the source resource.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// Required. Last time signal was refreshed
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Database resource id.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<DatabaseResourceId>,
+    /// Signal data for boolean signals.
+    #[serde(default, rename = "signalBoolValue")]
+    pub signal_bool_value: ::core::option::Option<bool>,
+    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
+}
+
+/// Database resource signal data. This is used to send signals to Condor which are based on the DB/Instance/Fleet level configurations. These will be used to send signals for all inventory types. Next ID: 10
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceSignalData {
+    /// Deprecated: Use signal_metadata_list instead.
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<BackupRun>,
+    /// Required. Full Resource name of the source resource.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// Required. Last time signal was refreshed
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Resource location.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Database resource id.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<DatabaseResourceId>,
+    /// Deprecated: Use signal_metadata_list instead.
+    #[serde(default, rename = "signalBoolValue")]
+    pub signal_bool_value: ::core::option::Option<bool>,
+    /// This will support array of OneOf signal metadata information for a given signal type.
+    #[serde(default, rename = "signalMetadataList")]
+    pub signal_metadata_list: ::core::option::Option<::std::vec::Vec<SignalMetadata>>,
+    /// Required. Output only. Signal state of the signal // TODO: enum values: ["SIGNAL_STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DISMISSED"]
+    #[serde(default, rename = "signalState")]
+    pub signal_state: ::core::option::Option<String>,
+    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
+}
+
+/// ObservabilityMetricData resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObservabilityMetricData {
+    /// Required. Type of aggregation performed on the metric. // TODO: enum values: ["AGGREGATION_TYPE_UNSPECIFIED", "PEAK", "P99", "P95", "CURRENT"]
+    #[serde(default, rename = "aggregationType")]
+    pub aggregation_type: ::core::option::Option<String>,
+    /// Required. Type of metric like CPU, Memory, etc. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "CPU_UTILIZATION", "MEMORY_UTILIZATION", "NETWORK_CONNECTIONS", "STORAGE_UTILIZATION", "STORAGE_USED_BYTES", "NODE_COUNT", "MEMORY_USED_BYTES", "PROCESSING_UNIT_COUNT"]
+    #[serde(default, rename = "metricType")]
+    pub metric_type: ::core::option::Option<String>,
+    /// Required. The time the metric value was observed.
+    #[serde(default, rename = "observationTime")]
+    pub observation_time: ::core::option::Option<String>,
+    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Required. Value of the metric type.
+    #[serde(default)]
+    pub value: ::core::option::Option<TypedValue>,
+}
+
+/// Common model for database resource recommendation signal data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceRecommendationSignalData {
+    /// Optional. Any other additional metadata specific to recommendation
+    #[serde(default, rename = "additionalMetadata")]
+    pub additional_metadata: ::core::option::Option<serde_json::Value>,
+    /// Required. last time recommendationw as refreshed
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Required. Recommendation state // TODO: enum values: ["UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
+    #[serde(default, rename = "recommendationState")]
+    pub recommendation_state: ::core::option::Option<String>,
+    /// Required. Name of recommendation. Examples: organizations/1234/locations/us-central1/recommenders/google.cloudsql.instance.PerformanceRecommender/recommendations/9876
+    #[serde(default)]
+    pub recommender: ::core::option::Option<String>,
+    /// Required. ID of recommender. Examples: "google.cloudsql.instance.PerformanceRecommender"
+    #[serde(default, rename = "recommenderId")]
+    pub recommender_id: ::core::option::Option<String>,
+    /// Required. Contains an identifier for a subtype of recommendations produced for the same recommender. Subtype is a function of content and impact, meaning a new subtype might be added when significant changes to content or primary_impact.category are introduced. See the Recommenders section to see a list of subtypes for a given Recommender. Examples: For recommender = "google.cloudsql.instance.PerformanceRecommender", recommender_subtype can be "MYSQL_HIGH_NUMBER_OF_OPEN_TABLES_BEST_PRACTICE"/"POSTGRES_HIGH_TRANSACTION_ID_UTILIZATION_BEST_PRACTICE"
+    #[serde(default, rename = "recommenderSubtype")]
+    pub recommender_subtype: ::core::option::Option<String>,
+    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Required. Type of signal, for example, SIGNAL_TYPE_IDLE, SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
+}
+
+/// Common model for database resource health signal data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceHealthSignalData {
+    /// Any other additional metadata
+    #[serde(default, rename = "additionalMetadata")]
+    pub additional_metadata: ::core::option::Option<serde_json::Value>,
+    /// Industry standards associated with this signal; if this signal is an issue, that could be a violation of the associated industry standard(s). For example, AUTO_BACKUP_DISABLED signal is associated with CIS GCP 1.1, CIS GCP 1.2, CIS GCP 1.3, NIST 800-53 and ISO-27001 compliance standards. If a database resource does not have automated backup enable, it will violate these following industry standards.
+    #[serde(default)]
+    pub compliance: ::core::option::Option<::std::vec::Vec<Compliance>>,
+    /// Description associated with signal
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The last time at which the event described by this signal took place
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The external-uri of the signal, using which more information about this signal can be obtained. In GCP, this will take user to SCC page to get more details about signals.
+    #[serde(default, rename = "externalUri")]
+    pub external_uri: ::core::option::Option<String>,
+    /// This is used to identify the location of the resource. Example: "us-central1"
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Required. The name of the signal, ex: PUBLIC_SQL_INSTANCE, SQL_LOG_ERROR_VERBOSITY etc.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Closest parent container of this resource. In GCP, ''container'' refers to a Cloud Resource Manager project. It must be resource name of a Cloud Resource Manager project with the format of "provider//", such as "projects/123". For GCP provided resources, number should be project number.
+    #[serde(default, rename = "resourceContainer")]
+    pub resource_container: ::core::option::Option<String>,
+    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Required. The class of the signal, such as if it''s a THREAT or VULNERABILITY. // TODO: enum values: ["CLASS_UNSPECIFIED", "THREAT", "VULNERABILITY", "MISCONFIGURATION", "OBSERVATION", "ERROR"]
+    #[serde(default, rename = "signalClass")]
+    pub signal_class: ::core::option::Option<String>,
+    /// Required. Unique identifier for the signal. This is an unique id which would be mainatined by partner to identify a signal.
+    #[serde(default, rename = "signalId")]
+    pub signal_id: ::core::option::Option<String>,
+    /// The severity of the signal, such as if it''s a HIGH or LOW severity. // TODO: enum values: ["SIGNAL_SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default, rename = "signalSeverity")]
+    pub signal_severity: ::core::option::Option<String>,
+    /// Required. Type of signal, for example, AVAILABLE_IN_MULTIPLE_ZONES, LOGGING_MOST_ERRORS, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
+    /// TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "RESOLVED", "MUTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Common model for database resource instance metadata. Next ID: 32
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceMetadata {
+    /// Availability configuration for this instance
+    #[serde(default, rename = "availabilityConfiguration")]
+    pub availability_configuration: ::core::option::Option<AvailabilityConfiguration>,
+    /// Backup configuration for this instance
+    #[serde(default, rename = "backupConfiguration")]
+    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
+    /// Latest backup run information for this instance
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<BackupRun>,
+    /// Optional. BackupDR Configuration for the resource.
+    #[serde(default, rename = "backupdrConfiguration")]
+    pub backupdr_configuration: ::core::option::Option<BackupDRConfiguration>,
+    /// The creation time of the resource, i.e. the time when resource is created and recorded in partner service.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Current state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
+    #[serde(default, rename = "currentState")]
+    pub current_state: ::core::option::Option<String>,
+    /// Any custom metadata associated with the resource
+    #[serde(default, rename = "customMetadata")]
+    pub custom_metadata: ::core::option::Option<CustomMetadataData>,
+    /// Optional. Edition represents whether the instance is ENTERPRISE or ENTERPRISE_PLUS. This information is core to Cloud SQL only and is used to identify the edition of the instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "EDITION_ENTERPRISE", "EDITION_ENTERPRISE_PLUS", "EDITION_STANDARD"]
+    #[serde(default)]
+    pub edition: ::core::option::Option<String>,
+    /// Entitlements associated with the resource
+    #[serde(default)]
+    pub entitlements: ::core::option::Option<::std::vec::Vec<Entitlement>>,
+    /// The state that the instance is expected to be in. For example, an instance state can transition to UNHEALTHY due to wrong patch update, while the expected state will remain at the HEALTHY. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
+    #[serde(default, rename = "expectedState")]
+    pub expected_state: ::core::option::Option<String>,
+    /// GCBDR configuration for the resource.
+    #[serde(default, rename = "gcbdrConfiguration")]
+    pub gcbdr_configuration: ::core::option::Option<GCBDRConfiguration>,
+    /// Required. Unique identifier for a Database resource
+    #[serde(default)]
+    pub id: ::core::option::Option<DatabaseResourceId>,
+    /// The type of the instance. Specified at creation time. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "SUB_RESOURCE_TYPE_UNSPECIFIED", "PRIMARY", "SECONDARY", "READ_REPLICA", "OTHER", "SUB_RESOURCE_TYPE_PRIMARY", "SUB_RESOURCE_TYPE_SECONDARY", "SUB_RESOURCE_TYPE_READ_REPLICA", "SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY", "SUB_RESOURCE_TYPE_READ_POOL", "SUB_RESOURCE_TYPE_RESERVATION", "SUB_RESOURCE_TYPE_DATASET", "SUB_RESOURCE_TYPE_OTHER"]
+    #[serde(default, rename = "instanceType")]
+    pub instance_type: ::core::option::Option<String>,
+    /// Optional. Whether deletion protection is enabled for this resource.
+    #[serde(default, rename = "isDeletionProtectionEnabled")]
+    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
+    /// The resource location. REQUIRED
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Machine configuration for this resource.
+    #[serde(default, rename = "machineConfiguration")]
+    pub machine_configuration: ::core::option::Option<MachineConfiguration>,
+    /// Optional. Maintenance info for the resource.
+    #[serde(default, rename = "maintenanceInfo")]
+    pub maintenance_info: ::core::option::Option<ResourceMaintenanceInfo>,
+    /// Optional. The modes of the database resource.
+    #[serde(default)]
+    pub modes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifier for this resource''s immediate parent/primary resource if the current resource is a replica or derived form of another Database resource. Else it would be NULL. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
+    #[serde(default, rename = "primaryResourceId")]
+    pub primary_resource_id: ::core::option::Option<DatabaseResourceId>,
+    /// Primary resource location. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
+    #[serde(default, rename = "primaryResourceLocation")]
+    pub primary_resource_location: ::core::option::Option<String>,
+    /// The product this resource represents.
+    #[serde(default)]
+    pub product: ::core::option::Option<Product>,
+    /// Closest parent Cloud Resource Manager container of this resource. It must be resource name of a Cloud Resource Manager project with the format of "/", such as "projects/123". For GCP provided resources, number should be project number.
+    #[serde(default, rename = "resourceContainer")]
+    pub resource_container: ::core::option::Option<String>,
+    /// Optional. List of resource flags for the database resource.
+    #[serde(default, rename = "resourceFlags")]
+    pub resource_flags: ::core::option::Option<::std::vec::Vec<ResourceFlags>>,
+    /// Required. Different from DatabaseResourceId.unique_id, a resource name can be reused over time. That is, after a resource named "ABC" is deleted, the name "ABC" can be used to to create a new resource within the same source. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Optional. Suspension reason for the resource. // TODO: enum values: ["SUSPENSION_REASON_UNSPECIFIED", "WIPEOUT_HIDE_EVENT", "WIPEOUT_PURGE_EVENT", "BILLING_DISABLED", "ABUSER_DETECTED", "ENCRYPTION_KEY_INACCESSIBLE", "REPLICATED_CLUSTER_ENCRYPTION_KEY_INACCESSIBLE"]
+    #[serde(default, rename = "suspensionReason")]
+    pub suspension_reason: ::core::option::Option<String>,
+    /// Optional. Tags associated with this resources.
+    #[serde(default, rename = "tagsSet")]
+    pub tags_set: ::core::option::Option<Tags>,
+    /// The time at which the resource was updated and recorded at partner service.
+    #[serde(default, rename = "updationTime")]
+    pub updation_time: ::core::option::Option<String>,
+    /// User-provided labels associated with the resource
+    #[serde(default, rename = "userLabelSet")]
+    pub user_label_set: ::core::option::Option<UserLabels>,
+    /// The resource zone. This is only applicable for zonal resources and will be empty for regional and multi-regional resources.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// The output content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutputConfig {
+    /// Google Cloud Storage destination for output content.
+    #[serde(default, rename = "gcsDestination")]
+    pub gcs_destination: ::core::option::Option<GcsDestination>,
+}
+
+/// The input content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputConfig {
+    /// Google Cloud Storage location where input content is located.
+    #[serde(default, rename = "gcsSource")]
+    pub gcs_source: ::core::option::Option<GcsSource>,
 }
 
 /// The ACL policy resource.
@@ -38,33 +659,6 @@ pub struct AclPolicy {
     pub version: ::core::option::Option<String>,
 }
 
-/// A single ACL rule which defines the policy for a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AclRule {
-    /// Required. The rule to be applied to the username. Ex: "on &gt;password123 ~* +@all" The format of the rule is defined by Redis OSS: https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
-    #[serde(default)]
-    pub rule: ::core::option::Option<String>,
-    /// Required. Specifies the IAM user or service account to be added to the ACL policy. This username will be directly set on the Redis OSS.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Request message for AddAuthToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddAuthTokenRequest {
-    /// Required. The auth token to add.
-    #[serde(default, rename = "authToken")]
-    pub auth_token: ::core::option::Option<AuthToken>,
-}
-
-/// Request message for AddTokenAuthUser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddTokenAuthUserRequest {
-    /// Required. The id of the token auth user to add.
-    #[serde(default, rename = "tokenAuthUser")]
-    pub token_auth_user: ::core::option::Option<String>,
-}
-
 /// Auth token for the cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthToken {
@@ -82,36 +676,36 @@ pub struct AuthToken {
     pub token: ::core::option::Option<String>,
 }
 
-/// The automated backup config for a cluster.
+/// BackupCollection of a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutomatedBackupConfig {
-    /// Optional. The automated backup mode. If the mode is disabled, the other fields will be ignored. // TODO: enum values: ["AUTOMATED_BACKUP_MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
-    #[serde(default, rename = "automatedBackupMode")]
-    pub automated_backup_mode: ::core::option::Option<String>,
-    /// Optional. Trigger automated backups at a fixed frequency.
-    #[serde(default, rename = "fixedFrequencySchedule")]
-    pub fixed_frequency_schedule: ::core::option::Option<FixedFrequencySchedule>,
-    /// Optional. How long to keep automated backups before the backups are deleted. The value should be between 1 day and 365 days. If not specified, the default value is 35 days.
+pub struct BackupCollection {
+    /// Output only. The full resource path of the cluster the backup collection belongs to. Example: projects/{project}/locations/{location}/clusters/{cluster}
     #[serde(default)]
-    pub retention: ::core::option::Option<String>,
-}
-
-/// Configuration for availability of database instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AvailabilityConfiguration {
-    /// Checks for existence of (multi-cluster) routing configuration that allows automatic failover to a different zone/region in case of an outage. Applicable to Bigtable resources.
-    #[serde(default, rename = "automaticFailoverRoutingConfigured")]
-    pub automatic_failover_routing_configured: ::core::option::Option<bool>,
-    /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL", "AVAILABILITY_TYPE_OTHER"]
-    #[serde(default, rename = "availabilityType")]
-    pub availability_type: ::core::option::Option<String>,
-    /// Checks for resources that are configured to have redundancy, and ongoing replication across regions
-    #[serde(default, rename = "crossRegionReplicaConfigured")]
-    pub cross_region_replica_configured: ::core::option::Option<bool>,
-    #[serde(default, rename = "externalReplicaConfigured")]
-    pub external_replica_configured: ::core::option::Option<bool>,
-    #[serde(default, rename = "promotableReplicaConfigured")]
-    pub promotable_replica_configured: ::core::option::Option<bool>,
+    pub cluster: ::core::option::Option<String>,
+    /// Output only. The cluster uid of the backup collection.
+    #[serde(default, rename = "clusterUid")]
+    pub cluster_uid: ::core::option::Option<String>,
+    /// Output only. The time when the backup collection was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The KMS key used to encrypt the backups under this backup collection.
+    #[serde(default, rename = "kmsKey")]
+    pub kms_key: ::core::option::Option<String>,
+    /// Output only. The last time a backup was created in the backup collection.
+    #[serde(default, rename = "lastBackupTime")]
+    pub last_backup_time: ::core::option::Option<String>,
+    /// Identifier. Full resource path of the backup collection.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Total number of backups in the backup collection.
+    #[serde(default, rename = "totalBackupCount")]
+    pub total_backup_count: ::core::option::Option<String>,
+    /// Output only. Total size of all backups in the backup collection.
+    #[serde(default, rename = "totalBackupSizeBytes")]
+    pub total_backup_size_bytes: ::core::option::Option<String>,
+    /// Output only. System assigned unique identifier of the backup collection.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Backup of a cluster.
@@ -162,143 +756,6 @@ pub struct Backup {
     /// Output only. System assigned unique identifier of the backup.
     #[serde(default)]
     pub uid: ::core::option::Option<String>,
-}
-
-/// Request for [BackupCluster].
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupClusterRequest {
-    /// Optional. The id of the backup to be created. If not specified, the default value ([YYYYMMDDHHMMSS]_[Shortened Cluster UID] is used.
-    #[serde(default, rename = "backupId")]
-    pub backup_id: ::core::option::Option<String>,
-    /// Optional. TTL for the backup to expire. Value range is 1 day to 100 years. If not specified, the default value is 100 years.
-    #[serde(default)]
-    pub ttl: ::core::option::Option<String>,
-}
-
-/// BackupCollection of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupCollection {
-    /// Output only. The full resource path of the cluster the backup collection belongs to. Example: projects/{project}/locations/{location}/clusters/{cluster}
-    #[serde(default)]
-    pub cluster: ::core::option::Option<String>,
-    /// Output only. The cluster uid of the backup collection.
-    #[serde(default, rename = "clusterUid")]
-    pub cluster_uid: ::core::option::Option<String>,
-    /// Output only. The time when the backup collection was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The KMS key used to encrypt the backups under this backup collection.
-    #[serde(default, rename = "kmsKey")]
-    pub kms_key: ::core::option::Option<String>,
-    /// Output only. The last time a backup was created in the backup collection.
-    #[serde(default, rename = "lastBackupTime")]
-    pub last_backup_time: ::core::option::Option<String>,
-    /// Identifier. Full resource path of the backup collection.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Total number of backups in the backup collection.
-    #[serde(default, rename = "totalBackupCount")]
-    pub total_backup_count: ::core::option::Option<String>,
-    /// Output only. Total size of all backups in the backup collection.
-    #[serde(default, rename = "totalBackupSizeBytes")]
-    pub total_backup_size_bytes: ::core::option::Option<String>,
-    /// Output only. System assigned unique identifier of the backup collection.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Configuration for automatic backups
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupConfiguration {
-    /// Whether customer visible automated backups are enabled on the instance.
-    #[serde(default, rename = "automatedBackupEnabled")]
-    pub automated_backup_enabled: ::core::option::Option<bool>,
-    /// Backup retention settings.
-    #[serde(default, rename = "backupRetentionSettings")]
-    pub backup_retention_settings: ::core::option::Option<RetentionSettings>,
-    /// Whether point-in-time recovery is enabled. This is optional field, if the database service does not have this feature or metadata is not available in control plane, this can be omitted.
-    #[serde(default, rename = "pointInTimeRecoveryEnabled")]
-    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
-}
-
-/// BackupDRConfiguration to capture the backup and disaster recovery details of database resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDRConfiguration {
-    /// Indicates if the resource is managed by BackupDR.
-    #[serde(default, rename = "backupdrManaged")]
-    pub backupdr_managed: ::core::option::Option<bool>,
-}
-
-/// BackupDRMetadata contains information about the backup and disaster recovery metadata of a database resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDRMetadata {
-    /// Backup configuration for this instance.
-    #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
-    /// Latest backup run information for this instance.
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<BackupRun>,
-    /// BackupDR configuration for this instance.
-    #[serde(default, rename = "backupdrConfiguration")]
-    pub backupdr_configuration: ::core::option::Option<BackupDRConfiguration>,
-    /// Required. Full resource name of this instance.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// Required. Last time backup configuration was refreshed.
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Required. Database resource id.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<DatabaseResourceId>,
-}
-
-/// Backup is consisted of multiple backup files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupFile {
-    /// Output only. The time when the backup file was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. e.g: .rdb
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Output only. Size of the backup file in bytes.
-    #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: ::core::option::Option<String>,
-}
-
-/// A backup run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupRun {
-    /// The time the backup operation completed. REQUIRED
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Information about why the backup operation failed. This is only present if the run has the FAILED status. OPTIONAL
-    #[serde(default)]
-    pub error: ::core::option::Option<OperationError>,
-    /// The time the backup operation started. REQUIRED
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The status of this run. REQUIRED // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESSFUL", "FAILED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// CertChain resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertChain {
-    /// The certificates that form the CA chain, from leaf to root order.
-    #[serde(default)]
-    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Redis cluster certificate authority
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertificateAuthority {
-    #[serde(default, rename = "managedServerCa")]
-    pub managed_server_ca: ::core::option::Option<ManagedCertificateAuthority>,
-    /// Identifier. Unique name of the resource in this scope including project, location and cluster using the form: projects/{project}/locations/{location}/clusters/{cluster}/certificateAuthority
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// A cluster instance.
@@ -441,553 +898,6 @@ pub struct Cluster {
     pub zone_distribution_config: ::core::option::Option<ZoneDistributionConfig>,
 }
 
-/// ClusterEndpoint consists of PSC connections that are created as a group in each VPC network for accessing the cluster. In each group, there shall be one connection for each service attachment in the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterEndpoint {
-    /// Required. A group of PSC connections. They are created in the same VPC network, one for each service attachment in the cluster.
-    #[serde(default)]
-    pub connections: ::core::option::Option<::std::vec::Vec<ConnectionDetail>>,
-}
-
-/// Maintenance policy per cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterMaintenancePolicy {
-    /// Output only. The time when the policy was created i.e. Maintenance Window or Deny Period was assigned.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the policy was updated i.e. Maintenance Window or Deny Period was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_window is expected to be one.
-    #[serde(default, rename = "weeklyMaintenanceWindow")]
-    pub weekly_maintenance_window:
-        ::core::option::Option<::std::vec::Vec<ClusterWeeklyMaintenanceWindow>>,
-}
-
-/// Upcoming maintenance schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterMaintenanceSchedule {
-    /// Output only. The end time of any upcoming scheduled maintenance for this instance.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The start time of any upcoming scheduled maintenance for this instance.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Configuration of the persistence functionality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterPersistenceConfig {
-    /// Optional. AOF configuration. This field will be ignored if mode is not AOF.
-    #[serde(default, rename = "aofConfig")]
-    pub aof_config: ::core::option::Option<AOFConfig>,
-    /// Optional. The mode of persistence. // TODO: enum values: ["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB", "AOF"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Optional. RDB configuration. This field will be ignored if mode is not RDB.
-    #[serde(default, rename = "rdbConfig")]
-    pub rdb_config: ::core::option::Option<RDBConfig>,
-}
-
-/// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterWeeklyMaintenanceWindow {
-    /// Optional. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Optional. Start time of the window in UTC.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Compliance {
-    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
-    #[serde(default)]
-    pub standard: ::core::option::Option<String>,
-    /// Version of the standard or benchmark, for example, 1.1
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Config based signal data. This is used to send signals to Condor which are based on the DB level configurations. These will be used to send signals for self managed databases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigBasedSignalData {
-    /// Required. Full Resource name of the source resource.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// Required. Last time signal was refreshed
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Database resource id.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<DatabaseResourceId>,
-    /// Signal data for boolean signals.
-    #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: ::core::option::Option<bool>,
-    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
-}
-
-/// Detailed information of each PSC connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionDetail {
-    /// Detailed information of a PSC connection that is created through service connectivity automation.
-    #[serde(default, rename = "pscAutoConnection")]
-    pub psc_auto_connection: ::core::option::Option<PscAutoConnection>,
-    /// Detailed information of a PSC connection that is created by the customer who owns the cluster.
-    #[serde(default, rename = "pscConnection")]
-    pub psc_connection: ::core::option::Option<PscConnection>,
-}
-
-/// Cross cluster replication config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CrossClusterReplicationConfig {
-    /// Output only. The role of the cluster in cross cluster replication. // TODO: enum values: ["CLUSTER_ROLE_UNSPECIFIED", "NONE", "PRIMARY", "SECONDARY"]
-    #[serde(default, rename = "clusterRole")]
-    pub cluster_role: ::core::option::Option<String>,
-    /// Output only. An output only view of all the member clusters participating in the cross cluster replication. This view will be provided by every member cluster irrespective of its cluster role(primary or secondary). A primary cluster can provide information about all the secondary clusters replicating from it. However, a secondary cluster only knows about the primary cluster from which it is replicating. However, for scenarios, where the primary cluster is unavailable(e.g. regional outage), a GetCluster request can be sent to any other member cluster and this field will list all the member clusters participating in cross cluster replication.
-    #[serde(default)]
-    pub membership: ::core::option::Option<Membership>,
-    /// Details of the primary cluster that is used as the replication source for this secondary cluster. This field is only set for a secondary cluster.
-    #[serde(default, rename = "primaryCluster")]
-    pub primary_cluster: ::core::option::Option<RemoteCluster>,
-    /// List of secondary clusters that are replicating from this primary cluster. This field is only set for a primary cluster.
-    #[serde(default, rename = "secondaryClusters")]
-    pub secondary_clusters: ::core::option::Option<::std::vec::Vec<RemoteCluster>>,
-    /// Output only. The last time cross cluster replication config was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Any custom metadata associated with the resource. e.g. A spanner instance can have multiple databases with its own unique metadata. Information for these individual databases can be captured in custom metadata data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomMetadataData {
-    /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration.
-    #[serde(default, rename = "internalResourceMetadata")]
-    pub internal_resource_metadata:
-        ::core::option::Option<::std::vec::Vec<InternalResourceMetadata>>,
-}
-
-/// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceFeed {
-    /// BackupDR metadata is used to ingest metadata from BackupDR.
-    #[serde(default, rename = "backupdrMetadata")]
-    pub backupdr_metadata: ::core::option::Option<BackupDRMetadata>,
-    /// Config based signal data is used to ingest signals that are generated based on the configuration of the database resource.
-    #[serde(default, rename = "configBasedSignalData")]
-    pub config_based_signal_data: ::core::option::Option<ConfigBasedSignalData>,
-    /// Database resource signal data is used to ingest signals from database resource signal feeds.
-    #[serde(default, rename = "databaseResourceSignalData")]
-    pub database_resource_signal_data: ::core::option::Option<DatabaseResourceSignalData>,
-    /// Required. Timestamp when feed is generated.
-    #[serde(default, rename = "feedTimestamp")]
-    pub feed_timestamp: ::core::option::Option<String>,
-    /// Required. Type feed to be ingested into condor // TODO: enum values: ["FEEDTYPE_UNSPECIFIED", "RESOURCE_METADATA", "OBSERVABILITY_DATA", "SECURITY_FINDING_DATA", "RECOMMENDATION_SIGNAL_DATA", "CONFIG_BASED_SIGNAL_DATA", "BACKUPDR_METADATA", "DATABASE_RESOURCE_SIGNAL_DATA"]
-    #[serde(default, rename = "feedType")]
-    pub feed_type: ::core::option::Option<String>,
-    #[serde(default, rename = "observabilityMetricData")]
-    pub observability_metric_data: ::core::option::Option<ObservabilityMetricData>,
-    #[serde(default, rename = "recommendationSignalData")]
-    pub recommendation_signal_data:
-        ::core::option::Option<DatabaseResourceRecommendationSignalData>,
-    #[serde(default, rename = "resourceHealthSignalData")]
-    pub resource_health_signal_data: ::core::option::Option<DatabaseResourceHealthSignalData>,
-    /// Primary key associated with the Resource. resource_id is available in individual feed level as well.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<DatabaseResourceId>,
-    #[serde(default, rename = "resourceMetadata")]
-    pub resource_metadata: ::core::option::Option<DatabaseResourceMetadata>,
-    /// Optional. If true, the feed won''t be ingested by DB Center. This indicates that the feed is intentionally skipped. For example, BackupDR feeds are only needed for resources integrated with DB Center (e.g., CloudSQL, AlloyDB). Feeds for non-integrated resources (e.g., Compute Engine, Persistent Disk) can be skipped.
-    #[serde(default, rename = "skipIngestion")]
-    pub skip_ingestion: ::core::option::Option<bool>,
-}
-
-/// Common model for database resource health signal data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceHealthSignalData {
-    /// Any other additional metadata
-    #[serde(default, rename = "additionalMetadata")]
-    pub additional_metadata: ::core::option::Option<serde_json::Value>,
-    /// Industry standards associated with this signal; if this signal is an issue, that could be a violation of the associated industry standard(s). For example, AUTO_BACKUP_DISABLED signal is associated with CIS GCP 1.1, CIS GCP 1.2, CIS GCP 1.3, NIST 800-53 and ISO-27001 compliance standards. If a database resource does not have automated backup enable, it will violate these following industry standards.
-    #[serde(default)]
-    pub compliance: ::core::option::Option<::std::vec::Vec<Compliance>>,
-    /// Description associated with signal
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The last time at which the event described by this signal took place
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The external-uri of the signal, using which more information about this signal can be obtained. In GCP, this will take user to SCC page to get more details about signals.
-    #[serde(default, rename = "externalUri")]
-    pub external_uri: ::core::option::Option<String>,
-    /// This is used to identify the location of the resource. Example: "us-central1"
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Required. The name of the signal, ex: PUBLIC_SQL_INSTANCE, SQL_LOG_ERROR_VERBOSITY etc.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Closest parent container of this resource. In GCP, ''container'' refers to a Cloud Resource Manager project. It must be resource name of a Cloud Resource Manager project with the format of "provider//", such as "projects/123". For GCP provided resources, number should be project number.
-    #[serde(default, rename = "resourceContainer")]
-    pub resource_container: ::core::option::Option<String>,
-    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Required. The class of the signal, such as if it''s a THREAT or VULNERABILITY. // TODO: enum values: ["CLASS_UNSPECIFIED", "THREAT", "VULNERABILITY", "MISCONFIGURATION", "OBSERVATION", "ERROR"]
-    #[serde(default, rename = "signalClass")]
-    pub signal_class: ::core::option::Option<String>,
-    /// Required. Unique identifier for the signal. This is an unique id which would be mainatined by partner to identify a signal.
-    #[serde(default, rename = "signalId")]
-    pub signal_id: ::core::option::Option<String>,
-    /// The severity of the signal, such as if it''s a HIGH or LOW severity. // TODO: enum values: ["SIGNAL_SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default, rename = "signalSeverity")]
-    pub signal_severity: ::core::option::Option<String>,
-    /// Required. Type of signal, for example, AVAILABLE_IN_MULTIPLE_ZONES, LOGGING_MOST_ERRORS, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
-    /// TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "RESOLVED", "MUTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// DatabaseResourceId will serve as primary key for any resource ingestion event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceId {
-    /// Required. Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Optional. Needs to be used only when the provider is PROVIDER_OTHER.
-    #[serde(default, rename = "providerDescription")]
-    pub provider_description: ::core::option::Option<String>,
-    /// Required. The type of resource this ID is identifying. Ex go/keep-sorted start alloydb.googleapis.com/Cluster, alloydb.googleapis.com/Instance, bigtableadmin.googleapis.com/Cluster, bigtableadmin.googleapis.com/Instance compute.googleapis.com/Instance firestore.googleapis.com/Database, redis.googleapis.com/Instance, redis.googleapis.com/Cluster, oracledatabase.googleapis.com/CloudExadataInfrastructure oracledatabase.googleapis.com/CloudVmCluster oracledatabase.googleapis.com/AutonomousDatabase spanner.googleapis.com/Instance, spanner.googleapis.com/Database, sqladmin.googleapis.com/Instance, go/keep-sorted end REQUIRED Please refer go/condor-common-datamodel
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Required. A service-local token that distinguishes this resource from other resources within the same service.
-    #[serde(default, rename = "uniqueId")]
-    pub unique_id: ::core::option::Option<String>,
-}
-
-/// Common model for database resource instance metadata. Next ID: 32
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceMetadata {
-    /// Availability configuration for this instance
-    #[serde(default, rename = "availabilityConfiguration")]
-    pub availability_configuration: ::core::option::Option<AvailabilityConfiguration>,
-    /// Backup configuration for this instance
-    #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
-    /// Latest backup run information for this instance
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<BackupRun>,
-    /// Optional. BackupDR Configuration for the resource.
-    #[serde(default, rename = "backupdrConfiguration")]
-    pub backupdr_configuration: ::core::option::Option<BackupDRConfiguration>,
-    /// The creation time of the resource, i.e. the time when resource is created and recorded in partner service.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Current state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
-    #[serde(default, rename = "currentState")]
-    pub current_state: ::core::option::Option<String>,
-    /// Any custom metadata associated with the resource
-    #[serde(default, rename = "customMetadata")]
-    pub custom_metadata: ::core::option::Option<CustomMetadataData>,
-    /// Optional. Edition represents whether the instance is ENTERPRISE or ENTERPRISE_PLUS. This information is core to Cloud SQL only and is used to identify the edition of the instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "EDITION_ENTERPRISE", "EDITION_ENTERPRISE_PLUS", "EDITION_STANDARD"]
-    #[serde(default)]
-    pub edition: ::core::option::Option<String>,
-    /// Entitlements associated with the resource
-    #[serde(default)]
-    pub entitlements: ::core::option::Option<::std::vec::Vec<Entitlement>>,
-    /// The state that the instance is expected to be in. For example, an instance state can transition to UNHEALTHY due to wrong patch update, while the expected state will remain at the HEALTHY. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
-    #[serde(default, rename = "expectedState")]
-    pub expected_state: ::core::option::Option<String>,
-    /// GCBDR configuration for the resource.
-    #[serde(default, rename = "gcbdrConfiguration")]
-    pub gcbdr_configuration: ::core::option::Option<GCBDRConfiguration>,
-    /// Required. Unique identifier for a Database resource
-    #[serde(default)]
-    pub id: ::core::option::Option<DatabaseResourceId>,
-    /// The type of the instance. Specified at creation time. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "SUB_RESOURCE_TYPE_UNSPECIFIED", "PRIMARY", "SECONDARY", "READ_REPLICA", "OTHER", "SUB_RESOURCE_TYPE_PRIMARY", "SUB_RESOURCE_TYPE_SECONDARY", "SUB_RESOURCE_TYPE_READ_REPLICA", "SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY", "SUB_RESOURCE_TYPE_READ_POOL", "SUB_RESOURCE_TYPE_RESERVATION", "SUB_RESOURCE_TYPE_DATASET", "SUB_RESOURCE_TYPE_OTHER"]
-    #[serde(default, rename = "instanceType")]
-    pub instance_type: ::core::option::Option<String>,
-    /// Optional. Whether deletion protection is enabled for this resource.
-    #[serde(default, rename = "isDeletionProtectionEnabled")]
-    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
-    /// The resource location. REQUIRED
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Machine configuration for this resource.
-    #[serde(default, rename = "machineConfiguration")]
-    pub machine_configuration: ::core::option::Option<MachineConfiguration>,
-    /// Optional. Maintenance info for the resource.
-    #[serde(default, rename = "maintenanceInfo")]
-    pub maintenance_info: ::core::option::Option<ResourceMaintenanceInfo>,
-    /// Optional. The modes of the database resource.
-    #[serde(default)]
-    pub modes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifier for this resource''s immediate parent/primary resource if the current resource is a replica or derived form of another Database resource. Else it would be NULL. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
-    #[serde(default, rename = "primaryResourceId")]
-    pub primary_resource_id: ::core::option::Option<DatabaseResourceId>,
-    /// Primary resource location. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
-    #[serde(default, rename = "primaryResourceLocation")]
-    pub primary_resource_location: ::core::option::Option<String>,
-    /// The product this resource represents.
-    #[serde(default)]
-    pub product: ::core::option::Option<Product>,
-    /// Closest parent Cloud Resource Manager container of this resource. It must be resource name of a Cloud Resource Manager project with the format of "/", such as "projects/123". For GCP provided resources, number should be project number.
-    #[serde(default, rename = "resourceContainer")]
-    pub resource_container: ::core::option::Option<String>,
-    /// Optional. List of resource flags for the database resource.
-    #[serde(default, rename = "resourceFlags")]
-    pub resource_flags: ::core::option::Option<::std::vec::Vec<ResourceFlags>>,
-    /// Required. Different from DatabaseResourceId.unique_id, a resource name can be reused over time. That is, after a resource named "ABC" is deleted, the name "ABC" can be used to to create a new resource within the same source. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Optional. Suspension reason for the resource. // TODO: enum values: ["SUSPENSION_REASON_UNSPECIFIED", "WIPEOUT_HIDE_EVENT", "WIPEOUT_PURGE_EVENT", "BILLING_DISABLED", "ABUSER_DETECTED", "ENCRYPTION_KEY_INACCESSIBLE", "REPLICATED_CLUSTER_ENCRYPTION_KEY_INACCESSIBLE"]
-    #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: ::core::option::Option<String>,
-    /// Optional. Tags associated with this resources.
-    #[serde(default, rename = "tagsSet")]
-    pub tags_set: ::core::option::Option<Tags>,
-    /// The time at which the resource was updated and recorded at partner service.
-    #[serde(default, rename = "updationTime")]
-    pub updation_time: ::core::option::Option<String>,
-    /// User-provided labels associated with the resource
-    #[serde(default, rename = "userLabelSet")]
-    pub user_label_set: ::core::option::Option<UserLabels>,
-    /// The resource zone. This is only applicable for zonal resources and will be empty for regional and multi-regional resources.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// Common model for database resource recommendation signal data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceRecommendationSignalData {
-    /// Optional. Any other additional metadata specific to recommendation
-    #[serde(default, rename = "additionalMetadata")]
-    pub additional_metadata: ::core::option::Option<serde_json::Value>,
-    /// Required. last time recommendationw as refreshed
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Required. Recommendation state // TODO: enum values: ["UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
-    #[serde(default, rename = "recommendationState")]
-    pub recommendation_state: ::core::option::Option<String>,
-    /// Required. Name of recommendation. Examples: organizations/1234/locations/us-central1/recommenders/google.cloudsql.instance.PerformanceRecommender/recommendations/9876
-    #[serde(default)]
-    pub recommender: ::core::option::Option<String>,
-    /// Required. ID of recommender. Examples: "google.cloudsql.instance.PerformanceRecommender"
-    #[serde(default, rename = "recommenderId")]
-    pub recommender_id: ::core::option::Option<String>,
-    /// Required. Contains an identifier for a subtype of recommendations produced for the same recommender. Subtype is a function of content and impact, meaning a new subtype might be added when significant changes to content or primary_impact.category are introduced. See the Recommenders section to see a list of subtypes for a given Recommender. Examples: For recommender = "google.cloudsql.instance.PerformanceRecommender", recommender_subtype can be "MYSQL_HIGH_NUMBER_OF_OPEN_TABLES_BEST_PRACTICE"/"POSTGRES_HIGH_TRANSACTION_ID_UTILIZATION_BEST_PRACTICE"
-    #[serde(default, rename = "recommenderSubtype")]
-    pub recommender_subtype: ::core::option::Option<String>,
-    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Required. Type of signal, for example, SIGNAL_TYPE_IDLE, SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
-}
-
-/// Database resource signal data. This is used to send signals to Condor which are based on the DB/Instance/Fleet level configurations. These will be used to send signals for all inventory types. Next ID: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseResourceSignalData {
-    /// Deprecated: Use signal_metadata_list instead.
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<BackupRun>,
-    /// Required. Full Resource name of the source resource.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// Required. Last time signal was refreshed
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Resource location.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Database resource id.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<DatabaseResourceId>,
-    /// Deprecated: Use signal_metadata_list instead.
-    #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: ::core::option::Option<bool>,
-    /// This will support array of OneOf signal metadata information for a given signal type.
-    #[serde(default, rename = "signalMetadataList")]
-    pub signal_metadata_list: ::core::option::Option<::std::vec::Vec<SignalMetadata>>,
-    /// Required. Output only. Signal state of the signal // TODO: enum values: ["SIGNAL_STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DISMISSED"]
-    #[serde(default, rename = "signalState")]
-    pub signal_state: ::core::option::Option<String>,
-    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Endpoints on each network, for Redis clients to connect to the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiscoveryEndpoint {
-    /// Output only. Address of the exposed Redis endpoint used by clients to connect to the service. The address could be either IP or hostname.
-    #[serde(default)]
-    pub address: ::core::option::Option<String>,
-    /// Output only. The port number of the exposed Redis endpoint.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Output only. Customer configuration for where the endpoint is created and accessed from.
-    #[serde(default, rename = "pscConfig")]
-    pub psc_config: ::core::option::Option<PscConfig>,
-}
-
-/// EncryptionInfo describes the encryption information of a cluster or a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionInfo {
-    /// Output only. Type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
-    #[serde(default, rename = "encryptionType")]
-    pub encryption_type: ::core::option::Option<String>,
-    /// Output only. The state of the primary version of the KMS key perceived by the system. This field is not populated in backups. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "ENABLED", "PERMISSION_DENIED", "DISABLED", "DESTROYED", "DESTROY_SCHEDULED", "EKM_KEY_UNREACHABLE_DETECTED", "BILLING_DISABLED", "UNKNOWN_FAILURE"]
-    #[serde(default, rename = "kmsKeyPrimaryState")]
-    pub kms_key_primary_state: ::core::option::Option<String>,
-    /// Output only. KMS key versions that are being used to protect the data at-rest.
-    #[serde(default, rename = "kmsKeyVersions")]
-    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The most recent time when the encryption info was updated.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-}
-
-/// Proto representing the access that a user has to a specific feature/service. NextId: 3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entitlement {
-    /// The current state of user''s accessibility to a feature/benefit. // TODO: enum values: ["ENTITLEMENT_STATE_UNSPECIFIED", "ENTITLED", "REVOKED"]
-    #[serde(default, rename = "entitlementState")]
-    pub entitlement_state: ::core::option::Option<String>,
-    /// An enum that represents the type of this entitlement. // TODO: enum values: ["ENTITLEMENT_TYPE_UNSPECIFIED", "GEMINI", "NATIVE", "GCA_STANDARD"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Request for [ExportBackup].
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportBackupRequest {
-    /// Google Cloud Storage bucket, like "my-bucket".
-    #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: ::core::option::Option<String>,
-}
-
-/// Request for Export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportInstanceRequest {
-    /// Required. Specify data to be exported.
-    #[serde(default, rename = "outputConfig")]
-    pub output_config: ::core::option::Option<OutputConfig>,
-}
-
-/// Request for Failover.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FailoverInstanceRequest {
-    /// Optional. Available data protection modes that the user can choose. If it''s unspecified, data protection mode will be LIMITED_DATA_LOSS by default. // TODO: enum values: ["DATA_PROTECTION_MODE_UNSPECIFIED", "LIMITED_DATA_LOSS", "FORCE_DATA_LOSS"]
-    #[serde(default, rename = "dataProtectionMode")]
-    pub data_protection_mode: ::core::option::Option<String>,
-}
-
-/// This schedule allows the backup to be triggered at a fixed frequency (currently only daily is supported).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FixedFrequencySchedule {
-    /// Required. The start time of every automated backup in UTC. It must be set to the start of an hour. This field is required.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// GCBDR Configuration for the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GCBDRConfiguration {
-    /// Whether the resource is managed by GCBDR.
-    #[serde(default, rename = "gcbdrManaged")]
-    pub gcbdr_managed: ::core::option::Option<bool>,
-}
-
-/// Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsBackupSource {
-    /// Optional. URIs of the Cloud Storage objects to import. Example: gs://bucket1/object1, gs://bucket2/folder2/object2
-    #[serde(default)]
-    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The Cloud Storage location for the output content
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsDestination {
-    /// Required. Data destination URI (e.g. ''gs://my_bucket/my_object''). Existing files will be overwritten.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// The Cloud Storage location for the input content
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsSource {
-    /// Required. Source data URI. (e.g. ''gs://my_bucket/my_object'').
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Represents the v1 metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRedisV1OperationMetadata {
-    /// API version.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Specifies if cancellation was requested for the operation.
-    #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: ::core::option::Option<bool>,
-    /// Creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// End timestamp.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Operation status details.
-    #[serde(default, rename = "statusDetail")]
-    pub status_detail: ::core::option::Option<String>,
-    /// Operation target.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Operation verb.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Request for Import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportInstanceRequest {
-    /// Required. Specify data to be imported.
-    #[serde(default, rename = "inputConfig")]
-    pub input_config: ::core::option::Option<InputConfig>,
-}
-
-/// The input content
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputConfig {
-    /// Google Cloud Storage location where input content is located.
-    #[serde(default, rename = "gcsSource")]
-    pub gcs_source: ::core::option::Option<GcsSource>,
-}
-
 /// A Memorystore for Redis instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Instance {
@@ -1107,158 +1017,6 @@ pub struct Instance {
     pub transit_encryption_mode: ::core::option::Option<String>,
 }
 
-/// Instance AUTH string details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceAuthString {
-    /// AUTH string set on the instance.
-    #[serde(default, rename = "authString")]
-    pub auth_string: ::core::option::Option<String>,
-}
-
-/// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration settings. Similarly bigtable can have multiple clusters within same bigtable instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InternalResourceMetadata {
-    /// Backup configuration for this database
-    #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
-    /// Information about the last backup attempt for this database
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<BackupRun>,
-    /// Whether deletion protection is enabled for this internal resource.
-    #[serde(default, rename = "isDeletionProtectionEnabled")]
-    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
-    #[serde(default)]
-    pub product: ::core::option::Option<Product>,
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<DatabaseResourceId>,
-    /// Required. internal resource name for spanner this will be database name e.g."spanner.googleapis.com/projects/123/abc/instances/inst1/databases/db1"
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// Response for ListAclPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAclPoliciesResponse {
-    /// A list of ACL policies in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
-    #[serde(default, rename = "aclPolicies")]
-    pub acl_policies: ::core::option::Option<::std::vec::Vec<AclPolicy>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for ListAuthTokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAuthTokensResponse {
-    /// A list of auth tokens in the project.
-    #[serde(default, rename = "authTokens")]
-    pub auth_tokens: ::core::option::Option<::std::vec::Vec<AuthToken>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Unordered list. Auth tokens that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for [ListBackupCollections].
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBackupCollectionsResponse {
-    /// A list of backupCollections in the project. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder backupCollection entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/backupCollections/- and the status field set to ERROR and status_message field set to "location not available for ListBackupCollections".
-    #[serde(default, rename = "backupCollections")]
-    pub backup_collections: ::core::option::Option<::std::vec::Vec<BackupCollection>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for [ListBackups].
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBackupsResponse {
-    /// A list of backups in the project.
-    #[serde(default)]
-    pub backups: ::core::option::Option<::std::vec::Vec<Backup>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Backups that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for ListClusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListClustersResponse {
-    /// A list of Redis clusters in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/clusters/- and the status field set to ERROR and status_message field set to "location not available for ListClusters".
-    #[serde(default)]
-    pub clusters: ::core::option::Option<::std::vec::Vec<Cluster>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstancesResponse {
-    /// A list of Redis instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/instances/- and the status field set to ERROR and status_message field set to "location not available for ListInstances".
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for ListTokenAuthUsers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListTokenAuthUsersResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of token auth users in the project.
-    #[serde(default, rename = "tokenAuthUsers")]
-    pub token_auth_users: ::core::option::Option<::std::vec::Vec<TokenAuthUser>>,
-    /// Unordered list. Token auth users that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -1277,6 +1035,146 @@ pub struct Location {
     /// Full resource name for the region. For example: "projects/example-project/locations/us-east1".
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// { createTime: The time the operation was created. endTime: The time the operation finished running. target: Server-defined resource path for the target of the operation. verb: Name of the verb executed by the operation. statusDetail: Human-readable status of the operation, if any. cancelRequested: Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED. apiVersion: API version used to start the operation. }
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents a token based auth user for the cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAuthUser {
+    /// Identifier. The resource name of the token based auth user. Format: projects/{project}/locations/{location}/clusters/{cluster}/tokenAuthUsers/{token_auth_user}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The state of the token based auth user. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// CA certificate chains for redis managed server authentication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalManagedCertificateAuthority {
+    /// The PEM encoded CA certificate chains for redis managed server authentication
+    #[serde(default, rename = "caCerts")]
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<RegionalCertChain>>,
+}
+
+/// CertChain resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertChain {
+    /// The certificates that form the CA chain, from leaf to root order.
+    #[serde(default)]
+    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// SignalMetadata contains one of the signal metadata proto messages associated with a SignalType. This proto will be mapped to SignalMetadata message in storage.proto. Next ID: 3
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignalMetadata {
+    /// Signal data for backup runs.
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<BackupRun>,
+    /// Signal data for boolean signals.
+    #[serde(default, rename = "signalBoolValue")]
+    pub signal_bool_value: ::core::option::Option<bool>,
+}
+
+/// TypedValue represents the value of a metric type. It can either be a double, an int64, a string or a bool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypedValue {
+    /// For boolean value
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// For double value
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// For integer value
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// For string value
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// Contains compliance information about a security standard indicating unmet recommendations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Compliance {
+    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
+    #[serde(default)]
+    pub standard: ::core::option::Option<String>,
+    /// Version of the standard or benchmark, for example, 1.1
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Configuration for availability of database instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvailabilityConfiguration {
+    /// Checks for existence of (multi-cluster) routing configuration that allows automatic failover to a different zone/region in case of an outage. Applicable to Bigtable resources.
+    #[serde(default, rename = "automaticFailoverRoutingConfigured")]
+    pub automatic_failover_routing_configured: ::core::option::Option<bool>,
+    /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL", "AVAILABILITY_TYPE_OTHER"]
+    #[serde(default, rename = "availabilityType")]
+    pub availability_type: ::core::option::Option<String>,
+    /// Checks for resources that are configured to have redundancy, and ongoing replication across regions
+    #[serde(default, rename = "crossRegionReplicaConfigured")]
+    pub cross_region_replica_configured: ::core::option::Option<bool>,
+    #[serde(default, rename = "externalReplicaConfigured")]
+    pub external_replica_configured: ::core::option::Option<bool>,
+    #[serde(default, rename = "promotableReplicaConfigured")]
+    pub promotable_replica_configured: ::core::option::Option<bool>,
+}
+
+/// BackupDRConfiguration to capture the backup and disaster recovery details of database resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDRConfiguration {
+    /// Indicates if the resource is managed by BackupDR.
+    #[serde(default, rename = "backupdrManaged")]
+    pub backupdr_managed: ::core::option::Option<bool>,
+}
+
+/// Any custom metadata associated with the resource. e.g. A spanner instance can have multiple databases with its own unique metadata. Information for these individual databases can be captured in custom metadata data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomMetadataData {
+    /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration.
+    #[serde(default, rename = "internalResourceMetadata")]
+    pub internal_resource_metadata:
+        ::core::option::Option<::std::vec::Vec<InternalResourceMetadata>>,
+}
+
+/// Proto representing the access that a user has to a specific feature/service. NextId: 3.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entitlement {
+    /// The current state of user''s accessibility to a feature/benefit. // TODO: enum values: ["ENTITLEMENT_STATE_UNSPECIFIED", "ENTITLED", "REVOKED"]
+    #[serde(default, rename = "entitlementState")]
+    pub entitlement_state: ::core::option::Option<String>,
+    /// An enum that represents the type of this entitlement. // TODO: enum values: ["ENTITLEMENT_TYPE_UNSPECIFIED", "GEMINI", "NATIVE", "GCA_STANDARD"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// GCBDR Configuration for the resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GCBDRConfiguration {
+    /// Whether the resource is managed by GCBDR.
+    #[serde(default, rename = "gcbdrManaged")]
+    pub gcbdr_managed: ::core::option::Option<bool>,
 }
 
 /// MachineConfiguration describes the configuration of a machine specific to Database Resource.
@@ -1300,6 +1198,244 @@ pub struct MachineConfiguration {
     /// Optional. The number of vCPUs. TODO(b/342344482) add proto validations again after bug fix.
     #[serde(default, rename = "vcpuCount")]
     pub vcpu_count: ::core::option::Option<f64>,
+}
+
+/// MaintenanceInfo to capture the maintenance details of database resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceMaintenanceInfo {
+    /// Optional. The date when the current maintenance version was released.
+    #[serde(default, rename = "currentVersionReleaseDate")]
+    pub current_version_release_date: ::core::option::Option<Date>,
+    /// Optional. List of Deny maintenance period for the database resource.
+    #[serde(default, rename = "denyMaintenanceSchedules")]
+    pub deny_maintenance_schedules:
+        ::core::option::Option<::std::vec::Vec<ResourceMaintenanceDenySchedule>>,
+    /// Optional. Whether the instance is in stopped state. This information is temporarily being captured in maintenanceInfo, till STOPPED state is supported by DB Center.
+    #[serde(default, rename = "isInstanceStopped")]
+    pub is_instance_stopped: ::core::option::Option<bool>,
+    /// Optional. Maintenance window for the database resource.
+    #[serde(default, rename = "maintenanceSchedule")]
+    pub maintenance_schedule: ::core::option::Option<ResourceMaintenanceSchedule>,
+    /// Output only. Current state of maintenance on the database resource. // TODO: enum values: ["MAINTENANCE_STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "REPAIRING", "DELETING", "ERROR"]
+    #[serde(default, rename = "maintenanceState")]
+    pub maintenance_state: ::core::option::Option<String>,
+    /// Optional. Current Maintenance version of the database resource. Example: "MYSQL_8_0_41.R20250531.01_15"
+    #[serde(default, rename = "maintenanceVersion")]
+    pub maintenance_version: ::core::option::Option<String>,
+    /// Optional. Upcoming maintenance for the database resource. This field is populated once SLM generates and publishes upcoming maintenance window.
+    #[serde(default, rename = "upcomingMaintenance")]
+    pub upcoming_maintenance: ::core::option::Option<UpcomingMaintenance>,
+}
+
+/// Message type for storing resource flags.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceFlags {
+    /// Optional. Key of the resource flag.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Optional. Value of the resource flag.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The Cloud Storage location for the output content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsDestination {
+    /// Required. Data destination URI (e.g. ''gs://my_bucket/my_object''). Existing files will be overwritten.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// The Cloud Storage location for the input content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsSource {
+    /// Required. Source data URI. (e.g. ''gs://my_bucket/my_object'').
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A single ACL rule which defines the policy for a user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AclRule {
+    /// Required. The rule to be applied to the username. Ex: "on &gt;password123 ~* +@all" The format of the rule is defined by Redis OSS: https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
+    #[serde(default)]
+    pub rule: ::core::option::Option<String>,
+    /// Required. Specifies the IAM user or service account to be added to the ACL policy. This username will be directly set on the Redis OSS.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Backup is consisted of multiple backup files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupFile {
+    /// Output only. The time when the backup file was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. e.g: .rdb
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Output only. Size of the backup file in bytes.
+    #[serde(default, rename = "sizeBytes")]
+    pub size_bytes: ::core::option::Option<String>,
+}
+
+/// The automated backup config for a cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutomatedBackupConfig {
+    /// Optional. The automated backup mode. If the mode is disabled, the other fields will be ignored. // TODO: enum values: ["AUTOMATED_BACKUP_MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
+    #[serde(default, rename = "automatedBackupMode")]
+    pub automated_backup_mode: ::core::option::Option<String>,
+    /// Optional. Trigger automated backups at a fixed frequency.
+    #[serde(default, rename = "fixedFrequencySchedule")]
+    pub fixed_frequency_schedule: ::core::option::Option<FixedFrequencySchedule>,
+    /// Optional. How long to keep automated backups before the backups are deleted. The value should be between 1 day and 365 days. If not specified, the default value is 35 days.
+    #[serde(default)]
+    pub retention: ::core::option::Option<String>,
+}
+
+/// ClusterEndpoint consists of PSC connections that are created as a group in each VPC network for accessing the cluster. In each group, there shall be one connection for each service attachment in the cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterEndpoint {
+    /// Required. A group of PSC connections. They are created in the same VPC network, one for each service attachment in the cluster.
+    #[serde(default)]
+    pub connections: ::core::option::Option<::std::vec::Vec<ConnectionDetail>>,
+}
+
+/// Cross cluster replication config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CrossClusterReplicationConfig {
+    /// Output only. The role of the cluster in cross cluster replication. // TODO: enum values: ["CLUSTER_ROLE_UNSPECIFIED", "NONE", "PRIMARY", "SECONDARY"]
+    #[serde(default, rename = "clusterRole")]
+    pub cluster_role: ::core::option::Option<String>,
+    /// Output only. An output only view of all the member clusters participating in the cross cluster replication. This view will be provided by every member cluster irrespective of its cluster role(primary or secondary). A primary cluster can provide information about all the secondary clusters replicating from it. However, a secondary cluster only knows about the primary cluster from which it is replicating. However, for scenarios, where the primary cluster is unavailable(e.g. regional outage), a GetCluster request can be sent to any other member cluster and this field will list all the member clusters participating in cross cluster replication.
+    #[serde(default)]
+    pub membership: ::core::option::Option<Membership>,
+    /// Details of the primary cluster that is used as the replication source for this secondary cluster. This field is only set for a secondary cluster.
+    #[serde(default, rename = "primaryCluster")]
+    pub primary_cluster: ::core::option::Option<RemoteCluster>,
+    /// List of secondary clusters that are replicating from this primary cluster. This field is only set for a primary cluster.
+    #[serde(default, rename = "secondaryClusters")]
+    pub secondary_clusters: ::core::option::Option<::std::vec::Vec<RemoteCluster>>,
+    /// Output only. The last time cross cluster replication config was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Endpoints on each network, for Redis clients to connect to the cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiscoveryEndpoint {
+    /// Output only. Address of the exposed Redis endpoint used by clients to connect to the service. The address could be either IP or hostname.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Output only. The port number of the exposed Redis endpoint.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Output only. Customer configuration for where the endpoint is created and accessed from.
+    #[serde(default, rename = "pscConfig")]
+    pub psc_config: ::core::option::Option<PscConfig>,
+}
+
+/// EncryptionInfo describes the encryption information of a cluster or a backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionInfo {
+    /// Output only. Type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
+    #[serde(default, rename = "encryptionType")]
+    pub encryption_type: ::core::option::Option<String>,
+    /// Output only. The state of the primary version of the KMS key perceived by the system. This field is not populated in backups. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "ENABLED", "PERMISSION_DENIED", "DISABLED", "DESTROYED", "DESTROY_SCHEDULED", "EKM_KEY_UNREACHABLE_DETECTED", "BILLING_DISABLED", "UNKNOWN_FAILURE"]
+    #[serde(default, rename = "kmsKeyPrimaryState")]
+    pub kms_key_primary_state: ::core::option::Option<String>,
+    /// Output only. KMS key versions that are being used to protect the data at-rest.
+    #[serde(default, rename = "kmsKeyVersions")]
+    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The most recent time when the encryption info was updated.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+}
+
+/// Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsBackupSource {
+    /// Optional. URIs of the Cloud Storage objects to import. Example: gs://bucket1/object1, gs://bucket2/folder2/object2
+    #[serde(default)]
+    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Maintenance policy per cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterMaintenancePolicy {
+    /// Output only. The time when the policy was created i.e. Maintenance Window or Deny Period was assigned.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the policy was updated i.e. Maintenance Window or Deny Period was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_window is expected to be one.
+    #[serde(default, rename = "weeklyMaintenanceWindow")]
+    pub weekly_maintenance_window:
+        ::core::option::Option<::std::vec::Vec<ClusterWeeklyMaintenanceWindow>>,
+}
+
+/// Upcoming maintenance schedule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterMaintenanceSchedule {
+    /// Output only. The end time of any upcoming scheduled maintenance for this instance.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The start time of any upcoming scheduled maintenance for this instance.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Backups that generated and managed by memorystore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedBackupSource {
+    /// Optional. Example: //redis.googleapis.com/projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup} A shorter version (without the prefix) of the backup name is also supported, like projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup_id} In this case, it assumes the backup is under redis.googleapis.com.
+    #[serde(default)]
+    pub backup: ::core::option::Option<String>,
+}
+
+/// Configuration of the persistence functionality.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterPersistenceConfig {
+    /// Optional. AOF configuration. This field will be ignored if mode is not AOF.
+    #[serde(default, rename = "aofConfig")]
+    pub aof_config: ::core::option::Option<AOFConfig>,
+    /// Optional. The mode of persistence. // TODO: enum values: ["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB", "AOF"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Optional. RDB configuration. This field will be ignored if mode is not RDB.
+    #[serde(default, rename = "rdbConfig")]
+    pub rdb_config: ::core::option::Option<RDBConfig>,
+}
+
+/// Configuration of a service attachment of the cluster, for creating PSC connections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscServiceAttachment {
+    /// Output only. Type of a PSC connection targeting this service attachment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CONNECTION_TYPE_DISCOVERY", "CONNECTION_TYPE_PRIMARY", "CONNECTION_TYPE_READER"]
+    #[serde(default, rename = "connectionType")]
+    pub connection_type: ::core::option::Option<String>,
+    /// Output only. Service attachment URI which your self-created PscConnection should use as target
+    #[serde(default, rename = "serviceAttachment")]
+    pub service_attachment: ::core::option::Option<String>,
+}
+
+/// Represents additional information about the state of the cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StateInfo {
+    /// Describes ongoing update on the cluster when cluster state is UPDATING.
+    #[serde(default, rename = "updateInfo")]
+    pub update_info: ::core::option::Option<UpdateInfo>,
+}
+
+/// Zone distribution config for allocation of cluster resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ZoneDistributionConfig {
+    /// Optional. The mode of zone distribution. Defaults to MULTI_ZONE, when not specified. // TODO: enum values: ["ZONE_DISTRIBUTION_MODE_UNSPECIFIED", "MULTI_ZONE", "SINGLE_ZONE"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Optional. When SINGLE ZONE distribution is selected, zone field would be used to allocate all resources in that zone. This is not applicable to MULTI_ZONE, and would be ignored for MULTI_ZONE clusters.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Maintenance policy for an instance.
@@ -1336,33 +1472,6 @@ pub struct MaintenanceSchedule {
     pub start_time: ::core::option::Option<String>,
 }
 
-/// Backups that generated and managed by memorystore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedBackupSource {
-    /// Optional. Example: //redis.googleapis.com/projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup} A shorter version (without the prefix) of the backup name is also supported, like projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup_id} In this case, it assumes the backup is under redis.googleapis.com.
-    #[serde(default)]
-    pub backup: ::core::option::Option<String>,
-}
-
-/// ManagedCertificateAuthority resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedCertificateAuthority {
-    /// The PEM encoded CA certificate chains for redis managed server authentication
-    #[serde(default, rename = "caCerts")]
-    pub ca_certs: ::core::option::Option<::std::vec::Vec<CertChain>>,
-}
-
-/// An output only view of all the member clusters participating in the cross cluster replication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Membership {
-    /// Output only. The primary cluster that acts as the source of replication for the secondary clusters.
-    #[serde(default, rename = "primaryCluster")]
-    pub primary_cluster: ::core::option::Option<RemoteCluster>,
-    /// Output only. The list of secondary clusters replicating from the primary cluster.
-    #[serde(default, rename = "secondaryClusters")]
-    pub secondary_clusters: ::core::option::Option<::std::vec::Vec<RemoteCluster>>,
-}
-
 /// Node specific properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeInfo {
@@ -1372,94 +1481,6 @@ pub struct NodeInfo {
     /// Output only. Location of the node.
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
-}
-
-/// ObservabilityMetricData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObservabilityMetricData {
-    /// Required. Type of aggregation performed on the metric. // TODO: enum values: ["AGGREGATION_TYPE_UNSPECIFIED", "PEAK", "P99", "P95", "CURRENT"]
-    #[serde(default, rename = "aggregationType")]
-    pub aggregation_type: ::core::option::Option<String>,
-    /// Required. Type of metric like CPU, Memory, etc. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "CPU_UTILIZATION", "MEMORY_UTILIZATION", "NETWORK_CONNECTIONS", "STORAGE_UTILIZATION", "STORAGE_USED_BYTES", "NODE_COUNT", "MEMORY_USED_BYTES", "PROCESSING_UNIT_COUNT"]
-    #[serde(default, rename = "metricType")]
-    pub metric_type: ::core::option::Option<String>,
-    /// Required. The time the metric value was observed.
-    #[serde(default, rename = "observationTime")]
-    pub observation_time: ::core::option::Option<String>,
-    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Required. Value of the metric type.
-    #[serde(default)]
-    pub value: ::core::option::Option<TypedValue>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// { createTime: The time the operation was created. endTime: The time the operation finished running. target: Server-defined resource path for the target of the operation. verb: Name of the verb executed by the operation. statusDetail: Human-readable status of the operation, if any. cancelRequested: Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED. apiVersion: API version used to start the operation. }
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// An error that occurred during a backup creation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationError {
-    /// Identifies the specific error that occurred. REQUIRED
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// TODO: enum values: ["OPERATION_ERROR_TYPE_UNSPECIFIED", "KMS_KEY_ERROR", "DATABASE_ERROR", "STOCKOUT_ERROR", "CANCELLATION_ERROR", "SQLSERVER_ERROR", "INTERNAL_ERROR"]
-    #[serde(default, rename = "errorType")]
-    pub error_type: ::core::option::Option<String>,
-    /// Additional information about the error encountered. REQUIRED
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Pre-defined metadata fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// The output content
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OutputConfig {
-    /// Google Cloud Storage destination for output content.
-    #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: ::core::option::Option<GcsDestination>,
 }
 
 /// Configuration of the persistence functionality.
@@ -1479,6 +1500,235 @@ pub struct PersistenceConfig {
     pub rdb_snapshot_start_time: ::core::option::Option<String>,
 }
 
+/// TlsCertificate Resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsCertificate {
+    /// PEM representation.
+    #[serde(default)]
+    pub cert: ::core::option::Option<String>,
+    /// Output only. The time when the certificate was created in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the certificate expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Serial number, as extracted from the certificate.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+    /// Sha1 Fingerprint of the certificate.
+    #[serde(default, rename = "sha1Fingerprint")]
+    pub sha1_fingerprint: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// The certificates that form the CA chain, from leaf to root order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalCertChain {
+    /// The certificates that form the CA chain, from leaf to root order.
+    #[serde(default)]
+    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration settings. Similarly bigtable can have multiple clusters within same bigtable instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InternalResourceMetadata {
+    /// Backup configuration for this database
+    #[serde(default, rename = "backupConfiguration")]
+    pub backup_configuration: ::core::option::Option<BackupConfiguration>,
+    /// Information about the last backup attempt for this database
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<BackupRun>,
+    /// Whether deletion protection is enabled for this internal resource.
+    #[serde(default, rename = "isDeletionProtectionEnabled")]
+    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
+    #[serde(default)]
+    pub product: ::core::option::Option<Product>,
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<DatabaseResourceId>,
+    /// Required. internal resource name for spanner this will be database name e.g."spanner.googleapis.com/projects/123/abc/instances/inst1/databases/db1"
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Deny maintenance period for the database resource. It specifies the time range during which the maintenance cannot start. This is configured by the customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceMaintenanceDenySchedule {
+    /// Optional. Deny period end date.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Optional. The start date of the deny maintenance period.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+    /// Optional. Time in UTC when the deny period starts on start_date and ends on end_date.
+    #[serde(default)]
+    pub time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Maintenance window for the database resource. It specifies preferred time and day of the week and phase in some cases, when the maintenance can start. This is configured by the customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceMaintenanceSchedule {
+    /// Optional. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Optional. Phase of the maintenance window. This is to capture order of maintenance. For example, for Cloud SQL resources, this can be used to capture if the maintenance window is in Week1, Week2, Week5, etc. Non production resources are usually part of early phase. For more details, refer to Cloud SQL resources - https://cloud.google.com/sql/docs/mysql/maintenance // TODO: enum values: ["PHASE_UNSPECIFIED", "ANY", "WEEK1", "WEEK2", "WEEK5"]
+    #[serde(default)]
+    pub phase: ::core::option::Option<String>,
+    /// Optional. Preferred time to start the maintenance operation on the specified day.
+    #[serde(default)]
+    pub time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Upcoming maintenance for the database resource. This is generated by SLM once the upcoming maintenance schedule is published.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpcomingMaintenance {
+    /// Optional. The end time of the upcoming maintenance.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. The start time of the upcoming maintenance.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// This schedule allows the backup to be triggered at a fixed frequency (currently only daily is supported).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FixedFrequencySchedule {
+    /// Required. The start time of every automated backup in UTC. It must be set to the start of an hour. This field is required.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Detailed information of each PSC connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionDetail {
+    /// Detailed information of a PSC connection that is created through service connectivity automation.
+    #[serde(default, rename = "pscAutoConnection")]
+    pub psc_auto_connection: ::core::option::Option<PscAutoConnection>,
+    /// Detailed information of a PSC connection that is created by the customer who owns the cluster.
+    #[serde(default, rename = "pscConnection")]
+    pub psc_connection: ::core::option::Option<PscConnection>,
+}
+
+/// An output only view of all the member clusters participating in the cross cluster replication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Membership {
+    /// Output only. The primary cluster that acts as the source of replication for the secondary clusters.
+    #[serde(default, rename = "primaryCluster")]
+    pub primary_cluster: ::core::option::Option<RemoteCluster>,
+    /// Output only. The list of secondary clusters replicating from the primary cluster.
+    #[serde(default, rename = "secondaryClusters")]
+    pub secondary_clusters: ::core::option::Option<::std::vec::Vec<RemoteCluster>>,
+}
+
+/// PscConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscConfig {
+    /// Required. The network where the IP address of the discovery endpoint will be reserved, in the form of projects/{network_project}/global/networks/{network_id}.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+}
+
+/// Time window specified for weekly operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterWeeklyMaintenanceWindow {
+    /// Optional. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Optional. Start time of the window in UTC.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Configuration of the AOF based persistence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AOFConfig {
+    /// Optional. fsync configuration. // TODO: enum values: ["APPEND_FSYNC_UNSPECIFIED", "NO", "EVERYSEC", "ALWAYS"]
+    #[serde(default, rename = "appendFsync")]
+    pub append_fsync: ::core::option::Option<String>,
+}
+
+/// Configuration of the RDB based persistence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RDBConfig {
+    /// Optional. Period between RDB snapshots. // TODO: enum values: ["SNAPSHOT_PERIOD_UNSPECIFIED", "ONE_HOUR", "SIX_HOURS", "TWELVE_HOURS", "TWENTY_FOUR_HOURS"]
+    #[serde(default, rename = "rdbSnapshotPeriod")]
+    pub rdb_snapshot_period: ::core::option::Option<String>,
+    /// Optional. The time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.
+    #[serde(default, rename = "rdbSnapshotStartTime")]
+    pub rdb_snapshot_start_time: ::core::option::Option<String>,
+}
+
+/// Represents information about an updating cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateInfo {
+    /// Target node type for redis cluster. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "REDIS_SHARED_CORE_NANO", "REDIS_HIGHMEM_MEDIUM", "REDIS_HIGHMEM_XLARGE", "REDIS_STANDARD_SMALL"]
+    #[serde(default, rename = "targetNodeType")]
+    pub target_node_type: ::core::option::Option<String>,
+    /// Target number of replica nodes per shard.
+    #[serde(default, rename = "targetReplicaCount")]
+    pub target_replica_count: ::core::option::Option<i32>,
+    /// Target number of shards for redis cluster
+    #[serde(default, rename = "targetShardCount")]
+    pub target_shard_count: ::core::option::Option<i32>,
+}
+
+/// Time window in which disruptive maintenance updates occur. Non-disruptive updates can occur inside or outside this window.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklyMaintenanceWindow {
+    /// Required. The day of week that maintenance updates occur. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Output only. Duration of the maintenance window. The current window is fixed at 1 hour.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Required. Start time of the window in UTC time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Configuration for automatic backups
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupConfiguration {
+    /// Whether customer visible automated backups are enabled on the instance.
+    #[serde(default, rename = "automatedBackupEnabled")]
+    pub automated_backup_enabled: ::core::option::Option<bool>,
+    /// Backup retention settings.
+    #[serde(default, rename = "backupRetentionSettings")]
+    pub backup_retention_settings: ::core::option::Option<RetentionSettings>,
+    /// Whether point-in-time recovery is enabled. This is optional field, if the database service does not have this feature or metadata is not available in control plane, this can be omitted.
+    #[serde(default, rename = "pointInTimeRecoveryEnabled")]
+    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
+}
+
+/// A backup run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupRun {
+    /// The time the backup operation completed. REQUIRED
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Information about why the backup operation failed. This is only present if the run has the FAILED status. OPTIONAL
+    #[serde(default)]
+    pub error: ::core::option::Option<OperationError>,
+    /// The time the backup operation started. REQUIRED
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The status of this run. REQUIRED // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESSFUL", "FAILED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
 /// Product specification for Condor resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Product {
@@ -1494,6 +1744,37 @@ pub struct Product {
     /// Version of the underlying database engine. Example values: For MySQL, it could be "8.0", "5.7" etc.. For Postgres, it could be "14", "15" etc..
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// DatabaseResourceId will serve as primary key for any resource ingestion event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseResourceId {
+    /// Required. Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Optional. Needs to be used only when the provider is PROVIDER_OTHER.
+    #[serde(default, rename = "providerDescription")]
+    pub provider_description: ::core::option::Option<String>,
+    /// Required. The type of resource this ID is identifying. Ex go/keep-sorted start alloydb.googleapis.com/Cluster, alloydb.googleapis.com/Instance, bigtableadmin.googleapis.com/Cluster, bigtableadmin.googleapis.com/Instance compute.googleapis.com/Instance firestore.googleapis.com/Database, redis.googleapis.com/Instance, redis.googleapis.com/Cluster, oracledatabase.googleapis.com/CloudExadataInfrastructure oracledatabase.googleapis.com/CloudVmCluster oracledatabase.googleapis.com/AutonomousDatabase spanner.googleapis.com/Instance, spanner.googleapis.com/Database, sqladmin.googleapis.com/Instance, go/keep-sorted end REQUIRED Please refer go/condor-common-datamodel
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Required. A service-local token that distinguishes this resource from other resources within the same service.
+    #[serde(default, rename = "uniqueId")]
+    pub unique_id: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Details of consumer resources in a PSC connection that is created through Service Connectivity Automation.
@@ -1523,14 +1804,6 @@ pub struct PscAutoConnection {
     /// Output only. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.
     #[serde(default, rename = "serviceAttachment")]
     pub service_attachment: ::core::option::Option<String>,
-}
-
-/// PscConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscConfig {
-    /// Required. The network where the IP address of the discovery endpoint will be reserved, in the form of projects/{network_project}/global/networks/{network_id}.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
 }
 
 /// Details of consumer resources in a PSC connection.
@@ -1565,55 +1838,6 @@ pub struct PscConnection {
     pub service_attachment: ::core::option::Option<String>,
 }
 
-/// Configuration of a service attachment of the cluster, for creating PSC connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscServiceAttachment {
-    /// Output only. Type of a PSC connection targeting this service attachment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CONNECTION_TYPE_DISCOVERY", "CONNECTION_TYPE_PRIMARY", "CONNECTION_TYPE_READER"]
-    #[serde(default, rename = "connectionType")]
-    pub connection_type: ::core::option::Option<String>,
-    /// Output only. Service attachment URI which your self-created PscConnection should use as target
-    #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: ::core::option::Option<String>,
-}
-
-/// Configuration of the RDB based persistence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RDBConfig {
-    /// Optional. Period between RDB snapshots. // TODO: enum values: ["SNAPSHOT_PERIOD_UNSPECIFIED", "ONE_HOUR", "SIX_HOURS", "TWELVE_HOURS", "TWENTY_FOUR_HOURS"]
-    #[serde(default, rename = "rdbSnapshotPeriod")]
-    pub rdb_snapshot_period: ::core::option::Option<String>,
-    /// Optional. The time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.
-    #[serde(default, rename = "rdbSnapshotStartTime")]
-    pub rdb_snapshot_start_time: ::core::option::Option<String>,
-}
-
-/// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReconciliationOperationMetadata {
-    /// DEPRECATED. Use exclusive_action instead.
-    #[serde(default, rename = "deleteResource")]
-    pub delete_resource: ::core::option::Option<bool>,
-    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
-    #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: ::core::option::Option<String>,
-}
-
-/// The certificates that form the CA chain, from leaf to root order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalCertChain {
-    /// The certificates that form the CA chain, from leaf to root order.
-    #[serde(default)]
-    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// CA certificate chains for redis managed server authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalManagedCertificateAuthority {
-    /// The PEM encoded CA certificate chains for redis managed server authentication
-    #[serde(default, rename = "caCerts")]
-    pub ca_certs: ::core::option::Option<::std::vec::Vec<RegionalCertChain>>,
-}
-
 /// Details of the remote cluster associated with this cluster in a cross cluster replication setup.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoteCluster {
@@ -1625,92 +1849,21 @@ pub struct RemoteCluster {
     pub uid: ::core::option::Option<String>,
 }
 
-/// Request for rescheduling a cluster maintenance.
+/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RescheduleClusterMaintenanceRequest {
-    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "SPECIFIC_TIME"]
-    #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: ::core::option::Option<String>,
-    /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
-    #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: ::core::option::Option<String>,
-}
-
-/// Request for RescheduleMaintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RescheduleMaintenanceRequest {
-    /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
-    #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: ::core::option::Option<String>,
-    /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
-    #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: ::core::option::Option<String>,
-}
-
-/// Message type for storing resource flags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceFlags {
-    /// Optional. Key of the resource flag.
+pub struct TimeOfDay {
+    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Value of the resource flag.
+    pub hours: ::core::option::Option<i32>,
+    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Deny maintenance period for the database resource. It specifies the time range during which the maintenance cannot start. This is configured by the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceMaintenanceDenySchedule {
-    /// Optional. Deny period end date.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Optional. The start date of the deny maintenance period.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-    /// Optional. Time in UTC when the deny period starts on start_date and ends on end_date.
+    pub minutes: ::core::option::Option<i32>,
+    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
-}
-
-/// MaintenanceInfo to capture the maintenance details of database resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceMaintenanceInfo {
-    /// Optional. The date when the current maintenance version was released.
-    #[serde(default, rename = "currentVersionReleaseDate")]
-    pub current_version_release_date: ::core::option::Option<Date>,
-    /// Optional. List of Deny maintenance period for the database resource.
-    #[serde(default, rename = "denyMaintenanceSchedules")]
-    pub deny_maintenance_schedules:
-        ::core::option::Option<::std::vec::Vec<ResourceMaintenanceDenySchedule>>,
-    /// Optional. Whether the instance is in stopped state. This information is temporarily being captured in maintenanceInfo, till STOPPED state is supported by DB Center.
-    #[serde(default, rename = "isInstanceStopped")]
-    pub is_instance_stopped: ::core::option::Option<bool>,
-    /// Optional. Maintenance window for the database resource.
-    #[serde(default, rename = "maintenanceSchedule")]
-    pub maintenance_schedule: ::core::option::Option<ResourceMaintenanceSchedule>,
-    /// Output only. Current state of maintenance on the database resource. // TODO: enum values: ["MAINTENANCE_STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "REPAIRING", "DELETING", "ERROR"]
-    #[serde(default, rename = "maintenanceState")]
-    pub maintenance_state: ::core::option::Option<String>,
-    /// Optional. Current Maintenance version of the database resource. Example: "MYSQL_8_0_41.R20250531.01_15"
-    #[serde(default, rename = "maintenanceVersion")]
-    pub maintenance_version: ::core::option::Option<String>,
-    /// Optional. Upcoming maintenance for the database resource. This field is populated once SLM generates and publishes upcoming maintenance window.
-    #[serde(default, rename = "upcomingMaintenance")]
-    pub upcoming_maintenance: ::core::option::Option<UpcomingMaintenance>,
-}
-
-/// Maintenance window for the database resource. It specifies preferred time and day of the week and phase in some cases, when the maintenance can start. This is configured by the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceMaintenanceSchedule {
-    /// Optional. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    pub nanos: ::core::option::Option<i32>,
+    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Optional. Phase of the maintenance window. This is to capture order of maintenance. For example, for Cloud SQL resources, this can be used to capture if the maintenance window is in Week1, Week2, Week5, etc. Non production resources are usually part of early phase. For more details, refer to Cloud SQL resources - https://cloud.google.com/sql/docs/mysql/maintenance // TODO: enum values: ["PHASE_UNSPECIFIED", "ANY", "WEEK1", "WEEK2", "WEEK5"]
-    #[serde(default)]
-    pub phase: ::core::option::Option<String>,
-    /// Optional. Preferred time to start the maintenance operation on the specified day.
-    #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// RetentionSettings resource type.
@@ -1731,169 +1884,16 @@ pub struct RetentionSettings {
     pub timestamp_based_retention_time: ::core::option::Option<String>,
 }
 
-/// Shared regional certificate authority
+/// An error that occurred during a backup creation operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SharedRegionalCertificateAuthority {
-    /// CA certificate chains for redis managed server authentication.
-    #[serde(default, rename = "managedServerCa")]
-    pub managed_server_ca: ::core::option::Option<RegionalManagedCertificateAuthority>,
-    /// Identifier. Unique name of the resource in this scope including project and location using the form: projects/{project}/locations/{location}/sharedRegionalCertificateAuthority
+pub struct OperationError {
+    /// Identifies the specific error that occurred. REQUIRED
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// SignalMetadata contains one of the signal metadata proto messages associated with a SignalType. This proto will be mapped to SignalMetadata message in storage.proto. Next ID: 3
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignalMetadata {
-    /// Signal data for backup runs.
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<BackupRun>,
-    /// Signal data for boolean signals.
-    #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: ::core::option::Option<bool>,
-}
-
-/// Represents additional information about the state of the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StateInfo {
-    /// Describes ongoing update on the cluster when cluster state is UPDATING.
-    #[serde(default, rename = "updateInfo")]
-    pub update_info: ::core::option::Option<UpdateInfo>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub code: ::core::option::Option<String>,
+    /// TODO: enum values: ["OPERATION_ERROR_TYPE_UNSPECIFIED", "KMS_KEY_ERROR", "DATABASE_ERROR", "STOCKOUT_ERROR", "CANCELLATION_ERROR", "SQLSERVER_ERROR", "INTERNAL_ERROR"]
+    #[serde(default, rename = "errorType")]
+    pub error_type: ::core::option::Option<String>,
+    /// Additional information about the error encountered. REQUIRED
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-}
-
-/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeOfDay {
-    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-}
-
-/// TlsCertificate Resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsCertificate {
-    /// PEM representation.
-    #[serde(default)]
-    pub cert: ::core::option::Option<String>,
-    /// Output only. The time when the certificate was created in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the certificate expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Serial number, as extracted from the certificate.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-    /// Sha1 Fingerprint of the certificate.
-    #[serde(default, rename = "sha1Fingerprint")]
-    pub sha1_fingerprint: ::core::option::Option<String>,
-}
-
-/// Represents a token based auth user for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TokenAuthUser {
-    /// Identifier. The resource name of the token based auth user. Format: projects/{project}/locations/{location}/clusters/{cluster}/tokenAuthUsers/{token_auth_user}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The state of the token based auth user. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// TypedValue represents the value of a metric type. It can either be a double, an int64, a string or a bool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TypedValue {
-    /// For boolean value
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// For double value
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// For integer value
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// For string value
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-}
-
-/// Upcoming maintenance for the database resource. This is generated by SLM once the upcoming maintenance schedule is published.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpcomingMaintenance {
-    /// Optional. The end time of the upcoming maintenance.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. The start time of the upcoming maintenance.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Represents information about an updating cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateInfo {
-    /// Target node type for redis cluster. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "REDIS_SHARED_CORE_NANO", "REDIS_HIGHMEM_MEDIUM", "REDIS_HIGHMEM_XLARGE", "REDIS_STANDARD_SMALL"]
-    #[serde(default, rename = "targetNodeType")]
-    pub target_node_type: ::core::option::Option<String>,
-    /// Target number of replica nodes per shard.
-    #[serde(default, rename = "targetReplicaCount")]
-    pub target_replica_count: ::core::option::Option<i32>,
-    /// Target number of shards for redis cluster
-    #[serde(default, rename = "targetShardCount")]
-    pub target_shard_count: ::core::option::Option<i32>,
-}
-
-/// Request for UpgradeInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeInstanceRequest {
-    /// Required. Specifies the target version of Redis software to upgrade to.
-    #[serde(default, rename = "redisVersion")]
-    pub redis_version: ::core::option::Option<String>,
-}
-
-/// Time window in which disruptive maintenance updates occur. Non-disruptive updates can occur inside or outside this window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WeeklyMaintenanceWindow {
-    /// Required. The day of week that maintenance updates occur. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Output only. Duration of the maintenance window. The current window is fixed at 1 hour.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Required. Start time of the window in UTC time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Zone distribution config for allocation of cluster resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ZoneDistributionConfig {
-    /// Optional. The mode of zone distribution. Defaults to MULTI_ZONE, when not specified. // TODO: enum values: ["ZONE_DISTRIBUTION_MODE_UNSPECIFIED", "MULTI_ZONE", "SINGLE_ZONE"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Optional. When SINGLE ZONE distribution is selected, zone field would be used to allocate all resources in that zone. This is not applicable to MULTI_ZONE, and would be ignored for MULTI_ZONE clusters.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
 }

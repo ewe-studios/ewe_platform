@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The throughput capacity configuration for each partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Capacity {
-    /// Publish throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 16.
-    #[serde(default, rename = "publishMibPerSec")]
-    pub publish_mib_per_sec: ::core::option::Option<i32>,
-    /// Subscribe throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 32.
-    #[serde(default, rename = "subscribeMibPerSec")]
-    pub subscribe_mib_per_sec: ::core::option::Option<i32>,
-}
-
 /// Request for CommitCursor.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitCursorRequest {
@@ -96,39 +85,6 @@ pub struct ComputeTimeCursorResponse {
     /// If present, the cursor references the first message with time greater than or equal to the specified target time. If such a message cannot be found, the cursor will be unset (i.e. cursor is not present).
     #[serde(default)]
     pub cursor: ::core::option::Option<Cursor>,
-}
-
-/// A cursor that describes the position of a message within a topic partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cursor {
-    /// The offset of a message within a topic partition. Must be greater than or equal 0.
-    #[serde(default)]
-    pub offset: ::core::option::Option<String>,
-}
-
-/// The settings for a subscription''s message delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeliveryConfig {
-    /// The DeliveryRequirement for this subscription. // TODO: enum values: ["DELIVERY_REQUIREMENT_UNSPECIFIED", "DELIVER_IMMEDIATELY", "DELIVER_AFTER_STORED"]
-    #[serde(default, rename = "deliveryRequirement")]
-    pub delivery_requirement: ::core::option::Option<String>,
-}
-
-/// Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportConfig {
-    /// Output only. The current state of the export, which may be different to the desired state due to errors. This field is output only. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
-    #[serde(default, rename = "currentState")]
-    pub current_state: ::core::option::Option<String>,
-    /// Optional. The name of an optional Pub/Sub Lite topic to publish messages that can not be exported to the destination. For example, the message can not be published to the Pub/Sub service because it does not satisfy the constraints documented at https://cloud.google.com/pubsub/docs/publisher. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}. Must be within the same project and location as the subscription. The topic may be changed or removed.
-    #[serde(default, rename = "deadLetterTopic")]
-    pub dead_letter_topic: ::core::option::Option<String>,
-    /// The desired state of this export. Setting this to values other than ACTIVE and PAUSED will result in an error. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
-    #[serde(default, rename = "desiredState")]
-    pub desired_state: ::core::option::Option<String>,
-    /// Messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a Pub/Sub topic.
-    #[serde(default, rename = "pubsubConfig")]
-    pub pubsub_config: ::core::option::Option<PubSubConfig>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -211,6 +167,42 @@ pub struct ListTopicsResponse {
     pub topics: ::core::option::Option<::std::vec::Vec<Topic>>,
 }
 
+/// Metadata for long running operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The time the operation finished running. Not set if the operation has not completed.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Resource path for the target of the operation. For example, targets of seeks are subscription resources, structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request for SeekSubscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeekSubscriptionRequest {
+    /// Seek to a named position with respect to the message backlog. // TODO: enum values: ["NAMED_TARGET_UNSPECIFIED", "TAIL", "HEAD"]
+    #[serde(default, rename = "namedTarget")]
+    pub named_target: ::core::option::Option<String>,
+    /// Seek to the first message whose publish or event time is greater than or equal to the specified query time. If no such message can be located, will seek to the end of the message backlog.
+    #[serde(default, rename = "timeTarget")]
+    pub time_target: ::core::option::Option<TimeTarget>,
+}
+
+/// Response for GetTopicPartitions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicPartitions {
+    /// The number of partitions in the topic.
+    #[serde(default, rename = "partitionCount")]
+    pub partition_count: ::core::option::Option<String>,
+}
+
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -231,21 +223,118 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Metadata for long running operations.
+/// A pair of a Cursor and the partition it is for.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The time the operation finished running. Not set if the operation has not completed.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Resource path for the target of the operation. For example, targets of seeks are subscription resources, structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
+pub struct PartitionCursor {
+    /// The value of the cursor.
     #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Name of the verb executed by the operation.
+    pub cursor: ::core::option::Option<Cursor>,
+    /// The partition this is for.
     #[serde(default)]
-    pub verb: ::core::option::Option<String>,
+    pub partition: ::core::option::Option<String>,
+}
+
+/// Metadata about a reservation resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reservation {
+    /// The name of the reservation. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The reserved throughput capacity. Every unit of throughput capacity is equivalent to 1 MiB/s of published messages or 2 MiB/s of subscribed messages. Any topics which are declared as using capacity from a Reservation will consume resources from this reservation instead of being charged individually.
+    #[serde(default, rename = "throughputCapacity")]
+    pub throughput_capacity: ::core::option::Option<String>,
+}
+
+/// Metadata about a subscription resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subscription {
+    /// The settings for this subscription''s message delivery.
+    #[serde(default, rename = "deliveryConfig")]
+    pub delivery_config: ::core::option::Option<DeliveryConfig>,
+    /// If present, messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a destination.
+    #[serde(default, rename = "exportConfig")]
+    pub export_config: ::core::option::Option<ExportConfig>,
+    /// The name of the subscription. Structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The name of the topic this subscription is attached to. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// Metadata about a topic resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Topic {
+    /// The name of the topic. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The settings for this topic''s partitions.
+    #[serde(default, rename = "partitionConfig")]
+    pub partition_config: ::core::option::Option<PartitionConfig>,
+    /// The settings for this topic''s Reservation usage.
+    #[serde(default, rename = "reservationConfig")]
+    pub reservation_config: ::core::option::Option<ReservationConfig>,
+    /// The settings for this topic''s message retention.
+    #[serde(default, rename = "retentionConfig")]
+    pub retention_config: ::core::option::Option<RetentionConfig>,
+}
+
+/// A target publish or event time. Can be used for seeking to or retrieving the corresponding cursor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeTarget {
+    /// Request the cursor of the first message with event time greater than or equal to event_time. If messages are missing an event time, the publish time is used as a fallback. As event times are user supplied, subsequent messages may have event times less than event_time and should be filtered by the client, if necessary.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Request the cursor of the first message with publish time greater than or equal to publish_time. All messages thereafter are guaranteed to have publish times &gt;= publish_time.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A cursor that describes the position of a message within a topic partition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cursor {
+    /// The offset of a message within a topic partition. Must be greater than or equal 0.
+    #[serde(default)]
+    pub offset: ::core::option::Option<String>,
+}
+
+/// The settings for a subscription''s message delivery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeliveryConfig {
+    /// The DeliveryRequirement for this subscription. // TODO: enum values: ["DELIVERY_REQUIREMENT_UNSPECIFIED", "DELIVER_IMMEDIATELY", "DELIVER_AFTER_STORED"]
+    #[serde(default, rename = "deliveryRequirement")]
+    pub delivery_requirement: ::core::option::Option<String>,
+}
+
+/// Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportConfig {
+    /// Output only. The current state of the export, which may be different to the desired state due to errors. This field is output only. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
+    #[serde(default, rename = "currentState")]
+    pub current_state: ::core::option::Option<String>,
+    /// Optional. The name of an optional Pub/Sub Lite topic to publish messages that can not be exported to the destination. For example, the message can not be published to the Pub/Sub service because it does not satisfy the constraints documented at https://cloud.google.com/pubsub/docs/publisher. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}. Must be within the same project and location as the subscription. The topic may be changed or removed.
+    #[serde(default, rename = "deadLetterTopic")]
+    pub dead_letter_topic: ::core::option::Option<String>,
+    /// The desired state of this export. Setting this to values other than ACTIVE and PAUSED will result in an error. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
+    #[serde(default, rename = "desiredState")]
+    pub desired_state: ::core::option::Option<String>,
+    /// Messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a Pub/Sub topic.
+    #[serde(default, rename = "pubsubConfig")]
+    pub pubsub_config: ::core::option::Option<PubSubConfig>,
 }
 
 /// The settings for a topic''s partitions.
@@ -260,36 +349,6 @@ pub struct PartitionConfig {
     /// DEPRECATED: Use capacity instead which can express a superset of configurations. Every partition in the topic is allocated throughput equivalent to scale times the standard partition throughput (4 MiB/s). This is also reflected in the cost of this topic; a topic with scale of 2 and count of 10 is charged for 20 partitions. This value must be in the range [1,4].
     #[serde(default)]
     pub scale: ::core::option::Option<i32>,
-}
-
-/// A pair of a Cursor and the partition it is for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartitionCursor {
-    /// The value of the cursor.
-    #[serde(default)]
-    pub cursor: ::core::option::Option<Cursor>,
-    /// The partition this is for.
-    #[serde(default)]
-    pub partition: ::core::option::Option<String>,
-}
-
-/// Configuration for exporting to a Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubSubConfig {
-    /// The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-}
-
-/// Metadata about a reservation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reservation {
-    /// The name of the reservation. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The reserved throughput capacity. Every unit of throughput capacity is equivalent to 1 MiB/s of published messages or 2 MiB/s of subscribed messages. Any topics which are declared as using capacity from a Reservation will consume resources from this reservation instead of being charged individually.
-    #[serde(default, rename = "throughputCapacity")]
-    pub throughput_capacity: ::core::option::Option<String>,
 }
 
 /// The settings for this topic''s Reservation usage.
@@ -311,80 +370,21 @@ pub struct RetentionConfig {
     pub period: ::core::option::Option<String>,
 }
 
-/// Request for SeekSubscription.
+/// Configuration for exporting to a Pub/Sub topic.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SeekSubscriptionRequest {
-    /// Seek to a named position with respect to the message backlog. // TODO: enum values: ["NAMED_TARGET_UNSPECIFIED", "TAIL", "HEAD"]
-    #[serde(default, rename = "namedTarget")]
-    pub named_target: ::core::option::Option<String>,
-    /// Seek to the first message whose publish or event time is greater than or equal to the specified query time. If no such message can be located, will seek to the end of the message backlog.
-    #[serde(default, rename = "timeTarget")]
-    pub time_target: ::core::option::Option<TimeTarget>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Metadata about a subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscription {
-    /// The settings for this subscription''s message delivery.
-    #[serde(default, rename = "deliveryConfig")]
-    pub delivery_config: ::core::option::Option<DeliveryConfig>,
-    /// If present, messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a destination.
-    #[serde(default, rename = "exportConfig")]
-    pub export_config: ::core::option::Option<ExportConfig>,
-    /// The name of the subscription. Structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The name of the topic this subscription is attached to. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
+pub struct PubSubConfig {
+    /// The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.
     #[serde(default)]
     pub topic: ::core::option::Option<String>,
 }
 
-/// A target publish or event time. Can be used for seeking to or retrieving the corresponding cursor.
+/// The throughput capacity configuration for each partition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeTarget {
-    /// Request the cursor of the first message with event time greater than or equal to event_time. If messages are missing an event time, the publish time is used as a fallback. As event times are user supplied, subsequent messages may have event times less than event_time and should be filtered by the client, if necessary.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Request the cursor of the first message with publish time greater than or equal to publish_time. All messages thereafter are guaranteed to have publish times &gt;= publish_time.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
-}
-
-/// Metadata about a topic resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Topic {
-    /// The name of the topic. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The settings for this topic''s partitions.
-    #[serde(default, rename = "partitionConfig")]
-    pub partition_config: ::core::option::Option<PartitionConfig>,
-    /// The settings for this topic''s Reservation usage.
-    #[serde(default, rename = "reservationConfig")]
-    pub reservation_config: ::core::option::Option<ReservationConfig>,
-    /// The settings for this topic''s message retention.
-    #[serde(default, rename = "retentionConfig")]
-    pub retention_config: ::core::option::Option<RetentionConfig>,
-}
-
-/// Response for GetTopicPartitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TopicPartitions {
-    /// The number of partitions in the topic.
-    #[serde(default, rename = "partitionCount")]
-    pub partition_count: ::core::option::Option<String>,
+pub struct Capacity {
+    /// Publish throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 16.
+    #[serde(default, rename = "publishMibPerSec")]
+    pub publish_mib_per_sec: ::core::option::Option<i32>,
+    /// Subscribe throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 32.
+    #[serde(default, rename = "subscribeMibPerSec")]
+    pub subscribe_mib_per_sec: ::core::option::Option<i32>,
 }

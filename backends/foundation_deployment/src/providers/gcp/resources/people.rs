@@ -10,58 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A person''s physical address. May be a P.O. box or street address. All fields are optional.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Address {
-    /// The city of the address.
-    #[serde(default)]
-    pub city: ::core::option::Option<String>,
-    /// The country of the address.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The [ISO 3166-1 alpha-2](http://www.iso.org/iso/country_codes.htm) country code of the address.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// The extended address of the address; for example, the apartment number.
-    #[serde(default, rename = "extendedAddress")]
-    pub extended_address: ::core::option::Option<String>,
-    /// Output only. The type of the address translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
-    #[serde(default, rename = "formattedType")]
-    pub formatted_type: ::core::option::Option<String>,
-    /// The unstructured value of the address. If this is not set by the user it will be automatically constructed from structured values.
-    #[serde(default, rename = "formattedValue")]
-    pub formatted_value: ::core::option::Option<String>,
-    /// Metadata about the address.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<FieldMetadata>,
-    /// The P.O. box of the address.
-    #[serde(default, rename = "poBox")]
-    pub po_box: ::core::option::Option<String>,
-    /// The postal code of the address.
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// The region of the address; for example, the state or province.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// The street address.
-    #[serde(default, rename = "streetAddress")]
-    pub street_address: ::core::option::Option<String>,
-    /// The type of the address. The type can be custom or one of these predefined values: * home * work * other
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A person''s age range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgeRangeType {
-    /// The age range. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "LESS_THAN_EIGHTEEN", "EIGHTEEN_TO_TWENTY", "TWENTY_ONE_OR_OLDER"]
-    #[serde(default, rename = "ageRange")]
-    pub age_range: ::core::option::Option<String>,
-    /// Metadata about the age range.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<FieldMetadata>,
-}
-
 /// A request to create a batch of contacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreateContactsRequest {
@@ -115,6 +63,482 @@ pub struct BatchUpdateContactsRequest {
     /// Required. A field mask to restrict which fields on the person are updated. Multiple fields can be specified by separating them with commas. All specified fields will be replaced, or cleared if left empty for each person. Valid values are: * addresses * biographies * birthdays * calendarUrls * clientData * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * relations * sipAddresses * urls * userDefined
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
+}
+
+/// A request to copy an "Other contact" to my contacts group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CopyOtherContactToMyContactsGroupRequest {
+    /// Required. A field mask to restrict which fields are copied into the new contact. Valid values are: * emailAddresses * names * phoneNumbers
+    #[serde(default, rename = "copyMask")]
+    pub copy_mask: ::core::option::Option<String>,
+    /// Optional. A field mask to restrict which fields on the person are returned. Multiple fields can be specified by separating them with commas. Defaults to the copy mask with metadata and membership fields if not set. Valid values are: * addresses * ageRanges * biographies * birthdays * calendarUrls * clientData * coverPhotos * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * metadata * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * photos * relations * sipAddresses * skills * urls * userDefined
+    #[serde(default, rename = "readMask")]
+    pub read_mask: ::core::option::Option<String>,
+    /// Optional. A mask of what source types to return. Defaults to READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A request to create a new contact group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateContactGroupRequest {
+    /// Required. The contact group to create.
+    #[serde(default, rename = "contactGroup")]
+    pub contact_group: ::core::option::Option<ContactGroup>,
+    /// Optional. A field mask to restrict which fields on the group are returned. Defaults to metadata, groupType, and name if not set or set to empty. Valid fields are: * clientData * groupType * metadata * name
+    #[serde(default, rename = "readGroupFields")]
+    pub read_group_fields: ::core::option::Option<String>,
+}
+
+/// The response for deleting a contact''s photo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteContactPhotoResponse {
+    /// The updated person, if person_fields is set in the DeleteContactPhotoRequest; otherwise this will be unset.
+    #[serde(default)]
+    pub person: ::core::option::Option<Person>,
+}
+
+/// The response to a get request for a list of people by resource name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetPeopleResponse {
+    /// The response for each requested resource name.
+    #[serde(default)]
+    pub responses: ::core::option::Option<::std::vec::Vec<PersonResponse>>,
+}
+
+/// The response to a request for the authenticated user''s connections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListConnectionsResponse {
+    /// The list of people that the requestor is connected to.
+    #[serde(default)]
+    pub connections: ::core::option::Option<::std::vec::Vec<Person>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token. When the response is paginated, only the last page will contain nextSyncToken.
+    #[serde(default, rename = "nextSyncToken")]
+    pub next_sync_token: ::core::option::Option<String>,
+    /// The total number of items in the list without pagination.
+    #[serde(default, rename = "totalItems")]
+    pub total_items: ::core::option::Option<i32>,
+    /// **DEPRECATED** (Please use totalItems) The total number of people in the list without pagination.
+    #[serde(default, rename = "totalPeople")]
+    pub total_people: ::core::option::Option<i32>,
+}
+
+/// The response to a list contact groups request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListContactGroupsResponse {
+    /// The list of contact groups. Members of the contact groups are not populated.
+    #[serde(default, rename = "contactGroups")]
+    pub contact_groups: ::core::option::Option<::std::vec::Vec<ContactGroup>>,
+    /// The token that can be used to retrieve the next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The token that can be used to retrieve changes since the last request.
+    #[serde(default, rename = "nextSyncToken")]
+    pub next_sync_token: ::core::option::Option<String>,
+    /// The total number of items in the list without pagination.
+    #[serde(default, rename = "totalItems")]
+    pub total_items: ::core::option::Option<i32>,
+}
+
+/// The response to a request for the authenticated user''s domain directory.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDirectoryPeopleResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token.
+    #[serde(default, rename = "nextSyncToken")]
+    pub next_sync_token: ::core::option::Option<String>,
+    /// The list of people in the domain directory.
+    #[serde(default)]
+    pub people: ::core::option::Option<::std::vec::Vec<Person>>,
+}
+
+/// The response to a request for the authenticated user''s "Other contacts".
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOtherContactsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token.
+    #[serde(default, rename = "nextSyncToken")]
+    pub next_sync_token: ::core::option::Option<String>,
+    /// The list of "Other contacts" returned as Person resources. "Other contacts" support a limited subset of fields. See ListOtherContactsRequest.request_mask for more detailed information.
+    #[serde(default, rename = "otherContacts")]
+    pub other_contacts: ::core::option::Option<::std::vec::Vec<Person>>,
+    /// The total number of other contacts in the list without pagination.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// A request to modify an existing contact group''s members. Contacts can be removed from any group but they can only be added to a user group or "myContacts" or "starred" system groups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyContactGroupMembersRequest {
+    /// Optional. The resource names of the contact people to add in the form of people/{person_id}. The total number of resource names in resource_names_to_add and resource_names_to_remove must be less than or equal to 1000.
+    #[serde(default, rename = "resourceNamesToAdd")]
+    pub resource_names_to_add: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The resource names of the contact people to remove in the form of people/{person_id}. The total number of resource names in resource_names_to_add and resource_names_to_remove must be less than or equal to 1000.
+    #[serde(default, rename = "resourceNamesToRemove")]
+    pub resource_names_to_remove: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response to a modify contact group members request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyContactGroupMembersResponse {
+    /// The contact people resource names that cannot be removed from their last contact group.
+    #[serde(default, rename = "canNotRemoveLastContactGroupResourceNames")]
+    pub can_not_remove_last_contact_group_resource_names:
+        ::core::option::Option<::std::vec::Vec<String>>,
+    /// The contact people resource names that were not found.
+    #[serde(default, rename = "notFoundResourceNames")]
+    pub not_found_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response to a request for people in the authenticated user''s domain directory that match the specified query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchDirectoryPeopleResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of people in the domain directory that match the query.
+    #[serde(default)]
+    pub people: ::core::option::Option<::std::vec::Vec<Person>>,
+    /// The total number of items in the list without pagination.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// The response to a search request for the authenticated user, given a query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResponse {
+    /// The results of the request.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<SearchResult>>,
+}
+
+/// A request to update an existing user contact group. All updated fields will be replaced.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateContactGroupRequest {
+    /// Required. The contact group to update.
+    #[serde(default, rename = "contactGroup")]
+    pub contact_group: ::core::option::Option<ContactGroup>,
+    /// Optional. A field mask to restrict which fields on the group are returned. Defaults to metadata, groupType, and name if not set or set to empty. Valid fields are: * clientData * groupType * memberCount * metadata * name
+    #[serde(default, rename = "readGroupFields")]
+    pub read_group_fields: ::core::option::Option<String>,
+    /// Optional. A field mask to restrict which fields on the group are updated. Multiple fields can be specified by separating them with commas. Defaults to name if not set or set to empty. Updated fields are replaced. Valid values are: * clientData * name
+    #[serde(default, rename = "updateGroupFields")]
+    pub update_group_fields: ::core::option::Option<String>,
+}
+
+/// A request to update an existing contact''s photo. All requests must have a valid photo format: JPEG or PNG.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateContactPhotoRequest {
+    /// Optional. A field mask to restrict which fields on the person are returned. Multiple fields can be specified by separating them with commas. Defaults to empty if not set, which will skip the post mutate get. Valid values are: * addresses * ageRanges * biographies * birthdays * calendarUrls * clientData * coverPhotos * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * metadata * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * photos * relations * sipAddresses * skills * urls * userDefined
+    #[serde(default, rename = "personFields")]
+    pub person_fields: ::core::option::Option<String>,
+    /// Required. Raw photo bytes
+    #[serde(default, rename = "photoBytes")]
+    pub photo_bytes: ::core::option::Option<String>,
+    /// Optional. A mask of what source types to return. Defaults to READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response for updating a contact''s photo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateContactPhotoResponse {
+    /// The updated person, if person_fields is set in the UpdateContactPhotoRequest; otherwise this will be unset.
+    #[serde(default)]
+    pub person: ::core::option::Option<Person>,
+}
+
+/// A wrapper that contains the person data to populate a newly created source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactToCreate {
+    /// Required. The person data to populate a newly created source.
+    #[serde(default, rename = "contactPerson")]
+    pub contact_person: ::core::option::Option<Person>,
+}
+
+/// The response for a specific contact group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactGroupResponse {
+    /// The contact group.
+    #[serde(default, rename = "contactGroup")]
+    pub contact_group: ::core::option::Option<ContactGroup>,
+    /// The original requested resource name.
+    #[serde(default, rename = "requestedResourceName")]
+    pub requested_resource_name: ::core::option::Option<String>,
+    /// The status of the response.
+    #[serde(default)]
+    pub status: ::core::option::Option<Status>,
+}
+
+/// The response for a single person
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonResponse {
+    /// **DEPRECATED** (Please use status instead) [HTTP 1.1 status code] (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html).
+    #[serde(default, rename = "httpStatusCode")]
+    pub http_status_code: ::core::option::Option<i32>,
+    /// The person.
+    #[serde(default)]
+    pub person: ::core::option::Option<Person>,
+    /// The original requested resource name. May be different than the resource name on the returned person. The resource name can change when adding or removing fields that link a contact and profile such as a verified email, verified phone number, or a profile URL.
+    #[serde(default, rename = "requestedResourceName")]
+    pub requested_resource_name: ::core::option::Option<String>,
+    /// The status of the response.
+    #[serde(default)]
+    pub status: ::core::option::Option<Status>,
+}
+
+/// A result of a search query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResult {
+    /// The matched Person.
+    #[serde(default)]
+    pub person: ::core::option::Option<Person>,
+}
+
+/// A contact group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactGroup {
+    /// The group''s client data.
+    #[serde(default, rename = "clientData")]
+    pub client_data: ::core::option::Option<::std::vec::Vec<GroupClientData>>,
+    /// The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the resource. Used for web cache validation.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The name translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale for system groups names. Group names set by the owner are the same as name.
+    #[serde(default, rename = "formattedName")]
+    pub formatted_name: ::core::option::Option<String>,
+    /// Output only. The contact group type. // TODO: enum values: ["GROUP_TYPE_UNSPECIFIED", "USER_CONTACT_GROUP", "SYSTEM_CONTACT_GROUP"]
+    #[serde(default, rename = "groupType")]
+    pub group_type: ::core::option::Option<String>,
+    /// Output only. The total number of contacts in the group irrespective of max members in specified in the request.
+    #[serde(default, rename = "memberCount")]
+    pub member_count: ::core::option::Option<i32>,
+    /// Output only. The list of contact person resource names that are members of the contact group. The field is only populated for GET requests and will only return as many members as maxMembers in the get request.
+    #[serde(default, rename = "memberResourceNames")]
+    pub member_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Metadata about the contact group.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<ContactGroupMetadata>,
+    /// The contact group name set by the group owner or a system provided name for system groups. For [contactGroups.create](/people/api/rest/v1/contactGroups/create) or [contactGroups.update](/people/api/rest/v1/contactGroups/update) the name must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The resource name for the contact group, assigned by the server. An ASCII string, in the form of contactGroups/{contact_group_id}.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Information about a person merged from various data sources such as the authenticated user''s contacts and profile data. Most fields can have multiple items. The items in a field have no guaranteed order, but each non-empty field is guaranteed to have exactly one field with metadata.primary set to true.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Person {
+    /// The person''s street addresses.
+    #[serde(default)]
+    pub addresses: ::core::option::Option<::std::vec::Vec<Address>>,
+    /// Output only. **DEPRECATED** (Please use person.ageRanges instead) The person''s age range. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "LESS_THAN_EIGHTEEN", "EIGHTEEN_TO_TWENTY", "TWENTY_ONE_OR_OLDER"]
+    #[serde(default, rename = "ageRange")]
+    pub age_range: ::core::option::Option<String>,
+    /// Output only. The person''s age ranges.
+    #[serde(default, rename = "ageRanges")]
+    pub age_ranges: ::core::option::Option<::std::vec::Vec<AgeRangeType>>,
+    /// The person''s biographies. This field is a singleton for contact sources.
+    #[serde(default)]
+    pub biographies: ::core::option::Option<::std::vec::Vec<Biography>>,
+    /// The person''s birthdays. This field is a singleton for contact sources.
+    #[serde(default)]
+    pub birthdays: ::core::option::Option<::std::vec::Vec<Birthday>>,
+    /// **DEPRECATED**: No data will be returned The person''s bragging rights.
+    #[serde(default, rename = "braggingRights")]
+    pub bragging_rights: ::core::option::Option<::std::vec::Vec<BraggingRights>>,
+    /// The person''s calendar URLs.
+    #[serde(default, rename = "calendarUrls")]
+    pub calendar_urls: ::core::option::Option<::std::vec::Vec<CalendarUrl>>,
+    /// The person''s client data.
+    #[serde(default, rename = "clientData")]
+    pub client_data: ::core::option::Option<::std::vec::Vec<ClientData>>,
+    /// Output only. The person''s cover photos.
+    #[serde(default, rename = "coverPhotos")]
+    pub cover_photos: ::core::option::Option<::std::vec::Vec<CoverPhoto>>,
+    /// The person''s email addresses. For people.connections.list and otherContacts.list the number of email addresses is limited to 100. If a Person has more email addresses the entire set can be obtained by calling GetPeople.
+    #[serde(default, rename = "emailAddresses")]
+    pub email_addresses: ::core::option::Option<::std::vec::Vec<EmailAddress>>,
+    /// The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the resource. Used for web cache validation.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The person''s events.
+    #[serde(default)]
+    pub events: ::core::option::Option<::std::vec::Vec<Event>>,
+    /// The person''s external IDs.
+    #[serde(default, rename = "externalIds")]
+    pub external_ids: ::core::option::Option<::std::vec::Vec<ExternalId>>,
+    /// The person''s file-ases.
+    #[serde(default, rename = "fileAses")]
+    pub file_ases: ::core::option::Option<::std::vec::Vec<FileAs>>,
+    /// The person''s genders. This field is a singleton for contact sources.
+    #[serde(default)]
+    pub genders: ::core::option::Option<::std::vec::Vec<Gender>>,
+    /// The person''s instant messaging clients.
+    #[serde(default, rename = "imClients")]
+    pub im_clients: ::core::option::Option<::std::vec::Vec<ImClient>>,
+    /// The person''s interests.
+    #[serde(default)]
+    pub interests: ::core::option::Option<::std::vec::Vec<Interest>>,
+    /// The person''s locale preferences.
+    #[serde(default)]
+    pub locales: ::core::option::Option<::std::vec::Vec<Locale>>,
+    /// The person''s locations.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The person''s group memberships.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
+    /// Output only. Metadata about the person.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<PersonMetadata>,
+    /// The person''s miscellaneous keywords.
+    #[serde(default, rename = "miscKeywords")]
+    pub misc_keywords: ::core::option::Option<::std::vec::Vec<MiscKeyword>>,
+    /// The person''s names. This field is a singleton for contact sources.
+    #[serde(default)]
+    pub names: ::core::option::Option<::std::vec::Vec<Name>>,
+    /// The person''s nicknames.
+    #[serde(default)]
+    pub nicknames: ::core::option::Option<::std::vec::Vec<Nickname>>,
+    /// The person''s occupations.
+    #[serde(default)]
+    pub occupations: ::core::option::Option<::std::vec::Vec<Occupation>>,
+    /// The person''s past or current organizations.
+    #[serde(default)]
+    pub organizations: ::core::option::Option<::std::vec::Vec<Organization>>,
+    /// The person''s phone numbers. For people.connections.list and otherContacts.list the number of phone numbers is limited to 100. If a Person has more phone numbers the entire set can be obtained by calling GetPeople.
+    #[serde(default, rename = "phoneNumbers")]
+    pub phone_numbers: ::core::option::Option<::std::vec::Vec<PhoneNumber>>,
+    /// Output only. The person''s photos.
+    #[serde(default)]
+    pub photos: ::core::option::Option<::std::vec::Vec<Photo>>,
+    /// The person''s relations.
+    #[serde(default)]
+    pub relations: ::core::option::Option<::std::vec::Vec<Relation>>,
+    /// Output only. **DEPRECATED**: No data will be returned The person''s relationship interests.
+    #[serde(default, rename = "relationshipInterests")]
+    pub relationship_interests: ::core::option::Option<::std::vec::Vec<RelationshipInterest>>,
+    /// Output only. **DEPRECATED**: No data will be returned The person''s relationship statuses.
+    #[serde(default, rename = "relationshipStatuses")]
+    pub relationship_statuses: ::core::option::Option<::std::vec::Vec<RelationshipStatus>>,
+    /// **DEPRECATED**: (Please use person.locations instead) The person''s residences.
+    #[serde(default)]
+    pub residences: ::core::option::Option<::std::vec::Vec<Residence>>,
+    /// The resource name for the person, assigned by the server. An ASCII string in the form of people/{person_id}.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// The person''s SIP addresses.
+    #[serde(default, rename = "sipAddresses")]
+    pub sip_addresses: ::core::option::Option<::std::vec::Vec<SipAddress>>,
+    /// The person''s skills.
+    #[serde(default)]
+    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
+    /// Output only. **DEPRECATED**: No data will be returned The person''s taglines.
+    #[serde(default)]
+    pub taglines: ::core::option::Option<::std::vec::Vec<Tagline>>,
+    /// The person''s associated URLs.
+    #[serde(default)]
+    pub urls: ::core::option::Option<::std::vec::Vec<Url>>,
+    /// The person''s user defined data.
+    #[serde(default, rename = "userDefined")]
+    pub user_defined: ::core::option::Option<::std::vec::Vec<UserDefined>>,
+}
+
+/// Arbitrary client data that is populated by clients. Duplicate keys and values are allowed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupClientData {
+    /// The client specified key of the client data.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// The client specified value of the client data.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The metadata about a contact group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactGroupMetadata {
+    /// Output only. True if the contact group resource has been deleted. Populated only for [ListContactGroups](/people/api/rest/v1/contactgroups/list) requests that include a sync token.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Output only. The time the group was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A person''s physical address. May be a P.O. box or street address. All fields are optional.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Address {
+    /// The city of the address.
+    #[serde(default)]
+    pub city: ::core::option::Option<String>,
+    /// The country of the address.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The [ISO 3166-1 alpha-2](http://www.iso.org/iso/country_codes.htm) country code of the address.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// The extended address of the address; for example, the apartment number.
+    #[serde(default, rename = "extendedAddress")]
+    pub extended_address: ::core::option::Option<String>,
+    /// Output only. The type of the address translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
+    #[serde(default, rename = "formattedType")]
+    pub formatted_type: ::core::option::Option<String>,
+    /// The unstructured value of the address. If this is not set by the user it will be automatically constructed from structured values.
+    #[serde(default, rename = "formattedValue")]
+    pub formatted_value: ::core::option::Option<String>,
+    /// Metadata about the address.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<FieldMetadata>,
+    /// The P.O. box of the address.
+    #[serde(default, rename = "poBox")]
+    pub po_box: ::core::option::Option<String>,
+    /// The postal code of the address.
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// The region of the address; for example, the state or province.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// The street address.
+    #[serde(default, rename = "streetAddress")]
+    pub street_address: ::core::option::Option<String>,
+    /// The type of the address. The type can be custom or one of these predefined values: * home * work * other
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A person''s age range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgeRangeType {
+    /// The age range. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "LESS_THAN_EIGHTEEN", "EIGHTEEN_TO_TWENTY", "TWENTY_ONE_OR_OLDER"]
+    #[serde(default, rename = "ageRange")]
+    pub age_range: ::core::option::Option<String>,
+    /// Metadata about the age range.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<FieldMetadata>,
 }
 
 /// A person''s short biography.
@@ -187,96 +611,6 @@ pub struct ClientData {
     pub value: ::core::option::Option<String>,
 }
 
-/// A contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactGroup {
-    /// The group''s client data.
-    #[serde(default, rename = "clientData")]
-    pub client_data: ::core::option::Option<::std::vec::Vec<GroupClientData>>,
-    /// The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the resource. Used for web cache validation.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The name translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale for system groups names. Group names set by the owner are the same as name.
-    #[serde(default, rename = "formattedName")]
-    pub formatted_name: ::core::option::Option<String>,
-    /// Output only. The contact group type. // TODO: enum values: ["GROUP_TYPE_UNSPECIFIED", "USER_CONTACT_GROUP", "SYSTEM_CONTACT_GROUP"]
-    #[serde(default, rename = "groupType")]
-    pub group_type: ::core::option::Option<String>,
-    /// Output only. The total number of contacts in the group irrespective of max members in specified in the request.
-    #[serde(default, rename = "memberCount")]
-    pub member_count: ::core::option::Option<i32>,
-    /// Output only. The list of contact person resource names that are members of the contact group. The field is only populated for GET requests and will only return as many members as maxMembers in the get request.
-    #[serde(default, rename = "memberResourceNames")]
-    pub member_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Metadata about the contact group.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<ContactGroupMetadata>,
-    /// The contact group name set by the group owner or a system provided name for system groups. For [contactGroups.create](/people/api/rest/v1/contactGroups/create) or [contactGroups.update](/people/api/rest/v1/contactGroups/update) the name must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The resource name for the contact group, assigned by the server. An ASCII string, in the form of contactGroups/{contact_group_id}.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// A Google contact group membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactGroupMembership {
-    /// Output only. The contact group ID for the contact group membership.
-    #[serde(default, rename = "contactGroupId")]
-    pub contact_group_id: ::core::option::Option<String>,
-    /// The resource name for the contact group, assigned by the server. An ASCII string, in the form of contactGroups/{contact_group_id}. Only contact_group_resource_name can be used for modifying memberships. Any contact group membership can be removed, but only user group or "myContacts" or "starred" system groups memberships can be added. A contact must always have at least one contact group membership.
-    #[serde(default, rename = "contactGroupResourceName")]
-    pub contact_group_resource_name: ::core::option::Option<String>,
-}
-
-/// The metadata about a contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactGroupMetadata {
-    /// Output only. True if the contact group resource has been deleted. Populated only for [ListContactGroups](/people/api/rest/v1/contactgroups/list) requests that include a sync token.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Output only. The time the group was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The response for a specific contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactGroupResponse {
-    /// The contact group.
-    #[serde(default, rename = "contactGroup")]
-    pub contact_group: ::core::option::Option<ContactGroup>,
-    /// The original requested resource name.
-    #[serde(default, rename = "requestedResourceName")]
-    pub requested_resource_name: ::core::option::Option<String>,
-    /// The status of the response.
-    #[serde(default)]
-    pub status: ::core::option::Option<Status>,
-}
-
-/// A wrapper that contains the person data to populate a newly created source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContactToCreate {
-    /// Required. The person data to populate a newly created source.
-    #[serde(default, rename = "contactPerson")]
-    pub contact_person: ::core::option::Option<Person>,
-}
-
-/// A request to copy an "Other contact" to my contacts group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CopyOtherContactToMyContactsGroupRequest {
-    /// Required. A field mask to restrict which fields are copied into the new contact. Valid values are: * emailAddresses * names * phoneNumbers
-    #[serde(default, rename = "copyMask")]
-    pub copy_mask: ::core::option::Option<String>,
-    /// Optional. A field mask to restrict which fields on the person are returned. Multiple fields can be specified by separating them with commas. Defaults to the copy mask with metadata and membership fields if not set. Valid values are: * addresses * ageRanges * biographies * birthdays * calendarUrls * clientData * coverPhotos * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * metadata * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * photos * relations * sipAddresses * skills * urls * userDefined
-    #[serde(default, rename = "readMask")]
-    pub read_mask: ::core::option::Option<String>,
-    /// Optional. A mask of what source types to return. Defaults to READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A person''s cover photo. A large image shown on the person''s profile page that represents who they are or what they care about.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoverPhoto {
@@ -289,47 +623,6 @@ pub struct CoverPhoto {
     /// The URL of the cover photo.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
-}
-
-/// A request to create a new contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateContactGroupRequest {
-    /// Required. The contact group to create.
-    #[serde(default, rename = "contactGroup")]
-    pub contact_group: ::core::option::Option<ContactGroup>,
-    /// Optional. A field mask to restrict which fields on the group are returned. Defaults to metadata, groupType, and name if not set or set to empty. Valid fields are: * clientData * groupType * metadata * name
-    #[serde(default, rename = "readGroupFields")]
-    pub read_group_fields: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// The response for deleting a contact''s photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeleteContactPhotoResponse {
-    /// The updated person, if person_fields is set in the DeleteContactPhotoRequest; otherwise this will be unset.
-    #[serde(default)]
-    pub person: ::core::option::Option<Person>,
-}
-
-/// A Google Workspace Domain membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DomainMembership {
-    /// True if the person is in the viewer''s Google Workspace domain.
-    #[serde(default, rename = "inViewerDomain")]
-    pub in_viewer_domain: ::core::option::Option<bool>,
 }
 
 /// A person''s email address.
@@ -386,23 +679,6 @@ pub struct ExternalId {
     pub value: ::core::option::Option<String>,
 }
 
-/// Metadata about a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldMetadata {
-    /// Output only. True if the field is the primary field for all sources in the person. Each person will have at most one field with primary set to true.
-    #[serde(default)]
-    pub primary: ::core::option::Option<bool>,
-    /// The source of the field.
-    #[serde(default)]
-    pub source: ::core::option::Option<Source>,
-    /// True if the field is the primary field for the source. Each source must have at most one field with source_primary set to true.
-    #[serde(default, rename = "sourcePrimary")]
-    pub source_primary: ::core::option::Option<bool>,
-    /// Output only. True if the field is verified; false if the field is unverified. A verified field is typically a name, email address, phone number, or website that has been confirmed to be owned by the person.
-    #[serde(default)]
-    pub verified: ::core::option::Option<bool>,
-}
-
 /// The name that should be used to sort the person in a list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileAs {
@@ -427,25 +703,6 @@ pub struct Gender {
     #[serde(default)]
     pub metadata: ::core::option::Option<FieldMetadata>,
     /// The gender for the person. The gender can be custom or one of these predefined values: * male * female * unspecified
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The response to a get request for a list of people by resource name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetPeopleResponse {
-    /// The response for each requested resource name.
-    #[serde(default)]
-    pub responses: ::core::option::Option<::std::vec::Vec<PersonResponse>>,
-}
-
-/// Arbitrary client data that is populated by clients. Duplicate keys and values are allowed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupClientData {
-    /// The client specified key of the client data.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// The client specified value of the client data.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
@@ -482,74 +739,6 @@ pub struct Interest {
     /// The interest; for example, stargazing.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
-}
-
-/// The response to a request for the authenticated user''s connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListConnectionsResponse {
-    /// The list of people that the requestor is connected to.
-    #[serde(default)]
-    pub connections: ::core::option::Option<::std::vec::Vec<Person>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token. When the response is paginated, only the last page will contain nextSyncToken.
-    #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: ::core::option::Option<String>,
-    /// The total number of items in the list without pagination.
-    #[serde(default, rename = "totalItems")]
-    pub total_items: ::core::option::Option<i32>,
-    /// **DEPRECATED** (Please use totalItems) The total number of people in the list without pagination.
-    #[serde(default, rename = "totalPeople")]
-    pub total_people: ::core::option::Option<i32>,
-}
-
-/// The response to a list contact groups request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListContactGroupsResponse {
-    /// The list of contact groups. Members of the contact groups are not populated.
-    #[serde(default, rename = "contactGroups")]
-    pub contact_groups: ::core::option::Option<::std::vec::Vec<ContactGroup>>,
-    /// The token that can be used to retrieve the next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The token that can be used to retrieve changes since the last request.
-    #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: ::core::option::Option<String>,
-    /// The total number of items in the list without pagination.
-    #[serde(default, rename = "totalItems")]
-    pub total_items: ::core::option::Option<i32>,
-}
-
-/// The response to a request for the authenticated user''s domain directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDirectoryPeopleResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token.
-    #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: ::core::option::Option<String>,
-    /// The list of people in the domain directory.
-    #[serde(default)]
-    pub people: ::core::option::Option<::std::vec::Vec<Person>>,
-}
-
-/// The response to a request for the authenticated user''s "Other contacts".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOtherContactsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A token, which can be sent as sync_token to retrieve changes since the last request. Request must set request_sync_token to return the sync token.
-    #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: ::core::option::Option<String>,
-    /// The list of "Other contacts" returned as Person resources. "Other contacts" support a limited subset of fields. See ListOtherContactsRequest.request_mask for more detailed information.
-    #[serde(default, rename = "otherContacts")]
-    pub other_contacts: ::core::option::Option<::std::vec::Vec<Person>>,
-    /// The total number of other contacts in the list without pagination.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
 }
 
 /// A person''s locale preference.
@@ -606,6 +795,26 @@ pub struct Membership {
     pub metadata: ::core::option::Option<FieldMetadata>,
 }
 
+/// The metadata about a person.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonMetadata {
+    /// Output only. True if the person resource has been deleted. Populated only for people.connections.list and otherContacts.list sync requests.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Output only. Resource names of people linked to this resource.
+    #[serde(default, rename = "linkedPeopleResourceNames")]
+    pub linked_people_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. **DEPRECATED** (Please use person.metadata.sources.profileMetadata.objectType instead) The type of the person object. // TODO: enum values: ["OBJECT_TYPE_UNSPECIFIED", "PERSON", "PAGE"]
+    #[serde(default, rename = "objectType")]
+    pub object_type: ::core::option::Option<String>,
+    /// Output only. Any former resource names this person has had. Populated only for people.connections.list requests that include a sync token. The resource name may change when adding or removing fields that link a contact and profile such as a verified email, verified phone number, or profile URL.
+    #[serde(default, rename = "previousResourceNames")]
+    pub previous_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The sources of data for the person.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<Source>>,
+}
+
 /// A person''s miscellaneous keyword.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MiscKeyword {
@@ -621,29 +830,6 @@ pub struct MiscKeyword {
     /// The value of the miscellaneous keyword.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
-}
-
-/// A request to modify an existing contact group''s members. Contacts can be removed from any group but they can only be added to a user group or "myContacts" or "starred" system groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyContactGroupMembersRequest {
-    /// Optional. The resource names of the contact people to add in the form of people/{person_id}. The total number of resource names in resource_names_to_add and resource_names_to_remove must be less than or equal to 1000.
-    #[serde(default, rename = "resourceNamesToAdd")]
-    pub resource_names_to_add: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The resource names of the contact people to remove in the form of people/{person_id}. The total number of resource names in resource_names_to_add and resource_names_to_remove must be less than or equal to 1000.
-    #[serde(default, rename = "resourceNamesToRemove")]
-    pub resource_names_to_remove: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response to a modify contact group members request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyContactGroupMembersResponse {
-    /// The contact people resource names that cannot be removed from their last contact group.
-    #[serde(default, rename = "canNotRemoveLastContactGroupResourceNames")]
-    pub can_not_remove_last_contact_group_resource_names:
-        ::core::option::Option<::std::vec::Vec<String>>,
-    /// The contact people resource names that were not found.
-    #[serde(default, rename = "notFoundResourceNames")]
-    pub not_found_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A person''s name. If the name is a mononym, the family name is empty.
@@ -774,162 +960,6 @@ pub struct Organization {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Information about a person merged from various data sources such as the authenticated user''s contacts and profile data. Most fields can have multiple items. The items in a field have no guaranteed order, but each non-empty field is guaranteed to have exactly one field with metadata.primary set to true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Person {
-    /// The person''s street addresses.
-    #[serde(default)]
-    pub addresses: ::core::option::Option<::std::vec::Vec<Address>>,
-    /// Output only. **DEPRECATED** (Please use person.ageRanges instead) The person''s age range. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "LESS_THAN_EIGHTEEN", "EIGHTEEN_TO_TWENTY", "TWENTY_ONE_OR_OLDER"]
-    #[serde(default, rename = "ageRange")]
-    pub age_range: ::core::option::Option<String>,
-    /// Output only. The person''s age ranges.
-    #[serde(default, rename = "ageRanges")]
-    pub age_ranges: ::core::option::Option<::std::vec::Vec<AgeRangeType>>,
-    /// The person''s biographies. This field is a singleton for contact sources.
-    #[serde(default)]
-    pub biographies: ::core::option::Option<::std::vec::Vec<Biography>>,
-    /// The person''s birthdays. This field is a singleton for contact sources.
-    #[serde(default)]
-    pub birthdays: ::core::option::Option<::std::vec::Vec<Birthday>>,
-    /// **DEPRECATED**: No data will be returned The person''s bragging rights.
-    #[serde(default, rename = "braggingRights")]
-    pub bragging_rights: ::core::option::Option<::std::vec::Vec<BraggingRights>>,
-    /// The person''s calendar URLs.
-    #[serde(default, rename = "calendarUrls")]
-    pub calendar_urls: ::core::option::Option<::std::vec::Vec<CalendarUrl>>,
-    /// The person''s client data.
-    #[serde(default, rename = "clientData")]
-    pub client_data: ::core::option::Option<::std::vec::Vec<ClientData>>,
-    /// Output only. The person''s cover photos.
-    #[serde(default, rename = "coverPhotos")]
-    pub cover_photos: ::core::option::Option<::std::vec::Vec<CoverPhoto>>,
-    /// The person''s email addresses. For people.connections.list and otherContacts.list the number of email addresses is limited to 100. If a Person has more email addresses the entire set can be obtained by calling GetPeople.
-    #[serde(default, rename = "emailAddresses")]
-    pub email_addresses: ::core::option::Option<::std::vec::Vec<EmailAddress>>,
-    /// The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the resource. Used for web cache validation.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The person''s events.
-    #[serde(default)]
-    pub events: ::core::option::Option<::std::vec::Vec<Event>>,
-    /// The person''s external IDs.
-    #[serde(default, rename = "externalIds")]
-    pub external_ids: ::core::option::Option<::std::vec::Vec<ExternalId>>,
-    /// The person''s file-ases.
-    #[serde(default, rename = "fileAses")]
-    pub file_ases: ::core::option::Option<::std::vec::Vec<FileAs>>,
-    /// The person''s genders. This field is a singleton for contact sources.
-    #[serde(default)]
-    pub genders: ::core::option::Option<::std::vec::Vec<Gender>>,
-    /// The person''s instant messaging clients.
-    #[serde(default, rename = "imClients")]
-    pub im_clients: ::core::option::Option<::std::vec::Vec<ImClient>>,
-    /// The person''s interests.
-    #[serde(default)]
-    pub interests: ::core::option::Option<::std::vec::Vec<Interest>>,
-    /// The person''s locale preferences.
-    #[serde(default)]
-    pub locales: ::core::option::Option<::std::vec::Vec<Locale>>,
-    /// The person''s locations.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The person''s group memberships.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
-    /// Output only. Metadata about the person.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<PersonMetadata>,
-    /// The person''s miscellaneous keywords.
-    #[serde(default, rename = "miscKeywords")]
-    pub misc_keywords: ::core::option::Option<::std::vec::Vec<MiscKeyword>>,
-    /// The person''s names. This field is a singleton for contact sources.
-    #[serde(default)]
-    pub names: ::core::option::Option<::std::vec::Vec<Name>>,
-    /// The person''s nicknames.
-    #[serde(default)]
-    pub nicknames: ::core::option::Option<::std::vec::Vec<Nickname>>,
-    /// The person''s occupations.
-    #[serde(default)]
-    pub occupations: ::core::option::Option<::std::vec::Vec<Occupation>>,
-    /// The person''s past or current organizations.
-    #[serde(default)]
-    pub organizations: ::core::option::Option<::std::vec::Vec<Organization>>,
-    /// The person''s phone numbers. For people.connections.list and otherContacts.list the number of phone numbers is limited to 100. If a Person has more phone numbers the entire set can be obtained by calling GetPeople.
-    #[serde(default, rename = "phoneNumbers")]
-    pub phone_numbers: ::core::option::Option<::std::vec::Vec<PhoneNumber>>,
-    /// Output only. The person''s photos.
-    #[serde(default)]
-    pub photos: ::core::option::Option<::std::vec::Vec<Photo>>,
-    /// The person''s relations.
-    #[serde(default)]
-    pub relations: ::core::option::Option<::std::vec::Vec<Relation>>,
-    /// Output only. **DEPRECATED**: No data will be returned The person''s relationship interests.
-    #[serde(default, rename = "relationshipInterests")]
-    pub relationship_interests: ::core::option::Option<::std::vec::Vec<RelationshipInterest>>,
-    /// Output only. **DEPRECATED**: No data will be returned The person''s relationship statuses.
-    #[serde(default, rename = "relationshipStatuses")]
-    pub relationship_statuses: ::core::option::Option<::std::vec::Vec<RelationshipStatus>>,
-    /// **DEPRECATED**: (Please use person.locations instead) The person''s residences.
-    #[serde(default)]
-    pub residences: ::core::option::Option<::std::vec::Vec<Residence>>,
-    /// The resource name for the person, assigned by the server. An ASCII string in the form of people/{person_id}.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// The person''s SIP addresses.
-    #[serde(default, rename = "sipAddresses")]
-    pub sip_addresses: ::core::option::Option<::std::vec::Vec<SipAddress>>,
-    /// The person''s skills.
-    #[serde(default)]
-    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
-    /// Output only. **DEPRECATED**: No data will be returned The person''s taglines.
-    #[serde(default)]
-    pub taglines: ::core::option::Option<::std::vec::Vec<Tagline>>,
-    /// The person''s associated URLs.
-    #[serde(default)]
-    pub urls: ::core::option::Option<::std::vec::Vec<Url>>,
-    /// The person''s user defined data.
-    #[serde(default, rename = "userDefined")]
-    pub user_defined: ::core::option::Option<::std::vec::Vec<UserDefined>>,
-}
-
-/// The metadata about a person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonMetadata {
-    /// Output only. True if the person resource has been deleted. Populated only for people.connections.list and otherContacts.list sync requests.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Output only. Resource names of people linked to this resource.
-    #[serde(default, rename = "linkedPeopleResourceNames")]
-    pub linked_people_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. **DEPRECATED** (Please use person.metadata.sources.profileMetadata.objectType instead) The type of the person object. // TODO: enum values: ["OBJECT_TYPE_UNSPECIFIED", "PERSON", "PAGE"]
-    #[serde(default, rename = "objectType")]
-    pub object_type: ::core::option::Option<String>,
-    /// Output only. Any former resource names this person has had. Populated only for people.connections.list requests that include a sync token. The resource name may change when adding or removing fields that link a contact and profile such as a verified email, verified phone number, or profile URL.
-    #[serde(default, rename = "previousResourceNames")]
-    pub previous_resource_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The sources of data for the person.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<Source>>,
-}
-
-/// The response for a single person
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonResponse {
-    /// **DEPRECATED** (Please use status instead) [HTTP 1.1 status code] (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html).
-    #[serde(default, rename = "httpStatusCode")]
-    pub http_status_code: ::core::option::Option<i32>,
-    /// The person.
-    #[serde(default)]
-    pub person: ::core::option::Option<Person>,
-    /// The original requested resource name. May be different than the resource name on the returned person. The resource name can change when adding or removing fields that link a contact and profile such as a verified email, verified phone number, or a profile URL.
-    #[serde(default, rename = "requestedResourceName")]
-    pub requested_resource_name: ::core::option::Option<String>,
-    /// The status of the response.
-    #[serde(default)]
-    pub status: ::core::option::Option<Status>,
-}
-
 /// A person''s phone number.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhoneNumber {
@@ -962,17 +992,6 @@ pub struct Photo {
     /// The URL of the photo. You can change the desired size by appending a query parameter sz={size} at the end of the url, where {size} is the size in pixels. Example: https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg?sz=50
     #[serde(default)]
     pub url: ::core::option::Option<String>,
-}
-
-/// The metadata about a profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileMetadata {
-    /// Output only. The profile object type. // TODO: enum values: ["OBJECT_TYPE_UNSPECIFIED", "PERSON", "PAGE"]
-    #[serde(default, rename = "objectType")]
-    pub object_type: ::core::option::Option<String>,
-    /// Output only. The user types.
-    #[serde(default, rename = "userTypes")]
-    pub user_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A person''s relation to another person.
@@ -1034,36 +1053,6 @@ pub struct Residence {
     pub value: ::core::option::Option<String>,
 }
 
-/// The response to a request for people in the authenticated user''s domain directory that match the specified query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchDirectoryPeopleResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of people in the domain directory that match the query.
-    #[serde(default)]
-    pub people: ::core::option::Option<::std::vec::Vec<Person>>,
-    /// The total number of items in the list without pagination.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// The response to a search request for the authenticated user, given a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResponse {
-    /// The results of the request.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<SearchResult>>,
-}
-
-/// A result of a search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResult {
-    /// The matched Person.
-    #[serde(default)]
-    pub person: ::core::option::Option<Person>,
-}
-
 /// A person''s SIP address. Session Initial Protocol addresses are used for VoIP communications to make voice or video calls over the internet.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SipAddress {
@@ -1092,40 +1081,6 @@ pub struct Skill {
     pub value: ::core::option::Option<String>,
 }
 
-/// The source of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source {
-    /// **Only populated in person.metadata.sources.** The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the source. Used for web cache validation.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The unique identifier within the source type generated by the server.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. **Only populated in person.metadata.sources.** Metadata about a source of type PROFILE.
-    #[serde(default, rename = "profileMetadata")]
-    pub profile_metadata: ::core::option::Option<ProfileMetadata>,
-    /// The source type. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "ACCOUNT", "PROFILE", "DOMAIN_PROFILE", "CONTACT", "OTHER_CONTACT", "DOMAIN_CONTACT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. **Only populated in person.metadata.sources.** Last update timestamp of this source.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// **DEPRECATED**: No data will be returned A brief one-line description of the person.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tagline {
@@ -1135,42 +1090,6 @@ pub struct Tagline {
     /// The tagline.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
-}
-
-/// A request to update an existing user contact group. All updated fields will be replaced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateContactGroupRequest {
-    /// Required. The contact group to update.
-    #[serde(default, rename = "contactGroup")]
-    pub contact_group: ::core::option::Option<ContactGroup>,
-    /// Optional. A field mask to restrict which fields on the group are returned. Defaults to metadata, groupType, and name if not set or set to empty. Valid fields are: * clientData * groupType * memberCount * metadata * name
-    #[serde(default, rename = "readGroupFields")]
-    pub read_group_fields: ::core::option::Option<String>,
-    /// Optional. A field mask to restrict which fields on the group are updated. Multiple fields can be specified by separating them with commas. Defaults to name if not set or set to empty. Updated fields are replaced. Valid values are: * clientData * name
-    #[serde(default, rename = "updateGroupFields")]
-    pub update_group_fields: ::core::option::Option<String>,
-}
-
-/// A request to update an existing contact''s photo. All requests must have a valid photo format: JPEG or PNG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateContactPhotoRequest {
-    /// Optional. A field mask to restrict which fields on the person are returned. Multiple fields can be specified by separating them with commas. Defaults to empty if not set, which will skip the post mutate get. Valid values are: * addresses * ageRanges * biographies * birthdays * calendarUrls * clientData * coverPhotos * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * metadata * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * photos * relations * sipAddresses * skills * urls * userDefined
-    #[serde(default, rename = "personFields")]
-    pub person_fields: ::core::option::Option<String>,
-    /// Required. Raw photo bytes
-    #[serde(default, rename = "photoBytes")]
-    pub photo_bytes: ::core::option::Option<String>,
-    /// Optional. A mask of what source types to return. Defaults to READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response for updating a contact''s photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateContactPhotoResponse {
-    /// The updated person, if person_fields is set in the UpdateContactPhotoRequest; otherwise this will be unset.
-    #[serde(default)]
-    pub person: ::core::option::Option<Person>,
 }
 
 /// A person''s associated URLs.
@@ -1202,4 +1121,85 @@ pub struct UserDefined {
     /// The end user specified value of the user defined data.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// A Google contact group membership.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactGroupMembership {
+    /// Output only. The contact group ID for the contact group membership.
+    #[serde(default, rename = "contactGroupId")]
+    pub contact_group_id: ::core::option::Option<String>,
+    /// The resource name for the contact group, assigned by the server. An ASCII string, in the form of contactGroups/{contact_group_id}. Only contact_group_resource_name can be used for modifying memberships. Any contact group membership can be removed, but only user group or "myContacts" or "starred" system groups memberships can be added. A contact must always have at least one contact group membership.
+    #[serde(default, rename = "contactGroupResourceName")]
+    pub contact_group_resource_name: ::core::option::Option<String>,
+}
+
+/// A Google Workspace Domain membership.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainMembership {
+    /// True if the person is in the viewer''s Google Workspace domain.
+    #[serde(default, rename = "inViewerDomain")]
+    pub in_viewer_domain: ::core::option::Option<bool>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Metadata about a field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldMetadata {
+    /// Output only. True if the field is the primary field for all sources in the person. Each person will have at most one field with primary set to true.
+    #[serde(default)]
+    pub primary: ::core::option::Option<bool>,
+    /// The source of the field.
+    #[serde(default)]
+    pub source: ::core::option::Option<Source>,
+    /// True if the field is the primary field for the source. Each source must have at most one field with source_primary set to true.
+    #[serde(default, rename = "sourcePrimary")]
+    pub source_primary: ::core::option::Option<bool>,
+    /// Output only. True if the field is verified; false if the field is unverified. A verified field is typically a name, email address, phone number, or website that has been confirmed to be owned by the person.
+    #[serde(default)]
+    pub verified: ::core::option::Option<bool>,
+}
+
+/// The source of a field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Source {
+    /// **Only populated in person.metadata.sources.** The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the source. Used for web cache validation.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The unique identifier within the source type generated by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. **Only populated in person.metadata.sources.** Metadata about a source of type PROFILE.
+    #[serde(default, rename = "profileMetadata")]
+    pub profile_metadata: ::core::option::Option<ProfileMetadata>,
+    /// The source type. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "ACCOUNT", "PROFILE", "DOMAIN_PROFILE", "CONTACT", "OTHER_CONTACT", "DOMAIN_CONTACT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. **Only populated in person.metadata.sources.** Last update timestamp of this source.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The metadata about a profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileMetadata {
+    /// Output only. The profile object type. // TODO: enum values: ["OBJECT_TYPE_UNSPECIFIED", "PERSON", "PAGE"]
+    #[serde(default, rename = "objectType")]
+    pub object_type: ::core::option::Option<String>,
+    /// Output only. The user types.
+    #[serde(default, rename = "userTypes")]
+    pub user_types: ::core::option::Option<::std::vec::Vec<String>>,
 }

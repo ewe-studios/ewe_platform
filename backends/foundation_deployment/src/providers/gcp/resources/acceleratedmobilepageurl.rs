@@ -10,6 +10,28 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// AMP URL request for a batch of URLs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchGetAmpUrlsRequest {
+    /// The lookup_strategy being requested. // TODO: enum values: ["FETCH_LIVE_DOC", "IN_INDEX_DOC"]
+    #[serde(default, rename = "lookupStrategy")]
+    pub lookup_strategy: ::core::option::Option<String>,
+    /// List of URLs to look up for the paired AMP URLs. The URLs are case-sensitive. Up to 50 URLs per lookup (see [Usage Limits](/amp/cache/reference/limits)).
+    #[serde(default)]
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Batch AMP URL response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchGetAmpUrlsResponse {
+    /// For each URL in BatchAmpUrlsRequest, the URL response. The response might not be in the same order as URLs in the batch request. If BatchAmpUrlsRequest contains duplicate URLs, AmpUrl is generated only once.
+    #[serde(default, rename = "ampUrls")]
+    pub amp_urls: ::core::option::Option<::std::vec::Vec<AmpUrl>>,
+    /// The errors for requested URLs that have no AMP URL.
+    #[serde(default, rename = "urlErrors")]
+    pub url_errors: ::core::option::Option<::std::vec::Vec<AmpUrlError>>,
+}
+
 /// AMP URL response for a requested URL.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AmpUrl {
@@ -36,26 +58,4 @@ pub struct AmpUrlError {
     /// The original non-AMP URL.
     #[serde(default, rename = "originalUrl")]
     pub original_url: ::core::option::Option<String>,
-}
-
-/// AMP URL request for a batch of URLs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BatchGetAmpUrlsRequest {
-    /// The lookup_strategy being requested. // TODO: enum values: ["FETCH_LIVE_DOC", "IN_INDEX_DOC"]
-    #[serde(default, rename = "lookupStrategy")]
-    pub lookup_strategy: ::core::option::Option<String>,
-    /// List of URLs to look up for the paired AMP URLs. The URLs are case-sensitive. Up to 50 URLs per lookup (see [Usage Limits](/amp/cache/reference/limits)).
-    #[serde(default)]
-    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Batch AMP URL response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BatchGetAmpUrlsResponse {
-    /// For each URL in BatchAmpUrlsRequest, the URL response. The response might not be in the same order as URLs in the batch request. If BatchAmpUrlsRequest contains duplicate URLs, AmpUrl is generated only once.
-    #[serde(default, rename = "ampUrls")]
-    pub amp_urls: ::core::option::Option<::std::vec::Vec<AmpUrl>>,
-    /// The errors for requested URLs that have no AMP URL.
-    #[serde(default, rename = "urlErrors")]
-    pub url_errors: ::core::option::Option<::std::vec::Vec<AmpUrlError>>,
 }

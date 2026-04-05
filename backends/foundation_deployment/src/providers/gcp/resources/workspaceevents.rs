@@ -10,59 +10,12 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Artifacts are the container for task completed results. These are similar to Messages but are intended to be the product of a task, as opposed to point-to-point communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Artifact {
-    /// Unique identifier (e.g. UUID) for the artifact. It must be at least unique within a task.
-    #[serde(default, rename = "artifactId")]
-    pub artifact_id: ::core::option::Option<String>,
-    /// A human readable description of the artifact, optional.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The URIs of extensions that are present or contributed to this Artifact.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional metadata included with the artifact.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// A human readable name for the artifact.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The content of the artifact.
-    #[serde(default)]
-    pub parts: ::core::option::Option<::std::vec::Vec<Part>>,
-}
-
-/// Defines authentication details, used for push notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthenticationInfo {
-    /// Optional credentials
-    #[serde(default)]
-    pub credentials: ::core::option::Option<String>,
-    /// Supported authentication schemes - e.g. Basic, Bearer, etc
-    #[serde(default)]
-    pub schemes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// CancelTaskRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelTaskRequest {
     /// Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.
     #[serde(default)]
     pub tenant: ::core::option::Option<String>,
-}
-
-/// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilePart {
-    #[serde(default, rename = "fileWithBytes")]
-    pub file_with_bytes: ::core::option::Option<String>,
-    #[serde(default, rename = "fileWithUri")]
-    pub file_with_uri: ::core::option::Option<String>,
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// The response message for SubscriptionsService.ListSubscriptions.
@@ -87,40 +40,6 @@ pub struct ListTaskPushNotificationConfigResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Message is one unit of communication between client and server. It is associated with a context and optionally a task. Since the server is responsible for the context definition, it must always provide a context_id in its messages. The client can optionally provide the context_id if it knows the context to associate the message to. Similarly for task_id, except the server decides if a task is created and whether to include the task_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED Content is the container of the message content.
-    #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<Part>>,
-    /// The context id of the message. This is optional and if set, the message will be associated with the given context.
-    #[serde(default, rename = "contextId")]
-    pub context_id: ::core::option::Option<String>,
-    /// The URIs of extensions that are present or contributed to this Message.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The unique identifier (e.g. UUID)of the message. This is required and created by the message creator.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED Any optional metadata to provide along with the message.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// A role for the message. // TODO: enum values: ["ROLE_UNSPECIFIED", "ROLE_USER", "ROLE_AGENT"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// The task id of the message. This is optional and if set, the message will be associated with the given task.
-    #[serde(default, rename = "taskId")]
-    pub task_id: ::core::option::Option<String>,
-}
-
-/// The endpoint where the subscription delivers events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NotificationEndpoint {
-    /// Immutable. The Pub/Sub topic that receives events for the subscription. Format: projects/{project}/topics/{topic} You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).
-    #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -141,65 +60,6 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Part represents a container for a section of communication content. Parts can be purely textual, some sort of file (image, video, etc) or a structured data blob (i.e. JSON).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Part {
-    #[serde(default)]
-    pub data: ::core::option::Option<DataPart>,
-    #[serde(default)]
-    pub file: ::core::option::Option<FilePart>,
-    /// Optional metadata associated with this part.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PayloadOptions {
-    /// Optional. If include_resource is set to true, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message''s sender and create time, enter message.sender,message.createTime. If omitted, the payload includes all fields for the resource. If you specify a field that doesn''t exist for the resource, the system ignores the field.
-    #[serde(default, rename = "fieldMask")]
-    pub field_mask: ::core::option::Option<String>,
-    /// Optional. Whether the event payload includes data about the resource that changed. For example, for an event where a Google Chat message was created, whether the payload contains data about the [Message](https://developers.google.com/chat/api/reference/rest/v1/spaces.messages) resource. If false, the event payload only includes the name of the changed resource.
-    #[serde(default, rename = "includeResource")]
-    pub include_resource: ::core::option::Option<bool>,
-}
-
-/// Configuration for setting up push notifications for task updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PushNotificationConfig {
-    /// Information about the authentication to sent with the notification
-    #[serde(default)]
-    pub authentication: ::core::option::Option<AuthenticationInfo>,
-    /// A unique identifier (e.g. UUID) for this push notification.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Token unique for this task/session
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-    /// Url to send the notification too
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Configuration of a send message request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SendMessageConfiguration {
-    /// The output modes that the agent is expected to respond with.
-    #[serde(default, rename = "acceptedOutputModes")]
-    pub accepted_output_modes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If true, the message will be blocking until the task is completed. If false, the message will be non-blocking and the task will be returned immediately. It is the caller''s responsibility to check for any task updates.
-    #[serde(default)]
-    pub blocking: ::core::option::Option<bool>,
-    /// The maximum number of messages to include in the history. if 0, the history will be unlimited.
-    #[serde(default, rename = "historyLength")]
-    pub history_length: ::core::option::Option<i32>,
-    /// A configuration of a webhook that can be used to receive updates
-    #[serde(default, rename = "pushNotification")]
-    pub push_notification: ::core::option::Option<PushNotificationConfig>,
-}
-
 /// /////////// Request Messages ///////////
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendMessageRequest {
@@ -215,20 +75,6 @@ pub struct SendMessageRequest {
     /// Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.
     #[serde(default)]
     pub tenant: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// The stream response for a message. The stream should be one of the following sequences: If the response is a message, the stream should contain one, and only one, message and then close If the response is a task lifecycle, the first response should be a Task object followed by zero or more TaskStatusUpdateEvents and TaskArtifactUpdateEvents. The stream should complete when the Task if in an interrupted or terminal state. A stream that ends before these conditions are met are
@@ -300,27 +146,46 @@ pub struct Subscription {
     pub user_authority: ::core::option::Option<String>,
 }
 
-/// Task is the core unit of action for A2A. It has a current status and when results are created for the task they are stored in the artifact. If there are multiple turns for a task, these are stored in history.
+/// TaskPushNotificationConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Task {
-    /// A set of output artifacts for a Task.
+pub struct TaskPushNotificationConfig {
+    /// The resource name of the config. Format: tasks/{task_id}/pushNotificationConfigs/{config_id}
     #[serde(default)]
-    pub artifacts: ::core::option::Option<::std::vec::Vec<Artifact>>,
-    /// Unique identifier (e.g. UUID) for the contextual collection of interactions (tasks and messages). Created by the A2A server.
-    #[serde(default, rename = "contextId")]
-    pub context_id: ::core::option::Option<String>,
-    /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED The history of interactions from a task.
+    pub name: ::core::option::Option<String>,
+    /// The push notification configuration details.
+    #[serde(default, rename = "pushNotificationConfig")]
+    pub push_notification_config: ::core::option::Option<PushNotificationConfig>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub history: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// Unique identifier (e.g. UUID) for the task, generated by the server for a new task.
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED A key/value object to store custom metadata about a task.
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The current status of a Task, including state and a message.
+    pub message: ::core::option::Option<String>,
+}
+
+/// Configuration of a send message request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendMessageConfiguration {
+    /// The output modes that the agent is expected to respond with.
+    #[serde(default, rename = "acceptedOutputModes")]
+    pub accepted_output_modes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If true, the message will be blocking until the task is completed. If false, the message will be non-blocking and the task will be returned immediately. It is the caller''s responsibility to check for any task updates.
     #[serde(default)]
-    pub status: ::core::option::Option<TaskStatus>,
+    pub blocking: ::core::option::Option<bool>,
+    /// The maximum number of messages to include in the history. if 0, the history will be unlimited.
+    #[serde(default, rename = "historyLength")]
+    pub history_length: ::core::option::Option<i32>,
+    /// A configuration of a webhook that can be used to receive updates
+    #[serde(default, rename = "pushNotification")]
+    pub push_notification: ::core::option::Option<PushNotificationConfig>,
 }
 
 /// TaskArtifactUpdateEvent represents a task delta where an artifact has been generated.
@@ -346,31 +211,6 @@ pub struct TaskArtifactUpdateEvent {
     pub task_id: ::core::option::Option<String>,
 }
 
-/// TaskPushNotificationConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskPushNotificationConfig {
-    /// The resource name of the config. Format: tasks/{task_id}/pushNotificationConfigs/{config_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The push notification configuration details.
-    #[serde(default, rename = "pushNotificationConfig")]
-    pub push_notification_config: ::core::option::Option<PushNotificationConfig>,
-}
-
-/// A container for the status of a task
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskStatus {
-    /// A message associated with the status.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-    /// The current state of this task // TODO: enum values: ["TASK_STATE_UNSPECIFIED", "TASK_STATE_SUBMITTED", "TASK_STATE_WORKING", "TASK_STATE_COMPLETED", "TASK_STATE_FAILED", "TASK_STATE_CANCELLED", "TASK_STATE_INPUT_REQUIRED", "TASK_STATE_REJECTED", "TASK_STATE_AUTH_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Timestamp when the status was recorded. Example: "2023-10-27T10:00:00Z"
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
 /// TaskStatusUpdateEvent is a delta even on a task indicating that a task has changed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskStatusUpdateEvent {
@@ -389,4 +229,164 @@ pub struct TaskStatusUpdateEvent {
     /// The id of the task that is changed
     #[serde(default, rename = "taskId")]
     pub task_id: ::core::option::Option<String>,
+}
+
+/// Task is the core unit of action for A2A. It has a current status and when results are created for the task they are stored in the artifact. If there are multiple turns for a task, these are stored in history.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    /// A set of output artifacts for a Task.
+    #[serde(default)]
+    pub artifacts: ::core::option::Option<::std::vec::Vec<Artifact>>,
+    /// Unique identifier (e.g. UUID) for the contextual collection of interactions (tasks and messages). Created by the A2A server.
+    #[serde(default, rename = "contextId")]
+    pub context_id: ::core::option::Option<String>,
+    /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED The history of interactions from a task.
+    #[serde(default)]
+    pub history: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// Unique identifier (e.g. UUID) for the task, generated by the server for a new task.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED A key/value object to store custom metadata about a task.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The current status of a Task, including state and a message.
+    #[serde(default)]
+    pub status: ::core::option::Option<TaskStatus>,
+}
+
+/// The endpoint where the subscription delivers events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationEndpoint {
+    /// Immutable. The Pub/Sub topic that receives events for the subscription. Format: projects/{project}/topics/{topic} You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).
+    #[serde(default, rename = "pubsubTopic")]
+    pub pubsub_topic: ::core::option::Option<String>,
+}
+
+/// Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PayloadOptions {
+    /// Optional. If include_resource is set to true, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message''s sender and create time, enter message.sender,message.createTime. If omitted, the payload includes all fields for the resource. If you specify a field that doesn''t exist for the resource, the system ignores the field.
+    #[serde(default, rename = "fieldMask")]
+    pub field_mask: ::core::option::Option<String>,
+    /// Optional. Whether the event payload includes data about the resource that changed. For example, for an event where a Google Chat message was created, whether the payload contains data about the [Message](https://developers.google.com/chat/api/reference/rest/v1/spaces.messages) resource. If false, the event payload only includes the name of the changed resource.
+    #[serde(default, rename = "includeResource")]
+    pub include_resource: ::core::option::Option<bool>,
+}
+
+/// Configuration for setting up push notifications for task updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PushNotificationConfig {
+    /// Information about the authentication to sent with the notification
+    #[serde(default)]
+    pub authentication: ::core::option::Option<AuthenticationInfo>,
+    /// A unique identifier (e.g. UUID) for this push notification.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Token unique for this task/session
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+    /// Url to send the notification too
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Artifacts are the container for task completed results. These are similar to Messages but are intended to be the product of a task, as opposed to point-to-point communication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Artifact {
+    /// Unique identifier (e.g. UUID) for the artifact. It must be at least unique within a task.
+    #[serde(default, rename = "artifactId")]
+    pub artifact_id: ::core::option::Option<String>,
+    /// A human readable description of the artifact, optional.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The URIs of extensions that are present or contributed to this Artifact.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional metadata included with the artifact.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// A human readable name for the artifact.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The content of the artifact.
+    #[serde(default)]
+    pub parts: ::core::option::Option<::std::vec::Vec<Part>>,
+}
+
+/// A container for the status of a task
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskStatus {
+    /// A message associated with the status.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+    /// The current state of this task // TODO: enum values: ["TASK_STATE_UNSPECIFIED", "TASK_STATE_SUBMITTED", "TASK_STATE_WORKING", "TASK_STATE_COMPLETED", "TASK_STATE_FAILED", "TASK_STATE_CANCELLED", "TASK_STATE_INPUT_REQUIRED", "TASK_STATE_REJECTED", "TASK_STATE_AUTH_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Timestamp when the status was recorded. Example: "2023-10-27T10:00:00Z"
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// Defines authentication details, used for push notifications.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthenticationInfo {
+    /// Optional credentials
+    #[serde(default)]
+    pub credentials: ::core::option::Option<String>,
+    /// Supported authentication schemes - e.g. Basic, Bearer, etc
+    #[serde(default)]
+    pub schemes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message is one unit of communication between client and server. It is associated with a context and optionally a task. Since the server is responsible for the context definition, it must always provide a context_id in its messages. The client can optionally provide the context_id if it knows the context to associate the message to. Similarly for task_id, except the server decides if a task is created and whether to include the task_id.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED Content is the container of the message content.
+    #[serde(default)]
+    pub content: ::core::option::Option<::std::vec::Vec<Part>>,
+    /// The context id of the message. This is optional and if set, the message will be associated with the given context.
+    #[serde(default, rename = "contextId")]
+    pub context_id: ::core::option::Option<String>,
+    /// The URIs of extensions that are present or contributed to this Message.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The unique identifier (e.g. UUID)of the message. This is required and created by the message creator.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED Any optional metadata to provide along with the message.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// A role for the message. // TODO: enum values: ["ROLE_UNSPECIFIED", "ROLE_USER", "ROLE_AGENT"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// The task id of the message. This is optional and if set, the message will be associated with the given task.
+    #[serde(default, rename = "taskId")]
+    pub task_id: ::core::option::Option<String>,
+}
+
+/// Part represents a container for a section of communication content. Parts can be purely textual, some sort of file (image, video, etc) or a structured data blob (i.e. JSON).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Part {
+    #[serde(default)]
+    pub data: ::core::option::Option<DataPart>,
+    #[serde(default)]
+    pub file: ::core::option::Option<FilePart>,
+    /// Optional metadata associated with this part.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePart {
+    #[serde(default, rename = "fileWithBytes")]
+    pub file_with_bytes: ::core::option::Option<String>,
+    #[serde(default, rename = "fileWithUri")]
+    pub file_with_uri: ::core::option::Option<String>,
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }

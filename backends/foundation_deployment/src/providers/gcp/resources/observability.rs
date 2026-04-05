@@ -10,89 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Bucket configuration for storing observability data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bucket {
-    /// Optional. Settings for configuring CMEK on a bucket.
-    #[serde(default, rename = "cmekSettings")]
-    pub cmek_settings: ::core::option::Option<CmekSettings>,
-    /// Output only. Create timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Delete timestamp.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Optional. Description of the bucket.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Name of the bucket. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Timestamp when the bucket in soft-deleted state is purged.
-    #[serde(default, rename = "purgeTime")]
-    pub purge_time: ::core::option::Option<String>,
-    /// Output only. Update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Settings for configuring CMEK for a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CmekSettings {
-    /// Optional. The resource name for the configured Cloud KMS key. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY] For example: projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key
-    #[serde(default, rename = "kmsKey")]
-    pub kms_key: ::core::option::Option<String>,
-    /// Output only. The CryptoKeyVersion resource name for the configured Cloud KMS key. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY]/cryptoKeyVersions/[VERSION] For example: projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key/cryptoKeyVersions/1 This read-only field is used to convey the specific configured CryptoKeyVersion of the kms_key that has been configured. It is populated when the CMEK settings are bound to a single key version.
-    #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: ::core::option::Option<String>,
-    /// Output only. The service account used to access the key.
-    #[serde(default, rename = "serviceAccountId")]
-    pub service_account_id: ::core::option::Option<String>,
-}
-
-/// A dataset is a collection of data that has a specific configuration. A dataset can be backed by multiple tables. One bucket can have multiple datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dataset {
-    /// Output only. Create timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Delete timestamp.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Optional. Description of the dataset.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Name of the dataset. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]/datasets/[DATASET_ID]
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Timestamp when the dataset in soft-deleted state is purged.
-    #[serde(default, rename = "purgeTime")]
-    pub purge_time: ::core::option::Option<String>,
-}
-
-/// A link lets a dataset be accessible to BigQuery via usage of linked datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Link {
-    /// Output only. Create timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the link.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. A user friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Name of the link. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]/datasets/[DATASET_ID]/links/[LINK_ID]
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Response for listing buckets.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListBucketsResponse {
@@ -173,46 +90,6 @@ pub struct ListViewsResponse {
     pub views: ::core::option::Option<::std::vec::Vec<View>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadata {
@@ -273,18 +150,113 @@ pub struct Settings {
     pub service_account_id: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Bucket configuration for storing observability data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct Bucket {
+    /// Optional. Settings for configuring CMEK on a bucket.
+    #[serde(default, rename = "cmekSettings")]
+    pub cmek_settings: ::core::option::Option<CmekSettings>,
+    /// Output only. Create timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Delete timestamp.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Optional. Description of the bucket.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Name of the bucket. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub name: ::core::option::Option<String>,
+    /// Output only. Timestamp when the bucket in soft-deleted state is purged.
+    #[serde(default, rename = "purgeTime")]
+    pub purge_time: ::core::option::Option<String>,
+    /// Output only. Update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A dataset is a collection of data that has a specific configuration. A dataset can be backed by multiple tables. One bucket can have multiple datasets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dataset {
+    /// Output only. Create timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Delete timestamp.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Optional. Description of the dataset.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Name of the dataset. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]/datasets/[DATASET_ID]
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Timestamp when the dataset in soft-deleted state is purged.
+    #[serde(default, rename = "purgeTime")]
+    pub purge_time: ::core::option::Option<String>,
+}
+
+/// A link lets a dataset be accessible to BigQuery via usage of linked datasets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Link {
+    /// Output only. Create timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the link.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. A user friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Name of the link. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/buckets/[BUCKET_ID]/datasets/[DATASET_ID]/links/[LINK_ID]
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// A trace scope is a collection of resources whose traces are queried together.
@@ -325,4 +297,32 @@ pub struct View {
     /// Output only. Update timestamp.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
+}
+
+/// Settings for configuring CMEK for a bucket.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CmekSettings {
+    /// Optional. The resource name for the configured Cloud KMS key. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY] For example: projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key
+    #[serde(default, rename = "kmsKey")]
+    pub kms_key: ::core::option::Option<String>,
+    /// Output only. The CryptoKeyVersion resource name for the configured Cloud KMS key. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY]/cryptoKeyVersions/[VERSION] For example: projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key/cryptoKeyVersions/1 This read-only field is used to convey the specific configured CryptoKeyVersion of the kms_key that has been configured. It is populated when the CMEK settings are bound to a single key version.
+    #[serde(default, rename = "kmsKeyVersion")]
+    pub kms_key_version: ::core::option::Option<String>,
+    /// Output only. The service account used to access the key.
+    #[serde(default, rename = "serviceAccountId")]
+    pub service_account_id: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
 }

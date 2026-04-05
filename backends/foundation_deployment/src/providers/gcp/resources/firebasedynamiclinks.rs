@@ -10,34 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Tracking parameters supported by Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalyticsInfo {
-    /// Google Play Campaign Measurements.
-    #[serde(default, rename = "googlePlayAnalytics")]
-    pub google_play_analytics: ::core::option::Option<GooglePlayAnalytics>,
-    /// iTunes Connect App Analytics.
-    #[serde(default, rename = "itunesConnectAnalytics")]
-    pub itunes_connect_analytics: ::core::option::Option<ITunesConnectAnalytics>,
-}
-
-/// Android related attributes to the Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidInfo {
-    /// Link to open on Android if the app is not installed.
-    #[serde(default, rename = "androidFallbackLink")]
-    pub android_fallback_link: ::core::option::Option<String>,
-    /// If specified, this overrides the ‘link’ parameter on Android.
-    #[serde(default, rename = "androidLink")]
-    pub android_link: ::core::option::Option<String>,
-    /// Minimum version code for the Android app. If the installed app’s version code is lower, then the user is taken to the Play Store.
-    #[serde(default, rename = "androidMinPackageVersionCode")]
-    pub android_min_package_version_code: ::core::option::Option<String>,
-    /// Android package name of the app.
-    #[serde(default, rename = "androidPackageName")]
-    pub android_package_name: ::core::option::Option<String>,
-}
-
 /// Request to create a managed Short Dynamic Link.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateManagedShortLinkRequest {
@@ -103,86 +75,6 @@ pub struct CreateShortDynamicLinkResponse {
     pub warning: ::core::option::Option<::std::vec::Vec<DynamicLinkWarning>>,
 }
 
-/// Desktop related attributes to the Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DesktopInfo {
-    /// Link to open on desktop.
-    #[serde(default, rename = "desktopFallbackLink")]
-    pub desktop_fallback_link: ::core::option::Option<String>,
-}
-
-/// Signals associated with the device making the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceInfo {
-    /// Device model name.
-    #[serde(default, rename = "deviceModelName")]
-    pub device_model_name: ::core::option::Option<String>,
-    /// Device language code setting.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Device language code setting obtained by executing JavaScript code in WebView.
-    #[serde(default, rename = "languageCodeFromWebview")]
-    pub language_code_from_webview: ::core::option::Option<String>,
-    /// Device language code raw setting. iOS does returns language code in different format than iOS WebView. For example WebView returns en_US, but iOS returns en-US. Field below will return raw value returned by iOS.
-    #[serde(default, rename = "languageCodeRaw")]
-    pub language_code_raw: ::core::option::Option<String>,
-    /// Device display resolution height.
-    #[serde(default, rename = "screenResolutionHeight")]
-    pub screen_resolution_height: ::core::option::Option<String>,
-    /// Device display resolution width.
-    #[serde(default, rename = "screenResolutionWidth")]
-    pub screen_resolution_width: ::core::option::Option<String>,
-    /// Device timezone setting.
-    #[serde(default)]
-    pub timezone: ::core::option::Option<String>,
-}
-
-/// Dynamic Link event stat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicLinkEventStat {
-    /// The number of times this event occurred.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Link event. // TODO: enum values: ["DYNAMIC_LINK_EVENT_UNSPECIFIED", "CLICK", "REDIRECT", "APP_INSTALL", "APP_FIRST_OPEN", "APP_RE_OPEN"]
-    #[serde(default)]
-    pub event: ::core::option::Option<String>,
-    /// Requested platform. // TODO: enum values: ["DYNAMIC_LINK_PLATFORM_UNSPECIFIED", "ANDROID", "IOS", "DESKTOP", "OTHER"]
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-}
-
-/// Information about a Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicLinkInfo {
-    /// Parameters used for tracking. See all tracking parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
-    #[serde(default, rename = "analyticsInfo")]
-    pub analytics_info: ::core::option::Option<AnalyticsInfo>,
-    /// Android related information. See Android related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
-    #[serde(default, rename = "androidInfo")]
-    pub android_info: ::core::option::Option<AndroidInfo>,
-    /// Desktop related information. See desktop related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
-    #[serde(default, rename = "desktopInfo")]
-    pub desktop_info: ::core::option::Option<DesktopInfo>,
-    /// E.g. https://maps.app.goo.gl, https://maps.page.link, https://g.co/maps More examples can be found in description of getNormalizedUriPrefix in j/c/g/firebase/dynamiclinks/uri/DdlDomain.java Will fallback to dynamic_link_domain is this field is missing
-    #[serde(default, rename = "domainUriPrefix")]
-    pub domain_uri_prefix: ::core::option::Option<String>,
-    /// Dynamic Links domain that the project owns, e.g. abcd.app.goo.gl [Learn more](https://firebase.google.com/docs/dynamic-links/android/receive) on how to set up Dynamic Link domain associated with your Firebase project. Required if missing domain_uri_prefix.
-    #[serde(default, rename = "dynamicLinkDomain")]
-    pub dynamic_link_domain: ::core::option::Option<String>,
-    /// iOS related information. See iOS related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
-    #[serde(default, rename = "iosInfo")]
-    pub ios_info: ::core::option::Option<IosInfo>,
-    /// The link your app will open, You can specify any URL your app can handle. This link must be a well-formatted URL, be properly URL-encoded, and use the HTTP or HTTPS scheme. See ''link'' parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually). Required.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Information of navigation behavior of a Firebase Dynamic Links.
-    #[serde(default, rename = "navigationInfo")]
-    pub navigation_info: ::core::option::Option<NavigationInfo>,
-    /// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
-    #[serde(default, rename = "socialMetaTagInfo")]
-    pub social_meta_tag_info: ::core::option::Option<SocialMetaTagInfo>,
-}
-
 /// Analytics stats of a Dynamic Link for a given timeframe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DynamicLinkStats {
@@ -192,20 +84,6 @@ pub struct DynamicLinkStats {
     /// Optional warnings associated this API request.
     #[serde(default)]
     pub warnings: ::core::option::Option<::std::vec::Vec<DynamicLinkWarning>>,
-}
-
-/// Dynamic Links warning messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicLinkWarning {
-    /// The warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "NOT_IN_PROJECT_ANDROID_PACKAGE_NAME", "NOT_INTEGER_ANDROID_PACKAGE_MIN_VERSION", "UNNECESSARY_ANDROID_PACKAGE_MIN_VERSION", "NOT_URI_ANDROID_LINK", "UNNECESSARY_ANDROID_LINK", "NOT_URI_ANDROID_FALLBACK_LINK", "BAD_URI_SCHEME_ANDROID_FALLBACK_LINK", "NOT_IN_PROJECT_IOS_BUNDLE_ID", "NOT_IN_PROJECT_IPAD_BUNDLE_ID", "UNNECESSARY_IOS_URL_SCHEME", "NOT_NUMERIC_IOS_APP_STORE_ID", "UNNECESSARY_IOS_APP_STORE_ID", "NOT_URI_IOS_FALLBACK_LINK", "BAD_URI_SCHEME_IOS_FALLBACK_LINK", "NOT_URI_IPAD_FALLBACK_LINK", "BAD_URI_SCHEME_IPAD_FALLBACK_LINK", "BAD_DEBUG_PARAM", "BAD_AD_PARAM", "DEPRECATED_PARAM", "UNRECOGNIZED_PARAM", "TOO_LONG_PARAM", "NOT_URI_SOCIAL_IMAGE_LINK", "BAD_URI_SCHEME_SOCIAL_IMAGE_LINK", "NOT_URI_SOCIAL_URL", "BAD_URI_SCHEME_SOCIAL_URL", "LINK_LENGTH_TOO_LONG", "LINK_WITH_FRAGMENTS", "NOT_MATCHING_IOS_BUNDLE_ID_AND_STORE_ID", "API_DEPRECATED"]
-    #[serde(default, rename = "warningCode")]
-    pub warning_code: ::core::option::Option<String>,
-    /// The document describing the warning, and helps resolve.
-    #[serde(default, rename = "warningDocumentLink")]
-    pub warning_document_link: ::core::option::Option<String>,
-    /// The warning message to help developers improve their requests.
-    #[serde(default, rename = "warningMessage")]
-    pub warning_message: ::core::option::Option<String>,
 }
 
 /// Request for iSDK to execute strong match flow for post-install attribution. This is meant for iOS requests only. Requests from other platforms will not be honored.
@@ -339,6 +217,210 @@ pub struct GetIosReopenAttributionResponse {
     pub warning: ::core::option::Option<::std::vec::Vec<DynamicLinkWarning>>,
 }
 
+/// Managed Short Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedShortLink {
+    /// Creation timestamp of the short link.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Attributes that have been flagged about this short url.
+    #[serde(default, rename = "flaggedAttribute")]
+    pub flagged_attribute: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Full Dyamic Link info
+    #[serde(default)]
+    pub info: ::core::option::Option<DynamicLinkInfo>,
+    /// Short durable link url, for example, "https://sample.app.goo.gl/xyz123". Required.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Link name defined by the creator. Required.
+    #[serde(default, rename = "linkName")]
+    pub link_name: ::core::option::Option<String>,
+    /// Visibility status of link. // TODO: enum values: ["UNSPECIFIED_VISIBILITY", "UNARCHIVED", "ARCHIVED", "NEVER_SHOWN"]
+    #[serde(default)]
+    pub visibility: ::core::option::Option<String>,
+}
+
+/// Short Dynamic Link suffix.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Suffix {
+    /// Only applies to Option.CUSTOM.
+    #[serde(default, rename = "customSuffix")]
+    pub custom_suffix: ::core::option::Option<String>,
+    /// Suffix option. // TODO: enum values: ["OPTION_UNSPECIFIED", "UNGUESSABLE", "SHORT", "CUSTOM"]
+    #[serde(default)]
+    pub option: ::core::option::Option<String>,
+}
+
+/// Dynamic Link event stat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicLinkEventStat {
+    /// The number of times this event occurred.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Link event. // TODO: enum values: ["DYNAMIC_LINK_EVENT_UNSPECIFIED", "CLICK", "REDIRECT", "APP_INSTALL", "APP_FIRST_OPEN", "APP_RE_OPEN"]
+    #[serde(default)]
+    pub event: ::core::option::Option<String>,
+    /// Requested platform. // TODO: enum values: ["DYNAMIC_LINK_PLATFORM_UNSPECIFIED", "ANDROID", "IOS", "DESKTOP", "OTHER"]
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+}
+
+/// Signals associated with the device making the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceInfo {
+    /// Device model name.
+    #[serde(default, rename = "deviceModelName")]
+    pub device_model_name: ::core::option::Option<String>,
+    /// Device language code setting.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Device language code setting obtained by executing JavaScript code in WebView.
+    #[serde(default, rename = "languageCodeFromWebview")]
+    pub language_code_from_webview: ::core::option::Option<String>,
+    /// Device language code raw setting. iOS does returns language code in different format than iOS WebView. For example WebView returns en_US, but iOS returns en-US. Field below will return raw value returned by iOS.
+    #[serde(default, rename = "languageCodeRaw")]
+    pub language_code_raw: ::core::option::Option<String>,
+    /// Device display resolution height.
+    #[serde(default, rename = "screenResolutionHeight")]
+    pub screen_resolution_height: ::core::option::Option<String>,
+    /// Device display resolution width.
+    #[serde(default, rename = "screenResolutionWidth")]
+    pub screen_resolution_width: ::core::option::Option<String>,
+    /// Device timezone setting.
+    #[serde(default)]
+    pub timezone: ::core::option::Option<String>,
+}
+
+/// Dynamic Links warning messages.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicLinkWarning {
+    /// The warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "NOT_IN_PROJECT_ANDROID_PACKAGE_NAME", "NOT_INTEGER_ANDROID_PACKAGE_MIN_VERSION", "UNNECESSARY_ANDROID_PACKAGE_MIN_VERSION", "NOT_URI_ANDROID_LINK", "UNNECESSARY_ANDROID_LINK", "NOT_URI_ANDROID_FALLBACK_LINK", "BAD_URI_SCHEME_ANDROID_FALLBACK_LINK", "NOT_IN_PROJECT_IOS_BUNDLE_ID", "NOT_IN_PROJECT_IPAD_BUNDLE_ID", "UNNECESSARY_IOS_URL_SCHEME", "NOT_NUMERIC_IOS_APP_STORE_ID", "UNNECESSARY_IOS_APP_STORE_ID", "NOT_URI_IOS_FALLBACK_LINK", "BAD_URI_SCHEME_IOS_FALLBACK_LINK", "NOT_URI_IPAD_FALLBACK_LINK", "BAD_URI_SCHEME_IPAD_FALLBACK_LINK", "BAD_DEBUG_PARAM", "BAD_AD_PARAM", "DEPRECATED_PARAM", "UNRECOGNIZED_PARAM", "TOO_LONG_PARAM", "NOT_URI_SOCIAL_IMAGE_LINK", "BAD_URI_SCHEME_SOCIAL_IMAGE_LINK", "NOT_URI_SOCIAL_URL", "BAD_URI_SCHEME_SOCIAL_URL", "LINK_LENGTH_TOO_LONG", "LINK_WITH_FRAGMENTS", "NOT_MATCHING_IOS_BUNDLE_ID_AND_STORE_ID", "API_DEPRECATED"]
+    #[serde(default, rename = "warningCode")]
+    pub warning_code: ::core::option::Option<String>,
+    /// The document describing the warning, and helps resolve.
+    #[serde(default, rename = "warningDocumentLink")]
+    pub warning_document_link: ::core::option::Option<String>,
+    /// The warning message to help developers improve their requests.
+    #[serde(default, rename = "warningMessage")]
+    pub warning_message: ::core::option::Option<String>,
+}
+
+/// Information about a Dynamic Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicLinkInfo {
+    /// Parameters used for tracking. See all tracking parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
+    #[serde(default, rename = "analyticsInfo")]
+    pub analytics_info: ::core::option::Option<AnalyticsInfo>,
+    /// Android related information. See Android related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
+    #[serde(default, rename = "androidInfo")]
+    pub android_info: ::core::option::Option<AndroidInfo>,
+    /// Desktop related information. See desktop related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
+    #[serde(default, rename = "desktopInfo")]
+    pub desktop_info: ::core::option::Option<DesktopInfo>,
+    /// E.g. https://maps.app.goo.gl, https://maps.page.link, https://g.co/maps More examples can be found in description of getNormalizedUriPrefix in j/c/g/firebase/dynamiclinks/uri/DdlDomain.java Will fallback to dynamic_link_domain is this field is missing
+    #[serde(default, rename = "domainUriPrefix")]
+    pub domain_uri_prefix: ::core::option::Option<String>,
+    /// Dynamic Links domain that the project owns, e.g. abcd.app.goo.gl [Learn more](https://firebase.google.com/docs/dynamic-links/android/receive) on how to set up Dynamic Link domain associated with your Firebase project. Required if missing domain_uri_prefix.
+    #[serde(default, rename = "dynamicLinkDomain")]
+    pub dynamic_link_domain: ::core::option::Option<String>,
+    /// iOS related information. See iOS related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
+    #[serde(default, rename = "iosInfo")]
+    pub ios_info: ::core::option::Option<IosInfo>,
+    /// The link your app will open, You can specify any URL your app can handle. This link must be a well-formatted URL, be properly URL-encoded, and use the HTTP or HTTPS scheme. See ''link'' parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually). Required.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Information of navigation behavior of a Firebase Dynamic Links.
+    #[serde(default, rename = "navigationInfo")]
+    pub navigation_info: ::core::option::Option<NavigationInfo>,
+    /// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
+    #[serde(default, rename = "socialMetaTagInfo")]
+    pub social_meta_tag_info: ::core::option::Option<SocialMetaTagInfo>,
+}
+
+/// Tracking parameters supported by Dynamic Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyticsInfo {
+    /// Google Play Campaign Measurements.
+    #[serde(default, rename = "googlePlayAnalytics")]
+    pub google_play_analytics: ::core::option::Option<GooglePlayAnalytics>,
+    /// iTunes Connect App Analytics.
+    #[serde(default, rename = "itunesConnectAnalytics")]
+    pub itunes_connect_analytics: ::core::option::Option<ITunesConnectAnalytics>,
+}
+
+/// Android related attributes to the Dynamic Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidInfo {
+    /// Link to open on Android if the app is not installed.
+    #[serde(default, rename = "androidFallbackLink")]
+    pub android_fallback_link: ::core::option::Option<String>,
+    /// If specified, this overrides the ‘link’ parameter on Android.
+    #[serde(default, rename = "androidLink")]
+    pub android_link: ::core::option::Option<String>,
+    /// Minimum version code for the Android app. If the installed app’s version code is lower, then the user is taken to the Play Store.
+    #[serde(default, rename = "androidMinPackageVersionCode")]
+    pub android_min_package_version_code: ::core::option::Option<String>,
+    /// Android package name of the app.
+    #[serde(default, rename = "androidPackageName")]
+    pub android_package_name: ::core::option::Option<String>,
+}
+
+/// Desktop related attributes to the Dynamic Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DesktopInfo {
+    /// Link to open on desktop.
+    #[serde(default, rename = "desktopFallbackLink")]
+    pub desktop_fallback_link: ::core::option::Option<String>,
+}
+
+/// iOS related attributes to the Dynamic Link..
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosInfo {
+    /// iOS App Store ID.
+    #[serde(default, rename = "iosAppStoreId")]
+    pub ios_app_store_id: ::core::option::Option<String>,
+    /// iOS bundle ID of the app.
+    #[serde(default, rename = "iosBundleId")]
+    pub ios_bundle_id: ::core::option::Option<String>,
+    /// Custom (destination) scheme to use for iOS. By default, we’ll use the bundle ID as the custom scheme. Developer can override this behavior using this param.
+    #[serde(default, rename = "iosCustomScheme")]
+    pub ios_custom_scheme: ::core::option::Option<String>,
+    /// Link to open on iOS if the app is not installed.
+    #[serde(default, rename = "iosFallbackLink")]
+    pub ios_fallback_link: ::core::option::Option<String>,
+    /// iPad bundle ID of the app.
+    #[serde(default, rename = "iosIpadBundleId")]
+    pub ios_ipad_bundle_id: ::core::option::Option<String>,
+    /// If specified, this overrides the ios_fallback_link value on iPads.
+    #[serde(default, rename = "iosIpadFallbackLink")]
+    pub ios_ipad_fallback_link: ::core::option::Option<String>,
+    /// iOS minimum version.
+    #[serde(default, rename = "iosMinimumVersion")]
+    pub ios_minimum_version: ::core::option::Option<String>,
+}
+
+/// Information of navigation behavior.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NavigationInfo {
+    /// If this option is on, FDL click will be forced to redirect rather than show an interstitial page.
+    #[serde(default, rename = "enableForcedRedirect")]
+    pub enable_forced_redirect: ::core::option::Option<bool>,
+}
+
+/// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SocialMetaTagInfo {
+    /// A short description of the link. Optional.
+    #[serde(default, rename = "socialDescription")]
+    pub social_description: ::core::option::Option<String>,
+    /// An image url string. Optional.
+    #[serde(default, rename = "socialImageLink")]
+    pub social_image_link: ::core::option::Option<String>,
+    /// Title to be displayed. Optional.
+    #[serde(default, rename = "socialTitle")]
+    pub social_title: ::core::option::Option<String>,
+}
+
 /// Parameters for Google Play Campaign Measurements. [Learn more](https://developers.google.com/analytics/devguides/collection/android/v4/campaigns#campaign-params)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePlayAnalytics {
@@ -377,86 +459,4 @@ pub struct ITunesConnectAnalytics {
     /// Provider token that enables analytics for Dynamic Links from within iTunes Connect.
     #[serde(default)]
     pub pt: ::core::option::Option<String>,
-}
-
-/// iOS related attributes to the Dynamic Link..
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosInfo {
-    /// iOS App Store ID.
-    #[serde(default, rename = "iosAppStoreId")]
-    pub ios_app_store_id: ::core::option::Option<String>,
-    /// iOS bundle ID of the app.
-    #[serde(default, rename = "iosBundleId")]
-    pub ios_bundle_id: ::core::option::Option<String>,
-    /// Custom (destination) scheme to use for iOS. By default, we’ll use the bundle ID as the custom scheme. Developer can override this behavior using this param.
-    #[serde(default, rename = "iosCustomScheme")]
-    pub ios_custom_scheme: ::core::option::Option<String>,
-    /// Link to open on iOS if the app is not installed.
-    #[serde(default, rename = "iosFallbackLink")]
-    pub ios_fallback_link: ::core::option::Option<String>,
-    /// iPad bundle ID of the app.
-    #[serde(default, rename = "iosIpadBundleId")]
-    pub ios_ipad_bundle_id: ::core::option::Option<String>,
-    /// If specified, this overrides the ios_fallback_link value on iPads.
-    #[serde(default, rename = "iosIpadFallbackLink")]
-    pub ios_ipad_fallback_link: ::core::option::Option<String>,
-    /// iOS minimum version.
-    #[serde(default, rename = "iosMinimumVersion")]
-    pub ios_minimum_version: ::core::option::Option<String>,
-}
-
-/// Managed Short Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedShortLink {
-    /// Creation timestamp of the short link.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Attributes that have been flagged about this short url.
-    #[serde(default, rename = "flaggedAttribute")]
-    pub flagged_attribute: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Full Dyamic Link info
-    #[serde(default)]
-    pub info: ::core::option::Option<DynamicLinkInfo>,
-    /// Short durable link url, for example, "https://sample.app.goo.gl/xyz123". Required.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Link name defined by the creator. Required.
-    #[serde(default, rename = "linkName")]
-    pub link_name: ::core::option::Option<String>,
-    /// Visibility status of link. // TODO: enum values: ["UNSPECIFIED_VISIBILITY", "UNARCHIVED", "ARCHIVED", "NEVER_SHOWN"]
-    #[serde(default)]
-    pub visibility: ::core::option::Option<String>,
-}
-
-/// Information of navigation behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NavigationInfo {
-    /// If this option is on, FDL click will be forced to redirect rather than show an interstitial page.
-    #[serde(default, rename = "enableForcedRedirect")]
-    pub enable_forced_redirect: ::core::option::Option<bool>,
-}
-
-/// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SocialMetaTagInfo {
-    /// A short description of the link. Optional.
-    #[serde(default, rename = "socialDescription")]
-    pub social_description: ::core::option::Option<String>,
-    /// An image url string. Optional.
-    #[serde(default, rename = "socialImageLink")]
-    pub social_image_link: ::core::option::Option<String>,
-    /// Title to be displayed. Optional.
-    #[serde(default, rename = "socialTitle")]
-    pub social_title: ::core::option::Option<String>,
-}
-
-/// Short Dynamic Link suffix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Suffix {
-    /// Only applies to Option.CUSTOM.
-    #[serde(default, rename = "customSuffix")]
-    pub custom_suffix: ::core::option::Option<String>,
-    /// Suffix option. // TODO: enum values: ["OPTION_UNSPECIFIED", "UNGUESSABLE", "SHORT", "CUSTOM"]
-    #[serde(default)]
-    pub option: ::core::option::Option<String>,
 }

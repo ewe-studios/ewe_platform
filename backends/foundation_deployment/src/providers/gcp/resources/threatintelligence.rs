@@ -10,6 +10,205 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A document that is associated with an alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertDocument {
+    /// Output only. AI summary of the finding.
+    #[serde(default, rename = "aiSummary")]
+    pub ai_summary: ::core::option::Option<String>,
+    /// Output only. The author of the document.
+    #[serde(default)]
+    pub author: ::core::option::Option<String>,
+    /// Output only. Time when the origin source collected the intel.
+    #[serde(default, rename = "collectionTime")]
+    pub collection_time: ::core::option::Option<String>,
+    /// Output only. The content of the document.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Output only. The time the document was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Time when GTI received the intel.
+    #[serde(default, rename = "ingestTime")]
+    pub ingest_time: ::core::option::Option<String>,
+    /// Output only. The language code of the document.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Identifier. Server generated name for the alert document. format is projects/{project}/alerts/{alert}/documents/{document}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Source of the intel item, e.g. DarkMarket.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Output only. Time when the intel was last updated by the source.
+    #[serde(default, rename = "sourceUpdateTime")]
+    pub source_update_time: ::core::option::Option<String>,
+    /// Output only. URI of the intel item from the source.
+    #[serde(default, rename = "sourceUri")]
+    pub source_uri: ::core::option::Option<String>,
+    /// Output only. The title of the document, if available.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Output only. The translation of the document, if available.
+    #[serde(default)]
+    pub translation: ::core::option::Option<AlertDocumentTranslation>,
+}
+
+/// A string with citation ids.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerProfileCitedString {
+    /// Optional. The citation ids for the string.
+    #[serde(default, rename = "citationIds")]
+    pub citation_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The value of the string.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Response message for EnumerateAlertFacets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnumerateAlertFacetsResponse {
+    /// List of facets and the counts.
+    #[serde(default)]
+    pub facets: ::core::option::Option<::std::vec::Vec<Facet>>,
+}
+
+/// Request message for GenerateOrgProfileConfiguration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenerateOrgProfileConfigurationRequest {
+    /// Required. The display name of the organization to generate the profile for.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. The domain of the organization to generate the profile for.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+}
+
+/// Response message for ListAlerts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAlertsResponse {
+    /// List of alerts.
+    #[serde(default)]
+    pub alerts: ::core::option::Option<::std::vec::Vec<Alert>>,
+    /// Page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for ListConfigurationRevisions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListConfigurationRevisionsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The Configuration Revisions associated with the specified Configuration
+    #[serde(default)]
+    pub revisions: ::core::option::Option<::std::vec::Vec<ConfigurationRevision>>,
+}
+
+/// Response message for ListConfigurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListConfigurationsResponse {
+    /// List of configurations.
+    #[serde(default)]
+    pub configurations: ::core::option::Option<::std::vec::Vec<Configuration>>,
+    /// Page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for ListFindings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListFindingsResponse {
+    /// List of findings.
+    #[serde(default)]
+    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
+    /// Page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for MarkAlertAsDuplicate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsDuplicateRequest {
+    /// Optional. Name of the alert to mark as a duplicate of. Format: projects/{project}/alerts/{alert}
+    #[serde(default, rename = "duplicateOf")]
+    pub duplicate_of: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for SearchFindings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchFindingsResponse {
+    /// List of findings.
+    #[serde(default)]
+    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
+    /// Page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for UpsertConfiguration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpsertConfigurationResponse {
+    /// Output only. Created configuration ID with server assigned id.
+    #[serde(default)]
+    pub configuration: ::core::option::Option<String>,
+}
+
+/// The translation of an alert document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertDocumentTranslation {
+    /// Output only. The translated content of the document.
+    #[serde(default, rename = "translatedContent")]
+    pub translated_content: ::core::option::Option<String>,
+    /// Output only. The translated title of the document.
+    #[serde(default, rename = "translatedTitle")]
+    pub translated_title: ::core::option::Option<String>,
+}
+
+/// Facet represents a sub element of a resource for filtering. The results from this method are used to populate the filterable facets in the UI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Facet {
+    /// Name of the facet. This is also the string that needs to be used in the filtering expression.
+    #[serde(default)]
+    pub facet: ::core::option::Option<String>,
+    /// List of counts for the facet (if categorical).
+    #[serde(default, rename = "facetCounts")]
+    pub facet_counts: ::core::option::Option<::std::vec::Vec<FacetCount>>,
+    /// The type of the facet. Options include "string", "int", "float", "bool", "enum", "timestamp", "user" and are useful to show the right sort of UI controls when building a AIP-160 style filtering string.
+    #[serde(default, rename = "facetType")]
+    pub facet_type: ::core::option::Option<String>,
+    /// Max value of the facet stringified based on type. Will be populated and formatted the same as min_value.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// Min value of the facet stringified based on type. This is only populated for facets that have a clear ordering, for types like enum it will be left empty. Timestamps will be formatted using RFC3339.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+    /// Total number of records that contain this facet with ANY value.
+    #[serde(default, rename = "totalCount")]
+    pub total_count: ::core::option::Option<String>,
+}
+
 /// Stateful object representing a group of Findings. Key feature to an Alert is that it expresses the user''s intent towards the findings of that group, even those that haven''t occurred yet.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Alert {
@@ -63,6 +262,86 @@ pub struct Alert {
     pub state: ::core::option::Option<String>,
 }
 
+/// A ConfigurationRevision is a snapshot of a Configuration at a point in time. It is immutable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationRevision {
+    /// Output only. The time the Revision was created
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Identifier. The name of the ConfigurationRevision Format: projects//configurations//revisions/
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The snapshot of the configuration
+    #[serde(default)]
+    pub snapshot: ::core::option::Option<Configuration>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A ‘stateless’ and a point in time event that a check produced a result of interest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Finding {
+    /// Optional. AI summary of the finding.
+    #[serde(default, rename = "aiSummary")]
+    pub ai_summary: ::core::option::Option<String>,
+    /// Optional. Name of the alert that this finding is bound to.
+    #[serde(default)]
+    pub alert: ::core::option::Option<String>,
+    /// Output only. Audit data about the finding.
+    #[serde(default)]
+    pub audit: ::core::option::Option<Audit>,
+    /// Optional. Configuration names that are bound to this finding.
+    #[serde(default)]
+    pub configurations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Holder of the domain specific details of the finding.
+    #[serde(default)]
+    pub detail: ::core::option::Option<FindingDetail>,
+    /// Required. A short descriptive title for the finding &lt;= 250 chars. EX: "Actor ''baddy'' offering $1000 for credentials of ''goodguy''".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Server generated name for the finding (leave clear during creation). Format: projects/{project}/findings/{finding}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Logical source of this finding (name of the sub-engine).
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Output only. High-Precision Relevance Analysis verdict for the finding.
+    #[serde(default, rename = "relevanceAnalysis")]
+    pub relevance_analysis: ::core::option::Option<RelevanceAnalysis>,
+    /// Output only. When identical finding (same labels and same details) has re-occurred.
+    #[serde(default, rename = "reoccurrenceTimes")]
+    pub reoccurrence_times: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Deprecated: Use the severity_analysis field instead. Base severity score from the finding source.
+    #[serde(default)]
+    pub severity: ::core::option::Option<f32>,
+    /// Output only. High-Precision Severity Analysis verdict for the finding.
+    #[serde(default, rename = "severityAnalysis")]
+    pub severity_analysis: ::core::option::Option<SeverityAnalysis>,
+}
+
+/// FacetCount represents a count of records with each facet value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FacetCount {
+    /// Count of records with the value.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// Value of the facet stringified. Timestamps will be formatted using RFC3339.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
 /// Container for different types of alert details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlertDetail {
@@ -80,76 +359,18 @@ pub struct AlertDetail {
     pub insider_threat: ::core::option::Option<InsiderThreatAlertDetail>,
 }
 
-/// A document that is associated with an alert.
+/// Structured priority analysis for a threat.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlertDocument {
-    /// Output only. AI summary of the finding.
-    #[serde(default, rename = "aiSummary")]
-    pub ai_summary: ::core::option::Option<String>,
-    /// Output only. The author of the document.
+pub struct PriorityAnalysis {
+    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
     #[serde(default)]
-    pub author: ::core::option::Option<String>,
-    /// Output only. Time when the origin source collected the intel.
-    #[serde(default, rename = "collectionTime")]
-    pub collection_time: ::core::option::Option<String>,
-    /// Output only. The content of the document.
+    pub confidence: ::core::option::Option<String>,
+    /// The level of Priority. // TODO: enum values: ["PRIORITY_LEVEL_UNSPECIFIED", "PRIORITY_LEVEL_LOW", "PRIORITY_LEVEL_MEDIUM", "PRIORITY_LEVEL_HIGH", "PRIORITY_LEVEL_CRITICAL"]
+    #[serde(default, rename = "priorityLevel")]
+    pub priority_level: ::core::option::Option<String>,
+    /// Human-readable explanation from the model, detailing why a particular result is considered to have a certain priority.
     #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Output only. The time the document was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Time when GTI received the intel.
-    #[serde(default, rename = "ingestTime")]
-    pub ingest_time: ::core::option::Option<String>,
-    /// Output only. The language code of the document.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Identifier. Server generated name for the alert document. format is projects/{project}/alerts/{alert}/documents/{document}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Source of the intel item, e.g. DarkMarket.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Output only. Time when the intel was last updated by the source.
-    #[serde(default, rename = "sourceUpdateTime")]
-    pub source_update_time: ::core::option::Option<String>,
-    /// Output only. URI of the intel item from the source.
-    #[serde(default, rename = "sourceUri")]
-    pub source_uri: ::core::option::Option<String>,
-    /// Output only. The title of the document, if available.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Output only. The translation of the document, if available.
-    #[serde(default)]
-    pub translation: ::core::option::Option<AlertDocumentTranslation>,
-}
-
-/// The translation of an alert document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlertDocumentTranslation {
-    /// Output only. The translated content of the document.
-    #[serde(default, rename = "translatedContent")]
-    pub translated_content: ::core::option::Option<String>,
-    /// Output only. The translated title of the document.
-    #[serde(default, rename = "translatedTitle")]
-    pub translated_title: ::core::option::Option<String>,
-}
-
-/// Tracks basic CRUD facts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Audit {
-    /// Output only. Time of creation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Agent that created or updated the record, could be a UserId or a JobId.
-    #[serde(default)]
-    pub creator: ::core::option::Option<String>,
-    /// Output only. Time of creation or last update.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. Agent that last updated the record, could be a UserId or a JobId.
-    #[serde(default)]
-    pub updater: ::core::option::Option<String>,
+    pub reasoning: ::core::option::Option<String>,
 }
 
 /// A configuration represents a behavior an engine should follow when producing new findings.
@@ -181,6 +402,107 @@ pub struct Configuration {
     pub version: ::core::option::Option<String>,
 }
 
+/// Wrapper class that contains the union struct for all the various findings detail specific classes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FindingDetail {
+    /// Data Leak finding detail type.
+    #[serde(default, rename = "dataLeak")]
+    pub data_leak: ::core::option::Option<DataLeakFindingDetail>,
+    /// Output only. Name of the detail type. Will be set by the server during creation to the name of the field that is set in the detail union.
+    #[serde(default, rename = "detailType")]
+    pub detail_type: ::core::option::Option<String>,
+    /// Initial Access Broker finding detail type.
+    #[serde(default, rename = "initialAccessBroker")]
+    pub initial_access_broker: ::core::option::Option<InitialAccessBrokerFindingDetail>,
+    /// Insider Threat finding detail type.
+    #[serde(default, rename = "insiderThreat")]
+    pub insider_threat: ::core::option::Option<InsiderThreatFindingDetail>,
+}
+
+/// Structured relevance analysis for a threat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RelevanceAnalysis {
+    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
+    #[serde(default)]
+    pub confidence: ::core::option::Option<String>,
+    /// Evidence supporting the verdict, including matched and unmatched items.
+    #[serde(default)]
+    pub evidence: ::core::option::Option<Evidence>,
+    /// Human-readable explanation from the matcher, detailing why a particular result is considered relevant or not relevant.
+    #[serde(default)]
+    pub reasoning: ::core::option::Option<String>,
+    /// The level of relevance. // TODO: enum values: ["RELEVANCE_LEVEL_UNSPECIFIED", "RELEVANCE_LEVEL_LOW", "RELEVANCE_LEVEL_MEDIUM", "RELEVANCE_LEVEL_HIGH"]
+    #[serde(default, rename = "relevanceLevel")]
+    pub relevance_level: ::core::option::Option<String>,
+    /// Indicates whether the threat is considered relevant.
+    #[serde(default)]
+    pub relevant: ::core::option::Option<bool>,
+}
+
+/// Structured severity analysis for a threat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeverityAnalysis {
+    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
+    #[serde(default)]
+    pub confidence: ::core::option::Option<String>,
+    /// Human-readable explanation from the model, detailing why a particular result is considered to have a certain severity.
+    #[serde(default)]
+    pub reasoning: ::core::option::Option<String>,
+    /// The level of severity. // TODO: enum values: ["SEVERITY_LEVEL_UNSPECIFIED", "SEVERITY_LEVEL_LOW", "SEVERITY_LEVEL_MEDIUM", "SEVERITY_LEVEL_HIGH"]
+    #[serde(default, rename = "severityLevel")]
+    pub severity_level: ::core::option::Option<String>,
+}
+
+/// Captures the specific details of Data Leak alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataLeakAlertDetail {
+    /// Required. Array of ids to accommodate multiple discovery documents
+    #[serde(default, rename = "discoveryDocumentIds")]
+    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Data Leak specific severity This will be the string representation of the DataLeakFindingDetail.Severityenum. (e.g., "LOW", "MEDIUM", "HIGH", "CRITICAL")
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Captures the specific details of InitialAccessBroker (IAB) alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitialAccessBrokerAlertDetail {
+    /// Required. Array of ids to accommodate multiple discovery documents
+    #[serde(default, rename = "discoveryDocumentIds")]
+    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. IAB specific severity
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Captures the specific details of InsiderThreat alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsiderThreatAlertDetail {
+    /// Required. Array of ids to accommodate multiple discovery documents
+    #[serde(default, rename = "discoveryDocumentIds")]
+    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. InsiderThreat specific severity This will be the string representation of the InsiderThreatFindingDetail.Severityenum. (e.g., "LOW", "MEDIUM", "HIGH", "CRITICAL")
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Tracks basic CRUD facts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Audit {
+    /// Output only. Time of creation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Agent that created or updated the record, could be a UserId or a JobId.
+    #[serde(default)]
+    pub creator: ::core::option::Option<String>,
+    /// Output only. Time of creation or last update.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. Agent that last updated the record, could be a UserId or a JobId.
+    #[serde(default)]
+    pub updater: ::core::option::Option<String>,
+}
+
 /// Wrapper class that contains the union struct for all the various configuration detail specific classes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationDetail {
@@ -192,60 +514,57 @@ pub struct ConfigurationDetail {
     pub detail_type: ::core::option::Option<String>,
 }
 
-/// A ConfigurationRevision is a snapshot of a Configuration at a point in time. It is immutable.
+/// A detail object for a Data Leak finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationRevision {
-    /// Output only. The time the Revision was created
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Identifier. The name of the ConfigurationRevision Format: projects//configurations//revisions/
+pub struct DataLeakFindingDetail {
+    /// Required. The unique identifier of the document that triggered the Data Leak finding. This ID can be used to retrieve the content of the document for further analysis.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// Required. Reference to the match score of the Data Leak finding. This is a float value greater than 0 and less than or equal to 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
+    #[serde(default, rename = "matchScore")]
+    pub match_score: ::core::option::Option<f32>,
+    /// Required. The severity of the Data Leak finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The snapshot of the configuration
-    #[serde(default)]
-    pub snapshot: ::core::option::Option<Configuration>,
+    pub severity: ::core::option::Option<String>,
 }
 
-/// Citation information for the customer profile.
+/// A detail object for an Initial Access Broker (IAB) finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerProfileCitation {
-    /// Required. The citation id for the citation. Should be unique within the profile.
-    #[serde(default, rename = "citationId")]
-    pub citation_id: ::core::option::Option<String>,
-    /// Required. The name of the document the citation is from.
+pub struct InitialAccessBrokerFindingDetail {
+    /// Required. The unique identifier of the document that triggered the IAB finding. This ID can be used to retrieve the content of the document for further analysis.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// Required. Reference to the match score of the IAB finding. This is a float value between 0 and 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
+    #[serde(default, rename = "matchScore")]
+    pub match_score: ::core::option::Option<f32>,
+    /// Required. The severity of the IAB finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub document: ::core::option::Option<String>,
-    /// The time the citation was retrieved.
-    #[serde(default, rename = "retrievalTime")]
-    pub retrieval_time: ::core::option::Option<String>,
-    /// Required. The source of the citation.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Optional. The url of the citation.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
-/// A string with citation ids.
+/// A detail object for a InsiderThreat finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerProfileCitedString {
-    /// Optional. The citation ids for the string.
-    #[serde(default, rename = "citationIds")]
-    pub citation_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The value of the string.
+pub struct InsiderThreatFindingDetail {
+    /// Required. The unique identifier of the document that triggered the InsiderThreat finding. This ID can be used to retrieve the content of the document for further analysis.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// Required. Reference to the match score of the InsiderThreat finding. This is a float value greater than 0 and less than or equal to 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
+    #[serde(default, rename = "matchScore")]
+    pub match_score: ::core::option::Option<f32>,
+    /// Required. The severity of the InsiderThreat finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
-/// Company information for the customer profile.
+/// Details the evidence used to determine the relevance verdict.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerProfileCompany {
-    /// Optional. The citation ids for the company.
-    #[serde(default, rename = "citationIds")]
-    pub citation_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The name of the company.
-    #[serde(default)]
-    pub company: ::core::option::Option<String>,
+pub struct Evidence {
+    /// A list of semantic themes or concepts found to be common, related, or aligned between the sources, supporting the verdict.
+    #[serde(default, rename = "commonThemes")]
+    pub common_themes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of semantic themes or descriptions unique to one source or semantically distant.
+    #[serde(default, rename = "distinctThemes")]
+    pub distinct_themes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// CustomerProfileConfig is the configuration for the customer profile.
@@ -292,6 +611,26 @@ pub struct CustomerProfileConfig {
     pub web_presences: ::core::option::Option<::std::vec::Vec<CustomerProfileWebPresence>>,
 }
 
+/// Citation information for the customer profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerProfileCitation {
+    /// Required. The citation id for the citation. Should be unique within the profile.
+    #[serde(default, rename = "citationId")]
+    pub citation_id: ::core::option::Option<String>,
+    /// Required. The name of the document the citation is from.
+    #[serde(default)]
+    pub document: ::core::option::Option<String>,
+    /// The time the citation was retrieved.
+    #[serde(default, rename = "retrievalTime")]
+    pub retrieval_time: ::core::option::Option<String>,
+    /// Required. The source of the citation.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Optional. The url of the citation.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
 /// Contact information for the customer profile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerProfileContactInfo {
@@ -313,6 +652,20 @@ pub struct CustomerProfileContactInfo {
     /// The phone number of the contact.
     #[serde(default)]
     pub phone: ::core::option::Option<String>,
+}
+
+/// Person information for the customer profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerProfilePerson {
+    /// Optional. The citation ids for the person.
+    #[serde(default, rename = "citationIds")]
+    pub citation_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The name of the person.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The title of the person.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// Industry information for the customer profile.
@@ -343,18 +696,15 @@ pub struct CustomerProfileLocation {
     pub facility_type: ::core::option::Option<String>,
 }
 
-/// Person information for the customer profile.
+/// Company information for the customer profile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerProfilePerson {
-    /// Optional. The citation ids for the person.
+pub struct CustomerProfileCompany {
+    /// Optional. The citation ids for the company.
     #[serde(default, rename = "citationIds")]
     pub citation_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The name of the person.
+    /// Required. The name of the company.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The title of the person.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
+    pub company: ::core::option::Option<String>,
 }
 
 /// Product information for the customer profile.
@@ -432,354 +782,4 @@ pub struct CustomerProfileWebPresence {
     /// Required. The domain name of the web presence.
     #[serde(default)]
     pub domain: ::core::option::Option<String>,
-}
-
-/// Captures the specific details of Data Leak alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataLeakAlertDetail {
-    /// Required. Array of ids to accommodate multiple discovery documents
-    #[serde(default, rename = "discoveryDocumentIds")]
-    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Data Leak specific severity This will be the string representation of the DataLeakFindingDetail.Severityenum. (e.g., "LOW", "MEDIUM", "HIGH", "CRITICAL")
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// A detail object for a Data Leak finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataLeakFindingDetail {
-    /// Required. The unique identifier of the document that triggered the Data Leak finding. This ID can be used to retrieve the content of the document for further analysis.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// Required. Reference to the match score of the Data Leak finding. This is a float value greater than 0 and less than or equal to 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
-    #[serde(default, rename = "matchScore")]
-    pub match_score: ::core::option::Option<f32>,
-    /// Required. The severity of the Data Leak finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// Response message for EnumerateAlertFacets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnumerateAlertFacetsResponse {
-    /// List of facets and the counts.
-    #[serde(default)]
-    pub facets: ::core::option::Option<::std::vec::Vec<Facet>>,
-}
-
-/// Details the evidence used to determine the relevance verdict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Evidence {
-    /// A list of semantic themes or concepts found to be common, related, or aligned between the sources, supporting the verdict.
-    #[serde(default, rename = "commonThemes")]
-    pub common_themes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of semantic themes or descriptions unique to one source or semantically distant.
-    #[serde(default, rename = "distinctThemes")]
-    pub distinct_themes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Facet represents a sub element of a resource for filtering. The results from this method are used to populate the filterable facets in the UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Facet {
-    /// Name of the facet. This is also the string that needs to be used in the filtering expression.
-    #[serde(default)]
-    pub facet: ::core::option::Option<String>,
-    /// List of counts for the facet (if categorical).
-    #[serde(default, rename = "facetCounts")]
-    pub facet_counts: ::core::option::Option<::std::vec::Vec<FacetCount>>,
-    /// The type of the facet. Options include "string", "int", "float", "bool", "enum", "timestamp", "user" and are useful to show the right sort of UI controls when building a AIP-160 style filtering string.
-    #[serde(default, rename = "facetType")]
-    pub facet_type: ::core::option::Option<String>,
-    /// Max value of the facet stringified based on type. Will be populated and formatted the same as min_value.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// Min value of the facet stringified based on type. This is only populated for facets that have a clear ordering, for types like enum it will be left empty. Timestamps will be formatted using RFC3339.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-    /// Total number of records that contain this facet with ANY value.
-    #[serde(default, rename = "totalCount")]
-    pub total_count: ::core::option::Option<String>,
-}
-
-/// FacetCount represents a count of records with each facet value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FacetCount {
-    /// Count of records with the value.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// Value of the facet stringified. Timestamps will be formatted using RFC3339.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A ‘stateless’ and a point in time event that a check produced a result of interest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Finding {
-    /// Optional. AI summary of the finding.
-    #[serde(default, rename = "aiSummary")]
-    pub ai_summary: ::core::option::Option<String>,
-    /// Optional. Name of the alert that this finding is bound to.
-    #[serde(default)]
-    pub alert: ::core::option::Option<String>,
-    /// Output only. Audit data about the finding.
-    #[serde(default)]
-    pub audit: ::core::option::Option<Audit>,
-    /// Optional. Configuration names that are bound to this finding.
-    #[serde(default)]
-    pub configurations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Holder of the domain specific details of the finding.
-    #[serde(default)]
-    pub detail: ::core::option::Option<FindingDetail>,
-    /// Required. A short descriptive title for the finding &lt;= 250 chars. EX: "Actor ''baddy'' offering $1000 for credentials of ''goodguy''".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Server generated name for the finding (leave clear during creation). Format: projects/{project}/findings/{finding}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Logical source of this finding (name of the sub-engine).
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Output only. High-Precision Relevance Analysis verdict for the finding.
-    #[serde(default, rename = "relevanceAnalysis")]
-    pub relevance_analysis: ::core::option::Option<RelevanceAnalysis>,
-    /// Output only. When identical finding (same labels and same details) has re-occurred.
-    #[serde(default, rename = "reoccurrenceTimes")]
-    pub reoccurrence_times: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Deprecated: Use the severity_analysis field instead. Base severity score from the finding source.
-    #[serde(default)]
-    pub severity: ::core::option::Option<f32>,
-    /// Output only. High-Precision Severity Analysis verdict for the finding.
-    #[serde(default, rename = "severityAnalysis")]
-    pub severity_analysis: ::core::option::Option<SeverityAnalysis>,
-}
-
-/// Wrapper class that contains the union struct for all the various findings detail specific classes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FindingDetail {
-    /// Data Leak finding detail type.
-    #[serde(default, rename = "dataLeak")]
-    pub data_leak: ::core::option::Option<DataLeakFindingDetail>,
-    /// Output only. Name of the detail type. Will be set by the server during creation to the name of the field that is set in the detail union.
-    #[serde(default, rename = "detailType")]
-    pub detail_type: ::core::option::Option<String>,
-    /// Initial Access Broker finding detail type.
-    #[serde(default, rename = "initialAccessBroker")]
-    pub initial_access_broker: ::core::option::Option<InitialAccessBrokerFindingDetail>,
-    /// Insider Threat finding detail type.
-    #[serde(default, rename = "insiderThreat")]
-    pub insider_threat: ::core::option::Option<InsiderThreatFindingDetail>,
-}
-
-/// Request message for GenerateOrgProfileConfiguration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GenerateOrgProfileConfigurationRequest {
-    /// Required. The display name of the organization to generate the profile for.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. The domain of the organization to generate the profile for.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-}
-
-/// Captures the specific details of InitialAccessBroker (IAB) alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InitialAccessBrokerAlertDetail {
-    /// Required. Array of ids to accommodate multiple discovery documents
-    #[serde(default, rename = "discoveryDocumentIds")]
-    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. IAB specific severity
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// A detail object for an Initial Access Broker (IAB) finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InitialAccessBrokerFindingDetail {
-    /// Required. The unique identifier of the document that triggered the IAB finding. This ID can be used to retrieve the content of the document for further analysis.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// Required. Reference to the match score of the IAB finding. This is a float value between 0 and 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
-    #[serde(default, rename = "matchScore")]
-    pub match_score: ::core::option::Option<f32>,
-    /// Required. The severity of the IAB finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// Captures the specific details of InsiderThreat alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsiderThreatAlertDetail {
-    /// Required. Array of ids to accommodate multiple discovery documents
-    #[serde(default, rename = "discoveryDocumentIds")]
-    pub discovery_document_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. InsiderThreat specific severity This will be the string representation of the InsiderThreatFindingDetail.Severityenum. (e.g., "LOW", "MEDIUM", "HIGH", "CRITICAL")
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// A detail object for a InsiderThreat finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsiderThreatFindingDetail {
-    /// Required. The unique identifier of the document that triggered the InsiderThreat finding. This ID can be used to retrieve the content of the document for further analysis.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// Required. Reference to the match score of the InsiderThreat finding. This is a float value greater than 0 and less than or equal to 1 calculated by the matching engine based on the similarity of the document and the user provided configurations.
-    #[serde(default, rename = "matchScore")]
-    pub match_score: ::core::option::Option<f32>,
-    /// Required. The severity of the InsiderThreat finding. This indicates the potential impact of the threat. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// Response message for ListAlerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAlertsResponse {
-    /// List of alerts.
-    #[serde(default)]
-    pub alerts: ::core::option::Option<::std::vec::Vec<Alert>>,
-    /// Page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for ListConfigurationRevisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListConfigurationRevisionsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The Configuration Revisions associated with the specified Configuration
-    #[serde(default)]
-    pub revisions: ::core::option::Option<::std::vec::Vec<ConfigurationRevision>>,
-}
-
-/// Response message for ListConfigurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListConfigurationsResponse {
-    /// List of configurations.
-    #[serde(default)]
-    pub configurations: ::core::option::Option<::std::vec::Vec<Configuration>>,
-    /// Page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for ListFindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFindingsResponse {
-    /// List of findings.
-    #[serde(default)]
-    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
-    /// Page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Request message for MarkAlertAsDuplicate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MarkAlertAsDuplicateRequest {
-    /// Optional. Name of the alert to mark as a duplicate of. Format: projects/{project}/alerts/{alert}
-    #[serde(default, rename = "duplicateOf")]
-    pub duplicate_of: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Structured priority analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PriorityAnalysis {
-    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
-    #[serde(default)]
-    pub confidence: ::core::option::Option<String>,
-    /// The level of Priority. // TODO: enum values: ["PRIORITY_LEVEL_UNSPECIFIED", "PRIORITY_LEVEL_LOW", "PRIORITY_LEVEL_MEDIUM", "PRIORITY_LEVEL_HIGH", "PRIORITY_LEVEL_CRITICAL"]
-    #[serde(default, rename = "priorityLevel")]
-    pub priority_level: ::core::option::Option<String>,
-    /// Human-readable explanation from the model, detailing why a particular result is considered to have a certain priority.
-    #[serde(default)]
-    pub reasoning: ::core::option::Option<String>,
-}
-
-/// Structured relevance analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RelevanceAnalysis {
-    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
-    #[serde(default)]
-    pub confidence: ::core::option::Option<String>,
-    /// Evidence supporting the verdict, including matched and unmatched items.
-    #[serde(default)]
-    pub evidence: ::core::option::Option<Evidence>,
-    /// Human-readable explanation from the matcher, detailing why a particular result is considered relevant or not relevant.
-    #[serde(default)]
-    pub reasoning: ::core::option::Option<String>,
-    /// The level of relevance. // TODO: enum values: ["RELEVANCE_LEVEL_UNSPECIFIED", "RELEVANCE_LEVEL_LOW", "RELEVANCE_LEVEL_MEDIUM", "RELEVANCE_LEVEL_HIGH"]
-    #[serde(default, rename = "relevanceLevel")]
-    pub relevance_level: ::core::option::Option<String>,
-    /// Indicates whether the threat is considered relevant.
-    #[serde(default)]
-    pub relevant: ::core::option::Option<bool>,
-}
-
-/// Response message for SearchFindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchFindingsResponse {
-    /// List of findings.
-    #[serde(default)]
-    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
-    /// Page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Structured severity analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SeverityAnalysis {
-    /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
-    #[serde(default)]
-    pub confidence: ::core::option::Option<String>,
-    /// Human-readable explanation from the model, detailing why a particular result is considered to have a certain severity.
-    #[serde(default)]
-    pub reasoning: ::core::option::Option<String>,
-    /// The level of severity. // TODO: enum values: ["SEVERITY_LEVEL_UNSPECIFIED", "SEVERITY_LEVEL_LOW", "SEVERITY_LEVEL_MEDIUM", "SEVERITY_LEVEL_HIGH"]
-    #[serde(default, rename = "severityLevel")]
-    pub severity_level: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Response message for UpsertConfiguration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpsertConfigurationResponse {
-    /// Output only. Created configuration ID with server assigned id.
-    #[serde(default)]
-    pub configuration: ::core::option::Option<String>,
 }

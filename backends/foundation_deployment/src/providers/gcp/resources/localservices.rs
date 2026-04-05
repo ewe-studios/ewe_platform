@@ -10,6 +10,31 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A page of the response received from the SearchAccountReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
+    /// List of account reports which maps 1:1 to a particular linked GLS account.
+    #[serde(default, rename = "accountReports")]
+    pub account_reports:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsHomeservicesLocalservicesV1AccountReport>>,
+    /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A page of the response received from the SearchDetailedLeadReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
+    /// List of detailed lead reports uniquely identified by external lead id.
+    #[serde(default, rename = "detailedLeadReports")]
+    pub detailed_lead_reports: ::core::option::Option<
+        ::std::vec::Vec<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>,
+    >,
+    /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// An Account Report of a GLS account identified by their account id containing aggregate data gathered from a particular date range. Next ID: 18
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
@@ -64,34 +89,6 @@ pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
     /// Total number of reviews the account has up to current date.
     #[serde(default, rename = "totalReview")]
     pub total_review: ::core::option::Option<i32>,
-}
-
-/// Conatiner for aggregator specific information if lead is for an aggregator GLS account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
-    /// Provider id (listed in aggregator system) which maps to a account id in GLS system.
-    #[serde(default, rename = "aggregatorProviderId")]
-    pub aggregator_provider_id: ::core::option::Option<String>,
-}
-
-/// Container for booking lead specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
-    /// Timestamp of when service is provided by advertiser.
-    #[serde(default, rename = "bookingAppointmentTimestamp")]
-    pub booking_appointment_timestamp: ::core::option::Option<String>,
-    /// Consumer email associated with the booking lead.
-    #[serde(default, rename = "consumerEmail")]
-    pub consumer_email: ::core::option::Option<String>,
-    /// Consumer phone number associated with the booking lead.
-    #[serde(default, rename = "consumerPhoneNumber")]
-    pub consumer_phone_number: ::core::option::Option<String>,
-    /// Name of the customer who created the lead.
-    #[serde(default, rename = "customerName")]
-    pub customer_name: ::core::option::Option<String>,
-    /// The job type of the specified lead.
-    #[serde(default, rename = "jobType")]
-    pub job_type: ::core::option::Option<String>,
 }
 
 /// A Detailed Lead Report of a lead identified by their lead id and contains consumer, account, monetization, and lead data.
@@ -150,6 +147,34 @@ pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
     pub timezone: ::core::option::Option<GoogleTypeTimeZone>,
 }
 
+/// Conatiner for aggregator specific information if lead is for an aggregator GLS account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
+    /// Provider id (listed in aggregator system) which maps to a account id in GLS system.
+    #[serde(default, rename = "aggregatorProviderId")]
+    pub aggregator_provider_id: ::core::option::Option<String>,
+}
+
+/// Container for booking lead specific information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
+    /// Timestamp of when service is provided by advertiser.
+    #[serde(default, rename = "bookingAppointmentTimestamp")]
+    pub booking_appointment_timestamp: ::core::option::Option<String>,
+    /// Consumer email associated with the booking lead.
+    #[serde(default, rename = "consumerEmail")]
+    pub consumer_email: ::core::option::Option<String>,
+    /// Consumer phone number associated with the booking lead.
+    #[serde(default, rename = "consumerPhoneNumber")]
+    pub consumer_phone_number: ::core::option::Option<String>,
+    /// Name of the customer who created the lead.
+    #[serde(default, rename = "customerName")]
+    pub customer_name: ::core::option::Option<String>,
+    /// The job type of the specified lead.
+    #[serde(default, rename = "jobType")]
+    pub job_type: ::core::option::Option<String>,
+}
+
 /// Container for message lead specific information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
@@ -179,31 +204,6 @@ pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
     /// Consumer phone number associated with the phone lead.
     #[serde(default, rename = "consumerPhoneNumber")]
     pub consumer_phone_number: ::core::option::Option<String>,
-}
-
-/// A page of the response received from the SearchAccountReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
-    /// List of account reports which maps 1:1 to a particular linked GLS account.
-    #[serde(default, rename = "accountReports")]
-    pub account_reports:
-        ::core::option::Option<::std::vec::Vec<GoogleAdsHomeservicesLocalservicesV1AccountReport>>,
-    /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A page of the response received from the SearchDetailedLeadReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
-    /// List of detailed lead reports uniquely identified by external lead id.
-    #[serde(default, rename = "detailedLeadReports")]
-    pub detailed_lead_reports: ::core::option::Option<
-        ::std::vec::Vec<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>,
-    >,
-    /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).

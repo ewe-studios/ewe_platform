@@ -21,6 +21,56 @@ pub struct ImportSshPublicKeyResponse {
     pub login_profile: ::core::option::Option<LoginProfile>,
 }
 
+/// A request message for creating a POSIX account entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisionPosixAccountRequest {
+    /// Optional. The regions to wait for a POSIX account to be written to before returning a response. If unspecified, defaults to all regions. Regions are listed at https://cloud.google.com/about/locations#region.
+    #[serde(default)]
+    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A request message for signing an SSH public key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignSshPublicKeyRequest {
+    /// The App Engine instance to sign the SSH public key for. Expected format: apps/{app}/services/{service}/versions/{version}/instances/{instance}
+    #[serde(default, rename = "appEngineInstance")]
+    pub app_engine_instance: ::core::option::Option<String>,
+    /// The Compute instance to sign the SSH public key for. Expected format: projects/{project}/zones/{zone}/instances/{numeric_instance_id}
+    #[serde(default, rename = "computeInstance")]
+    pub compute_instance: ::core::option::Option<String>,
+    /// Optional. The service account for the instance. If the instance in question does not have a service account, this field should be left empty. If the wrong service account is provided, this operation will return a signed certificate that will not be accepted by the VM.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Required. The SSH public key to sign.
+    #[serde(default, rename = "sshPublicKey")]
+    pub ssh_public_key: ::core::option::Option<String>,
+}
+
+/// The response message for signing an SSH public key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignSshPublicKeyResponse {
+    /// The signed SSH public key to use in the SSH handshake.
+    #[serde(default, rename = "signedSshPublicKey")]
+    pub signed_ssh_public_key: ::core::option::Option<String>,
+}
+
+/// The SSH public key information associated with a Google account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SshPublicKey {
+    /// An expiration time in microseconds since epoch.
+    #[serde(default, rename = "expirationTimeUsec")]
+    pub expiration_time_usec: ::core::option::Option<String>,
+    /// Output only. The SHA-256 fingerprint of the SSH public key.
+    #[serde(default)]
+    pub fingerprint: ::core::option::Option<String>,
+    /// Required. Public key text in SSH format, defined by [RFC4253](https://www.ietf.org/rfc/rfc4253.txt) section 6.6.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Output only. The canonical resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// The user profile information used for logging in to a virtual machine on Google Compute Engine.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginProfile {
@@ -71,54 +121,4 @@ pub struct PosixAccount {
     /// The username of the POSIX account.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
-}
-
-/// A request message for creating a POSIX account entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProvisionPosixAccountRequest {
-    /// Optional. The regions to wait for a POSIX account to be written to before returning a response. If unspecified, defaults to all regions. Regions are listed at https://cloud.google.com/about/locations#region.
-    #[serde(default)]
-    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A request message for signing an SSH public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignSshPublicKeyRequest {
-    /// The App Engine instance to sign the SSH public key for. Expected format: apps/{app}/services/{service}/versions/{version}/instances/{instance}
-    #[serde(default, rename = "appEngineInstance")]
-    pub app_engine_instance: ::core::option::Option<String>,
-    /// The Compute instance to sign the SSH public key for. Expected format: projects/{project}/zones/{zone}/instances/{numeric_instance_id}
-    #[serde(default, rename = "computeInstance")]
-    pub compute_instance: ::core::option::Option<String>,
-    /// Optional. The service account for the instance. If the instance in question does not have a service account, this field should be left empty. If the wrong service account is provided, this operation will return a signed certificate that will not be accepted by the VM.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Required. The SSH public key to sign.
-    #[serde(default, rename = "sshPublicKey")]
-    pub ssh_public_key: ::core::option::Option<String>,
-}
-
-/// The response message for signing an SSH public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignSshPublicKeyResponse {
-    /// The signed SSH public key to use in the SSH handshake.
-    #[serde(default, rename = "signedSshPublicKey")]
-    pub signed_ssh_public_key: ::core::option::Option<String>,
-}
-
-/// The SSH public key information associated with a Google account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SshPublicKey {
-    /// An expiration time in microseconds since epoch.
-    #[serde(default, rename = "expirationTimeUsec")]
-    pub expiration_time_usec: ::core::option::Option<String>,
-    /// Output only. The SHA-256 fingerprint of the SSH public key.
-    #[serde(default)]
-    pub fingerprint: ::core::option::Option<String>,
-    /// Required. Public key text in SSH format, defined by [RFC4253](https://www.ietf.org/rfc/rfc4253.txt) section 6.6.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Output only. The canonical resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }

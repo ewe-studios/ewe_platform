@@ -49,6 +49,20 @@ pub struct ListParametersResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Message describing RenderParameterVersionResponse resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderParameterVersionResponse {
+    /// Output only. Resource identifier of a ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
+    #[serde(default, rename = "parameterVersion")]
+    pub parameter_version: ::core::option::Option<String>,
+    /// Payload content of a ParameterVersion resource.
+    #[serde(default)]
+    pub payload: ::core::option::Option<ParameterVersionPayload>,
+    /// Output only. Server generated rendered version of the user provided payload data (ParameterVersionPayload) which has substitutions of all (if any) references to a SecretManager SecretVersion resources. This substitution only works for a Parameter which is in JSON or YAML format.
+    #[serde(default, rename = "renderedPayload")]
+    pub rendered_payload: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -67,6 +81,29 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// Message describing ParameterVersion resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParameterVersion {
+    /// Output only. [Output only] Create time stamp
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Disabled boolean to determine if a ParameterVersion acts as a metadata only resource (payload is never returned if disabled is true). If true any calls will always default to BASIC view even if the user explicitly passes FULL view as part of the request. A render call on a disabled resource fails with an error. Default value is False.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. Output only. [Output only] The resource name of the KMS key version used to encrypt the ParameterVersion payload. This field is populated only if the Parameter resource has customer managed encryption key (CMEK) configured.
+    #[serde(default, rename = "kmsKeyVersion")]
+    pub kms_key_version: ::core::option::Option<String>,
+    /// Identifier. [Output only] The resource name of the ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. Payload content of a ParameterVersion resource. This is only returned when the request provides the View value of FULL (default for GET request).
+    #[serde(default)]
+    pub payload: ::core::option::Option<ParameterVersionPayload>,
+    /// Output only. [Output only] Update time stamp
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message describing Parameter resource
@@ -95,49 +132,12 @@ pub struct Parameter {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Message describing ParameterVersion resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ParameterVersion {
-    /// Output only. [Output only] Create time stamp
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Disabled boolean to determine if a ParameterVersion acts as a metadata only resource (payload is never returned if disabled is true). If true any calls will always default to BASIC view even if the user explicitly passes FULL view as part of the request. A render call on a disabled resource fails with an error. Default value is False.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. Output only. [Output only] The resource name of the KMS key version used to encrypt the ParameterVersion payload. This field is populated only if the Parameter resource has customer managed encryption key (CMEK) configured.
-    #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: ::core::option::Option<String>,
-    /// Identifier. [Output only] The resource name of the ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. Payload content of a ParameterVersion resource. This is only returned when the request provides the View value of FULL (default for GET request).
-    #[serde(default)]
-    pub payload: ::core::option::Option<ParameterVersionPayload>,
-    /// Output only. [Output only] Update time stamp
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Message for storing a ParameterVersion resource''s payload data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParameterVersionPayload {
     /// Required. bytes data for storing payload.
     #[serde(default)]
     pub data: ::core::option::Option<String>,
-}
-
-/// Message describing RenderParameterVersionResponse resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenderParameterVersionResponse {
-    /// Output only. Resource identifier of a ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
-    #[serde(default, rename = "parameterVersion")]
-    pub parameter_version: ::core::option::Option<String>,
-    /// Payload content of a ParameterVersion resource.
-    #[serde(default)]
-    pub payload: ::core::option::Option<ParameterVersionPayload>,
-    /// Output only. Server generated rendered version of the user provided payload data (ParameterVersionPayload) which has substitutions of all (if any) references to a SecretManager SecretVersion resources. This substitution only works for a Parameter which is in JSON or YAML format.
-    #[serde(default, rename = "renderedPayload")]
-    pub rendered_payload: ::core::option::Option<String>,
 }
 
 /// Output-only policy member strings of a Google Cloud resource''s built-in identity.

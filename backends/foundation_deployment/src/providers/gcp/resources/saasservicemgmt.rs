@@ -10,84 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents the aggregation of a set of population of like records by a certain group. For example, a collection of unit counts can be aggregated and grouped by their state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Aggregate {
-    /// Required. Number of records in the group.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// Required. Group by which to aggregate.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-}
-
-/// Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Blueprint {
-    /// Output only. Type of the engine used to actuate the blueprint. e.g. terraform, helm etc.
-    #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// Optional. Immutable. URI to a blueprint used by the Unit (required unless unitKind or release is set).
-    #[serde(default)]
-    pub package: ::core::option::Option<String>,
-    /// Output only. Version metadata if present on the blueprint.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Dependency represent a single dependency with another unit kind by alias.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dependency {
-    /// Required. An alias for the dependency. Used for input variable mapping.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// Required. Immutable. The unit kind of the dependency.
-    #[serde(default, rename = "unitKind")]
-    pub unit_kind: ::core::option::Option<String>,
-}
-
-/// The configuration for error budget. If the number of failed units exceeds max(allowed_count, allowed_ratio * total_units), the rollout will be paused.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorBudget {
-    /// Optional. The maximum number of failed units allowed in a location without pausing the rollout.
-    #[serde(default, rename = "allowedCount")]
-    pub allowed_count: ::core::option::Option<i32>,
-    /// Optional. The maximum percentage of units allowed to fail (0, 100] within a location without pausing the rollout.
-    #[serde(default, rename = "allowedPercentage")]
-    pub allowed_percentage: ::core::option::Option<i32>,
-}
-
-/// Output variables whose values will be passed on to dependencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FromMapping {
-    /// Required. Alias of the dependency that the outputVariable will pass its value to
-    #[serde(default)]
-    pub dependency: ::core::option::Option<String>,
-    /// Required. Name of the outputVariable on the dependency
-    #[serde(default, rename = "outputVariable")]
-    pub output_variable: ::core::option::Option<String>,
-}
-
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationLocation {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListLocationsResponse {
@@ -211,31 +133,24 @@ pub struct ListUnitsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Location information that the service is available in.
+/// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// Optional. Name of location.
+pub struct GoogleCloudLocationLocation {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceSettings {
-    /// Optional. If present, it fixes the release on the unit until the given time; i.e. changes to the release field will be rejected. Rollouts should and will also respect this by not requesting an upgrade in the first place.
-    #[serde(default, rename = "pinnedUntilTime")]
-    pub pinned_until_time: ::core::option::Option<String>,
-}
-
-/// Provision is the unit operation that provision the underlying resources represented by a Unit. Can only execute if the Unit is not currently provisioned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Provision {
-    /// Optional. Set of input variables. Maximum 100. (optional)
-    #[serde(default, rename = "inputVariables")]
-    pub input_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
-    /// Optional. Reference to the Release object to use for the Unit. (optional).
-    #[serde(default)]
-    pub release: ::core::option::Option<String>,
 }
 
 /// A new version to be propagated and deployed to units. This includes pointers to packaged blueprints for actuation (e.g Helm or Terraform configuration packages) via artifact registry.
@@ -282,12 +197,45 @@ pub struct Release {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Set of requirements to be fulfilled on the Unit when using this Release.
+/// An object that describes various settings of Rollout execution. Includes built-in policies across GCP and GDC, and customizable policies.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReleaseRequirements {
-    /// Optional. A list of releases from which a unit can be upgraded to this one (optional). If left empty no constraints will be applied. When provided, unit upgrade requests to this release will check and enforce this constraint.
-    #[serde(default, rename = "upgradeableFromReleases")]
-    pub upgradeable_from_releases: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct RolloutKind {
+    /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The configuration for error budget. If the number of failed units exceeds max(allowed_count, allowed_ratio * total_units), the rollout will be paused. If not set, all units will be attempted to be updated regardless of the number of failures encountered.
+    #[serde(default, rename = "errorBudget")]
+    pub error_budget: ::core::option::Option<ErrorBudget>,
+    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name (full URI of the resource) following the standard naming scheme: "projects/{project}/locations/{location}/rolloutKinds/{rollout_kind_id}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The strategy used for executing a Rollout. This is a required field. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the associated UnitKind''s Saas Locations.
+    #[serde(default, rename = "rolloutOrchestrationStrategy")]
+    pub rollout_orchestration_strategy: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Optional. CEL(https://github.com/google/cel-spec) formatted filter string against Unit. The filter will be applied to determine the eligible unit population. This filter can only reduce, but not expand the scope of the rollout.
+    #[serde(default, rename = "unitFilter")]
+    pub unit_filter: ::core::option::Option<String>,
+    /// Required. Immutable. UnitKind that this rollout kind corresponds to. Rollouts stemming from this rollout kind will target the units of this unit kind. In other words, this defines the population of target units to be upgraded by rollouts.
+    #[serde(default, rename = "unitKind")]
+    pub unit_kind: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Optional. The config for updating the unit kind. By default, the unit kind will be updated on the rollout start. // TODO: enum values: ["UPDATE_UNIT_KIND_STRATEGY_UNSPECIFIED", "UPDATE_UNIT_KIND_STRATEGY_ON_START", "UPDATE_UNIT_KIND_STRATEGY_NEVER"]
+    #[serde(default, rename = "updateUnitKindStrategy")]
+    pub update_unit_kind_strategy: ::core::option::Option<String>,
 }
 
 /// Represents a single rollout execution and its results
@@ -361,77 +309,6 @@ pub struct Rollout {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RolloutControl {
-    /// Required. Action to be performed on the Rollout. The default behavior is to run the rollout until it naturally reaches a terminal state. // TODO: enum values: ["ROLLOUT_ACTION_UNSPECIFIED", "ROLLOUT_ACTION_RUN", "ROLLOUT_ACTION_PAUSE", "ROLLOUT_ACTION_CANCEL"]
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Optional. Parameters for the RUN action. It is an error to specify this if the RolloutAction is not set to RUN. By default, the rollout will retry failed operations when resumed.
-    #[serde(default, rename = "runParams")]
-    pub run_params: ::core::option::Option<RunRolloutActionParams>,
-}
-
-/// An object that describes various settings of Rollout execution. Includes built-in policies across GCP and GDC, and customizable policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RolloutKind {
-    /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The configuration for error budget. If the number of failed units exceeds max(allowed_count, allowed_ratio * total_units), the rollout will be paused. If not set, all units will be attempted to be updated regardless of the number of failures encountered.
-    #[serde(default, rename = "errorBudget")]
-    pub error_budget: ::core::option::Option<ErrorBudget>,
-    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name (full URI of the resource) following the standard naming scheme: "projects/{project}/locations/{location}/rolloutKinds/{rollout_kind_id}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The strategy used for executing a Rollout. This is a required field. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the associated UnitKind''s Saas Locations.
-    #[serde(default, rename = "rolloutOrchestrationStrategy")]
-    pub rollout_orchestration_strategy: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Optional. CEL(https://github.com/google/cel-spec) formatted filter string against Unit. The filter will be applied to determine the eligible unit population. This filter can only reduce, but not expand the scope of the rollout.
-    #[serde(default, rename = "unitFilter")]
-    pub unit_filter: ::core::option::Option<String>,
-    /// Required. Immutable. UnitKind that this rollout kind corresponds to. Rollouts stemming from this rollout kind will target the units of this unit kind. In other words, this defines the population of target units to be upgraded by rollouts.
-    #[serde(default, rename = "unitKind")]
-    pub unit_kind: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Optional. The config for updating the unit kind. By default, the unit kind will be updated on the rollout start. // TODO: enum values: ["UPDATE_UNIT_KIND_STRATEGY_UNSPECIFIED", "UPDATE_UNIT_KIND_STRATEGY_ON_START", "UPDATE_UNIT_KIND_STRATEGY_NEVER"]
-    #[serde(default, rename = "updateUnitKindStrategy")]
-    pub update_unit_kind_strategy: ::core::option::Option<String>,
-}
-
-/// RolloutStats contains information about the progress of a rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RolloutStats {
-    /// Optional. Output only. Estimated number of units based. The estimation is computed upon creation of the rollout.
-    #[serde(default, rename = "estimatedTotalUnitCount")]
-    pub estimated_total_unit_count: ::core::option::Option<String>,
-    /// Optional. Output only. Unordered list. A breakdown of the progress of operations triggered by the rollout. Provides a count of Operations by their state. This can be used to determine the number of units which have been updated, or are scheduled to be updated. There will be at most one entry per group. Possible values for operation groups are: - "SCHEDULED" - "PENDING" - "RUNNING" - "SUCCEEDED" - "FAILED" - "CANCELLED"
-    #[serde(default, rename = "operationsByState")]
-    pub operations_by_state: ::core::option::Option<::std::vec::Vec<Aggregate>>,
-}
-
-/// Parameters for the RUN action controlling the behavior of the rollout when it is resumed from a PAUSED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunRolloutActionParams {
-    /// Required. If true, the rollout will retry failed operations when resumed. This is applicable only the current state of the Rollout is PAUSED and the requested action is RUN.
-    #[serde(default, rename = "retryFailedOperations")]
-    pub retry_failed_operations: ::core::option::Option<bool>,
-}
-
 /// Saas is a representation of a SaaS service managed by the Producer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Saas {
@@ -470,48 +347,6 @@ pub struct Saas {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// SaasCondition describes the status of a Saas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SaasCondition {
-    /// Required. Last time the condition transited from one status to another.
-    #[serde(default, rename = "lastTransitionTime")]
-    pub last_transition_time: ::core::option::Option<String>,
-    /// Required. Human readable message indicating details about the last transition.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Required. Brief reason for the condition''s last transition.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Required. Status of the condition. // TODO: enum values: ["STATUS_UNSPECIFIED", "STATUS_UNKNOWN", "STATUS_TRUE", "STATUS_FALSE"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Required. Type of the condition. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_READY", "TYPE_SYNCHRONIZED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A time specification to schedule the maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schedule {
-    /// Optional. Start of operation. If not set, will be set to the start of the next window. (optional)
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// Tenant represents the service producer side of an instance of the service created based on a request from a consumer. In a typical scenario a Tenant has a one-to-one mapping with a resource given out to a service consumer. Example: tenant: name: "projects/svc1/locations/loc/tenants/inst-068afff8" consumer_resource: "projects/gshoe/locations/loc/shoes/black-shoe"
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tenant {
@@ -542,131 +377,6 @@ pub struct Tenant {
     /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Input variables whose values will be passed on to dependencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToMapping {
-    /// Required. Alias of the dependency that the inputVariable will pass its value to
-    #[serde(default)]
-    pub dependency: ::core::option::Option<String>,
-    /// Optional. Tells SaaS Runtime if this mapping should be used during lookup or not
-    #[serde(default, rename = "ignoreForLookup")]
-    pub ignore_for_lookup: ::core::option::Option<bool>,
-    /// Required. Name of the inputVariable on the dependency
-    #[serde(default, rename = "inputVariable")]
-    pub input_variable: ::core::option::Option<String>,
-}
-
-/// A unit of deployment that has its lifecycle via a CRUD API using an actuation engine under the hood (e.g. based on Terraform, Helm or a custom implementation provided by a service producer). A building block of a SaaS Tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Unit {
-    /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. Output only. A set of conditions which indicate the various conditions this resource can have.
-    #[serde(default)]
-    pub conditions: ::core::option::Option<::std::vec::Vec<UnitCondition>>,
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Output only. Set of dependencies for this unit. Maximum 10.
-    #[serde(default)]
-    pub dependencies: ::core::option::Option<::std::vec::Vec<UnitDependency>>,
-    /// Optional. Output only. List of Units that depend on this unit. Unit can only be deprovisioned if this list is empty. Maximum 1000.
-    #[serde(default)]
-    pub dependents: ::core::option::Option<::std::vec::Vec<UnitDependency>>,
-    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Output only. Indicates the current input variables deployed by the unit
-    #[serde(default, rename = "inputVariables")]
-    pub input_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
-    /// Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.
-    #[serde(default)]
-    pub maintenance: ::core::option::Option<MaintenanceSettings>,
-    /// Optional. Immutable. Indicates whether the Unit life cycle is controlled by the user or by the system. Immutable once created. // TODO: enum values: ["MANAGEMENT_MODE_UNSPECIFIED", "MANAGEMENT_MODE_USER", "MANAGEMENT_MODE_SYSTEM"]
-    #[serde(default, rename = "managementMode")]
-    pub management_mode: ::core::option::Option<String>,
-    /// Identifier. The resource name (full URI of the resource) following the standard naming scheme: "projects/{project}/locations/{location}/units/{unit}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Output only. List of concurrent UnitOperations that are operating on this Unit.
-    #[serde(default, rename = "ongoingOperations")]
-    pub ongoing_operations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Output only. Set of key/value pairs corresponding to output variables from execution of actuation templates. The variables are declared in actuation configs (e.g in helm chart or terraform) and the values are fetched and returned by the actuation engine upon completion of execution.
-    #[serde(default, rename = "outputVariables")]
-    pub output_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
-    /// Optional. Output only. List of pending (wait to be executed) UnitOperations for this unit.
-    #[serde(default, rename = "pendingOperations")]
-    pub pending_operations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Output only. The current Release object for this Unit.
-    #[serde(default)]
-    pub release: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Indicates whether the resource location satisfies Zone Separation constraints. This is false by default.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Optional. Output only. List of scheduled UnitOperations for this unit.
-    #[serde(default, rename = "scheduledOperations")]
-    pub scheduled_operations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Output only. Current lifecycle state of the resource (e.g. if it''s being created or ready to use). // TODO: enum values: ["UNIT_STATE_UNSPECIFIED", "UNIT_STATE_NOT_PROVISIONED", "UNIT_STATE_PROVISIONING", "UNIT_STATE_UPDATING", "UNIT_STATE_DEPROVISIONING", "UNIT_STATE_READY", "UNIT_STATE_ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Output only. If set, indicates the time when the system will start removing the unit.
-    #[serde(default, rename = "systemCleanupAt")]
-    pub system_cleanup_at: ::core::option::Option<String>,
-    /// Optional. Output only. Indicates the system managed state of the unit. // TODO: enum values: ["SYSTEM_MANAGED_STATE_UNSPECIFIED", "SYSTEM_MANAGED_STATE_ACTIVE", "SYSTEM_MANAGED_STATE_INACTIVE", "SYSTEM_MANAGED_STATE_DECOMMISSIONED"]
-    #[serde(default, rename = "systemManagedState")]
-    pub system_managed_state: ::core::option::Option<String>,
-    /// Optional. Reference to the Saas Tenant resource this unit belongs to. This for example informs the maintenance policies to use for scheduling future updates on a unit. (optional and immutable once created)
-    #[serde(default)]
-    pub tenant: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Optional. Reference to the UnitKind this Unit belongs to. Immutable once set.
-    #[serde(default, rename = "unitKind")]
-    pub unit_kind: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// UnitCondition describes the status of an Unit. UnitCondition is individual components that contribute to an overall state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnitCondition {
-    /// Required. Last time the condition transited from one status to another.
-    #[serde(default, rename = "lastTransitionTime")]
-    pub last_transition_time: ::core::option::Option<String>,
-    /// Required. Human readable message indicating details about the last transition.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Required. Brief reason for the condition''s last transition.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Required. Status of the condition. // TODO: enum values: ["STATUS_UNSPECIFIED", "STATUS_UNKNOWN", "STATUS_TRUE", "STATUS_FALSE"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Required. Type of the condition. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_READY", "TYPE_UPDATING", "TYPE_PROVISIONED", "TYPE_OPERATION_ERROR"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Set of dependencies for this unit. Maximum 10.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnitDependency {
-    /// Output only. Alias for the name of the dependency.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// Output only. A reference to the Unit object.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
 }
 
 /// Definition of a Unit. Units belonging to the same UnitKind are managed together; for example they follow the same release model (blueprints, versions etc.) and are typically rolled out together.
@@ -772,6 +482,208 @@ pub struct UnitOperation {
     pub upgrade: ::core::option::Option<Upgrade>,
 }
 
+/// A unit of deployment that has its lifecycle via a CRUD API using an actuation engine under the hood (e.g. based on Terraform, Helm or a custom implementation provided by a service producer). A building block of a SaaS Tenant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Unit {
+    /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. Output only. A set of conditions which indicate the various conditions this resource can have.
+    #[serde(default)]
+    pub conditions: ::core::option::Option<::std::vec::Vec<UnitCondition>>,
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Output only. Set of dependencies for this unit. Maximum 10.
+    #[serde(default)]
+    pub dependencies: ::core::option::Option<::std::vec::Vec<UnitDependency>>,
+    /// Optional. Output only. List of Units that depend on this unit. Unit can only be deprovisioned if this list is empty. Maximum 1000.
+    #[serde(default)]
+    pub dependents: ::core::option::Option<::std::vec::Vec<UnitDependency>>,
+    /// Output only. An opaque value that uniquely identifies a version or generation of a resource. It can be used to confirm that the client and server agree on the ordering of a resource being written.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Output only. Indicates the current input variables deployed by the unit
+    #[serde(default, rename = "inputVariables")]
+    pub input_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
+    /// Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.
+    #[serde(default)]
+    pub maintenance: ::core::option::Option<MaintenanceSettings>,
+    /// Optional. Immutable. Indicates whether the Unit life cycle is controlled by the user or by the system. Immutable once created. // TODO: enum values: ["MANAGEMENT_MODE_UNSPECIFIED", "MANAGEMENT_MODE_USER", "MANAGEMENT_MODE_SYSTEM"]
+    #[serde(default, rename = "managementMode")]
+    pub management_mode: ::core::option::Option<String>,
+    /// Identifier. The resource name (full URI of the resource) following the standard naming scheme: "projects/{project}/locations/{location}/units/{unit}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Output only. List of concurrent UnitOperations that are operating on this Unit.
+    #[serde(default, rename = "ongoingOperations")]
+    pub ongoing_operations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Output only. Set of key/value pairs corresponding to output variables from execution of actuation templates. The variables are declared in actuation configs (e.g in helm chart or terraform) and the values are fetched and returned by the actuation engine upon completion of execution.
+    #[serde(default, rename = "outputVariables")]
+    pub output_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
+    /// Optional. Output only. List of pending (wait to be executed) UnitOperations for this unit.
+    #[serde(default, rename = "pendingOperations")]
+    pub pending_operations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Output only. The current Release object for this Unit.
+    #[serde(default)]
+    pub release: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Indicates whether the resource location satisfies Zone Separation constraints. This is false by default.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Optional. Output only. List of scheduled UnitOperations for this unit.
+    #[serde(default, rename = "scheduledOperations")]
+    pub scheduled_operations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Output only. Current lifecycle state of the resource (e.g. if it''s being created or ready to use). // TODO: enum values: ["UNIT_STATE_UNSPECIFIED", "UNIT_STATE_NOT_PROVISIONED", "UNIT_STATE_PROVISIONING", "UNIT_STATE_UPDATING", "UNIT_STATE_DEPROVISIONING", "UNIT_STATE_READY", "UNIT_STATE_ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Output only. If set, indicates the time when the system will start removing the unit.
+    #[serde(default, rename = "systemCleanupAt")]
+    pub system_cleanup_at: ::core::option::Option<String>,
+    /// Optional. Output only. Indicates the system managed state of the unit. // TODO: enum values: ["SYSTEM_MANAGED_STATE_UNSPECIFIED", "SYSTEM_MANAGED_STATE_ACTIVE", "SYSTEM_MANAGED_STATE_INACTIVE", "SYSTEM_MANAGED_STATE_DECOMMISSIONED"]
+    #[serde(default, rename = "systemManagedState")]
+    pub system_managed_state: ::core::option::Option<String>,
+    /// Optional. Reference to the Saas Tenant resource this unit belongs to. This for example informs the maintenance policies to use for scheduling future updates on a unit. (optional and immutable once created)
+    #[serde(default)]
+    pub tenant: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the resource. UID is unique in the time and space for this resource within the scope of the service. It is typically generated by the server on successful creation of a resource and must not be changed. UID is used to uniquely identify resources with resource name reuses. This should be a UUID4.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Optional. Reference to the UnitKind this Unit belongs to. Immutable once set.
+    #[serde(default, rename = "unitKind")]
+    pub unit_kind: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was last updated. Any change to the resource made by users must refresh this value. Changes to a resource made by the service should refresh this value.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Blueprint {
+    /// Output only. Type of the engine used to actuate the blueprint. e.g. terraform, helm etc.
+    #[serde(default)]
+    pub engine: ::core::option::Option<String>,
+    /// Optional. Immutable. URI to a blueprint used by the Unit (required unless unitKind or release is set).
+    #[serde(default)]
+    pub package: ::core::option::Option<String>,
+    /// Output only. Version metadata if present on the blueprint.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Set of requirements to be fulfilled on the Unit when using this Release.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReleaseRequirements {
+    /// Optional. A list of releases from which a unit can be upgraded to this one (optional). If left empty no constraints will be applied. When provided, unit upgrade requests to this release will check and enforce this constraint.
+    #[serde(default, rename = "upgradeableFromReleases")]
+    pub upgradeable_from_releases: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The configuration for error budget. If the number of failed units exceeds max(allowed_count, allowed_ratio * total_units), the rollout will be paused.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorBudget {
+    /// Optional. The maximum number of failed units allowed in a location without pausing the rollout.
+    #[serde(default, rename = "allowedCount")]
+    pub allowed_count: ::core::option::Option<i32>,
+    /// Optional. The maximum percentage of units allowed to fail (0, 100] within a location without pausing the rollout.
+    #[serde(default, rename = "allowedPercentage")]
+    pub allowed_percentage: ::core::option::Option<i32>,
+}
+
+/// RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RolloutControl {
+    /// Required. Action to be performed on the Rollout. The default behavior is to run the rollout until it naturally reaches a terminal state. // TODO: enum values: ["ROLLOUT_ACTION_UNSPECIFIED", "ROLLOUT_ACTION_RUN", "ROLLOUT_ACTION_PAUSE", "ROLLOUT_ACTION_CANCEL"]
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Optional. Parameters for the RUN action. It is an error to specify this if the RolloutAction is not set to RUN. By default, the rollout will retry failed operations when resumed.
+    #[serde(default, rename = "runParams")]
+    pub run_params: ::core::option::Option<RunRolloutActionParams>,
+}
+
+/// RolloutStats contains information about the progress of a rollout.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RolloutStats {
+    /// Optional. Output only. Estimated number of units based. The estimation is computed upon creation of the rollout.
+    #[serde(default, rename = "estimatedTotalUnitCount")]
+    pub estimated_total_unit_count: ::core::option::Option<String>,
+    /// Optional. Output only. Unordered list. A breakdown of the progress of operations triggered by the rollout. Provides a count of Operations by their state. This can be used to determine the number of units which have been updated, or are scheduled to be updated. There will be at most one entry per group. Possible values for operation groups are: - "SCHEDULED" - "PENDING" - "RUNNING" - "SUCCEEDED" - "FAILED" - "CANCELLED"
+    #[serde(default, rename = "operationsByState")]
+    pub operations_by_state: ::core::option::Option<::std::vec::Vec<Aggregate>>,
+}
+
+/// SaasCondition describes the status of a Saas.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SaasCondition {
+    /// Required. Last time the condition transited from one status to another.
+    #[serde(default, rename = "lastTransitionTime")]
+    pub last_transition_time: ::core::option::Option<String>,
+    /// Required. Human readable message indicating details about the last transition.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Required. Brief reason for the condition''s last transition.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// Required. Status of the condition. // TODO: enum values: ["STATUS_UNSPECIFIED", "STATUS_UNKNOWN", "STATUS_TRUE", "STATUS_FALSE"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Required. Type of the condition. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_READY", "TYPE_SYNCHRONIZED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Location information that the service is available in.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// Optional. Name of location.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Dependency represent a single dependency with another unit kind by alias.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dependency {
+    /// Required. An alias for the dependency. Used for input variable mapping.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// Required. Immutable. The unit kind of the dependency.
+    #[serde(default, rename = "unitKind")]
+    pub unit_kind: ::core::option::Option<String>,
+}
+
+/// Mapping of input variables to their respective output variable for depedenencies
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VariableMapping {
+    /// Optional. Output variables which will get their values from dependencies
+    #[serde(default)]
+    pub from: ::core::option::Option<FromMapping>,
+    /// Optional. Input variables whose values will be passed on to dependencies.
+    #[serde(default)]
+    pub to: ::core::option::Option<ToMapping>,
+    /// Required. name of the variable
+    #[serde(default)]
+    pub variable: ::core::option::Option<String>,
+}
+
 /// UnitOperationCondition describes the status of an Unit Operation. UnitOperationCondition is individual components that contribute to an overall state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnitOperationCondition {
@@ -792,18 +704,23 @@ pub struct UnitOperationCondition {
     pub type_: ::core::option::Option<String>,
 }
 
-/// UnitVariable describes a parameter for a Unit.
+/// Provision is the unit operation that provision the underlying resources represented by a Unit. Can only execute if the Unit is not currently provisioned.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnitVariable {
-    /// Optional. Immutable. Name of a supported variable type. Supported types are string, int, bool. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INT", "BOOL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Optional. String encoded value for the variable.
+pub struct Provision {
+    /// Optional. Set of input variables. Maximum 100. (optional)
+    #[serde(default, rename = "inputVariables")]
+    pub input_variables: ::core::option::Option<::std::vec::Vec<UnitVariable>>,
+    /// Optional. Reference to the Release object to use for the Unit. (optional).
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
-    /// Required. Immutable. Name of the variable from actuation configs.
-    #[serde(default)]
-    pub variable: ::core::option::Option<String>,
+    pub release: ::core::option::Option<String>,
+}
+
+/// A time specification to schedule the maintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Schedule {
+    /// Optional. Start of operation. If not set, will be set to the start of the next window. (optional)
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Upgrade is the unit operation that upgrades a provisioned unit, which may also include the underlying resources represented by a Unit. Can only execute if the Unit is currently provisioned.
@@ -817,16 +734,99 @@ pub struct Upgrade {
     pub release: ::core::option::Option<String>,
 }
 
-/// Mapping of input variables to their respective output variable for depedenencies
+/// UnitCondition describes the status of an Unit. UnitCondition is individual components that contribute to an overall state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VariableMapping {
-    /// Optional. Output variables which will get their values from dependencies
+pub struct UnitCondition {
+    /// Required. Last time the condition transited from one status to another.
+    #[serde(default, rename = "lastTransitionTime")]
+    pub last_transition_time: ::core::option::Option<String>,
+    /// Required. Human readable message indicating details about the last transition.
     #[serde(default)]
-    pub from: ::core::option::Option<FromMapping>,
-    /// Optional. Input variables whose values will be passed on to dependencies.
+    pub message: ::core::option::Option<String>,
+    /// Required. Brief reason for the condition''s last transition.
     #[serde(default)]
-    pub to: ::core::option::Option<ToMapping>,
-    /// Required. name of the variable
+    pub reason: ::core::option::Option<String>,
+    /// Required. Status of the condition. // TODO: enum values: ["STATUS_UNSPECIFIED", "STATUS_UNKNOWN", "STATUS_TRUE", "STATUS_FALSE"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Required. Type of the condition. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_READY", "TYPE_UPDATING", "TYPE_PROVISIONED", "TYPE_OPERATION_ERROR"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Set of dependencies for this unit. Maximum 10.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnitDependency {
+    /// Output only. Alias for the name of the dependency.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// Output only. A reference to the Unit object.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+}
+
+/// Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceSettings {
+    /// Optional. If present, it fixes the release on the unit until the given time; i.e. changes to the release field will be rejected. Rollouts should and will also respect this by not requesting an upgrade in the first place.
+    #[serde(default, rename = "pinnedUntilTime")]
+    pub pinned_until_time: ::core::option::Option<String>,
+}
+
+/// Parameters for the RUN action controlling the behavior of the rollout when it is resumed from a PAUSED state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunRolloutActionParams {
+    /// Required. If true, the rollout will retry failed operations when resumed. This is applicable only the current state of the Rollout is PAUSED and the requested action is RUN.
+    #[serde(default, rename = "retryFailedOperations")]
+    pub retry_failed_operations: ::core::option::Option<bool>,
+}
+
+/// Represents the aggregation of a set of population of like records by a certain group. For example, a collection of unit counts can be aggregated and grouped by their state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Aggregate {
+    /// Required. Number of records in the group.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+    /// Required. Group by which to aggregate.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+}
+
+/// Output variables whose values will be passed on to dependencies
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FromMapping {
+    /// Required. Alias of the dependency that the outputVariable will pass its value to
+    #[serde(default)]
+    pub dependency: ::core::option::Option<String>,
+    /// Required. Name of the outputVariable on the dependency
+    #[serde(default, rename = "outputVariable")]
+    pub output_variable: ::core::option::Option<String>,
+}
+
+/// Input variables whose values will be passed on to dependencies
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToMapping {
+    /// Required. Alias of the dependency that the inputVariable will pass its value to
+    #[serde(default)]
+    pub dependency: ::core::option::Option<String>,
+    /// Optional. Tells SaaS Runtime if this mapping should be used during lookup or not
+    #[serde(default, rename = "ignoreForLookup")]
+    pub ignore_for_lookup: ::core::option::Option<bool>,
+    /// Required. Name of the inputVariable on the dependency
+    #[serde(default, rename = "inputVariable")]
+    pub input_variable: ::core::option::Option<String>,
+}
+
+/// UnitVariable describes a parameter for a Unit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnitVariable {
+    /// Optional. Immutable. Name of a supported variable type. Supported types are string, int, bool. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INT", "BOOL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Optional. String encoded value for the variable.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+    /// Required. Immutable. Name of the variable from actuation configs.
     #[serde(default)]
     pub variable: ::core::option::Option<String>,
 }

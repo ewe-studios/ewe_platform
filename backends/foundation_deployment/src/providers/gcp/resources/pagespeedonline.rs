@@ -10,60 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A light reference to an audit by id, used to group and weight audits in a given category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditRefs {
-    /// The conventional acronym for the audit/metric.
-    #[serde(default)]
-    pub acronym: ::core::option::Option<String>,
-    /// The category group that the audit belongs to (optional).
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// The audit ref id.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Any audit IDs closely relevant to this one.
-    #[serde(default, rename = "relevantAudits")]
-    pub relevant_audits: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The weight this audit''s score has on the overall category score.
-    #[serde(default)]
-    pub weight: ::core::option::Option<f64>,
-}
-
-/// A proportion of data in the total distribution, bucketed by a min/max percentage. Each bucket''s range is bounded by min &lt;= x &lt; max, In millisecond.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bucket {
-    /// Upper bound for a bucket''s range.
-    #[serde(default)]
-    pub max: ::core::option::Option<i32>,
-    /// Lower bound for a bucket''s range.
-    #[serde(default)]
-    pub min: ::core::option::Option<i32>,
-    /// The proportion of data in this bucket.
-    #[serde(default)]
-    pub proportion: ::core::option::Option<f64>,
-}
-
-/// The categories in a Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Categories {
-    /// The accessibility category, containing all accessibility related audits.
-    #[serde(default)]
-    pub accessibility: ::core::option::Option<LighthouseCategoryV5>,
-    /// The best practices category, containing all best practices related audits.
-    #[serde(default, rename = "best-practices")]
-    pub best_practices: ::core::option::Option<LighthouseCategoryV5>,
-    /// The performance category, containing all performance related audits.
-    #[serde(default)]
-    pub performance: ::core::option::Option<LighthouseCategoryV5>,
-    /// The Progressive-Web-App (PWA) category, containing all pwa related audits. This is deprecated in Lighthouse''s 12.0 release.
-    #[serde(default)]
-    pub pwa: ::core::option::Option<LighthouseCategoryV5>,
-    /// The Search-Engine-Optimization (SEO) category, containing all seo related audits.
-    #[serde(default)]
-    pub seo: ::core::option::Option<LighthouseCategoryV5>,
-}
-
 /// Message containing a category
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CategoryGroupV5 {
@@ -73,74 +19,6 @@ pub struct CategoryGroupV5 {
     /// The human readable title of the group
     #[serde(default)]
     pub title: ::core::option::Option<String>,
-}
-
-/// Message containing the configuration settings for the Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigSettings {
-    /// How Lighthouse was run, e.g. from the Chrome extension or from the npm module.
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-    /// The form factor the emulation should use. This field is deprecated, form_factor should be used instead.
-    #[serde(default, rename = "emulatedFormFactor")]
-    pub emulated_form_factor: ::core::option::Option<String>,
-    /// How Lighthouse should interpret this run in regards to scoring performance metrics and skipping mobile-only tests in desktop.
-    #[serde(default, rename = "formFactor")]
-    pub form_factor: ::core::option::Option<String>,
-    /// The locale setting.
-    #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// List of categories of audits the run should conduct.
-    #[serde(default, rename = "onlyCategories")]
-    pub only_categories: ::core::option::Option<serde_json::Value>,
-}
-
-/// Message containing environment configuration for a Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Environment {
-    /// The benchmark index number that indicates rough device class.
-    #[serde(default, rename = "benchmarkIndex")]
-    pub benchmark_index: ::core::option::Option<f64>,
-    /// The version of libraries with which these results were generated. Ex: axe-core.
-    #[serde(default)]
-    pub credits: ::core::option::Option<serde_json::Value>,
-    /// The user agent string of the version of Chrome used.
-    #[serde(default, rename = "hostUserAgent")]
-    pub host_user_agent: ::core::option::Option<String>,
-    /// The user agent string that was sent over the network.
-    #[serde(default, rename = "networkUserAgent")]
-    pub network_user_agent: ::core::option::Option<String>,
-}
-
-/// Message containing the i18n data for the LHR - Version 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct I18n {
-    /// Internationalized strings that are formatted to the locale in configSettings.
-    #[serde(default, rename = "rendererFormattedStrings")]
-    pub renderer_formatted_strings: ::core::option::Option<RendererFormattedStrings>,
-}
-
-/// Message containing an Entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LhrEntity {
-    /// Optional. An optional category name for the entity.
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Optional. An optional homepage URL of the entity.
-    #[serde(default)]
-    pub homepage: ::core::option::Option<String>,
-    /// Optional. An optional flag indicating if the entity is the first party.
-    #[serde(default, rename = "isFirstParty")]
-    pub is_first_party: ::core::option::Option<bool>,
-    /// Optional. An optional flag indicating if the entity is not recognized.
-    #[serde(default, rename = "isUnrecognized")]
-    pub is_unrecognized: ::core::option::Option<bool>,
-    /// Required. Name of the entity.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. A list of URL origin strings that belong to this entity.
-    #[serde(default)]
-    pub origins: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An audit''s result object in a Lighthouse result.
@@ -187,131 +65,6 @@ pub struct LighthouseAuditResultV5 {
     pub warnings: ::core::option::Option<serde_json::Value>,
 }
 
-/// A Lighthouse category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LighthouseCategoryV5 {
-    /// An array of references to all the audit members of this category.
-    #[serde(default, rename = "auditRefs")]
-    pub audit_refs: ::core::option::Option<::std::vec::Vec<AuditRefs>>,
-    /// A more detailed description of the category and its importance.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The string identifier of the category.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A description for the manual audits in the category.
-    #[serde(default, rename = "manualDescription")]
-    pub manual_description: ::core::option::Option<String>,
-    /// The overall score of the category, the weighted average of all its audits. (The category''s score, can be null.)
-    #[serde(default)]
-    pub score: ::core::option::Option<serde_json::Value>,
-    /// The human-friendly name of the category.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// The Lighthouse result object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LighthouseResultV5 {
-    /// Map of audits in the LHR.
-    #[serde(default)]
-    pub audits: ::core::option::Option<serde_json::Value>,
-    /// Map of categories in the LHR.
-    #[serde(default)]
-    pub categories: ::core::option::Option<Categories>,
-    /// Map of category groups in the LHR.
-    #[serde(default, rename = "categoryGroups")]
-    pub category_groups: ::core::option::Option<serde_json::Value>,
-    /// The configuration settings for this LHR.
-    #[serde(default, rename = "configSettings")]
-    pub config_settings: ::core::option::Option<ConfigSettings>,
-    /// Entity classification data.
-    #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<LhrEntity>>,
-    /// Environment settings that were used when making this LHR.
-    #[serde(default)]
-    pub environment: ::core::option::Option<Environment>,
-    /// The time that this run was fetched.
-    #[serde(default, rename = "fetchTime")]
-    pub fetch_time: ::core::option::Option<String>,
-    /// URL displayed on the page after Lighthouse finishes.
-    #[serde(default, rename = "finalDisplayedUrl")]
-    pub final_displayed_url: ::core::option::Option<String>,
-    /// The final resolved url that was audited.
-    #[serde(default, rename = "finalUrl")]
-    pub final_url: ::core::option::Option<String>,
-    /// Screenshot data of the full page, along with node rects relevant to the audit results.
-    #[serde(default, rename = "fullPageScreenshot")]
-    pub full_page_screenshot: ::core::option::Option<serde_json::Value>,
-    /// The internationalization strings that are required to render the LHR.
-    #[serde(default)]
-    pub i18n: ::core::option::Option<I18n>,
-    /// The lighthouse version that was used to generate this LHR.
-    #[serde(default, rename = "lighthouseVersion")]
-    pub lighthouse_version: ::core::option::Option<String>,
-    /// URL of the main document request of the final navigation.
-    #[serde(default, rename = "mainDocumentUrl")]
-    pub main_document_url: ::core::option::Option<String>,
-    /// The original requested url.
-    #[serde(default, rename = "requestedUrl")]
-    pub requested_url: ::core::option::Option<String>,
-    /// List of all run warnings in the LHR. Will always output to at least [].
-    #[serde(default, rename = "runWarnings")]
-    pub run_warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A top-level error message that, if present, indicates a serious enough problem that this Lighthouse result may need to be discarded.
-    #[serde(default, rename = "runtimeError")]
-    pub runtime_error: ::core::option::Option<RuntimeError>,
-    /// The Stack Pack advice strings.
-    #[serde(default, rename = "stackPacks")]
-    pub stack_packs: ::core::option::Option<::std::vec::Vec<StackPack>>,
-    /// Timing information for this LHR.
-    #[serde(default)]
-    pub timing: ::core::option::Option<Timing>,
-    /// The user agent that was used to run this LHR.
-    #[serde(default, rename = "userAgent")]
-    pub user_agent: ::core::option::Option<String>,
-}
-
-/// The metric savings of the audit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricSavings {
-    /// Optional. Optional numeric value representing the audit''s savings for the CLS metric.
-    #[serde(default, rename = "CLS")]
-    pub c_l_s: ::core::option::Option<f64>,
-    /// Optional. Optional numeric value representing the audit''s savings for the FCP metric.
-    #[serde(default, rename = "FCP")]
-    pub f_c_p: ::core::option::Option<f64>,
-    /// Optional. Optional numeric value representing the audit''s savings for the INP metric.
-    #[serde(default, rename = "INP")]
-    pub i_n_p: ::core::option::Option<f64>,
-    /// Optional. Optional numeric value representing the audit''s savings for the LCP metric.
-    #[serde(default, rename = "LCP")]
-    pub l_c_p: ::core::option::Option<f64>,
-    /// Optional. Optional numeric value representing the audit''s savings for the TBT metric.
-    #[serde(default, rename = "TBT")]
-    pub t_b_t: ::core::option::Option<f64>,
-}
-
-/// The CrUX loading experience object that contains CrUX data breakdowns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PagespeedApiLoadingExperienceV5 {
-    /// The url, pattern or origin which the metrics are on.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The requested URL, which may differ from the resolved "id".
-    #[serde(default)]
-    pub initial_url: ::core::option::Option<String>,
-    /// The map of .
-    #[serde(default)]
-    pub metrics: ::core::option::Option<serde_json::Value>,
-    /// True if the result is an origin fallback from a page, false otherwise.
-    #[serde(default)]
-    pub origin_fallback: ::core::option::Option<bool>,
-    /// The human readable speed "category" of the id.
-    #[serde(default)]
-    pub overall_category: ::core::option::Option<String>,
-}
-
 /// The Pagespeed API response object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PagespeedApiPagespeedResponseV5 {
@@ -339,17 +92,6 @@ pub struct PagespeedApiPagespeedResponseV5 {
     /// The version of PageSpeed used to generate these results.
     #[serde(default)]
     pub version: ::core::option::Option<PagespeedVersion>,
-}
-
-/// The Pagespeed Version object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PagespeedVersion {
-    /// The major version number of PageSpeed used to generate these results.
-    #[serde(default)]
-    pub major: ::core::option::Option<String>,
-    /// The minor version number of PageSpeed used to generate these results.
-    #[serde(default)]
-    pub minor: ::core::option::Option<String>,
 }
 
 /// Message holding the formatted strings used in the renderer.
@@ -501,6 +243,244 @@ pub struct RendererFormattedStrings {
     pub warning_header: ::core::option::Option<String>,
 }
 
+/// A CrUX metric object for a single metric and form factor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPageLoadMetricV5 {
+    /// The category of the specific time metric.
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Metric distributions. Proportions should sum up to 1.
+    #[serde(default)]
+    pub distributions: ::core::option::Option<::std::vec::Vec<Bucket>>,
+    /// Identifies the form factor of the metric being collected.
+    #[serde(default, rename = "formFactor")]
+    pub form_factor: ::core::option::Option<String>,
+    /// The median number of the metric, in millisecond.
+    #[serde(default)]
+    pub median: ::core::option::Option<i32>,
+    /// Identifies the type of the metric.
+    #[serde(default, rename = "metricId")]
+    pub metric_id: ::core::option::Option<String>,
+    /// We use this field to store certain percentile value for this metric. For v4, this field contains pc50. For v5, this field contains pc90.
+    #[serde(default)]
+    pub percentile: ::core::option::Option<i32>,
+}
+
+/// The metric savings of the audit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricSavings {
+    /// Optional. Optional numeric value representing the audit''s savings for the CLS metric.
+    #[serde(default, rename = "CLS")]
+    pub c_l_s: ::core::option::Option<f64>,
+    /// Optional. Optional numeric value representing the audit''s savings for the FCP metric.
+    #[serde(default, rename = "FCP")]
+    pub f_c_p: ::core::option::Option<f64>,
+    /// Optional. Optional numeric value representing the audit''s savings for the INP metric.
+    #[serde(default, rename = "INP")]
+    pub i_n_p: ::core::option::Option<f64>,
+    /// Optional. Optional numeric value representing the audit''s savings for the LCP metric.
+    #[serde(default, rename = "LCP")]
+    pub l_c_p: ::core::option::Option<f64>,
+    /// Optional. Optional numeric value representing the audit''s savings for the TBT metric.
+    #[serde(default, rename = "TBT")]
+    pub t_b_t: ::core::option::Option<f64>,
+}
+
+/// The Lighthouse result object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LighthouseResultV5 {
+    /// Map of audits in the LHR.
+    #[serde(default)]
+    pub audits: ::core::option::Option<serde_json::Value>,
+    /// Map of categories in the LHR.
+    #[serde(default)]
+    pub categories: ::core::option::Option<Categories>,
+    /// Map of category groups in the LHR.
+    #[serde(default, rename = "categoryGroups")]
+    pub category_groups: ::core::option::Option<serde_json::Value>,
+    /// The configuration settings for this LHR.
+    #[serde(default, rename = "configSettings")]
+    pub config_settings: ::core::option::Option<ConfigSettings>,
+    /// Entity classification data.
+    #[serde(default)]
+    pub entities: ::core::option::Option<::std::vec::Vec<LhrEntity>>,
+    /// Environment settings that were used when making this LHR.
+    #[serde(default)]
+    pub environment: ::core::option::Option<Environment>,
+    /// The time that this run was fetched.
+    #[serde(default, rename = "fetchTime")]
+    pub fetch_time: ::core::option::Option<String>,
+    /// URL displayed on the page after Lighthouse finishes.
+    #[serde(default, rename = "finalDisplayedUrl")]
+    pub final_displayed_url: ::core::option::Option<String>,
+    /// The final resolved url that was audited.
+    #[serde(default, rename = "finalUrl")]
+    pub final_url: ::core::option::Option<String>,
+    /// Screenshot data of the full page, along with node rects relevant to the audit results.
+    #[serde(default, rename = "fullPageScreenshot")]
+    pub full_page_screenshot: ::core::option::Option<serde_json::Value>,
+    /// The internationalization strings that are required to render the LHR.
+    #[serde(default)]
+    pub i18n: ::core::option::Option<I18n>,
+    /// The lighthouse version that was used to generate this LHR.
+    #[serde(default, rename = "lighthouseVersion")]
+    pub lighthouse_version: ::core::option::Option<String>,
+    /// URL of the main document request of the final navigation.
+    #[serde(default, rename = "mainDocumentUrl")]
+    pub main_document_url: ::core::option::Option<String>,
+    /// The original requested url.
+    #[serde(default, rename = "requestedUrl")]
+    pub requested_url: ::core::option::Option<String>,
+    /// List of all run warnings in the LHR. Will always output to at least [].
+    #[serde(default, rename = "runWarnings")]
+    pub run_warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A top-level error message that, if present, indicates a serious enough problem that this Lighthouse result may need to be discarded.
+    #[serde(default, rename = "runtimeError")]
+    pub runtime_error: ::core::option::Option<RuntimeError>,
+    /// The Stack Pack advice strings.
+    #[serde(default, rename = "stackPacks")]
+    pub stack_packs: ::core::option::Option<::std::vec::Vec<StackPack>>,
+    /// Timing information for this LHR.
+    #[serde(default)]
+    pub timing: ::core::option::Option<Timing>,
+    /// The user agent that was used to run this LHR.
+    #[serde(default, rename = "userAgent")]
+    pub user_agent: ::core::option::Option<String>,
+}
+
+/// The CrUX loading experience object that contains CrUX data breakdowns.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PagespeedApiLoadingExperienceV5 {
+    /// The url, pattern or origin which the metrics are on.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The requested URL, which may differ from the resolved "id".
+    #[serde(default)]
+    pub initial_url: ::core::option::Option<String>,
+    /// The map of .
+    #[serde(default)]
+    pub metrics: ::core::option::Option<serde_json::Value>,
+    /// True if the result is an origin fallback from a page, false otherwise.
+    #[serde(default)]
+    pub origin_fallback: ::core::option::Option<bool>,
+    /// The human readable speed "category" of the id.
+    #[serde(default)]
+    pub overall_category: ::core::option::Option<String>,
+}
+
+/// The Pagespeed Version object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PagespeedVersion {
+    /// The major version number of PageSpeed used to generate these results.
+    #[serde(default)]
+    pub major: ::core::option::Option<String>,
+    /// The minor version number of PageSpeed used to generate these results.
+    #[serde(default)]
+    pub minor: ::core::option::Option<String>,
+}
+
+/// A proportion of data in the total distribution, bucketed by a min/max percentage. Each bucket''s range is bounded by min &lt;= x &lt; max, In millisecond.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bucket {
+    /// Upper bound for a bucket''s range.
+    #[serde(default)]
+    pub max: ::core::option::Option<i32>,
+    /// Lower bound for a bucket''s range.
+    #[serde(default)]
+    pub min: ::core::option::Option<i32>,
+    /// The proportion of data in this bucket.
+    #[serde(default)]
+    pub proportion: ::core::option::Option<f64>,
+}
+
+/// The categories in a Lighthouse run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Categories {
+    /// The accessibility category, containing all accessibility related audits.
+    #[serde(default)]
+    pub accessibility: ::core::option::Option<LighthouseCategoryV5>,
+    /// The best practices category, containing all best practices related audits.
+    #[serde(default, rename = "best-practices")]
+    pub best_practices: ::core::option::Option<LighthouseCategoryV5>,
+    /// The performance category, containing all performance related audits.
+    #[serde(default)]
+    pub performance: ::core::option::Option<LighthouseCategoryV5>,
+    /// The Progressive-Web-App (PWA) category, containing all pwa related audits. This is deprecated in Lighthouse''s 12.0 release.
+    #[serde(default)]
+    pub pwa: ::core::option::Option<LighthouseCategoryV5>,
+    /// The Search-Engine-Optimization (SEO) category, containing all seo related audits.
+    #[serde(default)]
+    pub seo: ::core::option::Option<LighthouseCategoryV5>,
+}
+
+/// Message containing the configuration settings for the Lighthouse run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigSettings {
+    /// How Lighthouse was run, e.g. from the Chrome extension or from the npm module.
+    #[serde(default)]
+    pub channel: ::core::option::Option<String>,
+    /// The form factor the emulation should use. This field is deprecated, form_factor should be used instead.
+    #[serde(default, rename = "emulatedFormFactor")]
+    pub emulated_form_factor: ::core::option::Option<String>,
+    /// How Lighthouse should interpret this run in regards to scoring performance metrics and skipping mobile-only tests in desktop.
+    #[serde(default, rename = "formFactor")]
+    pub form_factor: ::core::option::Option<String>,
+    /// The locale setting.
+    #[serde(default)]
+    pub locale: ::core::option::Option<String>,
+    /// List of categories of audits the run should conduct.
+    #[serde(default, rename = "onlyCategories")]
+    pub only_categories: ::core::option::Option<serde_json::Value>,
+}
+
+/// Message containing an Entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LhrEntity {
+    /// Optional. An optional category name for the entity.
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Optional. An optional homepage URL of the entity.
+    #[serde(default)]
+    pub homepage: ::core::option::Option<String>,
+    /// Optional. An optional flag indicating if the entity is the first party.
+    #[serde(default, rename = "isFirstParty")]
+    pub is_first_party: ::core::option::Option<bool>,
+    /// Optional. An optional flag indicating if the entity is not recognized.
+    #[serde(default, rename = "isUnrecognized")]
+    pub is_unrecognized: ::core::option::Option<bool>,
+    /// Required. Name of the entity.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. A list of URL origin strings that belong to this entity.
+    #[serde(default)]
+    pub origins: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message containing environment configuration for a Lighthouse run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Environment {
+    /// The benchmark index number that indicates rough device class.
+    #[serde(default, rename = "benchmarkIndex")]
+    pub benchmark_index: ::core::option::Option<f64>,
+    /// The version of libraries with which these results were generated. Ex: axe-core.
+    #[serde(default)]
+    pub credits: ::core::option::Option<serde_json::Value>,
+    /// The user agent string of the version of Chrome used.
+    #[serde(default, rename = "hostUserAgent")]
+    pub host_user_agent: ::core::option::Option<String>,
+    /// The user agent string that was sent over the network.
+    #[serde(default, rename = "networkUserAgent")]
+    pub network_user_agent: ::core::option::Option<String>,
+}
+
+/// Message containing the i18n data for the LHR - Version 1.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct I18n {
+    /// Internationalized strings that are formatted to the locale in configSettings.
+    #[serde(default, rename = "rendererFormattedStrings")]
+    pub renderer_formatted_strings: ::core::option::Option<RendererFormattedStrings>,
+}
+
 /// Message containing a runtime error config.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuntimeError {
@@ -537,25 +517,45 @@ pub struct Timing {
     pub total: ::core::option::Option<f64>,
 }
 
-/// A CrUX metric object for a single metric and form factor.
+/// A Lighthouse category.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserPageLoadMetricV5 {
-    /// The category of the specific time metric.
+pub struct LighthouseCategoryV5 {
+    /// An array of references to all the audit members of this category.
+    #[serde(default, rename = "auditRefs")]
+    pub audit_refs: ::core::option::Option<::std::vec::Vec<AuditRefs>>,
+    /// A more detailed description of the category and its importance.
     #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Metric distributions. Proportions should sum up to 1.
+    pub description: ::core::option::Option<String>,
+    /// The string identifier of the category.
     #[serde(default)]
-    pub distributions: ::core::option::Option<::std::vec::Vec<Bucket>>,
-    /// Identifies the form factor of the metric being collected.
-    #[serde(default, rename = "formFactor")]
-    pub form_factor: ::core::option::Option<String>,
-    /// The median number of the metric, in millisecond.
+    pub id: ::core::option::Option<String>,
+    /// A description for the manual audits in the category.
+    #[serde(default, rename = "manualDescription")]
+    pub manual_description: ::core::option::Option<String>,
+    /// The overall score of the category, the weighted average of all its audits. (The category''s score, can be null.)
     #[serde(default)]
-    pub median: ::core::option::Option<i32>,
-    /// Identifies the type of the metric.
-    #[serde(default, rename = "metricId")]
-    pub metric_id: ::core::option::Option<String>,
-    /// We use this field to store certain percentile value for this metric. For v4, this field contains pc50. For v5, this field contains pc90.
+    pub score: ::core::option::Option<serde_json::Value>,
+    /// The human-friendly name of the category.
     #[serde(default)]
-    pub percentile: ::core::option::Option<i32>,
+    pub title: ::core::option::Option<String>,
+}
+
+/// A light reference to an audit by id, used to group and weight audits in a given category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditRefs {
+    /// The conventional acronym for the audit/metric.
+    #[serde(default)]
+    pub acronym: ::core::option::Option<String>,
+    /// The category group that the audit belongs to (optional).
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// The audit ref id.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Any audit IDs closely relevant to this one.
+    #[serde(default, rename = "relevantAudits")]
+    pub relevant_audits: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The weight this audit''s score has on the overall category score.
+    #[serde(default)]
+    pub weight: ::core::option::Option<f64>,
 }

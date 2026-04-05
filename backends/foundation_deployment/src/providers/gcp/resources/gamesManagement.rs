@@ -32,6 +32,53 @@ pub struct AchievementResetMultipleForAllRequest {
     pub kind: ::core::option::Option<String>,
 }
 
+/// Multiple events reset all request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventsResetMultipleForAllRequest {
+    /// The IDs of events to reset.
+    #[serde(default)]
+    pub event_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#eventsResetMultipleForAllRequest.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// A list of hidden players.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HiddenPlayerList {
+    /// The players.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<HiddenPlayer>>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#hiddenPlayerList.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The pagination token for the next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A list of leaderboard reset resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerScoreResetAllResponse {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetAllResponse.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The leaderboard reset results.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<PlayerScoreResetResponse>>,
+}
+
+/// ScoresResetMultipleForAllRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScoresResetMultipleForAllRequest {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#scoresResetMultipleForAllRequest.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The IDs of leaderboards to reset.
+    #[serde(default)]
+    pub leaderboard_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// An achievement reset response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementResetResponse {
@@ -49,48 +96,6 @@ pub struct AchievementResetResponse {
     pub update_occurred: ::core::option::Option<bool>,
 }
 
-/// Multiple events reset all request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventsResetMultipleForAllRequest {
-    /// The IDs of events to reset.
-    #[serde(default)]
-    pub event_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#eventsResetMultipleForAllRequest.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// 1P/3P metadata about the player''s experience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesPlayerExperienceInfoResource {
-    /// The current number of experience points for the player.
-    #[serde(default, rename = "currentExperiencePoints")]
-    pub current_experience_points: ::core::option::Option<String>,
-    /// The current level of the player.
-    #[serde(default, rename = "currentLevel")]
-    pub current_level: ::core::option::Option<GamesPlayerLevelResource>,
-    /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
-    #[serde(default, rename = "lastLevelUpTimestampMillis")]
-    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
-    /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
-    #[serde(default, rename = "nextLevel")]
-    pub next_level: ::core::option::Option<GamesPlayerLevelResource>,
-}
-
-/// 1P/3P metadata about a user''s level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesPlayerLevelResource {
-    /// The level for the user.
-    #[serde(default)]
-    pub level: ::core::option::Option<i32>,
-    /// The maximum experience points for this level.
-    #[serde(default, rename = "maxExperiencePoints")]
-    pub max_experience_points: ::core::option::Option<String>,
-    /// The minimum experience points for this level.
-    #[serde(default, rename = "minExperiencePoints")]
-    pub min_experience_points: ::core::option::Option<String>,
-}
-
 /// The HiddenPlayer resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HiddenPlayer {
@@ -105,18 +110,18 @@ pub struct HiddenPlayer {
     pub player: ::core::option::Option<Player>,
 }
 
-/// A list of hidden players.
+/// A list of reset leaderboard entry resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HiddenPlayerList {
-    /// The players.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<HiddenPlayer>>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#hiddenPlayerList.
+pub struct PlayerScoreResetResponse {
+    /// The ID of an leaderboard for which player state has been updated.
+    #[serde(default, rename = "definitionId")]
+    pub definition_id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetResponse.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// The pagination token for the next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    /// The time spans of the updated score. Possible values are: - "ALL_TIME" - The score is an all-time score. - "WEEKLY" - The score is a weekly score. - "DAILY" - The score is a daily score.
+    #[serde(default, rename = "resetScoreTimeSpans")]
+    pub reset_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A Player resource.
@@ -157,29 +162,21 @@ pub struct Player {
     pub title: ::core::option::Option<String>,
 }
 
-/// A list of leaderboard reset resources.
+/// 1P/3P metadata about the player''s experience.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerScoreResetAllResponse {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetAllResponse.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The leaderboard reset results.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<PlayerScoreResetResponse>>,
-}
-
-/// A list of reset leaderboard entry resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerScoreResetResponse {
-    /// The ID of an leaderboard for which player state has been updated.
-    #[serde(default, rename = "definitionId")]
-    pub definition_id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetResponse.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The time spans of the updated score. Possible values are: - "ALL_TIME" - The score is an all-time score. - "WEEKLY" - The score is a weekly score. - "DAILY" - The score is a daily score.
-    #[serde(default, rename = "resetScoreTimeSpans")]
-    pub reset_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GamesPlayerExperienceInfoResource {
+    /// The current number of experience points for the player.
+    #[serde(default, rename = "currentExperiencePoints")]
+    pub current_experience_points: ::core::option::Option<String>,
+    /// The current level of the player.
+    #[serde(default, rename = "currentLevel")]
+    pub current_level: ::core::option::Option<GamesPlayerLevelResource>,
+    /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
+    #[serde(default, rename = "lastLevelUpTimestampMillis")]
+    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
+    /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
+    #[serde(default, rename = "nextLevel")]
+    pub next_level: ::core::option::Option<GamesPlayerLevelResource>,
 }
 
 /// Profile settings
@@ -192,13 +189,16 @@ pub struct ProfileSettings {
     pub profile_visible: ::core::option::Option<bool>,
 }
 
-/// ScoresResetMultipleForAllRequest resource type.
+/// 1P/3P metadata about a user''s level.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScoresResetMultipleForAllRequest {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#scoresResetMultipleForAllRequest.
+pub struct GamesPlayerLevelResource {
+    /// The level for the user.
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The IDs of leaderboards to reset.
-    #[serde(default)]
-    pub leaderboard_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    pub level: ::core::option::Option<i32>,
+    /// The maximum experience points for this level.
+    #[serde(default, rename = "maxExperiencePoints")]
+    pub max_experience_points: ::core::option::Option<String>,
+    /// The minimum experience points for this level.
+    #[serde(default, rename = "minExperiencePoints")]
+    pub min_experience_points: ::core::option::Option<String>,
 }

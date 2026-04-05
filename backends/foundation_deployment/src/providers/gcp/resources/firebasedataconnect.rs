@@ -10,91 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Client caching settings of a connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientCache {
-    /// Optional. A field that, if true, means that responses served by this connector will include entityIds in GraphQL response extensions. This helps the client SDK cache responses in an improved way, known as "normalized caching", if caching is enabled on the client. Each entityId is a stable key based on primary key values. Therefore, this field should only be set to true if the primary keys of accessed tables do not contain sensitive information.
-    #[serde(default, rename = "entityIdIncluded")]
-    pub entity_id_included: ::core::option::Option<bool>,
-    /// Optional. A field that, if true, enables stricter validation on the connector source code to make sure the operation response shapes are suitable for client-side caching. This can include additional errors and warnings. For example, using the same alias for different fields is disallowed, as it may cause conflicts or confusion with normalized caching. (This field is off by default for compatibility, but enabling it is highly recommended to catch common caching pitfalls.)
-    #[serde(default, rename = "strictValidationEnabled")]
-    pub strict_validation_enabled: ::core::option::Option<bool>,
-}
-
-/// Settings for CloudSQL instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstance {
-    /// Required. Name of the CloudSQL instance, in the format:  projects/{project}/locations/{location}/instances/{instance}
-    #[serde(default)]
-    pub instance: ::core::option::Option<String>,
-}
-
-/// Connector consists of a set of operations, i.e. queries and mutations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Connector {
-    /// Optional. Stores small amounts of arbitrary data.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. The client cache settings of the connector.
-    #[serde(default, rename = "clientCache")]
-    pub client_cache: ::core::option::Option<ClientCache>,
-    /// Output only. [Output only] Create time stamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Mutable human-readable name. 63 character limit.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. [AIP-154](https://google.aip.dev/154)
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Labels as key value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The relative resource name of the connector, in the format:  projects/{project}/locations/{location}/services/{service}/connectors/{connector}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. A field that if true, indicates that the system is working to compile and deploy the connector.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Required. The source files that comprise the connector.
-    #[serde(default)]
-    pub source: ::core::option::Option<Source>,
-    /// Output only. System-assigned, unique identifier.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. [Output only] Update time stamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Data Connect specific properties for a path under response.data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataConnectProperties {
-    /// A single Entity ID. Set if the path points to a single entity.
-    #[serde(default, rename = "entityId")]
-    pub entity_id: ::core::option::Option<String>,
-    /// A list of Entity IDs. Set if the path points to an array of entities. An ID is present for each element of the array at the corresponding index.
-    #[serde(default, rename = "entityIds")]
-    pub entity_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The server-suggested duration before data under path is considered stale.
-    #[serde(default, rename = "maxAge")]
-    pub max_age: ::core::option::Option<String>,
-    /// The path under response.data where the rest of the fields apply. Each element may be a string (field name) or number (array index). The root of response.data is denoted by the empty list [].
-    #[serde(default)]
-    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// A data source that backs Firebase Data Connect services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Datasource {
-    /// HTTP GraphQL server webhook configurations.
-    #[serde(default, rename = "httpGraphql")]
-    pub http_graphql: ::core::option::Option<HttpGraphql>,
-    /// PostgreSQL configurations.
-    #[serde(default)]
-    pub postgresql: ::core::option::Option<PostgreSql>,
-}
-
 /// The ExecuteMutation request to Firebase Data Connect.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecuteMutationRequest {
@@ -145,54 +60,6 @@ pub struct ExecuteQueryResponse {
     pub extensions: ::core::option::Option<GraphqlResponseExtensions>,
 }
 
-/// Individual files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct File {
-    /// Required. The file''s textual content.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Required. The file name including folder path, if applicable. The path should be relative to a local workspace (e.g. dataconnect/(schema|connector)/*.gql) and not an absolute path (e.g. /absolute/path/(schema|connector)/*.gql).
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
-/// GraphqlError conforms to the GraphQL error spec. https://spec.graphql.org/draft/#sec-Errors Firebase Data Connect API surfaces GraphqlError in various APIs: - Upon compile error, UpdateSchema and UpdateConnector return Code.Invalid_Argument with a list of GraphqlError in error details. - Upon query compile error, ExecuteGraphql, ExecuteGraphqlRead and IntrospectGraphql return Code.OK with a list of GraphqlError in response body. - Upon query execution error, ExecuteGraphql, ExecuteGraphqlRead, ExecuteMutation, ExecuteQuery, IntrospectGraphql, ImpersonateQuery and ImpersonateMutation all return Code.OK with a list of GraphqlError in response body.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphqlError {
-    /// Additional error information.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<GraphqlErrorExtensions>,
-    /// The source locations where the error occurred. Locations should help developers and toolings identify the source of error quickly. Included in admin endpoints (ExecuteGraphql, ExecuteGraphqlRead, IntrospectGraphql, ImpersonateQuery, ImpersonateMutation, UpdateSchema and UpdateConnector) to reference the provided GraphQL GQL document. Omitted in ExecuteMutation and ExecuteQuery since the caller shouldn''t have access access the underlying GQL source.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<SourceLocation>>,
-    /// The detailed error message. The message should help developer understand the underlying problem without leaking internal data.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The result field which could not be populated due to error. Clients can use path to identify whether a null result is intentional or caused by a runtime error. It should be a list of string or index from the root of GraphQL query document.
-    #[serde(default)]
-    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// GraphqlErrorExtensions contains additional information of GraphqlError.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphqlErrorExtensions {
-    /// Maps to canonical gRPC codes. If not specified, it represents Code.INTERNAL. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// More detailed error message to assist debugging. It contains application business logic that are inappropriate to leak publicly. In the emulator, Data Connect API always includes it to assist local development and debugging. In the backend, ConnectorService always hides it. GraphqlService without impersonation always include it. GraphqlService with impersonation includes it only if explicitly opted-in with include_debug_details in GraphqlRequestExtensions.
-    #[serde(default, rename = "debugDetails")]
-    pub debug_details: ::core::option::Option<String>,
-    /// The source file name where the error occurred. Included only for UpdateSchema and UpdateConnector, it corresponds to File.path of the provided Source.
-    #[serde(default)]
-    pub file: ::core::option::Option<String>,
-    /// Warning level describes the severity and required action to suppress this warning when Firebase CLI run into it. // TODO: enum values: ["WARNING_LEVEL_UNKNOWN", "LOG_ONLY", "INTERACTIVE_ACK", "REQUIRE_ACK", "REQUIRE_FORCE"]
-    #[serde(default, rename = "warningLevel")]
-    pub warning_level: ::core::option::Option<String>,
-    /// Workarounds provide suggestions to address the compile errors or warnings.
-    #[serde(default)]
-    pub workarounds: ::core::option::Option<::std::vec::Vec<Workaround>>,
-}
-
 /// The GraphQL request to Firebase Data Connect. It strives to match the GraphQL over HTTP spec. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#post
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphqlRequest {
@@ -210,14 +77,6 @@ pub struct GraphqlRequest {
     pub variables: ::core::option::Option<serde_json::Value>,
 }
 
-/// GraphqlRequestExtensions contains additional information of GraphqlRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphqlRequestExtensions {
-    /// Optional. If set, impersonate a request with given Firebase Auth context and evaluate the auth policies on the operation. If omitted, bypass any defined auth policies.
-    #[serde(default)]
-    pub impersonate: ::core::option::Option<Impersonation>,
-}
-
 /// The GraphQL response from Firebase Data Connect. It strives to match the GraphQL over HTTP spec. Note: Firebase Data Connect always responds with Content-Type: application/json. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#body
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphqlResponse {
@@ -232,25 +91,6 @@ pub struct GraphqlResponse {
     pub extensions: ::core::option::Option<GraphqlResponseExtensions>,
 }
 
-/// GraphqlResponseExtensions contains additional information of GraphqlResponse or ExecuteQueryResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GraphqlResponseExtensions {
-    /// Data Connect specific GraphQL extension, a list of paths and properties.
-    #[serde(default, rename = "dataConnect")]
-    pub data_connect: ::core::option::Option<::std::vec::Vec<DataConnectProperties>>,
-}
-
-/// Settings for HTTP GraphQL server webhook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpGraphql {
-    /// Optional. Timeout duration for the HTTP request.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-    /// Required. The endpoint of the HTTP GraphQL server.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// The Impersonate request to Firebase Data Connect.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImpersonateRequest {
@@ -263,20 +103,6 @@ pub struct ImpersonateRequest {
     /// Optional. Values for GraphQL variables provided in this request.
     #[serde(default)]
     pub variables: ::core::option::Option<serde_json::Value>,
-}
-
-/// Impersonation configures the Firebase Auth context to impersonate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Impersonation {
-    /// Evaluate the auth policy with a customized JWT auth token. Should follow the Firebase Auth token format. https://firebase.google.com/docs/rules/rules-and-auth For example: a verified user may have auth_claims of {"sub": , "email_verified": true}
-    #[serde(default, rename = "authClaims")]
-    pub auth_claims: ::core::option::Option<serde_json::Value>,
-    /// Optional. If set, include debug details in GraphQL error extensions.
-    #[serde(default, rename = "includeDebugDetails")]
-    pub include_debug_details: ::core::option::Option<bool>,
-    /// Evaluate the auth policy as an unauthenticated request. Can only be set to true.
-    #[serde(default)]
-    pub unauthenticated: ::core::option::Option<bool>,
 }
 
 /// Message for response to listing Connectors. By default, connectors.source will not be included in the response. To specify the fields included in the response, the response field mask can be provided by using the query parameter $fields or the header X-Goog-FieldMask.
@@ -346,6 +172,103 @@ pub struct ListServicesResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Represents the metadata of the long-running operation. Note: This message is auto-generated by CCFE. CCFE''s storage, called Resource Metadata Store (RMS), holds metadata about long-running operations (i.e. OperationMetadata) and resources (i.e. ResourceMetadata). OperationMetadata documents the status of the operation. See [CCFE documentation for sidechannel data](https://g3doc.corp.google.com/cloud/control2/g3doc/dev/codelab_extras/sidechannel.md?cl=head#sidechannel-data) and yaqs/4289526912465764352.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// GraphqlError conforms to the GraphQL error spec. https://spec.graphql.org/draft/#sec-Errors Firebase Data Connect API surfaces GraphqlError in various APIs: - Upon compile error, UpdateSchema and UpdateConnector return Code.Invalid_Argument with a list of GraphqlError in error details. - Upon query compile error, ExecuteGraphql, ExecuteGraphqlRead and IntrospectGraphql return Code.OK with a list of GraphqlError in response body. - Upon query execution error, ExecuteGraphql, ExecuteGraphqlRead, ExecuteMutation, ExecuteQuery, IntrospectGraphql, ImpersonateQuery and ImpersonateMutation all return Code.OK with a list of GraphqlError in response body.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphqlError {
+    /// Additional error information.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<GraphqlErrorExtensions>,
+    /// The source locations where the error occurred. Locations should help developers and toolings identify the source of error quickly. Included in admin endpoints (ExecuteGraphql, ExecuteGraphqlRead, IntrospectGraphql, ImpersonateQuery, ImpersonateMutation, UpdateSchema and UpdateConnector) to reference the provided GraphQL GQL document. Omitted in ExecuteMutation and ExecuteQuery since the caller shouldn''t have access access the underlying GQL source.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<SourceLocation>>,
+    /// The detailed error message. The message should help developer understand the underlying problem without leaking internal data.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The result field which could not be populated due to error. Clients can use path to identify whether a null result is intentional or caused by a runtime error. It should be a list of string or index from the root of GraphQL query document.
+    #[serde(default)]
+    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// GraphqlResponseExtensions contains additional information of GraphqlResponse or ExecuteQueryResponse.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphqlResponseExtensions {
+    /// Data Connect specific GraphQL extension, a list of paths and properties.
+    #[serde(default, rename = "dataConnect")]
+    pub data_connect: ::core::option::Option<::std::vec::Vec<DataConnectProperties>>,
+}
+
+/// GraphqlRequestExtensions contains additional information of GraphqlRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphqlRequestExtensions {
+    /// Optional. If set, impersonate a request with given Firebase Auth context and evaluate the auth policies on the operation. If omitted, bypass any defined auth policies.
+    #[serde(default)]
+    pub impersonate: ::core::option::Option<Impersonation>,
+}
+
+/// Connector consists of a set of operations, i.e. queries and mutations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Connector {
+    /// Optional. Stores small amounts of arbitrary data.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. The client cache settings of the connector.
+    #[serde(default, rename = "clientCache")]
+    pub client_cache: ::core::option::Option<ClientCache>,
+    /// Output only. [Output only] Create time stamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Mutable human-readable name. 63 character limit.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. [AIP-154](https://google.aip.dev/154)
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Labels as key value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The relative resource name of the connector, in the format:  projects/{project}/locations/{location}/services/{service}/connectors/{connector}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. A field that if true, indicates that the system is working to compile and deploy the connector.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Required. The source files that comprise the connector.
+    #[serde(default)]
+    pub source: ::core::option::Option<Source>,
+    /// Output only. System-assigned, unique identifier.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. [Output only] Update time stamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -384,58 +307,6 @@ pub struct Operation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation. Note: This message is auto-generated by CCFE. CCFE''s storage, called Resource Metadata Store (RMS), holds metadata about long-running operations (i.e. OperationMetadata) and resources (i.e. ResourceMetadata). OperationMetadata documents the status of the operation. See [CCFE documentation for sidechannel data](https://g3doc.corp.google.com/cloud/control2/g3doc/dev/codelab_extras/sidechannel.md?cl=head#sidechannel-data) and yaqs/4289526912465764352.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Settings for PostgreSQL data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgreSql {
-    /// Cloud SQL configurations.
-    #[serde(default, rename = "cloudSql")]
-    pub cloud_sql: ::core::option::Option<CloudSqlInstance>,
-    /// Required. Name of the PostgreSQL database.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Output only. Ephemeral is true if this data connect service is served from temporary in-memory emulation of Postgres. While Cloud SQL is being provisioned, the data connect service provides the ephemeral service to help developers get started. Once the Cloud SQL is provisioned, Data Connect service will transfer its data on a best-effort basis to the Cloud SQL instance. WARNING: Ephemeral data sources will expire after 24 hour. The data will be lost if they aren''t transferred to the Cloud SQL instance. WARNING: When ephemeral=true, mutations to the database are not guaranteed to be durably persisted, even if an OK status code is returned. All or parts of the data may be lost or reverted to earlier versions.
-    #[serde(default)]
-    pub ephemeral: ::core::option::Option<bool>,
-    /// Optional. User-configured PostgreSQL schema. Defaults to "public" if not specified.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Optional. Configure how to perform Postgresql schema migration. // TODO: enum values: ["SQL_SCHEMA_MIGRATION_UNSPECIFIED", "MIGRATE_COMPATIBLE"]
-    #[serde(default, rename = "schemaMigration")]
-    pub schema_migration: ::core::option::Option<String>,
-    /// Optional. Configure how much Postgresql schema validation to perform. // TODO: enum values: ["SQL_SCHEMA_VALIDATION_UNSPECIFIED", "NONE", "STRICT", "COMPATIBLE"]
-    #[serde(default, rename = "schemaValidation")]
-    pub schema_validation: ::core::option::Option<String>,
-    /// No Postgres data source is linked. If set, don''t allow database and schema_validation to be configured.
-    #[serde(default)]
-    pub unlinked: ::core::option::Option<bool>,
 }
 
 /// The application schema of a Firebase Data Connect service.
@@ -508,12 +379,24 @@ pub struct Service {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Used to represent a set of source files.
+/// GraphqlErrorExtensions contains additional information of GraphqlError.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source {
-    /// Required. The files that comprise the source set.
+pub struct GraphqlErrorExtensions {
+    /// Maps to canonical gRPC codes. If not specified, it represents Code.INTERNAL. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<File>>,
+    pub code: ::core::option::Option<String>,
+    /// More detailed error message to assist debugging. It contains application business logic that are inappropriate to leak publicly. In the emulator, Data Connect API always includes it to assist local development and debugging. In the backend, ConnectorService always hides it. GraphqlService without impersonation always include it. GraphqlService with impersonation includes it only if explicitly opted-in with include_debug_details in GraphqlRequestExtensions.
+    #[serde(default, rename = "debugDetails")]
+    pub debug_details: ::core::option::Option<String>,
+    /// The source file name where the error occurred. Included only for UpdateSchema and UpdateConnector, it corresponds to File.path of the provided Source.
+    #[serde(default)]
+    pub file: ::core::option::Option<String>,
+    /// Warning level describes the severity and required action to suppress this warning when Firebase CLI run into it. // TODO: enum values: ["WARNING_LEVEL_UNKNOWN", "LOG_ONLY", "INTERACTIVE_ACK", "REQUIRE_ACK", "REQUIRE_FORCE"]
+    #[serde(default, rename = "warningLevel")]
+    pub warning_level: ::core::option::Option<String>,
+    /// Workarounds provide suggestions to address the compile errors or warnings.
+    #[serde(default)]
+    pub workarounds: ::core::option::Option<::std::vec::Vec<Workaround>>,
 }
 
 /// SourceLocation references a location in a GraphQL source.
@@ -525,6 +408,48 @@ pub struct SourceLocation {
     /// Line number starting at 1.
     #[serde(default)]
     pub line: ::core::option::Option<i32>,
+}
+
+/// Data Connect specific properties for a path under response.data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataConnectProperties {
+    /// A single Entity ID. Set if the path points to a single entity.
+    #[serde(default, rename = "entityId")]
+    pub entity_id: ::core::option::Option<String>,
+    /// A list of Entity IDs. Set if the path points to an array of entities. An ID is present for each element of the array at the corresponding index.
+    #[serde(default, rename = "entityIds")]
+    pub entity_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The server-suggested duration before data under path is considered stale.
+    #[serde(default, rename = "maxAge")]
+    pub max_age: ::core::option::Option<String>,
+    /// The path under response.data where the rest of the fields apply. Each element may be a string (field name) or number (array index). The root of response.data is denoted by the empty list [].
+    #[serde(default)]
+    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Impersonation configures the Firebase Auth context to impersonate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Impersonation {
+    /// Evaluate the auth policy with a customized JWT auth token. Should follow the Firebase Auth token format. https://firebase.google.com/docs/rules/rules-and-auth For example: a verified user may have auth_claims of {"sub": , "email_verified": true}
+    #[serde(default, rename = "authClaims")]
+    pub auth_claims: ::core::option::Option<serde_json::Value>,
+    /// Optional. If set, include debug details in GraphQL error extensions.
+    #[serde(default, rename = "includeDebugDetails")]
+    pub include_debug_details: ::core::option::Option<bool>,
+    /// Evaluate the auth policy as an unauthenticated request. Can only be set to true.
+    #[serde(default)]
+    pub unauthenticated: ::core::option::Option<bool>,
+}
+
+/// Client caching settings of a connector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientCache {
+    /// Optional. A field that, if true, means that responses served by this connector will include entityIds in GraphQL response extensions. This helps the client SDK cache responses in an improved way, known as "normalized caching", if caching is enabled on the client. Each entityId is a stable key based on primary key values. Therefore, this field should only be set to true if the primary keys of accessed tables do not contain sensitive information.
+    #[serde(default, rename = "entityIdIncluded")]
+    pub entity_id_included: ::core::option::Option<bool>,
+    /// Optional. A field that, if true, enables stricter validation on the connector source code to make sure the operation response shapes are suitable for client-side caching. This can include additional errors and warnings. For example, using the same alias for different fields is disallowed, as it may cause conflicts or confusion with normalized caching. (This field is off by default for compatibility, but enabling it is highly recommended to catch common caching pitfalls.)
+    #[serde(default, rename = "strictValidationEnabled")]
+    pub strict_validation_enabled: ::core::option::Option<bool>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -541,6 +466,25 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
+/// A data source that backs Firebase Data Connect services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Datasource {
+    /// HTTP GraphQL server webhook configurations.
+    #[serde(default, rename = "httpGraphql")]
+    pub http_graphql: ::core::option::Option<HttpGraphql>,
+    /// PostgreSQL configurations.
+    #[serde(default)]
+    pub postgresql: ::core::option::Option<PostgreSql>,
+}
+
+/// Used to represent a set of source files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Source {
+    /// Required. The files that comprise the source set.
+    #[serde(default)]
+    pub files: ::core::option::Option<::std::vec::Vec<File>>,
+}
+
 /// Workaround provides suggestions to address errors and warnings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Workaround {
@@ -553,4 +497,60 @@ pub struct Workaround {
     /// A suggested code snippet to fix the error and warning.
     #[serde(default)]
     pub replace: ::core::option::Option<String>,
+}
+
+/// Settings for HTTP GraphQL server webhook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpGraphql {
+    /// Optional. Timeout duration for the HTTP request.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+    /// Required. The endpoint of the HTTP GraphQL server.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Settings for PostgreSQL data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgreSql {
+    /// Cloud SQL configurations.
+    #[serde(default, rename = "cloudSql")]
+    pub cloud_sql: ::core::option::Option<CloudSqlInstance>,
+    /// Required. Name of the PostgreSQL database.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Output only. Ephemeral is true if this data connect service is served from temporary in-memory emulation of Postgres. While Cloud SQL is being provisioned, the data connect service provides the ephemeral service to help developers get started. Once the Cloud SQL is provisioned, Data Connect service will transfer its data on a best-effort basis to the Cloud SQL instance. WARNING: Ephemeral data sources will expire after 24 hour. The data will be lost if they aren''t transferred to the Cloud SQL instance. WARNING: When ephemeral=true, mutations to the database are not guaranteed to be durably persisted, even if an OK status code is returned. All or parts of the data may be lost or reverted to earlier versions.
+    #[serde(default)]
+    pub ephemeral: ::core::option::Option<bool>,
+    /// Optional. User-configured PostgreSQL schema. Defaults to "public" if not specified.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Optional. Configure how to perform Postgresql schema migration. // TODO: enum values: ["SQL_SCHEMA_MIGRATION_UNSPECIFIED", "MIGRATE_COMPATIBLE"]
+    #[serde(default, rename = "schemaMigration")]
+    pub schema_migration: ::core::option::Option<String>,
+    /// Optional. Configure how much Postgresql schema validation to perform. // TODO: enum values: ["SQL_SCHEMA_VALIDATION_UNSPECIFIED", "NONE", "STRICT", "COMPATIBLE"]
+    #[serde(default, rename = "schemaValidation")]
+    pub schema_validation: ::core::option::Option<String>,
+    /// No Postgres data source is linked. If set, don''t allow database and schema_validation to be configured.
+    #[serde(default)]
+    pub unlinked: ::core::option::Option<bool>,
+}
+
+/// Individual files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {
+    /// Required. The file''s textual content.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Required. The file name including folder path, if applicable. The path should be relative to a local workspace (e.g. dataconnect/(schema|connector)/*.gql) and not an absolute path (e.g. /absolute/path/(schema|connector)/*.gql).
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// Settings for CloudSQL instance configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlInstance {
+    /// Required. Name of the CloudSQL instance, in the format:  projects/{project}/locations/{location}/instances/{instance}
+    #[serde(default)]
+    pub instance: ::core::option::Option<String>,
 }

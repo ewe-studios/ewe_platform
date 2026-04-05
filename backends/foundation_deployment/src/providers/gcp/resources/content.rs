@@ -10,161 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Account data. After the creation of a new account it may take a few minutes before it''s fully operational. The methods delete, insert, and update require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Account {
-    /// Output only. How the account is managed. Acceptable values are: - "manual" - "automatic"
-    #[serde(default, rename = "accountManagement")]
-    pub account_management: ::core::option::Option<String>,
-    /// Linked Ads accounts that are active or pending approval. To create a new link request, add a new link with status active to the list. It will remain in a pending state until approved or rejected either in the Ads interface or through the Google Ads API. To delete an active link, or to cancel a link request, remove it from the list.
-    #[serde(default, rename = "adsLinks")]
-    pub ads_links: ::core::option::Option<::std::vec::Vec<AccountAdsLink>>,
-    /// Indicates whether the merchant sells adult content.
-    #[serde(default, rename = "adultContent")]
-    pub adult_content: ::core::option::Option<bool>,
-    /// The automatic improvements of the account can be used to automatically update items, improve images and shipping. Each section inside AutomaticImprovements is updated separately.
-    #[serde(default, rename = "automaticImprovements")]
-    pub automatic_improvements: ::core::option::Option<AccountAutomaticImprovements>,
-    /// Automatically created label IDs that are assigned to the account by CSS Center.
-    #[serde(default, rename = "automaticLabelIds")]
-    pub automatic_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The business identity attributes can be used to self-declare attributes that let customers know more about your business.
-    #[serde(default, rename = "businessIdentity")]
-    pub business_identity: ::core::option::Option<AccountBusinessIdentity>,
-    /// The business information of the account.
-    #[serde(default, rename = "businessInformation")]
-    pub business_information: ::core::option::Option<AccountBusinessInformation>,
-    /// Settings for conversion tracking.
-    #[serde(default, rename = "conversionSettings")]
-    pub conversion_settings: ::core::option::Option<AccountConversionSettings>,
-    /// ID of CSS the account belongs to.
-    #[serde(default, rename = "cssId")]
-    pub css_id: ::core::option::Option<String>,
-    /// The Business Profile which is linked or in the process of being linked with the Merchant Center account.
-    #[serde(default, rename = "googleMyBusinessLink")]
-    pub google_my_business_link: ::core::option::Option<AccountGoogleMyBusinessLink>,
-    /// Required. 64-bit Merchant Center account ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#account".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Manually created label IDs that are assigned to the account by CSS.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Display name for the account.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Client-specific, locally-unique, internal ID for the child account.
-    #[serde(default, rename = "sellerId")]
-    pub seller_id: ::core::option::Option<String>,
-    /// Users with access to the account. Every account (except for subaccounts) must have at least one admin user.
-    #[serde(default)]
-    pub users: ::core::option::Option<::std::vec::Vec<AccountUser>>,
-    /// The merchant''s website.
-    #[serde(default, rename = "websiteUrl")]
-    pub website_url: ::core::option::Option<String>,
-    /// Linked YouTube channels that are active or pending approval. To create a new link request, add a new link with status active to the list. It will remain in a pending state until approved or rejected in the YT Creator Studio interface. To delete an active link, or to cancel a link request, remove it from the list.
-    #[serde(default, rename = "youtubeChannelLinks")]
-    pub youtube_channel_links: ::core::option::Option<::std::vec::Vec<AccountYouTubeChannelLink>>,
-}
-
-/// AccountAddress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountAddress {
-    /// CLDR country code (for example, "US"). All MCA sub-accounts inherit the country of their parent MCA by default, however the country can be updated for individual sub-accounts.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// City, town or commune. May also include dependent localities or sublocalities (for example, neighborhoods or suburbs).
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// Postal code or ZIP (for example, "94043").
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Top-level administrative subdivision of the country. For example, a state like California ("CA") or a province like Quebec ("QC").
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// Street-level part of the address. Use \n to add a second line.
-    #[serde(default, rename = "streetAddress")]
-    pub street_address: ::core::option::Option<String>,
-}
-
-/// AccountAdsLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountAdsLink {
-    /// Customer ID of the Ads account.
-    #[serde(default, rename = "adsId")]
-    pub ads_id: ::core::option::Option<String>,
-    /// Status of the link between this Merchant Center account and the Ads account. Upon retrieval, it represents the actual status of the link and can be either active if it was approved in Google Ads or pending if it''s pending approval. Upon insertion, it represents the *intended* status of the link. Re-uploading a link with status active when it''s still pending or with status pending when it''s already active will have no effect: the status will remain unchanged. Re-uploading a link with deprecated status inactive is equivalent to not submitting the link at all and will delete the link if it was active or cancel the link request if it was pending. Acceptable values are: - "active" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// The automatic improvements of the account can be used to automatically update items, improve images and shipping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountAutomaticImprovements {
-    /// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973) This field is only updated (cleared) if provided.
-    #[serde(default, rename = "imageImprovements")]
-    pub image_improvements: ::core::option::Option<AccountImageImprovements>,
-    /// Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren''t shown. This field is only updated (cleared) if provided.
-    #[serde(default, rename = "itemUpdates")]
-    pub item_updates: ::core::option::Option<AccountItemUpdates>,
-    /// Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: - Delivery address of an order - Current handling time and shipping time settings - Estimated weekdays or business days - Parcel tracking data This field is only updated (cleared) if provided.
-    #[serde(default, rename = "shippingImprovements")]
-    pub shipping_improvements: ::core::option::Option<AccountShippingImprovements>,
-}
-
-/// The [business identity attributes](https://support.google.com/merchants/answer/10342414) can be used to self-declare attributes that let customers know more about your business.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountBusinessIdentity {
-    /// Specifies whether the business identifies itself as being black-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
-    #[serde(default, rename = "blackOwned")]
-    pub black_owned: ::core::option::Option<AccountIdentityType>,
-    /// Required. By setting this field, your business may be included in promotions for all the selected attributes. If you clear this option, it won''t affect your identification with any of the attributes. For this field to be set, the merchant must self identify with at least one of the AccountIdentityType. If none are included, the request will be considered invalid.
-    #[serde(default, rename = "includeForPromotions")]
-    pub include_for_promotions: ::core::option::Option<bool>,
-    /// Specifies whether the business identifies itself as being latino-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
-    #[serde(default, rename = "latinoOwned")]
-    pub latino_owned: ::core::option::Option<AccountIdentityType>,
-    /// Specifies whether the business identifies itself as a small business. This optional field is only available for merchants with a business country set to "US". It is also not allowed for marketplaces, but it is allowed to marketplace sellers.
-    #[serde(default, rename = "smallBusiness")]
-    pub small_business: ::core::option::Option<AccountIdentityType>,
-    /// Specifies whether the business identifies itself as being veteran-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
-    #[serde(default, rename = "veteranOwned")]
-    pub veteran_owned: ::core::option::Option<AccountIdentityType>,
-    /// Specifies whether the business identifies itself as being women-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
-    #[serde(default, rename = "womenOwned")]
-    pub women_owned: ::core::option::Option<AccountIdentityType>,
-}
-
-/// AccountBusinessInformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountBusinessInformation {
-    /// The address of the business. Use \n to add a second address line.
-    #[serde(default)]
-    pub address: ::core::option::Option<AccountAddress>,
-    /// The customer service information of the business.
-    #[serde(default, rename = "customerService")]
-    pub customer_service: ::core::option::Option<AccountCustomerService>,
-    /// The 10-digit [Korean business registration number](https://support.google.com/merchants/answer/9037766) separated with dashes in the format: XXX-XX-XXXXX. This field will only be updated if explicitly set.
-    #[serde(default, rename = "koreanBusinessRegistrationNumber")]
-    pub korean_business_registration_number: ::core::option::Option<String>,
-    /// The phone number of the business in [E.164](https://en.wikipedia.org/wiki/E.164) format. This can only be updated if a verified phone number is not already set. To replace a verified phone number use the Accounts.requestphoneverification and Accounts.verifyphonenumber.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Verification status of the phone number of the business. This status is read only and can be updated only by successful phone verification. Acceptable values are: - "verified" - "unverified"
-    #[serde(default, rename = "phoneVerificationStatus")]
-    pub phone_verification_status: ::core::option::Option<String>,
-}
-
-/// Settings for conversion tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountConversionSettings {
-    /// When enabled, free listing URLs have a parameter to enable conversion tracking for products owned by the current merchant account. See [auto-tagging](https://support.google.com/merchants/answer/11127659).
-    #[serde(default, rename = "freeListingsAutoTaggingEnabled")]
-    pub free_listings_auto_tagging_enabled: ::core::option::Option<bool>,
-}
-
 /// Credentials allowing Google to call a partner''s API on behalf of a merchant.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountCredentials {
@@ -177,376 +22,6 @@ pub struct AccountCredentials {
     /// Indicates to Google how Google should use these OAuth tokens. // TODO: enum values: ["ACCOUNT_CREDENTIALS_PURPOSE_UNSPECIFIED", "SHOPIFY_ORDER_MANAGEMENT", "SHOPIFY_INTEGRATION"]
     #[serde(default)]
     pub purpose: ::core::option::Option<String>,
-}
-
-/// AccountCustomerService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountCustomerService {
-    /// Customer service email.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Customer service phone number.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Customer service URL.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// AccountGoogleMyBusinessLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountGoogleMyBusinessLink {
-    /// The ID of the Business Profile. If this is provided, then gmbEmail is ignored. The value of this field should match the accountId used by the Business Profile API.
-    #[serde(default, rename = "gmbAccountId")]
-    pub gmb_account_id: ::core::option::Option<String>,
-    /// The Business Profile email address of a specific account within a Business Profile. A sample account within a Business Profile could be a business account with set of locations, managed under the Business Profile.
-    #[serde(default, rename = "gmbEmail")]
-    pub gmb_email: ::core::option::Option<String>,
-    /// Status of the link between this Merchant Center account and the Business Profile. Acceptable values are: - "active" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// AccountIdentifier resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountIdentifier {
-    /// The aggregator ID, set for aggregators and subaccounts (in that case, it represents the aggregator of the subaccount).
-    #[serde(default, rename = "aggregatorId")]
-    pub aggregator_id: ::core::option::Option<String>,
-    /// The merchant account ID, set for individual accounts and subaccounts.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-}
-
-/// The account identity type used to specify attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountIdentityType {
-    /// Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.
-    #[serde(default, rename = "selfIdentified")]
-    pub self_identified: ::core::option::Option<bool>,
-}
-
-/// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountImageImprovements {
-    /// Determines how the images should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
-    #[serde(default, rename = "accountImageImprovementsSettings")]
-    pub account_image_improvements_settings:
-        ::core::option::Option<AccountImageImprovementsSettings>,
-    /// Output only. The effective value of allow_automatic_image_improvements. If account_image_improvements_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
-    #[serde(default, rename = "effectiveAllowAutomaticImageImprovements")]
-    pub effective_allow_automatic_image_improvements: ::core::option::Option<bool>,
-}
-
-/// Settings for the Automatic Image Improvements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountImageImprovementsSettings {
-    /// Enables automatic image improvements.
-    #[serde(default, rename = "allowAutomaticImageImprovements")]
-    pub allow_automatic_image_improvements: ::core::option::Option<bool>,
-}
-
-/// An issue affecting specific merchant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountIssue {
-    /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
-    #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
-    /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
-    #[serde(default)]
-    pub impact: ::core::option::Option<AccountIssueImpact>,
-    /// Details of the issue as a pre-rendered HTML. HTML elements contain CSS classes that can be used to customize the style of the content. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * issue-detail - top level container for the detail of the issue * callout-banners - section of the issue-detail with callout banners * callout-banner - single callout banner, inside callout-banners * callout-banner-info - callout with important information (default) * callout-banner-warning - callout with a warning * callout-banner-error - callout informing about an error (most severe) * issue-content - section of the issue-detail, contains multiple content-element * content-element - content element such as a list, link or paragraph, inside issue-content * root-causes - unordered list with items describing root causes of the issue, inside issue-content * root-causes-intro - intro text before the root-causes list, inside issue-content * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon. * content-moderation - marks the paragraph that explains how the issue was identified. * new-element - Present for new elements added to the pre-rendered content in the future. To make sure that a new content element does not break your style, you can hide everything with this class.
-    #[serde(default, rename = "prerenderedContent")]
-    pub prerendered_content: ::core::option::Option<String>,
-    /// Pre-rendered HTML that contains a link to the external location where the ODS can be requested and instructions for how to request it. HTML elements contain CSS classes that can be used to customize the style of this snippet. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * ods-section* - wrapper around the out-of-court dispute resolution section * ods-description* - intro text for the out-of-court dispute resolution. It may contain multiple segments and a link. * ods-param* - wrapper around the header-value pair for parameters that merchant may need to provide during the ODS process. * ods-routing-id* - ods param for the Routing ID. * ods-reference-id* - ods param for the Routing ID. * ods-param-header* - header for the ODS parameter * ods-param-value* - value of the ODS parameter. This value should be rendered in a way that it is easy for merchants to identify and copy. * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon.
-    #[serde(default, rename = "prerenderedOutOfCourtDisputeSettlement")]
-    pub prerendered_out_of_court_dispute_settlement: ::core::option::Option<String>,
-    /// Title of the issue.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Overall impact of the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountIssueImpact {
-    /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
-    #[serde(default)]
-    pub breakdowns: ::core::option::Option<::std::vec::Vec<Breakdown>>,
-    /// Optional. Message summarizing the overall impact of the issue. If present, it should be rendered to the merchant. For example: "Disapproves 90k offers in 25 countries"
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren''t shown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountItemUpdates {
-    /// Determines which attributes of the items should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
-    #[serde(default, rename = "accountItemUpdatesSettings")]
-    pub account_item_updates_settings: ::core::option::Option<AccountItemUpdatesSettings>,
-    /// Output only. The effective value of allow_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
-    #[serde(default, rename = "effectiveAllowAvailabilityUpdates")]
-    pub effective_allow_availability_updates: ::core::option::Option<bool>,
-    /// Output only. The effective value of allow_condition_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
-    #[serde(default, rename = "effectiveAllowConditionUpdates")]
-    pub effective_allow_condition_updates: ::core::option::Option<bool>,
-    /// Output only. The effective value of allow_price_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
-    #[serde(default, rename = "effectiveAllowPriceUpdates")]
-    pub effective_allow_price_updates: ::core::option::Option<bool>,
-    /// Output only. The effective value of allow_strict_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
-    #[serde(default, rename = "effectiveAllowStrictAvailabilityUpdates")]
-    pub effective_allow_strict_availability_updates: ::core::option::Option<bool>,
-}
-
-/// Settings for the Automatic Item Updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountItemUpdatesSettings {
-    /// If availability updates are enabled, any previous availability values get overwritten if Google finds an out-of-stock annotation on the offer''s page. If additionally allow_availability_updates field is set to true, values get overwritten if Google finds an in-stock annotation on the offer’s page.
-    #[serde(default, rename = "allowAvailabilityUpdates")]
-    pub allow_availability_updates: ::core::option::Option<bool>,
-    /// If condition updates are enabled, Google always updates item condition with the condition detected from the details of your product.
-    #[serde(default, rename = "allowConditionUpdates")]
-    pub allow_condition_updates: ::core::option::Option<bool>,
-    /// If price updates are enabled, Google always updates the active price with the crawled information.
-    #[serde(default, rename = "allowPriceUpdates")]
-    pub allow_price_updates: ::core::option::Option<bool>,
-    /// If allow_availability_updates is enabled, items are automatically updated in all your Shopping target countries. By default, availability updates will only be applied to items that are ''out of stock'' on your website but ''in stock'' on Shopping. Set this to true to also update items that are ''in stock'' on your website, but ''out of stock'' on Google Shopping. In order for this field to have an effect, you must also allow availability updates.
-    #[serde(default, rename = "allowStrictAvailabilityUpdates")]
-    pub allow_strict_availability_updates: ::core::option::Option<bool>,
-}
-
-/// Label assigned by CSS domain or CSS group to one of its sub-accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountLabel {
-    /// Immutable. The ID of account this label belongs to.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The description of this label.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The ID of the label.
-    #[serde(default, rename = "labelId")]
-    pub label_id: ::core::option::Option<String>,
-    /// Output only. The type of this label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "MANUAL", "AUTOMATIC"]
-    #[serde(default, rename = "labelType")]
-    pub label_type: ::core::option::Option<String>,
-    /// The display name of this label.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-///  The return carrier information. This service is designed for merchants enrolled in the Buy on Google program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountReturnCarrier {
-    /// Output only. Immutable. The Google-provided unique carrier ID, used to update the resource.
-    #[serde(default, rename = "carrierAccountId")]
-    pub carrier_account_id: ::core::option::Option<String>,
-    /// Name of the carrier account.
-    #[serde(default, rename = "carrierAccountName")]
-    pub carrier_account_name: ::core::option::Option<String>,
-    /// Number of the carrier account.
-    #[serde(default, rename = "carrierAccountNumber")]
-    pub carrier_account_number: ::core::option::Option<String>,
-    /// The carrier code enum. Accepts the values FEDEX or UPS. // TODO: enum values: ["CARRIER_CODE_UNSPECIFIED", "FEDEX", "UPS"]
-    #[serde(default, rename = "carrierCode")]
-    pub carrier_code: ::core::option::Option<String>,
-}
-
-/// Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: * Delivery address of an order * Current handling time and shipping time settings * Estimated weekdays or business days * Parcel tracking data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountShippingImprovements {
-    /// Enables automatic shipping improvements.
-    #[serde(default, rename = "allowShippingImprovements")]
-    pub allow_shipping_improvements: ::core::option::Option<bool>,
-}
-
-/// The status of an account, that is, information about its products, which is computed offline and not returned immediately at insertion time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountStatus {
-    /// The ID of the account for which the status is reported.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// A list of account level issues.
-    #[serde(default, rename = "accountLevelIssues")]
-    pub account_level_issues:
-        ::core::option::Option<::std::vec::Vec<AccountStatusAccountLevelIssue>>,
-    /// How the account is managed. Acceptable values are: - "manual" - "automatic"
-    #[serde(default, rename = "accountManagement")]
-    pub account_management: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#accountStatus"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// List of product-related data by channel, destination, and country. Data in this field may be delayed by up to 30 minutes.
-    #[serde(default)]
-    pub products: ::core::option::Option<::std::vec::Vec<AccountStatusProducts>>,
-    /// Whether the account''s website is claimed or not.
-    #[serde(default, rename = "websiteClaimed")]
-    pub website_claimed: ::core::option::Option<bool>,
-}
-
-/// AccountStatusAccountLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountStatusAccountLevelIssue {
-    /// Country for which this issue is reported.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The destination the issue applies to. If this field is empty then the issue applies to all available destinations.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// Additional details about the issue.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The URL of a web page to help resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Issue identifier.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Severity of the issue. Acceptable values are: - "critical" - "error" - "suggestion"
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Short description of the issue.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// AccountStatusItemLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountStatusItemLevelIssue {
-    /// The attribute''s name, if the issue is caused by a single attribute.
-    #[serde(default, rename = "attributeName")]
-    pub attribute_name: ::core::option::Option<String>,
-    /// The error code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// A short issue description in English.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A detailed issue description in English.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The URL of a web page to help with resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Number of items with this issue.
-    #[serde(default, rename = "numItems")]
-    pub num_items: ::core::option::Option<String>,
-    /// Whether the issue can be resolved by the merchant.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-    /// How this issue affects serving of the offer.
-    #[serde(default)]
-    pub servability: ::core::option::Option<String>,
-}
-
-/// AccountStatusProducts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountStatusProducts {
-    /// The channel the data applies to. Acceptable values are: - "local" - "online"
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-    /// The country the data applies to.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The destination the data applies to.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// List of item-level issues.
-    #[serde(default, rename = "itemLevelIssues")]
-    pub item_level_issues: ::core::option::Option<::std::vec::Vec<AccountStatusItemLevelIssue>>,
-    /// Aggregated product statistics.
-    #[serde(default)]
-    pub statistics: ::core::option::Option<AccountStatusStatistics>,
-}
-
-/// AccountStatusStatistics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountStatusStatistics {
-    /// Number of active offers.
-    #[serde(default)]
-    pub active: ::core::option::Option<String>,
-    /// Number of disapproved offers.
-    #[serde(default)]
-    pub disapproved: ::core::option::Option<String>,
-    /// Number of expiring offers.
-    #[serde(default)]
-    pub expiring: ::core::option::Option<String>,
-    /// Number of pending offers.
-    #[serde(default)]
-    pub pending: ::core::option::Option<String>,
-}
-
-/// The tax settings of a merchant account. All methods require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountTax {
-    /// Required. The ID of the account to which these account tax settings belong.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#accountTax".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Tax rules. Updating the tax rules will enable "US" taxes (not reversible). Defining no rules is equivalent to not charging tax at all.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<AccountTaxTaxRule>>,
-}
-
-/// Tax calculation rule to apply in a state or province (US only).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountTaxTaxRule {
-    /// Country code in which tax is applicable.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// Required. State (or province) is which the tax is applicable, described by its location ID (also called criteria ID).
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Explicit tax rate in percent, represented as a floating point number without the percentage character. Must not be negative.
-    #[serde(default, rename = "ratePercent")]
-    pub rate_percent: ::core::option::Option<String>,
-    /// If true, shipping charges are also taxed.
-    #[serde(default, rename = "shippingTaxed")]
-    pub shipping_taxed: ::core::option::Option<bool>,
-    /// Whether the tax rate is taken from a global tax table or specified explicitly.
-    #[serde(default, rename = "useGlobalRate")]
-    pub use_global_rate: ::core::option::Option<bool>,
-}
-
-/// AccountUser resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountUser {
-    /// Whether user is an admin.
-    #[serde(default)]
-    pub admin: ::core::option::Option<bool>,
-    /// User''s email address.
-    #[serde(default, rename = "emailAddress")]
-    pub email_address: ::core::option::Option<String>,
-    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
-    #[serde(default, rename = "orderManager")]
-    pub order_manager: ::core::option::Option<bool>,
-    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
-    #[serde(default, rename = "paymentsAnalyst")]
-    pub payments_analyst: ::core::option::Option<bool>,
-    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
-    #[serde(default, rename = "paymentsManager")]
-    pub payments_manager: ::core::option::Option<bool>,
-    /// Optional. Whether user has standard read-only access.
-    #[serde(default, rename = "readOnly")]
-    pub read_only: ::core::option::Option<bool>,
-    /// Whether user is a reporting manager. This role is equivalent to the Performance and insights role in Merchant Center.
-    #[serde(default, rename = "reportingManager")]
-    pub reporting_manager: ::core::option::Option<bool>,
-}
-
-/// AccountYouTubeChannelLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountYouTubeChannelLink {
-    /// Channel ID.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// Status of the link between this Merchant Center account and the YouTube channel. Upon retrieval, it represents the actual status of the link and can be either active if it was approved in YT Creator Studio or pending if it''s pending approval. Upon insertion, it represents the *intended* status of the link. Re-uploading a link with status active when it''s still pending or with status pending when it''s already active will have no effect: the status will remain unchanged. Re-uploading a link with deprecated status inactive is equivalent to not submitting the link at all and will delete the link if it was active or cancel the link request if it was pending.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
 }
 
 /// AccountsAuthInfoResponse resource type.
@@ -576,58 +51,6 @@ pub struct AccountsCustomBatchRequest {
     pub entries: ::core::option::Option<::std::vec::Vec<AccountsCustomBatchRequestEntry>>,
 }
 
-/// A batch entry encoding a single non-batch accounts request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountsCustomBatchRequestEntry {
-    /// The account to create or update. Only defined if the method is insert or update.
-    #[serde(default)]
-    pub account: ::core::option::Option<Account>,
-    /// The ID of the targeted account. Only defined if the method is not insert.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// Whether the account should be deleted if the account has offers. Only applicable if the method is delete.
-    #[serde(default)]
-    pub force: ::core::option::Option<bool>,
-    /// Label IDs for the ''updatelabels'' request.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Details about the link request.
-    #[serde(default, rename = "linkRequest")]
-    pub link_request: ::core::option::Option<AccountsCustomBatchRequestEntryLinkRequest>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "claimWebsite" - "delete" - "get" - "insert" - "link" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Only applicable if the method is claimwebsite. Indicates whether or not to take the claim from another account in case there is a conflict.
-    #[serde(default)]
-    pub overwrite: ::core::option::Option<bool>,
-    /// Controls which fields are visible. Only applicable if the method is ''get''.
-    #[serde(default)]
-    pub view: ::core::option::Option<String>,
-}
-
-/// AccountsCustomBatchRequestEntryLinkRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountsCustomBatchRequestEntryLinkRequest {
-    /// Action to perform for this link. The "request" action is only available to select merchants. Acceptable values are: - "approve" - "remove" - "request"
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Type of the link between the two accounts. Acceptable values are: - "channelPartner" - "eCommercePlatform" - "paymentServiceProvider" - "localProductManager"
-    #[serde(default, rename = "linkType")]
-    pub link_type: ::core::option::Option<String>,
-    /// The ID of the linked account.
-    #[serde(default, rename = "linkedAccountId")]
-    pub linked_account_id: ::core::option::Option<String>,
-    /// Provided services. Acceptable values are: - "shoppingAdsProductManagement" - "shoppingActionsProductManagement" - "shoppingActionsOrderManagement" - "paymentProcessing" - "localProductManagement"
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// AccountsCustomBatchResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountsCustomBatchResponse {
@@ -635,23 +58,6 @@ pub struct AccountsCustomBatchResponse {
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<AccountsCustomBatchResponseEntry>>,
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch accounts response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountsCustomBatchResponseEntry {
-    /// The retrieved, created, or updated account. Not defined if the method was delete, claimwebsite or link.
-    #[serde(default)]
-    pub account: ::core::option::Option<Account>,
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#accountsCustomBatchResponseEntry"
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
 }
@@ -738,26 +144,6 @@ pub struct AccountstatusesCustomBatchRequest {
     pub entries: ::core::option::Option<::std::vec::Vec<AccountstatusesCustomBatchRequestEntry>>,
 }
 
-/// A batch entry encoding a single non-batch accountstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountstatusesCustomBatchRequestEntry {
-    /// The ID of the (sub-)account whose status to get.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// If set, only issues for the specified destinations are returned, otherwise only issues for the Shopping destination.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-}
-
 /// AccountstatusesCustomBatchResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountstatusesCustomBatchResponse {
@@ -767,20 +153,6 @@ pub struct AccountstatusesCustomBatchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountstatusesCustomBatchResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch accountstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountstatusesCustomBatchResponseEntry {
-    /// The requested account status. Defined if and only if the request was successful.
-    #[serde(default, rename = "accountStatus")]
-    pub account_status: ::core::option::Option<AccountStatus>,
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
 }
 
 /// AccountstatusesListResponse resource type.
@@ -804,26 +176,6 @@ pub struct AccounttaxCustomBatchRequest {
     pub entries: ::core::option::Option<::std::vec::Vec<AccounttaxCustomBatchRequestEntry>>,
 }
 
-/// A batch entry encoding a single non-batch accounttax request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccounttaxCustomBatchRequestEntry {
-    /// The ID of the account for which to get/update account tax settings.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The account tax settings to update. Only defined if the method is update.
-    #[serde(default, rename = "accountTax")]
-    pub account_tax: ::core::option::Option<AccountTax>,
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-}
-
 /// AccounttaxCustomBatchResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccounttaxCustomBatchResponse {
@@ -831,23 +183,6 @@ pub struct AccounttaxCustomBatchResponse {
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<AccounttaxCustomBatchResponseEntry>>,
     /// Identifies what kind of resource this is. Value: the fixed string "content#accounttaxCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch accounttax response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccounttaxCustomBatchResponseEntry {
-    /// The retrieved or updated account tax settings.
-    #[serde(default, rename = "accountTax")]
-    pub account_tax: ::core::option::Option<AccountTax>,
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#accounttaxCustomBatchResponseEntry"
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
 }
@@ -863,293 +198,6 @@ pub struct AccounttaxListResponse {
     pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
     pub resources: ::core::option::Option<::std::vec::Vec<AccountTax>>,
-}
-
-/// An actionable step that can be executed to solve the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Action {
-    /// Action implemented and performed in (your) third-party application. The application should point the merchant to the place, where they can access the corresponding functionality or provide instructions, if the specific functionality is not available.
-    #[serde(default, rename = "builtinSimpleAction")]
-    pub builtin_simple_action: ::core::option::Option<BuiltInSimpleAction>,
-    /// Action implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant as specified for given action. They can trigger the action only when they provided all required inputs.
-    #[serde(default, rename = "builtinUserInputAction")]
-    pub builtin_user_input_action: ::core::option::Option<BuiltInUserInputAction>,
-    /// Label of the action button.
-    #[serde(default, rename = "buttonLabel")]
-    pub button_label: ::core::option::Option<String>,
-    /// Action that is implemented and performed outside of (your) third-party application. The application needs to redirect the merchant to the external location where they can perform the action.
-    #[serde(default, rename = "externalAction")]
-    pub external_action: ::core::option::Option<ExternalAction>,
-    /// Controlling whether the button is active or disabled. The value is ''false'' when the action was already requested or is not available. If the action is not available then a reason will be present. If (your) third-party application shows a disabled button for action that is not available, then it should also show reasons.
-    #[serde(default, rename = "isAvailable")]
-    pub is_available: ::core::option::Option<bool>,
-    /// List of reasons why the action is not available. The list of reasons is empty if the action is available. If there is only one reason, it can be displayed next to the disabled button. If there are more reasons, all of them should be displayed, for example in a pop-up dialog.
-    #[serde(default)]
-    pub reasons: ::core::option::Option<::std::vec::Vec<ActionReason>>,
-}
-
-/// Flow that can be selected for an action. When merchant selects a flow, application should open a dialog with more information and input form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionFlow {
-    /// Label for the button to trigger the action from the action dialog. For example: "Request review"
-    #[serde(default, rename = "dialogButtonLabel")]
-    pub dialog_button_label: ::core::option::Option<String>,
-    /// Important message to be highlighted in the request dialog. For example: "You can only request a review for disagreeing with this issue once. If it''s not approved, you''ll need to fix the issue and wait a few days before you can request another review."
-    #[serde(default, rename = "dialogCallout")]
-    pub dialog_callout: ::core::option::Option<Callout>,
-    /// Message displayed in the request dialog. For example: "Make sure you''ve fixed all your country-specific issues. If not, you may have to wait 7 days to request another review". There may be an more information to be shown in a tooltip.
-    #[serde(default, rename = "dialogMessage")]
-    pub dialog_message: ::core::option::Option<TextWithTooltip>,
-    /// Title of the request dialog. For example: "Before you request a review"
-    #[serde(default, rename = "dialogTitle")]
-    pub dialog_title: ::core::option::Option<String>,
-    /// Not for display but need to be sent back for the selected action flow.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A list of input fields.
-    #[serde(default)]
-    pub inputs: ::core::option::Option<::std::vec::Vec<InputField>>,
-    /// Text value describing the intent for the action flow. It can be used as an input label if merchant needs to pick one of multiple flows. For example: "I disagree with the issue"
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-}
-
-/// Input provided by the merchant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionInput {
-    /// Required. Id of the selected action flow.
-    #[serde(default, rename = "actionFlowId")]
-    pub action_flow_id: ::core::option::Option<String>,
-    /// Required. Values for input fields.
-    #[serde(default, rename = "inputValues")]
-    pub input_values: ::core::option::Option<::std::vec::Vec<InputValue>>,
-}
-
-/// A single reason why the action is not available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionReason {
-    /// Optional. An action that needs to be performed to solve the problem represented by this reason. This action will always be available. Should be rendered as a link or button next to the summarizing message. For example, the review may be available only once merchant configure all required attributes. In such a situation this action can be a link to the form, where they can fill the missing attribute to unblock the main action.
-    #[serde(default)]
-    pub action: ::core::option::Option<Action>,
-    /// Detailed explanation of the reason. Should be displayed as a hint if present.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// Messages summarizing the reason, why the action is not available. For example: "Review requested on Jan 03. Review requests can take a few days to complete."
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Address resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Address {
-    /// Required. Top-level administrative subdivision of the country. For example, a state like California ("CA") or a province like Quebec ("QC").
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Required. City, town or commune. May also include dependent localities or sublocalities (for example, neighborhoods or suburbs).
-    #[serde(default)]
-    pub city: ::core::option::Option<String>,
-    /// Required. [CLDR country code](https://github.com/unicode-org/cldr/blob/latest/common/main/en.xml) (for example, "US").
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// Required. Postal code or ZIP (for example, "94043").
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Street-level part of the address. Use \n to add a second line.
-    #[serde(default, rename = "streetAddress")]
-    pub street_address: ::core::option::Option<String>,
-}
-
-/// The Alternate Dispute Resolution (ADR) that may be available to merchants in some regions. If present, the link should be shown on the same page as the list of issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlternateDisputeResolution {
-    /// The label for the alternate dispute resolution link.
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-    /// The URL pointing to a page, where merchant can request alternative dispute resolution with an [external body](https://support.google.com/european-union-digital-services-act-redress-options/answer/13535501).
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Represents attribution settings for conversion sources receiving pre-attribution data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttributionSettings {
-    /// Required. Lookback windows (in days) used for attribution in this source. Supported values are 7, 30, 40.
-    #[serde(default, rename = "attributionLookbackWindowInDays")]
-    pub attribution_lookback_window_in_days: ::core::option::Option<i32>,
-    /// TODO: enum values: ["ATTRIBUTION_MODEL_UNSPECIFIED", "CROSS_CHANNEL_LAST_CLICK", "ADS_PREFERRED_LAST_CLICK", "CROSS_CHANNEL_DATA_DRIVEN", "CROSS_CHANNEL_FIRST_CLICK", "CROSS_CHANNEL_LINEAR", "CROSS_CHANNEL_POSITION_BASED", "CROSS_CHANNEL_TIME_DECAY"]
-    #[serde(default, rename = "attributionModel")]
-    pub attribution_model: ::core::option::Option<String>,
-    /// Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.
-    #[serde(default, rename = "conversionType")]
-    pub conversion_type: ::core::option::Option<::std::vec::Vec<AttributionSettingsConversionType>>,
-}
-
-/// Message representing a types of conversion events
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttributionSettingsConversionType {
-    /// Output only. Option indicating if the type should be included in Merchant Center reporting.
-    #[serde(default, rename = "includeInReporting")]
-    pub include_in_reporting: ::core::option::Option<bool>,
-    /// Output only. Conversion event name, as it''ll be reported by the client.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Fields related to the [Best sellers reports](https://support.google.com/merchants/answer/9488679).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BestSellers {
-    /// Google product category ID to calculate the ranking for, represented in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436). If a WHERE condition on best_sellers.category_id is not specified in the query, rankings for all top-level categories are returned.
-    #[serde(default, rename = "categoryId")]
-    pub category_id: ::core::option::Option<String>,
-    /// Country where the ranking is calculated. A WHERE condition on best_sellers.country_code is required in the query.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// Popularity rank in the previous week or month.
-    #[serde(default, rename = "previousRank")]
-    pub previous_rank: ::core::option::Option<String>,
-    /// Estimated demand in relation to the item with the highest popularity rank in the same category and country in the previous week or month. // TODO: enum values: ["RELATIVE_DEMAND_UNSPECIFIED", "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"]
-    #[serde(default, rename = "previousRelativeDemand")]
-    pub previous_relative_demand: ::core::option::Option<String>,
-    /// Popularity on Shopping ads and free listings, in the selected category and country, based on the estimated number of units sold.
-    #[serde(default)]
-    pub rank: ::core::option::Option<String>,
-    /// Estimated demand in relation to the item with the highest popularity rank in the same category and country. // TODO: enum values: ["RELATIVE_DEMAND_UNSPECIFIED", "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"]
-    #[serde(default, rename = "relativeDemand")]
-    pub relative_demand: ::core::option::Option<String>,
-    /// Change in the estimated demand. Whether it rose, sank or remained flat. // TODO: enum values: ["RELATIVE_DEMAND_CHANGE_TYPE_UNSPECIFIED", "SINKER", "FLAT", "RISER"]
-    #[serde(default, rename = "relativeDemandChange")]
-    pub relative_demand_change: ::core::option::Option<String>,
-    /// Report date. The value of this field can only be one of the following: * The first day of the week (Monday) for weekly reports. * The first day of the month for monthly reports. If a WHERE condition on best_sellers.report_date is not specified in the query, the latest available weekly or monthly report is returned.
-    #[serde(default, rename = "reportDate")]
-    pub report_date: ::core::option::Option<Date>,
-    /// Granularity of the report. The ranking can be done over a week or a month timeframe. A WHERE condition on best_sellers.report_granularity is required in the query. // TODO: enum values: ["REPORT_GRANULARITY_UNSPECIFIED", "WEEKLY", "MONTHLY"]
-    #[serde(default, rename = "reportGranularity")]
-    pub report_granularity: ::core::option::Option<String>,
-}
-
-/// Brand fields. Values are only set for fields requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Brand {
-    /// Name of the brand.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A detailed impact breakdown for a group of regions where the impact of the issue on different shopping destinations is the same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Breakdown {
-    /// Human readable, localized description of issue''s effect on different targets. Should be rendered as a list. For example: * "Products not showing in ads" * "Products not showing organically"
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Lists of regions. Should be rendered as a title for this group of details. The full list should be shown to merchant. If the list is too long, it is recommended to make it expandable.
-    #[serde(default)]
-    pub regions: ::core::option::Option<::std::vec::Vec<BreakdownRegion>>,
-}
-
-/// Region with code and localized name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BreakdownRegion {
-    /// The [CLDR territory code] (http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml)
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The localized name of the region. For region with code=''001'' the value is ''All countries'' or the equivalent in other languages.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Action that is implemented and performed in (your) third-party application. Represents various functionality that is expected to be available to merchant and will help them with resolving the issue. The application should point the merchant to the place, where they can access the corresponding functionality. If the functionality is not supported, it is recommended to explain the situation to merchant and provide them with instructions how to solve the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuiltInSimpleAction {
-    /// Long text from an external source that should be available to the merchant. Present when the type is SHOW_ADDITIONAL_CONTENT.
-    #[serde(default, rename = "additionalContent")]
-    pub additional_content: ::core::option::Option<BuiltInSimpleActionAdditionalContent>,
-    /// The attribute that needs to be updated. Present when the type is EDIT_ITEM_ATTRIBUTE. This field contains a code for attribute, represented in snake_case. You can find a list of product''s attributes, with their codes [here](https://support.google.com/merchants/answer/7052112).
-    #[serde(default, rename = "attributeCode")]
-    pub attribute_code: ::core::option::Option<String>,
-    /// The type of action that represents a functionality that is expected to be available in third-party application. // TODO: enum values: ["BUILT_IN_SIMPLE_ACTION_TYPE_UNSPECIFIED", "VERIFY_PHONE", "CLAIM_WEBSITE", "ADD_PRODUCTS", "ADD_CONTACT_INFO", "LINK_ADS_ACCOUNT", "ADD_BUSINESS_REGISTRATION_NUMBER", "EDIT_ITEM_ATTRIBUTE", "FIX_ACCOUNT_ISSUE", "SHOW_ADDITIONAL_CONTENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Long text from external source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuiltInSimpleActionAdditionalContent {
-    /// Long text organized into paragraphs.
-    #[serde(default)]
-    pub paragraphs: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Title of the additional content;
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Action that is implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant. They can start the action only when they provided all required inputs. The application will request processing of the action by calling the [triggeraction method](https://developers.google.com/shopping-content/reference/rest/v2.1/merchantsupport/triggeraction).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuiltInUserInputAction {
-    /// Internal details. Not for display but need to be sent back when triggering the action.
-    #[serde(default, rename = "actionContext")]
-    pub action_context: ::core::option::Option<String>,
-    /// Actions may provide multiple different flows. Merchant selects one that fits best to their intent. Selecting the flow is the first step in user''s interaction with the action. It affects what input fields will be available and required and also how the request will be processed.
-    #[serde(default)]
-    pub flows: ::core::option::Option<::std::vec::Vec<ActionFlow>>,
-}
-
-/// BusinessDayConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BusinessDayConfig {
-    /// Regular business days, such as ''"monday"''. May not be empty.
-    #[serde(default, rename = "businessDays")]
-    pub business_days: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An important message that should be highlighted. Usually displayed as a banner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Callout {
-    /// A full message that needs to be shown to the merchant.
-    #[serde(default, rename = "fullMessage")]
-    pub full_message: ::core::option::Option<TextWithTooltip>,
-    /// Can be used to render messages with different severity in different styles. Snippets off all types contain important information that should be displayed to merchants. // TODO: enum values: ["CALLOUT_STYLE_HINT_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
-    #[serde(default, rename = "styleHint")]
-    pub style_hint: ::core::option::Option<String>,
-}
-
-/// CarrierRate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CarrierRate {
-    /// Carrier service, such as "UPS" or "Fedex". The list of supported carriers can be retrieved through the getSupportedCarriers method. Required.
-    #[serde(default, rename = "carrierName")]
-    pub carrier_name: ::core::option::Option<String>,
-    /// Carrier service, such as "ground" or "2 days". The list of supported services for a carrier can be retrieved through the getSupportedCarriers method. Required.
-    #[serde(default, rename = "carrierService")]
-    pub carrier_service: ::core::option::Option<String>,
-    /// Additive shipping rate modifier. Can be negative. For example { "value": "1", "currency" : "USD" } adds $1 to the rate, { "value": "-3", "currency" : "USD" } removes $3 from the rate. Optional.
-    #[serde(default, rename = "flatAdjustment")]
-    pub flat_adjustment: ::core::option::Option<Price>,
-    /// Name of the carrier rate. Must be unique per rate group. Required.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Shipping origin for this carrier rate. Required.
-    #[serde(default, rename = "originPostalCode")]
-    pub origin_postal_code: ::core::option::Option<String>,
-    /// Multiplicative shipping rate modifier as a number in decimal notation. Can be negative. For example "5.4" increases the rate by 5.4%, "-3" decreases the rate by 3%. Optional.
-    #[serde(default, rename = "percentageAdjustment")]
-    pub percentage_adjustment: ::core::option::Option<String>,
-}
-
-/// CarriersCarrier resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CarriersCarrier {
-    /// The CLDR country code of the carrier (for example, "US"). Always present.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// A list of services supported for EDD (Estimated Delivery Date) calculation. This is the list of valid values for WarehouseBasedDeliveryTime.carrierService.
-    #[serde(default, rename = "eddServices")]
-    pub edd_services: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the carrier (for example, "UPS"). Always present.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of supported services (for example, "ground") for that carrier. Contains at least one service. This is the list of valid values for CarrierRate.carrierService.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// CheckoutSettings for a specific merchant ID.
@@ -1178,478 +226,12 @@ pub struct CheckoutSettings {
     pub uri_settings: ::core::option::Option<UrlSettings>,
 }
 
-/// Product property for the Cloud Retail API. For example, properties for a TV product could be "Screen-Resolution" or "Screen-Size".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudExportAdditionalProperties {
-    /// Boolean value of the given property. For example for a TV product, "True" or "False" if the screen is UHD.
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// Float values of the given property. For example for a TV product 1.2345. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order.
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<::std::vec::Vec<f32>>,
-    /// Integer values of the given property. For example, 1080 for a screen resolution of a TV product. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order.
-    #[serde(default, rename = "intValue")]
-    pub int_value: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Maximum float value of the given property. For example for a TV product 100.00.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<f32>,
-    /// Minimum float value of the given property. For example for a TV product 1.00.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<f32>,
-    /// Name of the given property. For example, "Screen-Resolution" for a TV product. Maximum string size is 256 characters.
-    #[serde(default, rename = "propertyName")]
-    pub property_name: ::core::option::Option<String>,
-    /// Text value of the given property. For example, "8K(UHD)" could be a text value for a TV product. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order. Maximum string size is 256 characters.
-    #[serde(default, rename = "textValue")]
-    pub text_value: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Unit of the given property. For example, "Pixels" for a TV product. Maximum string size is 256 bytes.
-    #[serde(default, rename = "unitCode")]
-    pub unit_code: ::core::option::Option<String>,
-}
-
-/// The collection message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Collection {
-    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns. [Custom label](https://support.google.com/merchants/answer/9674217)
-    #[serde(default, rename = "customLabel0")]
-    pub custom_label0: ::core::option::Option<String>,
-    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
-    #[serde(default, rename = "customLabel1")]
-    pub custom_label1: ::core::option::Option<String>,
-    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
-    #[serde(default, rename = "customLabel2")]
-    pub custom_label2: ::core::option::Option<String>,
-    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
-    #[serde(default, rename = "customLabel3")]
-    pub custom_label3: ::core::option::Option<String>,
-    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
-    #[serde(default, rename = "customLabel4")]
-    pub custom_label4: ::core::option::Option<String>,
-    /// This identifies one or more products associated with the collection. Used as a lookup to the corresponding product ID in your product feeds. Provide a maximum of 100 featuredProduct (for collections). Provide up to 10 featuredProduct (for Shoppable Images only) with ID and X and Y coordinates. [featured_product attribute](https://support.google.com/merchants/answer/9703736)
-    #[serde(default, rename = "featuredProduct")]
-    pub featured_product: ::core::option::Option<::std::vec::Vec<CollectionFeaturedProduct>>,
-    /// Your collection''s name. [headline attribute](https://support.google.com/merchants/answer/9673580)
-    #[serde(default)]
-    pub headline: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The REST ID of the collection. Content API methods that operate on collections take this as their collectionId parameter. The REST ID for a collection is of the form collectionId. [id attribute](https://support.google.com/merchants/answer/9649290)
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The URL of a collection’s image. [image_link attribute](https://support.google.com/merchants/answer/9703236)
-    #[serde(default, rename = "imageLink")]
-    pub image_link: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The language of a collection and the language of any featured products linked to the collection. [language attribute](https://support.google.com/merchants/answer/9673781)
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// A collection’s landing page. URL directly linking to your collection''s page on your website. [link attribute](https://support.google.com/merchants/answer/9673983)
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// A collection’s mobile-optimized landing page when you have a different URL for mobile and desktop traffic. [mobile_link attribute](https://support.google.com/merchants/answer/9646123)
-    #[serde(default, rename = "mobileLink")]
-    pub mobile_link: ::core::option::Option<String>,
-    /// [product_country attribute](https://support.google.com/merchants/answer/9674155)
-    #[serde(default, rename = "productCountry")]
-    pub product_country: ::core::option::Option<String>,
-}
-
-/// The message for FeaturedProduct. [FeaturedProduct](https://support.google.com/merchants/answer/9703736)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CollectionFeaturedProduct {
-    /// The unique identifier for the product item.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. X-coordinate of the product callout on the Shoppable Image.
-    #[serde(default)]
-    pub x: ::core::option::Option<f32>,
-    /// Required. Y-coordinate of the product callout on the Shoppable Image.
-    #[serde(default)]
-    pub y: ::core::option::Option<f32>,
-}
-
-/// The collectionstatus message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CollectionStatus {
-    /// A list of all issues associated with the collection.
-    #[serde(default, rename = "collectionLevelIssuses")]
-    pub collection_level_issuses:
-        ::core::option::Option<::std::vec::Vec<CollectionStatusItemLevelIssue>>,
-    /// Date on which the collection has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
-    #[serde(default, rename = "creationDate")]
-    pub creation_date: ::core::option::Option<String>,
-    /// The intended destinations for the collection.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses:
-        ::core::option::Option<::std::vec::Vec<CollectionStatusDestinationStatus>>,
-    /// Required. The ID of the collection for which status is reported.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Date on which the collection has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
-    #[serde(default, rename = "lastUpdateDate")]
-    pub last_update_date: ::core::option::Option<String>,
-}
-
-/// Destination status message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CollectionStatusDestinationStatus {
-    /// Country codes (ISO 3166-1 alpha-2) where the collection is approved.
-    #[serde(default, rename = "approvedCountries")]
-    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the destination
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// Country codes (ISO 3166-1 alpha-2) where the collection is disapproved.
-    #[serde(default, rename = "disapprovedCountries")]
-    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Country codes (ISO 3166-1 alpha-2) where the collection is pending approval.
-    #[serde(default, rename = "pendingCountries")]
-    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The status for the specified destination in the collections target country.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Issue associated with the collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CollectionStatusItemLevelIssue {
-    /// Country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
-    #[serde(default, rename = "applicableCountries")]
-    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The attribute''s name, if the issue is caused by a single attribute.
-    #[serde(default, rename = "attributeName")]
-    pub attribute_name: ::core::option::Option<String>,
-    /// The error code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// A short issue description in English.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The destination the issue applies to.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// A detailed issue description in English.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The URL of a web page to help with resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Whether the issue can be resolved by the merchant.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-    /// How this issue affects the serving of the collection.
-    #[serde(default)]
-    pub servability: ::core::option::Option<String>,
-}
-
-/// Fields related to [competitive visibility reports] (https://support.google.com/merchants/answer/11366442).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CompetitiveVisibility {
-    /// [Ads / organic ratio] (https://support.google.com/merchants/answer/11366442#zippy=%2Cadsfree-ratio) shows how often a merchant receives impressions from Shopping ads compared to organic traffic. The number is rounded and bucketed. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "adsOrganicRatio")]
-    pub ads_organic_ratio: ::core::option::Option<f64>,
-    /// Change in visibility based on impressions with respect to the start of the selected time range (or first day with non-zero impressions) for a combined set of merchants with highest visibility approximating the market. Available only in CompetitiveVisibilityBenchmarkView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "categoryBenchmarkVisibilityTrend")]
-    pub category_benchmark_visibility_trend: ::core::option::Option<f64>,
-    /// Google product category ID to calculate the report for, represented in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436). Required in the SELECT clause. A WHERE condition on competitive_visibility.category_id is required in the query.
-    #[serde(default, rename = "categoryId")]
-    pub category_id: ::core::option::Option<String>,
-    /// The country where impression appeared. Required in the SELECT clause. A WHERE condition on competitive_visibility.country_code is required in the query.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// Date of this row. Available only in CompetitiveVisibilityBenchmarkView and CompetitiveVisibilityCompetitorView. Required in the SELECT clause for CompetitiveVisibilityMarketBenchmarkView.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Domain of your competitor or your domain, if ''is_your_domain'' is true. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Required in the SELECT clause for CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Higher position rate shows how often a competitor’s offer got placed in a higher position on the page than your offer. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "higherPositionRate")]
-    pub higher_position_rate: ::core::option::Option<f64>,
-    /// True if this row contains data for your domain. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "isYourDomain")]
-    pub is_your_domain: ::core::option::Option<bool>,
-    /// Page overlap rate describes how frequently competing retailers’ offers are shown together with your offers on the same page. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "pageOverlapRate")]
-    pub page_overlap_rate: ::core::option::Option<f64>,
-    /// Position of the domain in the top merchants ranking for the selected keys (date, category_id, country_code, listing_type) based on impressions. 1 is the highest. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default)]
-    pub rank: ::core::option::Option<String>,
-    /// Relative visibility shows how often your competitors’ offers are shown compared to your offers. In other words, this is the number of displayed impressions of a competitor retailer divided by the number of your displayed impressions during a selected time range for a selected product category and country. Available only in CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "relativeVisibility")]
-    pub relative_visibility: ::core::option::Option<f64>,
-    /// Type of impression listing. Required in the SELECT clause. Cannot be filtered on in the ''WHERE'' clause. // TODO: enum values: ["UNKNOWN", "ORGANIC", "ADS", "ALL"]
-    #[serde(default, rename = "trafficSource")]
-    pub traffic_source: ::core::option::Option<String>,
-    /// Change in visibility based on impressions for your domain with respect to the start of the selected time range (or first day with non-zero impressions). Available only in CompetitiveVisibilityBenchmarkView. Cannot be filtered on in the ''WHERE'' clause.
-    #[serde(default, rename = "yourDomainVisibilityTrend")]
-    pub your_domain_visibility_trend: ::core::option::Option<f64>,
-}
-
-/// Represents a conversion source owned by a Merchant account. A merchant account can have up to 200 conversion sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConversionSource {
-    /// Output only. Generated by the Content API upon creation of a new ConversionSource. Format: [a-z]{4}:.+ The four characters before the colon represent the type of conversio source. Content after the colon represents the ID of the conversion source within that type. The ID of two different conversion sources might be the same across different types. The following type prefixes are supported: - galk: For GoogleAnalyticsLink sources. - mcdn: For MerchantCenterDestination sources.
-    #[serde(default, rename = "conversionSourceId")]
-    pub conversion_source_id: ::core::option::Option<String>,
-    /// Output only. The time when an archived conversion source becomes permanently deleted and is no longer available to undelete.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Immutable. Conversion Source of type "Link to Google Analytics Property".
-    #[serde(default, rename = "googleAnalyticsLink")]
-    pub google_analytics_link: ::core::option::Option<GoogleAnalyticsLink>,
-    /// Conversion Source of type "Merchant Center Tag Destination".
-    #[serde(default, rename = "merchantCenterDestination")]
-    pub merchant_center_destination: ::core::option::Option<MerchantCenterDestination>,
-    /// Output only. Current state of this conversion source. Can''t be edited through the API. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ARCHIVED", "PENDING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Information about CSS domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Css {
-    /// Output only. Immutable. The CSS domain ID.
-    #[serde(default, rename = "cssDomainId")]
-    pub css_domain_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The ID of the CSS group this CSS domain is affiliated with. Only populated for CSS group users.
-    #[serde(default, rename = "cssGroupId")]
-    pub css_group_id: ::core::option::Option<String>,
-    /// Output only. Immutable. The CSS domain''s display name, used when space is constrained.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Immutable. The CSS domain''s full name.
-    #[serde(default, rename = "fullName")]
-    pub full_name: ::core::option::Option<String>,
-    /// Output only. Immutable. The CSS domain''s homepage.
-    #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: ::core::option::Option<String>,
-    /// A list of label IDs that are assigned to this CSS domain by its CSS group. Only populated for CSS group users.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A message that represents custom attributes. Exactly one of value or groupValues must be provided. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set per merchant, with total size of 102.4kB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomAttribute {
-    /// Subattributes within this attribute group. Exactly one of value or groupValues must be provided.
-    #[serde(default, rename = "groupValues")]
-    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// The name of the attribute. Underscores will be replaced by spaces upon insertion.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The value of the attribute.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// CutoffTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CutoffTime {
-    /// Hour of the cutoff time until which an order has to be placed to be processed in the same day. Required.
-    #[serde(default)]
-    pub hour: ::core::option::Option<i64>,
-    /// Minute of the cutoff time until which an order has to be placed to be processed in the same day. Required.
-    #[serde(default)]
-    pub minute: ::core::option::Option<i64>,
-    /// Timezone identifier for the cutoff time (for example, "Europe/Zurich"). List of identifiers. Required.
-    #[serde(default)]
-    pub timezone: ::core::option::Option<String>,
-}
-
-/// Datafeed configuration data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Datafeed {
-    /// The two-letter ISO 639-1 language in which the attributes are defined in the data feed.
-    #[serde(default, rename = "attributeLanguage")]
-    pub attribute_language: ::core::option::Option<String>,
-    /// Required. The type of data feed. For product inventory feeds, only feeds for local stores, not online stores, are supported. Acceptable values are: - "local products" - "product inventory" - "products"
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// Fetch schedule for the feed file.
-    #[serde(default, rename = "fetchSchedule")]
-    pub fetch_schedule: ::core::option::Option<DatafeedFetchSchedule>,
-    /// Required. The filename of the feed. All feeds must have a unique file name.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Format of the feed file.
-    #[serde(default)]
-    pub format: ::core::option::Option<DatafeedFormat>,
-    /// Required for update. The ID of the data feed.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#datafeed"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Required for insert. A descriptive name of the data feed.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The targets this feed should apply to (country, language, destinations).
-    #[serde(default)]
-    pub targets: ::core::option::Option<::std::vec::Vec<DatafeedTarget>>,
-}
-
-/// The required fields vary based on the frequency of fetching. For a monthly fetch schedule, day_of_month and hour are required. For a weekly fetch schedule, weekday and hour are required. For a daily fetch schedule, only hour is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedFetchSchedule {
-    /// The day of the month the feed file should be fetched (1-31).
-    #[serde(default, rename = "dayOfMonth")]
-    pub day_of_month: ::core::option::Option<i64>,
-    /// The URL where the feed file can be fetched. Google Merchant Center will support automatic scheduled uploads using the HTTP, HTTPS, FTP, or SFTP protocols, so the value will need to be a valid link using one of those four protocols.
-    #[serde(default, rename = "fetchUrl")]
-    pub fetch_url: ::core::option::Option<String>,
-    /// The hour of the day the feed file should be fetched (0-23).
-    #[serde(default)]
-    pub hour: ::core::option::Option<i64>,
-    /// The minute of the hour the feed file should be fetched (0-59). Read-only.
-    #[serde(default, rename = "minuteOfHour")]
-    pub minute_of_hour: ::core::option::Option<i64>,
-    /// An optional password for fetch_url.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Whether the scheduled fetch is paused or not.
-    #[serde(default)]
-    pub paused: ::core::option::Option<bool>,
-    /// Time zone used for schedule. UTC by default. For example, "America/Los_Angeles".
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-    /// An optional user name for fetch_url.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-    /// The day of the week the feed file should be fetched. Acceptable values are: - "monday" - "tuesday" - "wednesday" - "thursday" - "friday" - "saturday" - "sunday"
-    #[serde(default)]
-    pub weekday: ::core::option::Option<String>,
-}
-
-/// DatafeedFormat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedFormat {
-    /// Delimiter for the separation of values in a delimiter-separated values feed. If not specified, the delimiter will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "pipe" - "tab" - "tilde"
-    #[serde(default, rename = "columnDelimiter")]
-    pub column_delimiter: ::core::option::Option<String>,
-    /// Character encoding scheme of the data feed. If not specified, the encoding will be auto-detected. Acceptable values are: - "latin-1" - "utf-16be" - "utf-16le" - "utf-8" - "windows-1252"
-    #[serde(default, rename = "fileEncoding")]
-    pub file_encoding: ::core::option::Option<String>,
-    /// Specifies how double quotes are interpreted. If not specified, the mode will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "normal character" - "value quoting"
-    #[serde(default, rename = "quotingMode")]
-    pub quoting_mode: ::core::option::Option<String>,
-}
-
-/// The status of a datafeed, that is, the result of the last retrieval of the datafeed computed asynchronously when the feed processing is finished.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedStatus {
-    /// The country for which the status is reported, represented as a CLDR territory code.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The ID of the feed for which the status is reported.
-    #[serde(default, rename = "datafeedId")]
-    pub datafeed_id: ::core::option::Option<String>,
-    /// The list of errors occurring in the feed.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<DatafeedStatusError>>,
-    /// The feed label status is reported for.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// The number of items in the feed that were processed.
-    #[serde(default, rename = "itemsTotal")]
-    pub items_total: ::core::option::Option<String>,
-    /// The number of items in the feed that were valid.
-    #[serde(default, rename = "itemsValid")]
-    pub items_valid: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedStatus"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The two-letter ISO 639-1 language for which the status is reported.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The last date at which the feed was uploaded.
-    #[serde(default, rename = "lastUploadDate")]
-    pub last_upload_date: ::core::option::Option<String>,
-    /// The processing status of the feed. Acceptable values are: - ""failure": The feed could not be processed or all items had errors." - "in progress": The feed is being processed. - "none": The feed has not yet been processed. For example, a feed that has never been uploaded will have this processing status. - "success": The feed was processed successfully, though some items might have had errors.
-    #[serde(default, rename = "processingStatus")]
-    pub processing_status: ::core::option::Option<String>,
-    /// The list of errors occurring in the feed.
-    #[serde(default)]
-    pub warnings: ::core::option::Option<::std::vec::Vec<DatafeedStatusError>>,
-}
-
-/// An error occurring in the feed, like "invalid price".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedStatusError {
-    /// The code of the error, for example, "validation/invalid_value".
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The number of occurrences of the error in the feed.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// A list of example occurrences of the error, grouped by product.
-    #[serde(default)]
-    pub examples: ::core::option::Option<::std::vec::Vec<DatafeedStatusExample>>,
-    /// The error message, for example, "Invalid price".
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// An example occurrence for a particular error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedStatusExample {
-    /// The ID of the example item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Line number in the data feed where the example is found.
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<String>,
-    /// The problematic value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// DatafeedTarget resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedTarget {
-    /// Deprecated. Use feedLabel instead. The country where the items in the feed will be included in the search index, represented as a CLDR territory code.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The list of [destinations to exclude](//support.google.com/merchants/answer/6324486) for this target (corresponds to cleared check boxes in Merchant Center). Products that are excluded from all destinations for more than 7 days are automatically deleted.
-    #[serde(default, rename = "excludedDestinations")]
-    pub excluded_destinations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Feed label for the DatafeedTarget. Either country or feedLabel is required. If both feedLabel and country is specified, the values must match. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// The list of [destinations to include](//support.google.com/merchants/answer/7501026) for this target (corresponds to checked check boxes in Merchant Center). Default destinations are always included unless provided in excludedDestinations.
-    #[serde(default, rename = "includedDestinations")]
-    pub included_destinations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The two-letter ISO 639-1 language of the items in the feed. Must be a valid language for targets[].country.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The countries where the items may be displayed. Represented as a CLDR territory code. Will be ignored for "product inventory" feeds.
-    #[serde(default, rename = "targetCountries")]
-    pub target_countries: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// DatafeedsCustomBatchRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatafeedsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<DatafeedsCustomBatchRequestEntry>>,
-}
-
-/// A batch entry encoding a single non-batch datafeeds request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedsCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The data feed to insert.
-    #[serde(default)]
-    pub datafeed: ::core::option::Option<Datafeed>,
-    /// The ID of the data feed to get, delete or fetch.
-    #[serde(default, rename = "datafeedId")]
-    pub datafeed_id: ::core::option::Option<String>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "delete" - "fetchNow" - "get" - "insert" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
 }
 
 /// DatafeedsCustomBatchResponse resource type.
@@ -1661,20 +243,6 @@ pub struct DatafeedsCustomBatchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedsCustomBatchResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch datafeeds response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedsCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The requested data feed. Defined if and only if the request was successful.
-    #[serde(default)]
-    pub datafeed: ::core::option::Option<Datafeed>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
 }
 
 /// DatafeedsFetchNowResponse resource type.
@@ -1706,32 +274,6 @@ pub struct DatafeedstatusesCustomBatchRequest {
     pub entries: ::core::option::Option<::std::vec::Vec<DatafeedstatusesCustomBatchRequestEntry>>,
 }
 
-/// A batch entry encoding a single non-batch datafeedstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedstatusesCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// Deprecated. Use feedLabel instead. The country to get the datafeed status for. If this parameter is provided, then language must also be provided. Note that for multi-target datafeeds this parameter is required.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The ID of the data feed to get.
-    #[serde(default, rename = "datafeedId")]
-    pub datafeed_id: ::core::option::Option<String>,
-    /// The feed label to get the datafeed status for. If this parameter is provided, then language must also be provided. Note that for multi-target datafeeds this parameter is required.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// The language to get the datafeed status for. If this parameter is provided then country must also be provided. Note that for multi-target datafeeds this parameter is required.
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-}
-
 /// DatafeedstatusesCustomBatchResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatafeedstatusesCustomBatchResponse {
@@ -1741,20 +283,6 @@ pub struct DatafeedstatusesCustomBatchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedstatusesCustomBatchResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch datafeedstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatafeedstatusesCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The requested data feed status. Defined if and only if the request was successful.
-    #[serde(default, rename = "datafeedStatus")]
-    pub datafeed_status: ::core::option::Option<DatafeedStatus>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
 }
 
 /// DatafeedstatusesListResponse resource type.
@@ -1770,171 +298,6 @@ pub struct DatafeedstatusesListResponse {
     pub resources: ::core::option::Option<::std::vec::Vec<DatafeedStatus>>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateTime {
-    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-    /// Time zone.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<TimeZone>,
-    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
-    #[serde(default, rename = "utcOffset")]
-    pub utc_offset: ::core::option::Option<String>,
-    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// A delivery area for the product. Only one of countryCode or postalCodeRange must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeliveryArea {
-    /// Required. The country that the product can be delivered to. Submit a [unicode CLDR region](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) such as US or CH.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// A postal code, postal code range or postal code prefix that defines this area. Limited to US and AUS.
-    #[serde(default, rename = "postalCodeRange")]
-    pub postal_code_range: ::core::option::Option<DeliveryAreaPostalCodeRange>,
-    /// A state, territory, or prefecture. This is supported for the United States, Australia, and Japan. Provide a subdivision code from the ISO 3166-2 code tables ([US](https://en.wikipedia.org/wiki/ISO_3166-2:US), [AU](https://en.wikipedia.org/wiki/ISO_3166-2:AU), or [JP](https://en.wikipedia.org/wiki/ISO_3166-2:JP)) without country prefix (for example, "NY", "NSW", "03").
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// A range of postal codes that defines the delivery area. Only set firstPostalCode when specifying a single postal code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeliveryAreaPostalCodeRange {
-    /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
-    #[serde(default, rename = "firstPostalCode")]
-    pub first_postal_code: ::core::option::Option<String>,
-    /// A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area (for example [070* - 078*] results in the range [07000 - 07899]). It must have the same length as firstPostalCode: if firstPostalCode is a postal code then lastPostalCode must be a postal code too; if firstPostalCode is a pattern then lastPostalCode must be a pattern with the same prefix length. Ignored if not set, then the area is defined as being all the postal codes matching firstPostalCode.
-    #[serde(default, rename = "lastPostalCode")]
-    pub last_postal_code: ::core::option::Option<String>,
-}
-
-/// DeliveryTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeliveryTime {
-    /// Business days cutoff time definition. If not configured, the cutoff time will be defaulted to 8AM PST. If local delivery, use Service.StoreConfig.CutoffConfig.
-    #[serde(default, rename = "cutoffTime")]
-    pub cutoff_time: ::core::option::Option<CutoffTime>,
-    /// The business days during which orders can be handled. If not provided, Monday to Friday business days will be assumed.
-    #[serde(default, rename = "handlingBusinessDayConfig")]
-    pub handling_business_day_config: ::core::option::Option<BusinessDayConfig>,
-    /// Holiday cutoff definitions. If configured, they specify order cutoff times for holiday-specific shipping.
-    #[serde(default, rename = "holidayCutoffs")]
-    pub holiday_cutoffs: ::core::option::Option<::std::vec::Vec<HolidayCutoff>>,
-    /// Maximum number of business days spent before an order is shipped. 0 means same day shipped, 1 means next day shipped. Must be greater than or equal to minHandlingTimeInDays.
-    #[serde(default, rename = "maxHandlingTimeInDays")]
-    pub max_handling_time_in_days: ::core::option::Option<i64>,
-    /// Maximum number of business days that are spent in transit. 0 means same day delivery, 1 means next day delivery. Must be greater than or equal to minTransitTimeInDays.
-    #[serde(default, rename = "maxTransitTimeInDays")]
-    pub max_transit_time_in_days: ::core::option::Option<i64>,
-    /// Minimum number of business days spent before an order is shipped. 0 means same day shipped, 1 means next day shipped.
-    #[serde(default, rename = "minHandlingTimeInDays")]
-    pub min_handling_time_in_days: ::core::option::Option<i64>,
-    /// Minimum number of business days that are spent in transit. 0 means same day delivery, 1 means next day delivery. Either {min,max}TransitTimeInDays or transitTimeTable must be set, but not both.
-    #[serde(default, rename = "minTransitTimeInDays")]
-    pub min_transit_time_in_days: ::core::option::Option<i64>,
-    /// The business days during which orders can be in-transit. If not provided, Monday to Friday business days will be assumed.
-    #[serde(default, rename = "transitBusinessDayConfig")]
-    pub transit_business_day_config: ::core::option::Option<BusinessDayConfig>,
-    /// Transit time table, number of business days spent in transit based on row and column dimensions. Either {min,max}TransitTimeInDays or transitTimeTable can be set, but not both.
-    #[serde(default, rename = "transitTimeTable")]
-    pub transit_time_table: ::core::option::Option<TransitTable>,
-    /// Indicates that the delivery time should be calculated per warehouse (shipping origin location) based on the settings of the selected carrier. When set, no other transit time related field in DeliveryTime should be set.
-    #[serde(default, rename = "warehouseBasedDeliveryTimes")]
-    pub warehouse_based_delivery_times:
-        ::core::option::Option<::std::vec::Vec<WarehouseBasedDeliveryTime>>,
-}
-
-/// Distance represented by an integer and unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Distance {
-    /// The distance unit. Acceptable values are None, Miles, and Kilometers.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// The distance represented as a number.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Additional information required for E_COMMERCE_PLATFORM link type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ECommercePlatformLinkInfo {
-    /// The id used by the third party service provider to identify the merchant.
-    #[serde(default, rename = "externalAccountId")]
-    pub external_account_id: ::core::option::Option<String>,
-}
-
-/// An error returned by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Error {
-    /// The domain of the error.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// A description of the error.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The error code.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// A list of errors returned by a failed batch entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Errors {
-    /// The HTTP status of the first error in errors.
-    #[serde(default)]
-    pub code: ::core::option::Option<i64>,
-    /// A list of errors.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<Error>>,
-    /// The message of the first error in errors.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Action that is implemented and performed outside of the third-party application. It should redirect the merchant to the provided URL of an external system where they can perform the action. For example to request a review in the Merchant Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalAction {
-    /// The type of external action. // TODO: enum values: ["EXTERNAL_ACTION_TYPE_UNSPECIFIED", "REVIEW_PRODUCT_ISSUE_IN_MERCHANT_CENTER", "REVIEW_ACCOUNT_ISSUE_IN_MERCHANT_CENTER", "LEGAL_APPEAL_IN_HELP_CENTER", "VERIFY_IDENTITY_IN_MERCHANT_CENTER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// URL to external system, for example Merchant Center, where the merchant can perform the action.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// Response message for GetFreeListingsProgramStatus.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FreeListingsProgramStatus {
@@ -1945,58 +308,6 @@ pub struct FreeListingsProgramStatus {
     #[serde(default, rename = "regionStatuses")]
     pub region_statuses:
         ::core::option::Option<::std::vec::Vec<FreeListingsProgramStatusRegionStatus>>,
-}
-
-/// Status of program and region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FreeListingsProgramStatusRegionStatus {
-    /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
-    #[serde(default, rename = "disapprovalDate")]
-    pub disapproval_date: ::core::option::Option<String>,
-    /// Eligibility status of the standard free listing program. // TODO: enum values: ["STATE_UNSPECIFIED", "APPROVED", "DISAPPROVED", "WARNING", "UNDER_REVIEW", "PENDING_REVIEW", "ONBOARDING"]
-    #[serde(default, rename = "eligibilityStatus")]
-    pub eligibility_status: ::core::option::Option<String>,
-    /// Issues that must be fixed to be eligible for review.
-    #[serde(default, rename = "onboardingIssues")]
-    pub onboarding_issues: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The two-letter [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) codes for all the regions with the same eligibilityStatus and reviewEligibility.
-    #[serde(default, rename = "regionCodes")]
-    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If a program is eligible for review in a specific region. Only visible if eligibilityStatus is DISAPPROVED. // TODO: enum values: ["REVIEW_ELIGIBILITY_UNSPECIFIED", "ELIGIBLE", "INELIGIBLE"]
-    #[serde(default, rename = "reviewEligibilityStatus")]
-    pub review_eligibility_status: ::core::option::Option<String>,
-    /// Review ineligibility reason if account is not eligible for review. // TODO: enum values: ["REVIEW_INELIGIBILITY_REASON_UNSPECIFIED", "ONBOARDING_ISSUES", "NOT_ENOUGH_OFFERS", "IN_COOLDOWN_PERIOD", "ALREADY_UNDER_REVIEW", "NO_REVIEW_REQUIRED", "WILL_BE_REVIEWED_AUTOMATICALLY", "IS_RETIRED", "ALREADY_REVIEWED"]
-    #[serde(default, rename = "reviewIneligibilityReason")]
-    pub review_ineligibility_reason: ::core::option::Option<String>,
-    /// Reason a program in a specific region isn’t eligible for review. Only visible if reviewEligibilityStatus is INELIGIBLE.
-    #[serde(default, rename = "reviewIneligibilityReasonDescription")]
-    pub review_ineligibility_reason_description: ::core::option::Option<String>,
-    /// Additional information for ineligibility. If reviewIneligibilityReason is IN_COOLDOWN_PERIOD, a timestamp for the end of the cooldown period is provided.
-    #[serde(default, rename = "reviewIneligibilityReasonDetails")]
-    pub review_ineligibility_reason_details:
-        ::core::option::Option<FreeListingsProgramStatusReviewIneligibilityReasonDetails>,
-    /// Issues evaluated in the review process. Fix all issues before requesting a review.
-    #[serde(default, rename = "reviewIssues")]
-    pub review_issues: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Additional details for review ineligibility reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FreeListingsProgramStatusReviewIneligibilityReasonDetails {
-    /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
-    #[serde(default, rename = "cooldownTime")]
-    pub cooldown_time: ::core::option::Option<String>,
-}
-
-/// Conditions to be met for a product to have free shipping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FreeShippingThreshold {
-    /// Required. The [CLDR territory code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of the country to which an item will ship.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// Required. The minimum product price for the shipping cost to become free. Represented as a number.
-    #[serde(default, rename = "priceThreshold")]
-    pub price_threshold: ::core::option::Option<Price>,
 }
 
 /// Response containing generated recommendations.
@@ -2010,237 +321,12 @@ pub struct GenerateRecommendationsResponse {
     pub response_token: ::core::option::Option<String>,
 }
 
-/// GmbAccounts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GmbAccounts {
-    /// The ID of the Merchant Center account.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// A list of Business Profiles which are available to the merchant.
-    #[serde(default, rename = "gmbAccounts")]
-    pub gmb_accounts: ::core::option::Option<::std::vec::Vec<GmbAccountsGmbAccount>>,
-}
-
-/// GmbAccountsGmbAccount resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GmbAccountsGmbAccount {
-    /// The email which identifies the Business Profile.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Number of listings under this account.
-    #[serde(default, rename = "listingCount")]
-    pub listing_count: ::core::option::Option<String>,
-    /// The name of the Business Profile.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The type of the Business Profile (User or Business).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// "Google Analytics Link" sources can be used to get conversion data from an existing Google Analytics property into the linked Merchant Center account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAnalyticsLink {
-    /// Output only. Attribution settings for the linked Google Analytics property.
-    #[serde(default, rename = "attributionSettings")]
-    pub attribution_settings: ::core::option::Option<AttributionSettings>,
-    /// Required. Immutable. ID of the Google Analytics property the merchant is linked to.
-    #[serde(default, rename = "propertyId")]
-    pub property_id: ::core::option::Option<String>,
-    /// Output only. Name of the Google Analytics property the merchant is linked to.
-    #[serde(default, rename = "propertyName")]
-    pub property_name: ::core::option::Option<String>,
-}
-
-/// A non-empty list of row or column headers for a table. Exactly one of prices, weights, numItems, postalCodeGroupNames, or location must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Headers {
-    /// A list of location ID sets. Must be non-empty. Can only be set if all other fields are not set.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<LocationIdSet>>,
-    /// A list of inclusive number of items upper bounds. The last value can be "infinity". For example ["10", "50", "infinity"] represents the headers "&lt;= 10 items", "&lt;= 50 items", and "&gt; 50 items". Must be non-empty. Can only be set if all other fields are not set.
-    #[serde(default, rename = "numberOfItems")]
-    pub number_of_items: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of postal group names. The last value can be "all other locations". Example: ["zone 1", "zone 2", "all other locations"]. The referred postal code groups must match the delivery country of the service. Must be non-empty. Can only be set if all other fields are not set.
-    #[serde(default, rename = "postalCodeGroupNames")]
-    pub postal_code_group_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of inclusive order price upper bounds. The last price''s value can be "infinity". For example [{"value": "10", "currency": "USD"}, {"value": "500", "currency": "USD"}, {"value": "infinity", "currency": "USD"}] represents the headers "&lt;= $10", "&lt;= $500", and "&gt; $500". All prices within a service must have the same currency. Must be non-empty. Can only be set if all other fields are not set.
-    #[serde(default)]
-    pub prices: ::core::option::Option<::std::vec::Vec<Price>>,
-    /// A list of inclusive order weight upper bounds. The last weight''s value can be "infinity". For example [{"value": "10", "unit": "kg"}, {"value": "50", "unit": "kg"}, {"value": "infinity", "unit": "kg"}] represents the headers "&lt;= 10kg", "&lt;= 50kg", and "&gt; 50kg". All weights within a service must have the same unit. Must be non-empty. Can only be set if all other fields are not set.
-    #[serde(default)]
-    pub weights: ::core::option::Option<::std::vec::Vec<Weight>>,
-}
-
-/// HolidayCutoff resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HolidayCutoff {
-    /// Date of the order deadline, in ISO 8601 format. For example, "2016-11-29" for 29th November 2016. Required.
-    #[serde(default, rename = "deadlineDate")]
-    pub deadline_date: ::core::option::Option<String>,
-    /// Hour of the day on the deadline date until which the order has to be placed to qualify for the delivery guarantee. Possible values are: 0 (midnight), 1, ..., 12 (noon), 13, ..., 23. Required.
-    #[serde(default, rename = "deadlineHour")]
-    pub deadline_hour: ::core::option::Option<i64>,
-    /// Timezone identifier for the deadline hour (for example, "Europe/Zurich"). List of identifiers. Required.
-    #[serde(default, rename = "deadlineTimezone")]
-    pub deadline_timezone: ::core::option::Option<String>,
-    /// Unique identifier for the holiday. Required.
-    #[serde(default, rename = "holidayId")]
-    pub holiday_id: ::core::option::Option<String>,
-    /// Date on which the deadline will become visible to consumers in ISO 8601 format. For example, "2016-10-31" for 31st October 2016. Required.
-    #[serde(default, rename = "visibleFromDate")]
-    pub visible_from_date: ::core::option::Option<String>,
-}
-
-/// HolidaysHoliday resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HolidaysHoliday {
-    /// The CLDR territory code of the country in which the holiday is available. For example, "US", "DE", "GB". A holiday cutoff can only be configured in a shipping settings service with matching delivery country. Always present.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-    /// Date of the holiday, in ISO 8601 format. For example, "2016-12-25" for Christmas 2016. Always present.
-    #[serde(default)]
-    pub date: ::core::option::Option<String>,
-    /// Date on which the order has to arrive at the customer''s, in ISO 8601 format. For example, "2016-12-24" for 24th December 2016. Always present.
-    #[serde(default, rename = "deliveryGuaranteeDate")]
-    pub delivery_guarantee_date: ::core::option::Option<String>,
-    /// Hour of the day in the delivery location''s timezone on the guaranteed delivery date by which the order has to arrive at the customer''s. Possible values are: 0 (midnight), 1, ..., 12 (noon), 13, ..., 23. Always present.
-    #[serde(default, rename = "deliveryGuaranteeHour")]
-    pub delivery_guarantee_hour: ::core::option::Option<String>,
-    /// Unique identifier for the holiday to be used when configuring holiday cutoffs. Always present.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The holiday type. Always present. Acceptable values are: - "Christmas" - "Easter" - "Father''s Day" - "Halloween" - "Independence Day (USA)" - "Mother''s Day" - "Thanksgiving" - "Valentine''s Day"
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Input field that needs to be available to the merchant. If the field is marked as required, then a value needs to be provided for a successful processing of the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputField {
-    /// Input field to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox).
-    #[serde(default, rename = "checkboxInput")]
-    pub checkbox_input: ::core::option::Option<serde_json::Value>,
-    /// Input field to select one of the offered choices. Corresponds to the [html input type=radio](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.radio.html#input.radio).
-    #[serde(default, rename = "choiceInput")]
-    pub choice_input: ::core::option::Option<InputFieldChoiceInput>,
-    /// Not for display but need to be sent back for the given input field.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Input field label. There may be more information to be shown in a tooltip.
-    #[serde(default)]
-    pub label: ::core::option::Option<TextWithTooltip>,
-    /// Whether the field is required. The action button needs to stay disabled till values for all required fields are provided.
-    #[serde(default)]
-    pub required: ::core::option::Option<bool>,
-    /// Input field to provide text information. Corresponds to the [html input type=text](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.text.html#input.text) or [html textarea](https://www.w3.org/TR/2012/WD-html-markup-20121025/textarea.html#textarea).
-    #[serde(default, rename = "textInput")]
-    pub text_input: ::core::option::Option<InputFieldTextInput>,
-}
-
-/// Choice input allows merchants to select one of the offered choices. Some choices may be linked to additional input fields that should be displayed under or next to the choice option. The value for the additional input field needs to be provided only when the specific choice is selected by the merchant. For example, additional input field can be hidden or disabled until the merchant selects the specific choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputFieldChoiceInput {
-    /// A list of choices. Only one option can be selected.
-    #[serde(default)]
-    pub options: ::core::option::Option<::std::vec::Vec<InputFieldChoiceInputChoiceInputOption>>,
-}
-
-/// A choice that merchant can select.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputFieldChoiceInputChoiceInputOption {
-    /// Input that should be displayed when this option is selected. The additional input will not contain a ChoiceInput.
-    #[serde(default, rename = "additionalInput")]
-    pub additional_input: ::core::option::Option<InputField>,
-    /// Not for display but need to be sent back for the selected choice option.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Short description of the choice option. There may be more information to be shown as a tooltip.
-    #[serde(default)]
-    pub label: ::core::option::Option<TextWithTooltip>,
-}
-
-/// Text input allows merchants to provide a text value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputFieldTextInput {
-    /// Additional info regarding the field to be displayed to merchant. For example, warning to not include personal identifiable information. There may be more information to be shown in a tooltip.
-    #[serde(default, rename = "additionalInfo")]
-    pub additional_info: ::core::option::Option<TextWithTooltip>,
-    /// Text to be used as the [aria-label](https://www.w3.org/TR/WCAG20-TECHS/ARIA14.html) for the input.
-    #[serde(default, rename = "ariaLabel")]
-    pub aria_label: ::core::option::Option<String>,
-    /// Information about the required format. If present, it should be shown close to the input field to help merchants to provide a correct value. For example: "VAT numbers should be in a format similar to SK9999999999"
-    #[serde(default, rename = "formatInfo")]
-    pub format_info: ::core::option::Option<String>,
-    /// Type of the text input // TODO: enum values: ["TEXT_INPUT_TYPE_UNSPECIFIED", "GENERIC_SHORT_TEXT", "GENERIC_LONG_TEXT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Input provided by the merchant for input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputValue {
-    /// Value for checkbox input field.
-    #[serde(default, rename = "checkboxInputValue")]
-    pub checkbox_input_value: ::core::option::Option<InputValueCheckboxInputValue>,
-    /// Value for choice input field.
-    #[serde(default, rename = "choiceInputValue")]
-    pub choice_input_value: ::core::option::Option<InputValueChoiceInputValue>,
-    /// Required. Id of the corresponding input field.
-    #[serde(default, rename = "inputFieldId")]
-    pub input_field_id: ::core::option::Option<String>,
-    /// Value for text input field.
-    #[serde(default, rename = "textInputValue")]
-    pub text_input_value: ::core::option::Option<InputValueTextInputValue>,
-}
-
-/// Value for checkbox input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputValueCheckboxInputValue {
-    /// Required. True if the merchant checked the box field. False otherwise.
-    #[serde(default)]
-    pub value: ::core::option::Option<bool>,
-}
-
-/// Value for choice input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputValueChoiceInputValue {
-    /// Required. Id of the option that was selected by the merchant.
-    #[serde(default, rename = "choiceInputOptionId")]
-    pub choice_input_option_id: ::core::option::Option<String>,
-}
-
-/// Value for text input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputValueTextInputValue {
-    /// Required. Text provided by the merchant.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Request message for the InsertCheckoutSettings method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsertCheckoutSettingsRequest {
     /// Required. The UrlSettings for the request. The presence of URL settings indicates Checkout enrollment.
     #[serde(default, rename = "uriSettings")]
     pub uri_settings: ::core::option::Option<UrlSettings>,
-}
-
-/// Details of a monthly installment payment offering. [Learn more](https://support.google.com/merchants/answer/6324474) about installments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Installment {
-    /// The amount the buyer has to pay per month.
-    #[serde(default)]
-    pub amount: ::core::option::Option<Price>,
-    /// Optional. Type of installment payments. Supported values are: - "finance" - "lease"
-    #[serde(default, rename = "creditType")]
-    pub credit_type: ::core::option::Option<String>,
-    /// Optional. The initial down payment amount the buyer has to pay.
-    #[serde(default)]
-    pub downpayment: ::core::option::Option<Price>,
-    /// The number of installments the buyer has to pay.
-    #[serde(default)]
-    pub months: ::core::option::Option<String>,
 }
 
 /// The IDs of labels that should be assigned to the CSS domain.
@@ -2251,160 +337,12 @@ pub struct LabelIds {
     pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// LiaAboutPageSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaAboutPageSettings {
-    /// The status of the verification process for the About page. Supported values are: - "active" - "inactive" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The URL for the About page.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// LiaCountrySettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaCountrySettings {
-    /// The settings for the About page.
-    #[serde(default)]
-    pub about: ::core::option::Option<LiaAboutPageSettings>,
-    /// Required. CLDR country code (for example, "US").
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The status of the "Merchant hosted local storefront" feature.
-    #[serde(default, rename = "hostedLocalStorefrontActive")]
-    pub hosted_local_storefront_active: ::core::option::Option<bool>,
-    /// LIA inventory verification settings.
-    #[serde(default)]
-    pub inventory: ::core::option::Option<LiaInventorySettings>,
-    /// The omnichannel experience configured for this country.
-    #[serde(default, rename = "omnichannelExperience")]
-    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
-    /// LIA "On Display To Order" settings.
-    #[serde(default, rename = "onDisplayToOrder")]
-    pub on_display_to_order: ::core::option::Option<LiaOnDisplayToOrderSettings>,
-    /// The POS data provider linked with this country.
-    #[serde(default, rename = "posDataProvider")]
-    pub pos_data_provider: ::core::option::Option<LiaPosDataProvider>,
-    /// The status of the "Store pickup" feature.
-    #[serde(default, rename = "storePickupActive")]
-    pub store_pickup_active: ::core::option::Option<bool>,
-}
-
-/// LiaInventorySettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaInventorySettings {
-    /// The email of the contact for the inventory verification process.
-    #[serde(default, rename = "inventoryVerificationContactEmail")]
-    pub inventory_verification_contact_email: ::core::option::Option<String>,
-    /// The name of the contact for the inventory verification process.
-    #[serde(default, rename = "inventoryVerificationContactName")]
-    pub inventory_verification_contact_name: ::core::option::Option<String>,
-    /// The status of the verification contact. Acceptable values are: - "active" - "inactive" - "pending"
-    #[serde(default, rename = "inventoryVerificationContactStatus")]
-    pub inventory_verification_contact_status: ::core::option::Option<String>,
-    /// The status of the inventory verification process. Acceptable values are: - "active" - "inactive" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Omnichannel experience details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaOmnichannelExperience {
-    /// The CLDR country code (for example, "US").
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The Local Store Front (LSF) type for this country. Acceptable values are: - "ghlsf" (Google-Hosted Local Store Front) - "mhlsfBasic" (Merchant-Hosted Local Store Front Basic) - "mhlsfFull" (Merchant-Hosted Local Store Front Full) More details about these types can be found here.
-    #[serde(default, rename = "lsfType")]
-    pub lsf_type: ::core::option::Option<String>,
-    /// The Pickup types for this country. Acceptable values are: - "pickupToday" - "pickupLater"
-    #[serde(default, rename = "pickupTypes")]
-    pub pickup_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// LiaOnDisplayToOrderSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaOnDisplayToOrderSettings {
-    /// Shipping cost and policy URL.
-    #[serde(default, rename = "shippingCostPolicyUrl")]
-    pub shipping_cost_policy_url: ::core::option::Option<String>,
-    /// The status of the ?On display to order? feature. Acceptable values are: - "active" - "inactive" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// LiaPosDataProvider resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaPosDataProvider {
-    /// The ID of the POS data provider.
-    #[serde(default, rename = "posDataProviderId")]
-    pub pos_data_provider_id: ::core::option::Option<String>,
-    /// The account ID by which this merchant is known to the POS data provider.
-    #[serde(default, rename = "posExternalAccountId")]
-    pub pos_external_account_id: ::core::option::Option<String>,
-}
-
-/// Local Inventory ads (LIA) settings. All methods except listposdataproviders require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiaSettings {
-    /// The ID of the account to which these LIA settings belong. Ignored upon update, always present in get request responses.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The LIA settings for each country.
-    #[serde(default, rename = "countrySettings")]
-    pub country_settings: ::core::option::Option<::std::vec::Vec<LiaCountrySettings>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#liaSettings"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
 /// LiasettingsCustomBatchRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LiasettingsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<LiasettingsCustomBatchRequestEntry>>,
-}
-
-/// LiasettingsCustomBatchRequestEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiasettingsCustomBatchRequestEntry {
-    /// The ID of the account for which to get/update account LIA settings.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// Inventory validation contact email. Required only for SetInventoryValidationContact.
-    #[serde(default, rename = "contactEmail")]
-    pub contact_email: ::core::option::Option<String>,
-    /// Inventory validation contact name. Required only for SetInventoryValidationContact.
-    #[serde(default, rename = "contactName")]
-    pub contact_name: ::core::option::Option<String>,
-    /// The country code. Required only for RequestInventoryVerification.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The Business Profile. Required only for RequestGmbAccess.
-    #[serde(default, rename = "gmbEmail")]
-    pub gmb_email: ::core::option::Option<String>,
-    /// The account Lia settings to update. Only defined if the method is update.
-    #[serde(default, rename = "liaSettings")]
-    pub lia_settings: ::core::option::Option<LiaSettings>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get" - "getAccessibleGmbAccounts" - "requestGmbAccess" - "requestInventoryVerification" - "setInventoryVerificationContact" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The omnichannel experience for a country. Required only for SetOmnichannelExperience.
-    #[serde(default, rename = "omnichannelExperience")]
-    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
-    /// The ID of POS data provider. Required only for SetPosProvider.
-    #[serde(default, rename = "posDataProviderId")]
-    pub pos_data_provider_id: ::core::option::Option<String>,
-    /// The account ID by which this merchant is known to the POS provider.
-    #[serde(default, rename = "posExternalAccountId")]
-    pub pos_external_account_id: ::core::option::Option<String>,
 }
 
 /// LiasettingsCustomBatchResponse resource type.
@@ -2416,32 +354,6 @@ pub struct LiasettingsCustomBatchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsCustomBatchResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// LiasettingsCustomBatchResponseEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiasettingsCustomBatchResponseEntry {
-    /// The ID of the request entry to which this entry responds.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors defined if, and only if, the request failed.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// The list of accessible Business Profiles.
-    #[serde(default, rename = "gmbAccounts")]
-    pub gmb_accounts: ::core::option::Option<GmbAccounts>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsCustomBatchResponseEntry"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The retrieved or updated Lia settings.
-    #[serde(default, rename = "liaSettings")]
-    pub lia_settings: ::core::option::Option<LiaSettings>,
-    /// The updated omnichannel experience for a country.
-    #[serde(default, rename = "omnichannelExperience")]
-    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
-    /// The list of POS data providers.
-    #[serde(default, rename = "posDataProviders")]
-    pub pos_data_providers: ::core::option::Option<::std::vec::Vec<PosDataProviders>>,
 }
 
 /// LiasettingsGetAccessibleGmbAccountsResponse resource type.
@@ -2512,28 +424,6 @@ pub struct LiasettingsSetPosDataProviderResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsSetPosDataProviderResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// LinkService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkService {
-    /// Service provided to or by the linked account. Acceptable values are: - "shoppingActionsOrderManagement" - "shoppingActionsProductManagement" - "shoppingAdsProductManagement" - "paymentProcessing"
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Status of the link Acceptable values are: - "active" - "inactive" - "pending"
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// LinkedAccount resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkedAccount {
-    /// The ID of the linked account.
-    #[serde(default, rename = "linkedAccountId")]
-    pub linked_account_id: ::core::option::Option<String>,
-    /// List of provided services.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<LinkService>>,
 }
 
 /// Response message for the ListAccountLabels method.
@@ -2640,70 +530,12 @@ pub struct ListReturnPolicyOnlineResponse {
     pub return_policies: ::core::option::Option<::std::vec::Vec<ReturnPolicyOnline>>,
 }
 
-/// Local inventory resource. For accepted attribute values, see the local product inventory feed specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalInventory {
-    /// The availability of the product. For accepted attribute values, see the local product inventory feed specification.
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// A list of custom (merchant-provided) attributes. Can also be used to submit any attribute of the feed specification in its generic form, for example, { "name": "size type", "value": "regular" }.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// The in-store product location.
-    #[serde(default, rename = "instoreProductLocation")]
-    pub instore_product_location: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#localInventory"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the local product inventory feed specification.
-    #[serde(default, rename = "pickupMethod")]
-    pub pickup_method: ::core::option::Option<String>,
-    /// The expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the local product inventory feed specification.
-    #[serde(default, rename = "pickupSla")]
-    pub pickup_sla: ::core::option::Option<String>,
-    /// The price of the product.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// The quantity of the product. Must be nonnegative.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<i64>,
-    /// The sale price of the product. Mandatory if sale_price_effective_date is defined.
-    #[serde(default, rename = "salePrice")]
-    pub sale_price: ::core::option::Option<Price>,
-    /// A date range represented by a pair of ISO 8601 dates separated by a space, comma, or slash. Both dates may be specified as ''null'' if undecided.
-    #[serde(default, rename = "salePriceEffectiveDate")]
-    pub sale_price_effective_date: ::core::option::Option<String>,
-    /// Required. The store code of this local inventory resource.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
-}
-
 /// LocalinventoryCustomBatchRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalinventoryCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<LocalinventoryCustomBatchRequestEntry>>,
-}
-
-/// Batch entry encoding a single local inventory update request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalinventoryCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// Local inventory of the product.
-    #[serde(default, rename = "localInventory")]
-    pub local_inventory: ::core::option::Option<LocalInventory>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// Method of the batch request entry. Acceptable values are: - "insert"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The ID of the product for which to update local inventory.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
 }
 
 /// LocalinventoryCustomBatchResponse resource type.
@@ -2715,181 +547,6 @@ pub struct LocalinventoryCustomBatchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#localinventoryCustomBatchResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// Batch entry encoding a single local inventory update response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalinventoryCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#localinventoryCustomBatchResponseEntry"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// LocationIdSet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocationIdSet {
-    /// A non-empty list of location IDs. They must all be of the same location type (for example, state).
-    #[serde(default, rename = "locationIds")]
-    pub location_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Allows the setting up of loyalty program benefits (for example price or points). https://support.google.com/merchants/answer/12922446
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoyaltyProgram {
-    /// Optional. The cashback that can be used for future purchases.
-    #[serde(default, rename = "cashbackForFutureUse")]
-    pub cashback_for_future_use: ::core::option::Option<Price>,
-    /// Optional. The amount of loyalty points earned on a purchase.
-    #[serde(default, rename = "loyaltyPoints")]
-    pub loyalty_points: ::core::option::Option<String>,
-    /// Optional. A date range during which the item is eligible for member price. If not specified, the member price is always applicable. The date range is represented by a pair of ISO 8601 dates separated by a space, comma, or slash.
-    #[serde(default, rename = "memberPriceEffectiveDate")]
-    pub member_price_effective_date: ::core::option::Option<String>,
-    /// Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.
-    #[serde(default, rename = "programLabel")]
-    pub program_label: ::core::option::Option<String>,
-    /// Optional. The shipping label for the loyalty program. You can use this label to indicate whether this offer has the loyalty shipping benefit. If not specified, the item is not eligible for loyalty shipping for the given loyalty tier.
-    #[serde(default, rename = "shippingLabel")]
-    pub shipping_label: ::core::option::Option<String>,
-    /// Required. The label of the tier within the loyalty program. Must match one of the labels within the program.
-    #[serde(default, rename = "tierLabel")]
-    pub tier_label: ::core::option::Option<String>,
-}
-
-/// "Merchant Center Destination" sources can be used to send conversion events from a website using a Google tag directly to a Merchant Center account where the source is created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MerchantCenterDestination {
-    /// Required. Attribution settings being used for the Merchant Center Destination.
-    #[serde(default, rename = "attributionSettings")]
-    pub attribution_settings: ::core::option::Option<AttributionSettings>,
-    /// Required. Three-letter currency code (ISO 4217). The currency code defines in which currency the conversions sent to this destination will be reported in Merchant Center.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Output only. Merchant Center Destination ID.
-    #[serde(default, rename = "destinationId")]
-    pub destination_id: ::core::option::Option<String>,
-    /// Required. Merchant-specified display name for the destination. This is the name that identifies the conversion source within the Merchant Center UI. Limited to 64 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// The quota information per method in the Content API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MethodQuota {
-    /// Output only. The method name, for example products.list. Method name does not contain version because quota can be shared between different API versions of the same method.
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Output only. The maximum number of calls allowed per day for the method.
-    #[serde(default, rename = "quotaLimit")]
-    pub quota_limit: ::core::option::Option<String>,
-    /// Output only. The maximum number of calls allowed per minute for the method.
-    #[serde(default, rename = "quotaMinuteLimit")]
-    pub quota_minute_limit: ::core::option::Option<String>,
-    /// Output only. The current quota usage, meaning the number of calls already made to the method per day. Usage is reset every day at 12 PM midday UTC.
-    #[serde(default, rename = "quotaUsage")]
-    pub quota_usage: ::core::option::Option<String>,
-}
-
-/// Performance metrics. Values are only set for metrics requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Metrics {
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average order size - the average number of items in an order. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default)]
-    pub aos: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average order value in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) - the average value (total price of items) of all placed orders. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default, rename = "aovMicros")]
-    pub aov_micros: ::core::option::Option<f64>,
-    /// Number of clicks.
-    #[serde(default)]
-    pub clicks: ::core::option::Option<String>,
-    /// Number of conversions divided by the number of clicks, reported on the impression date. The metric is currently available only for the FREE_PRODUCT_LISTING program.
-    #[serde(default, rename = "conversionRate")]
-    pub conversion_rate: ::core::option::Option<f64>,
-    /// Value of conversions in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) attributed to the product, reported on the conversion date. The metric is currently available only for the FREE_PRODUCT_LISTING program. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response.
-    #[serde(default, rename = "conversionValueMicros")]
-    pub conversion_value_micros: ::core::option::Option<String>,
-    /// Number of conversions attributed to the product, reported on the conversion date. Depending on the attribution model, a conversion might be distributed across multiple clicks, where each click gets its own credit assigned. This metric is a sum of all such credits. The metric is currently available only for the FREE_PRODUCT_LISTING program.
-    #[serde(default)]
-    pub conversions: ::core::option::Option<f64>,
-    /// Click-through rate - the number of clicks merchant''s products receive (clicks) divided by the number of times the products are shown (impressions).
-    #[serde(default)]
-    pub ctr: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average number of days between an order being placed and the order being fully shipped, reported on the last shipment date. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default, rename = "daysToShip")]
-    pub days_to_ship: ::core::option::Option<f64>,
-    /// Number of times merchant''s products are shown.
-    #[serde(default)]
-    pub impressions: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average number of days between an item being ordered and the item being **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "itemDaysToShip")]
-    pub item_days_to_ship: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Percentage of shipped items in relation to all finalized items (shipped or rejected by the merchant; unshipped items are not taken into account), reported on the order date. Item fill rate is lowered by merchant rejections. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "itemFillRate")]
-    pub item_fill_rate: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of ordered items in micros (1 millionth of a standard unit, 1 USD = 1000000 micros). Excludes shipping, taxes (US only), and customer cancellations that happened within 30 minutes of placing the order. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "orderedItemSalesMicros")]
-    pub ordered_item_sales_micros: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items. Excludes customer cancellations that happened within 30 minutes of placing the order. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "orderedItems")]
-    pub ordered_items: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of placed orders. Excludes customer cancellations that happened within 30 minutes of placing the order. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default)]
-    pub orders: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items canceled by the merchant, reported on the order date. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "rejectedItems")]
-    pub rejected_items: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of returned items divided by the total price of shipped items, reported on the order date. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "returnRate")]
-    pub return_rate: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items sent back for return, reported on the date when the merchant accepted the return. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "returnedItems")]
-    pub returned_items: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of ordered items sent back for return in micros (1 millionth of a standard unit, 1 USD = 1000000 micros), reported on the date when the merchant accepted the return. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "returnsMicros")]
-    pub returns_micros: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of shipped items in micros (1 millionth of a standard unit, 1 USD = 1000000 micros), reported on the order date. Excludes shipping and taxes (US only). The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "shippedItemSalesMicros")]
-    pub shipped_item_sales_micros: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of shipped items, reported on the shipment date. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "shippedItems")]
-    pub shipped_items: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of fully shipped orders, reported on the last shipment date. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default, rename = "shippedOrders")]
-    pub shipped_orders: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items not shipped up until the end of the queried day. If a multi-day period is specified in the search query, the returned value is the average number of unshipped items over the days in the queried period. **This metric cannot be segmented by customer_country_code.**
-    #[serde(default, rename = "unshippedItems")]
-    pub unshipped_items: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of orders not shipped or partially shipped up until the end of the queried day. If a multi-day period is specified in the search query, the returned value is the average number of unshipped orders over the days in the queried period. **This metric cannot be segmented by product dimensions and customer_country_code.**
-    #[serde(default, rename = "unshippedOrders")]
-    pub unshipped_orders: ::core::option::Option<f64>,
-}
-
-/// MinimumOrderValueTable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MinimumOrderValueTable {
-    #[serde(default, rename = "storeCodeSetWithMovs")]
-    pub store_code_set_with_movs:
-        ::core::option::Option<::std::vec::Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
-}
-
-/// A list of store code sets sharing the same minimum order value. At least two sets are required and the last one must be empty, which signifies ''MOV for all other stores''. Each store code can only appear once across all the sets. All prices within a service must have the same currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MinimumOrderValueTableStoreCodeSetWithMov {
-    /// A list of unique store codes or empty for the catch all.
-    #[serde(default, rename = "storeCodes")]
-    pub store_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The minimum order value for the given stores.
-    #[serde(default)]
-    pub value: ::core::option::Option<Price>,
 }
 
 /// Represents a merchant trade from which signals are extracted, e.g. shipping.
@@ -2926,6 +583,1313 @@ pub struct OrderTrackingSignal {
     /// The shipping information for the order.
     #[serde(default, rename = "shippingInfo")]
     pub shipping_info: ::core::option::Option<::std::vec::Vec<OrderTrackingSignalShippingInfo>>,
+}
+
+/// PosCustomBatchRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosCustomBatchRequest {
+    /// The request entries to be processed in the batch.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<PosCustomBatchRequestEntry>>,
+}
+
+/// PosCustomBatchResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosCustomBatchResponse {
+    /// The result of the execution of the batch requests.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<PosCustomBatchResponseEntry>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#posCustomBatchResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// PosInventoryRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosInventoryRequest {
+    /// Required. The two-letter ISO 639-1 language code for the item.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Global Trade Item Number.
+    #[serde(default)]
+    pub gtin: ::core::option::Option<String>,
+    /// Required. A unique identifier for the item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Optional. Supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
+    #[serde(default, rename = "pickupMethod")]
+    pub pickup_method: ::core::option::Option<String>,
+    /// Optional. Expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
+    #[serde(default, rename = "pickupSla")]
+    pub pickup_sla: ::core::option::Option<String>,
+    /// Required. The current price of the item.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// Required. The available quantity of the item.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<String>,
+    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+    /// Required. The CLDR territory code for the item.
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+    /// Required. The inventory timestamp, in ISO 8601 format.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// PosInventoryResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosInventoryResponse {
+    /// Required. The two-letter ISO 639-1 language code for the item.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Global Trade Item Number.
+    #[serde(default)]
+    pub gtin: ::core::option::Option<String>,
+    /// Required. A unique identifier for the item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#posInventoryResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Optional. Supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
+    #[serde(default, rename = "pickupMethod")]
+    pub pickup_method: ::core::option::Option<String>,
+    /// Optional. Expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
+    #[serde(default, rename = "pickupSla")]
+    pub pickup_sla: ::core::option::Option<String>,
+    /// Required. The current price of the item.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// Required. The available quantity of the item.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<String>,
+    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+    /// Required. The CLDR territory code for the item.
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+    /// Required. The inventory timestamp, in ISO 8601 format.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// PosListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosListResponse {
+    /// Identifies what kind of resource this is. Value: the fixed string "content#posListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<PosStore>>,
+}
+
+/// PosSaleRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosSaleRequest {
+    /// Required. The two-letter ISO 639-1 language code for the item.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Global Trade Item Number.
+    #[serde(default)]
+    pub gtin: ::core::option::Option<String>,
+    /// Required. A unique identifier for the item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Required. The price of the item.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// Required. The relative change of the available quantity. Negative for items returned.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<String>,
+    /// A unique ID to group items from the same sale event.
+    #[serde(default, rename = "saleId")]
+    pub sale_id: ::core::option::Option<String>,
+    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+    /// Required. The CLDR territory code for the item.
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+    /// Required. The inventory timestamp, in ISO 8601 format.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// PosSaleResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosSaleResponse {
+    /// Required. The two-letter ISO 639-1 language code for the item.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Global Trade Item Number.
+    #[serde(default)]
+    pub gtin: ::core::option::Option<String>,
+    /// Required. A unique identifier for the item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#posSaleResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Required. The price of the item.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// Required. The relative change of the available quantity. Negative for items returned.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<String>,
+    /// A unique ID to group items from the same sale event.
+    #[serde(default, rename = "saleId")]
+    pub sale_id: ::core::option::Option<String>,
+    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+    /// Required. The CLDR territory code for the item.
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+    /// Required. The inventory timestamp, in ISO 8601 format.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// The estimated days to deliver a product after an order is placed. Only authorized shipping signals partners working with a merchant can use this resource. Merchants should use the [products](https://developers.google.com/shopping-content/reference/rest/v2.1/products#productshipping) resource instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductDeliveryTime {
+    /// Required. A set of associations between DeliveryArea and DeliveryTime entries. The total number of areaDeliveryTimes can be at most 100.
+    #[serde(default, rename = "areaDeliveryTimes")]
+    pub area_delivery_times:
+        ::core::option::Option<::std::vec::Vec<ProductDeliveryTimeAreaDeliveryTime>>,
+    /// Required. The id of the product.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<ProductId>,
+}
+
+/// ProductsCustomBatchRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductsCustomBatchRequest {
+    /// The request entries to be processed in the batch.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ProductsCustomBatchRequestEntry>>,
+}
+
+/// ProductsCustomBatchResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductsCustomBatchResponse {
+    /// The result of the execution of the batch requests.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ProductsCustomBatchResponseEntry>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productsCustomBatchResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ProductsListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductsListResponse {
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productsListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token for the retrieval of the next page of products.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<Product>>,
+}
+
+/// ProductstatusesCustomBatchRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductstatusesCustomBatchRequest {
+    /// The request entries to be processed in the batch.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ProductstatusesCustomBatchRequestEntry>>,
+}
+
+/// ProductstatusesCustomBatchResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductstatusesCustomBatchResponse {
+    /// The result of the execution of the batch requests.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ProductstatusesCustomBatchResponseEntry>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesCustomBatchResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ProductstatusesListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductstatusesListResponse {
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token for the retrieval of the next page of products statuses.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<ProductStatus>>,
+}
+
+/// Settings for Pub/Sub notifications, all methods require that the caller is a direct user of the merchant center account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubNotificationSettings {
+    /// Cloud pub/sub topic to which notifications are sent (read-only).
+    #[serde(default, rename = "cloudTopicName")]
+    pub cloud_topic_name: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#pubsubNotificationSettings"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// List of event types. Acceptable values are: - "orderPendingShipment"
+    #[serde(default, rename = "registeredEvents")]
+    pub registered_events: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// RegionalinventoryCustomBatchRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalinventoryCustomBatchRequest {
+    /// The request entries to be processed in the batch.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<RegionalinventoryCustomBatchRequestEntry>>,
+}
+
+/// RegionalinventoryCustomBatchResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalinventoryCustomBatchResponse {
+    /// The result of the execution of the batch requests.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<RegionalinventoryCustomBatchResponseEntry>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalinventoryCustomBatchResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// The payload for configuring how the content should be rendered.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderAccountIssuesRequestPayload {
+    /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
+    #[serde(default, rename = "contentOption")]
+    pub content_option: ::core::option::Option<String>,
+    /// Optional. How actions with user input form should be handled. If not provided, actions will be returned as links that points merchant to Merchant Center where they can request the action. // TODO: enum values: ["USER_INPUT_ACTION_RENDERING_OPTION_UNSPECIFIED", "REDIRECT_TO_MERCHANT_CENTER", "BUILT_IN_USER_INPUT_ACTIONS"]
+    #[serde(default, rename = "userInputActionOption")]
+    pub user_input_action_option: ::core::option::Option<String>,
+}
+
+/// Response containing support content and actions for listed account issues.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderAccountIssuesResponse {
+    /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
+    #[serde(default, rename = "alternateDisputeResolution")]
+    pub alternate_dispute_resolution: ::core::option::Option<AlternateDisputeResolution>,
+    /// List of account issues for a given account. This list can be shown with compressed, expandable items. In the compressed form, the title and impact should be shown for each issue. Once the issue is expanded, the detailed content and available actions should be rendered.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<AccountIssue>>,
+}
+
+/// The payload for configuring how the content should be rendered.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderProductIssuesRequestPayload {
+    /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
+    #[serde(default, rename = "contentOption")]
+    pub content_option: ::core::option::Option<String>,
+    /// Optional. How actions with user input form should be handled. If not provided, actions will be returned as links that points merchant to Merchant Center where they can request the action. // TODO: enum values: ["USER_INPUT_ACTION_RENDERING_OPTION_UNSPECIFIED", "REDIRECT_TO_MERCHANT_CENTER", "BUILT_IN_USER_INPUT_ACTIONS"]
+    #[serde(default, rename = "userInputActionOption")]
+    pub user_input_action_option: ::core::option::Option<String>,
+}
+
+/// Response containing support content and actions for listed product issues.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderProductIssuesResponse {
+    /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
+    #[serde(default, rename = "alternateDisputeResolution")]
+    pub alternate_dispute_resolution: ::core::option::Option<AlternateDisputeResolution>,
+    /// List of issues for a given product. This list can be shown with compressed, expandable items. In the compressed form, the title and impact should be shown for each issue. Once the issue is expanded, the detailed content and available actions should be rendered.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<ProductIssue>>,
+}
+
+/// Request to report interactions on a recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportInteractionRequest {
+    /// Required. Type of the interaction that is reported, for example INTERACTION_CLICK. // TODO: enum values: ["INTERACTION_TYPE_UNSPECIFIED", "INTERACTION_DISMISS", "INTERACTION_CLICK"]
+    #[serde(default, rename = "interactionType")]
+    pub interaction_type: ::core::option::Option<String>,
+    /// Required. Token of the response when recommendation was returned.
+    #[serde(default, rename = "responseToken")]
+    pub response_token: ::core::option::Option<String>,
+    /// Optional. Subtype of the recommendations this interaction happened on. This field must be set only to the value that is returned by {@link RecommendationsService.GenerateRecommendations} call.
+    #[serde(default)]
+    pub subtype: ::core::option::Option<String>,
+    /// Required. Type of the recommendations on which this interaction happened. This field must be set only to the value that is returned by {@link GenerateRecommendationsResponse} call.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Request message for the RequestPhoneVerification method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestPhoneVerificationRequest {
+    /// Language code [IETF BCP 47 syntax](https://tools.ietf.org/html/bcp47) (for example, en-US). Language code is used to provide localized SMS and PHONE_CALL. Default language used is en-US if not provided.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Phone number to be verified.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Required. Two letter country code for the phone number, for example CA for Canadian numbers. See the [ISO 3166-1 alpha-2](https://wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) officially assigned codes.
+    #[serde(default, rename = "phoneRegionCode")]
+    pub phone_region_code: ::core::option::Option<String>,
+    /// Verification method to receive verification code. // TODO: enum values: ["PHONE_VERIFICATION_METHOD_UNSPECIFIED", "SMS", "PHONE_CALL"]
+    #[serde(default, rename = "phoneVerificationMethod")]
+    pub phone_verification_method: ::core::option::Option<String>,
+}
+
+/// Response message for the RequestPhoneVerification method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestPhoneVerificationResponse {
+    /// The verification ID to use in subsequent calls to verifyphonenumber.
+    #[serde(default, rename = "verificationId")]
+    pub verification_id: ::core::option::Option<String>,
+}
+
+/// Request message for the RequestReviewFreeListings Program method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestReviewFreeListingsRequest {
+    /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Request message for the RequestReviewShoppingAds program method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestReviewShoppingAdsRequest {
+    /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Request message for the ReportService.Search method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchRequest {
+    /// Number of ReportRows to retrieve in a single page. Defaults to 1000. Values above 5000 are coerced to 5000.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Token of the page to retrieve. If not specified, the first page of results is returned. In order to request the next page of results, the value obtained from next_page_token in the previous response should be used.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Required. Query that defines performance metrics to retrieve and dimensions according to which the metrics are to be segmented. For details on how to construct your query, see the [Query Language guide](https://developers.google.com/shopping-content/guides/reports/query-language/overview).
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+}
+
+/// Response message for the ReportService.Search method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResponse {
+    /// Token which can be sent as page_token to retrieve the next page. If omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Rows that matched the search query.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<ReportRow>>,
+}
+
+/// ShippingsettingsCustomBatchRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsCustomBatchRequest {
+    /// The request entries to be processed in the batch.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ShippingsettingsCustomBatchRequestEntry>>,
+}
+
+/// ShippingsettingsCustomBatchResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsCustomBatchResponse {
+    /// The result of the execution of the batch requests.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<ShippingsettingsCustomBatchResponseEntry>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsCustomBatchResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ShippingsettingsGetSupportedCarriersResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsGetSupportedCarriersResponse {
+    /// A list of supported carriers. May be empty.
+    #[serde(default)]
+    pub carriers: ::core::option::Option<::std::vec::Vec<CarriersCarrier>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedCarriersResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ShippingsettingsGetSupportedHolidaysResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsGetSupportedHolidaysResponse {
+    /// A list of holidays applicable for delivery guarantees. May be empty.
+    #[serde(default)]
+    pub holidays: ::core::option::Option<::std::vec::Vec<HolidaysHoliday>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedHolidaysResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// ShippingsettingsGetSupportedPickupServicesResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsGetSupportedPickupServicesResponse {
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedPickupServicesResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// A list of supported pickup services. May be empty.
+    #[serde(default, rename = "pickupServices")]
+    pub pickup_services: ::core::option::Option<::std::vec::Vec<PickupServicesPickupService>>,
+}
+
+/// ShippingsettingsListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsListResponse {
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsListResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token for the retrieval of the next page of shipping settings.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<ShippingSettings>>,
+}
+
+/// Response message for GetShoppingAdsProgramStatus.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShoppingAdsProgramStatus {
+    /// State of the program. ENABLED if there are offers for at least one region. // TODO: enum values: ["PROGRAM_STATE_UNSPECIFIED", "NOT_ENABLED", "NO_OFFERS_UPLOADED", "ENABLED"]
+    #[serde(default, rename = "globalState")]
+    pub global_state: ::core::option::Option<String>,
+    /// Status of the program in each region. Regions with the same status and review eligibility are grouped together in regionCodes.
+    #[serde(default, rename = "regionStatuses")]
+    pub region_statuses:
+        ::core::option::Option<::std::vec::Vec<ShoppingAdsProgramStatusRegionStatus>>,
+}
+
+/// The payload for the triggered action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionPayload {
+    /// Required. The context from the selected action. The value is obtained from rendered issues and needs to be sent back to identify the action that is being triggered.
+    #[serde(default, rename = "actionContext")]
+    pub action_context: ::core::option::Option<String>,
+    /// Required. Input provided by the merchant.
+    #[serde(default, rename = "actionInput")]
+    pub action_input: ::core::option::Option<ActionInput>,
+}
+
+/// Response informing about the started action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionResponse {
+    /// The message for merchant.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Request message for the VerifyPhoneNumber method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyPhoneNumberRequest {
+    /// Verification method used to receive verification code. // TODO: enum values: ["PHONE_VERIFICATION_METHOD_UNSPECIFIED", "SMS", "PHONE_CALL"]
+    #[serde(default, rename = "phoneVerificationMethod")]
+    pub phone_verification_method: ::core::option::Option<String>,
+    /// The verification code that was sent to the phone number for validation.
+    #[serde(default, rename = "verificationCode")]
+    pub verification_code: ::core::option::Option<String>,
+    /// The verification ID returned by requestphoneverification.
+    #[serde(default, rename = "verificationId")]
+    pub verification_id: ::core::option::Option<String>,
+}
+
+/// Response message for the VerifyPhoneNumber method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyPhoneNumberResponse {
+    /// Verified phone number if verification is successful. This phone number can only be replaced by another verified phone number.
+    #[serde(default, rename = "verifiedPhoneNumber")]
+    pub verified_phone_number: ::core::option::Option<String>,
+}
+
+/// AccountIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountIdentifier {
+    /// The aggregator ID, set for aggregators and subaccounts (in that case, it represents the aggregator of the subaccount).
+    #[serde(default, rename = "aggregatorId")]
+    pub aggregator_id: ::core::option::Option<String>,
+    /// The merchant account ID, set for individual accounts and subaccounts.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch accounts request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountsCustomBatchRequestEntry {
+    /// The account to create or update. Only defined if the method is insert or update.
+    #[serde(default)]
+    pub account: ::core::option::Option<Account>,
+    /// The ID of the targeted account. Only defined if the method is not insert.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// Whether the account should be deleted if the account has offers. Only applicable if the method is delete.
+    #[serde(default)]
+    pub force: ::core::option::Option<bool>,
+    /// Label IDs for the ''updatelabels'' request.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Details about the link request.
+    #[serde(default, rename = "linkRequest")]
+    pub link_request: ::core::option::Option<AccountsCustomBatchRequestEntryLinkRequest>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "claimWebsite" - "delete" - "get" - "insert" - "link" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Only applicable if the method is claimwebsite. Indicates whether or not to take the claim from another account in case there is a conflict.
+    #[serde(default)]
+    pub overwrite: ::core::option::Option<bool>,
+    /// Controls which fields are visible. Only applicable if the method is ''get''.
+    #[serde(default)]
+    pub view: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch accounts response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountsCustomBatchResponseEntry {
+    /// The retrieved, created, or updated account. Not defined if the method was delete, claimwebsite or link.
+    #[serde(default)]
+    pub account: ::core::option::Option<Account>,
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#accountsCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// Additional information required for E_COMMERCE_PLATFORM link type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ECommercePlatformLinkInfo {
+    /// The id used by the third party service provider to identify the merchant.
+    #[serde(default, rename = "externalAccountId")]
+    pub external_account_id: ::core::option::Option<String>,
+}
+
+/// Additional information required for PAYMENT_SERVICE_PROVIDER link type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PaymentServiceProviderLinkInfo {
+    /// The business country of the merchant account as identified by the third party service provider.
+    #[serde(default, rename = "externalAccountBusinessCountry")]
+    pub external_account_business_country: ::core::option::Option<String>,
+    /// The id used by the third party service provider to identify the merchant.
+    #[serde(default, rename = "externalAccountId")]
+    pub external_account_id: ::core::option::Option<String>,
+}
+
+/// LinkedAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkedAccount {
+    /// The ID of the linked account.
+    #[serde(default, rename = "linkedAccountId")]
+    pub linked_account_id: ::core::option::Option<String>,
+    /// List of provided services.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<LinkService>>,
+}
+
+/// A batch entry encoding a single non-batch accountstatuses request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountstatusesCustomBatchRequestEntry {
+    /// The ID of the (sub-)account whose status to get.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// If set, only issues for the specified destinations are returned, otherwise only issues for the Shopping destination.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch accountstatuses response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountstatusesCustomBatchResponseEntry {
+    /// The requested account status. Defined if and only if the request was successful.
+    #[serde(default, rename = "accountStatus")]
+    pub account_status: ::core::option::Option<AccountStatus>,
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+}
+
+/// A batch entry encoding a single non-batch accounttax request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccounttaxCustomBatchRequestEntry {
+    /// The ID of the account for which to get/update account tax settings.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// The account tax settings to update. Only defined if the method is update.
+    #[serde(default, rename = "accountTax")]
+    pub account_tax: ::core::option::Option<AccountTax>,
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch accounttax response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccounttaxCustomBatchResponseEntry {
+    /// The retrieved or updated account tax settings.
+    #[serde(default, rename = "accountTax")]
+    pub account_tax: ::core::option::Option<AccountTax>,
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#accounttaxCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch datafeeds request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedsCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The data feed to insert.
+    #[serde(default)]
+    pub datafeed: ::core::option::Option<Datafeed>,
+    /// The ID of the data feed to get, delete or fetch.
+    #[serde(default, rename = "datafeedId")]
+    pub datafeed_id: ::core::option::Option<String>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "delete" - "fetchNow" - "get" - "insert" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch datafeeds response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedsCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The requested data feed. Defined if and only if the request was successful.
+    #[serde(default)]
+    pub datafeed: ::core::option::Option<Datafeed>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+}
+
+/// A batch entry encoding a single non-batch datafeedstatuses request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedstatusesCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// Deprecated. Use feedLabel instead. The country to get the datafeed status for. If this parameter is provided, then language must also be provided. Note that for multi-target datafeeds this parameter is required.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The ID of the data feed to get.
+    #[serde(default, rename = "datafeedId")]
+    pub datafeed_id: ::core::option::Option<String>,
+    /// The feed label to get the datafeed status for. If this parameter is provided, then language must also be provided. Note that for multi-target datafeeds this parameter is required.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// The language to get the datafeed status for. If this parameter is provided then country must also be provided. Note that for multi-target datafeeds this parameter is required.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch datafeedstatuses response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedstatusesCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The requested data feed status. Defined if and only if the request was successful.
+    #[serde(default, rename = "datafeedStatus")]
+    pub datafeed_status: ::core::option::Option<DatafeedStatus>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+}
+
+/// Status of program and region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreeListingsProgramStatusRegionStatus {
+    /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
+    #[serde(default, rename = "disapprovalDate")]
+    pub disapproval_date: ::core::option::Option<String>,
+    /// Eligibility status of the standard free listing program. // TODO: enum values: ["STATE_UNSPECIFIED", "APPROVED", "DISAPPROVED", "WARNING", "UNDER_REVIEW", "PENDING_REVIEW", "ONBOARDING"]
+    #[serde(default, rename = "eligibilityStatus")]
+    pub eligibility_status: ::core::option::Option<String>,
+    /// Issues that must be fixed to be eligible for review.
+    #[serde(default, rename = "onboardingIssues")]
+    pub onboarding_issues: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The two-letter [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) codes for all the regions with the same eligibilityStatus and reviewEligibility.
+    #[serde(default, rename = "regionCodes")]
+    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If a program is eligible for review in a specific region. Only visible if eligibilityStatus is DISAPPROVED. // TODO: enum values: ["REVIEW_ELIGIBILITY_UNSPECIFIED", "ELIGIBLE", "INELIGIBLE"]
+    #[serde(default, rename = "reviewEligibilityStatus")]
+    pub review_eligibility_status: ::core::option::Option<String>,
+    /// Review ineligibility reason if account is not eligible for review. // TODO: enum values: ["REVIEW_INELIGIBILITY_REASON_UNSPECIFIED", "ONBOARDING_ISSUES", "NOT_ENOUGH_OFFERS", "IN_COOLDOWN_PERIOD", "ALREADY_UNDER_REVIEW", "NO_REVIEW_REQUIRED", "WILL_BE_REVIEWED_AUTOMATICALLY", "IS_RETIRED", "ALREADY_REVIEWED"]
+    #[serde(default, rename = "reviewIneligibilityReason")]
+    pub review_ineligibility_reason: ::core::option::Option<String>,
+    /// Reason a program in a specific region isn’t eligible for review. Only visible if reviewEligibilityStatus is INELIGIBLE.
+    #[serde(default, rename = "reviewIneligibilityReasonDescription")]
+    pub review_ineligibility_reason_description: ::core::option::Option<String>,
+    /// Additional information for ineligibility. If reviewIneligibilityReason is IN_COOLDOWN_PERIOD, a timestamp for the end of the cooldown period is provided.
+    #[serde(default, rename = "reviewIneligibilityReasonDetails")]
+    pub review_ineligibility_reason_details:
+        ::core::option::Option<FreeListingsProgramStatusReviewIneligibilityReasonDetails>,
+    /// Issues evaluated in the review process. Fix all issues before requesting a review.
+    #[serde(default, rename = "reviewIssues")]
+    pub review_issues: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Recommendations are suggested ways to improve your merchant account''s performance. For example, to engage with a feature, or start using a new Google product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Recommendation {
+    /// Output only. CTAs of this recommendation. Repeated.
+    #[serde(default, rename = "additionalCallToAction")]
+    pub additional_call_to_action:
+        ::core::option::Option<::std::vec::Vec<RecommendationCallToAction>>,
+    /// Output only. List of additional localized descriptions for a recommendation. Localication uses the languageCode field in GenerateRecommendations requests. Not all description types are guaranteed to be present and we recommend to rely on default description.
+    #[serde(default, rename = "additionalDescriptions")]
+    pub additional_descriptions: ::core::option::Option<::std::vec::Vec<RecommendationDescription>>,
+    /// Output only. Any creatives attached to the recommendation. Repeated.
+    #[serde(default)]
+    pub creative: ::core::option::Option<::std::vec::Vec<RecommendationCreative>>,
+    /// Optional. Default CTA of the recommendation.
+    #[serde(default, rename = "defaultCallToAction")]
+    pub default_call_to_action: ::core::option::Option<RecommendationCallToAction>,
+    /// Optional. Localized recommendation description. The localization the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
+    #[serde(default, rename = "defaultDescription")]
+    pub default_description: ::core::option::Option<String>,
+    /// Optional. A numerical score of the impact from the recommendation''s description. For example, a recommendation might suggest an upward trend in sales for a certain product. Higher number means larger impact.
+    #[serde(default, rename = "numericalImpact")]
+    pub numerical_impact: ::core::option::Option<i32>,
+    /// Optional. Indicates whether a user needs to pay when they complete the user journey suggested by the recommendation.
+    #[serde(default)]
+    pub paid: ::core::option::Option<bool>,
+    /// Optional. Localized recommendation name. The localization uses the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
+    #[serde(default, rename = "recommendationName")]
+    pub recommendation_name: ::core::option::Option<String>,
+    /// Optional. Subtype of the recommendations. Only applicable when multiple recommendations can be generated per type, and is used as an identifier of recommendation under the same recommendation type.
+    #[serde(default, rename = "subType")]
+    pub sub_type: ::core::option::Option<String>,
+    /// Optional. Localized Recommendation Title. Localization uses the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Output only. Type of the recommendation. List of currently available recommendation types: - OPPORTUNITY_CREATE_NEW_COLLECTION - OPPORTUNITY_CREATE_EMAIL_CAMPAIGN
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Specifications related to the Checkout URL. The UriTemplate is of the form https://www.mystore.com/checkout?item_id={id} where {id} will be automatically replaced with data from the merchant account with this attribute [offer_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.offer_id)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UrlSettings {
+    /// URL template when the placeholders are expanded will redirect the buyer to the cart page on the merchant website with the selected item in cart.
+    #[serde(default, rename = "cartUriTemplate")]
+    pub cart_uri_template: ::core::option::Option<String>,
+    /// URL template when the placeholders are expanded will redirect the buyer to the merchant checkout page with the item in the cart.
+    #[serde(default, rename = "checkoutUriTemplate")]
+    pub checkout_uri_template: ::core::option::Option<String>,
+}
+
+/// LiasettingsCustomBatchRequestEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiasettingsCustomBatchRequestEntry {
+    /// The ID of the account for which to get/update account LIA settings.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// Inventory validation contact email. Required only for SetInventoryValidationContact.
+    #[serde(default, rename = "contactEmail")]
+    pub contact_email: ::core::option::Option<String>,
+    /// Inventory validation contact name. Required only for SetInventoryValidationContact.
+    #[serde(default, rename = "contactName")]
+    pub contact_name: ::core::option::Option<String>,
+    /// The country code. Required only for RequestInventoryVerification.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The Business Profile. Required only for RequestGmbAccess.
+    #[serde(default, rename = "gmbEmail")]
+    pub gmb_email: ::core::option::Option<String>,
+    /// The account Lia settings to update. Only defined if the method is update.
+    #[serde(default, rename = "liaSettings")]
+    pub lia_settings: ::core::option::Option<LiaSettings>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get" - "getAccessibleGmbAccounts" - "requestGmbAccess" - "requestInventoryVerification" - "setInventoryVerificationContact" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The omnichannel experience for a country. Required only for SetOmnichannelExperience.
+    #[serde(default, rename = "omnichannelExperience")]
+    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
+    /// The ID of POS data provider. Required only for SetPosProvider.
+    #[serde(default, rename = "posDataProviderId")]
+    pub pos_data_provider_id: ::core::option::Option<String>,
+    /// The account ID by which this merchant is known to the POS provider.
+    #[serde(default, rename = "posExternalAccountId")]
+    pub pos_external_account_id: ::core::option::Option<String>,
+}
+
+/// LiasettingsCustomBatchResponseEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiasettingsCustomBatchResponseEntry {
+    /// The ID of the request entry to which this entry responds.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors defined if, and only if, the request failed.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// The list of accessible Business Profiles.
+    #[serde(default, rename = "gmbAccounts")]
+    pub gmb_accounts: ::core::option::Option<GmbAccounts>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The retrieved or updated Lia settings.
+    #[serde(default, rename = "liaSettings")]
+    pub lia_settings: ::core::option::Option<LiaSettings>,
+    /// The updated omnichannel experience for a country.
+    #[serde(default, rename = "omnichannelExperience")]
+    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
+    /// The list of POS data providers.
+    #[serde(default, rename = "posDataProviders")]
+    pub pos_data_providers: ::core::option::Option<::std::vec::Vec<PosDataProviders>>,
+}
+
+/// Label assigned by CSS domain or CSS group to one of its sub-accounts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountLabel {
+    /// Immutable. The ID of account this label belongs to.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// The description of this label.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The ID of the label.
+    #[serde(default, rename = "labelId")]
+    pub label_id: ::core::option::Option<String>,
+    /// Output only. The type of this label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "MANUAL", "AUTOMATIC"]
+    #[serde(default, rename = "labelType")]
+    pub label_type: ::core::option::Option<String>,
+    /// The display name of this label.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+///  The return carrier information. This service is designed for merchants enrolled in the Buy on Google program.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountReturnCarrier {
+    /// Output only. Immutable. The Google-provided unique carrier ID, used to update the resource.
+    #[serde(default, rename = "carrierAccountId")]
+    pub carrier_account_id: ::core::option::Option<String>,
+    /// Name of the carrier account.
+    #[serde(default, rename = "carrierAccountName")]
+    pub carrier_account_name: ::core::option::Option<String>,
+    /// Number of the carrier account.
+    #[serde(default, rename = "carrierAccountNumber")]
+    pub carrier_account_number: ::core::option::Option<String>,
+    /// The carrier code enum. Accepts the values FEDEX or UPS. // TODO: enum values: ["CARRIER_CODE_UNSPECIFIED", "FEDEX", "UPS"]
+    #[serde(default, rename = "carrierCode")]
+    pub carrier_code: ::core::option::Option<String>,
+}
+
+/// The collectionstatus message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectionStatus {
+    /// A list of all issues associated with the collection.
+    #[serde(default, rename = "collectionLevelIssuses")]
+    pub collection_level_issuses:
+        ::core::option::Option<::std::vec::Vec<CollectionStatusItemLevelIssue>>,
+    /// Date on which the collection has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
+    #[serde(default, rename = "creationDate")]
+    pub creation_date: ::core::option::Option<String>,
+    /// The intended destinations for the collection.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<CollectionStatusDestinationStatus>>,
+    /// Required. The ID of the collection for which status is reported.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Date on which the collection has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
+    #[serde(default, rename = "lastUpdateDate")]
+    pub last_update_date: ::core::option::Option<String>,
+}
+
+/// The collection message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Collection {
+    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns. [Custom label](https://support.google.com/merchants/answer/9674217)
+    #[serde(default, rename = "customLabel0")]
+    pub custom_label0: ::core::option::Option<String>,
+    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
+    #[serde(default, rename = "customLabel1")]
+    pub custom_label1: ::core::option::Option<String>,
+    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
+    #[serde(default, rename = "customLabel2")]
+    pub custom_label2: ::core::option::Option<String>,
+    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
+    #[serde(default, rename = "customLabel3")]
+    pub custom_label3: ::core::option::Option<String>,
+    /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns.
+    #[serde(default, rename = "customLabel4")]
+    pub custom_label4: ::core::option::Option<String>,
+    /// This identifies one or more products associated with the collection. Used as a lookup to the corresponding product ID in your product feeds. Provide a maximum of 100 featuredProduct (for collections). Provide up to 10 featuredProduct (for Shoppable Images only) with ID and X and Y coordinates. [featured_product attribute](https://support.google.com/merchants/answer/9703736)
+    #[serde(default, rename = "featuredProduct")]
+    pub featured_product: ::core::option::Option<::std::vec::Vec<CollectionFeaturedProduct>>,
+    /// Your collection''s name. [headline attribute](https://support.google.com/merchants/answer/9673580)
+    #[serde(default)]
+    pub headline: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The REST ID of the collection. Content API methods that operate on collections take this as their collectionId parameter. The REST ID for a collection is of the form collectionId. [id attribute](https://support.google.com/merchants/answer/9649290)
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The URL of a collection’s image. [image_link attribute](https://support.google.com/merchants/answer/9703236)
+    #[serde(default, rename = "imageLink")]
+    pub image_link: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The language of a collection and the language of any featured products linked to the collection. [language attribute](https://support.google.com/merchants/answer/9673781)
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// A collection’s landing page. URL directly linking to your collection''s page on your website. [link attribute](https://support.google.com/merchants/answer/9673983)
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// A collection’s mobile-optimized landing page when you have a different URL for mobile and desktop traffic. [mobile_link attribute](https://support.google.com/merchants/answer/9646123)
+    #[serde(default, rename = "mobileLink")]
+    pub mobile_link: ::core::option::Option<String>,
+    /// [product_country attribute](https://support.google.com/merchants/answer/9674155)
+    #[serde(default, rename = "productCountry")]
+    pub product_country: ::core::option::Option<String>,
+}
+
+/// Represents a conversion source owned by a Merchant account. A merchant account can have up to 200 conversion sources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversionSource {
+    /// Output only. Generated by the Content API upon creation of a new ConversionSource. Format: [a-z]{4}:.+ The four characters before the colon represent the type of conversio source. Content after the colon represents the ID of the conversion source within that type. The ID of two different conversion sources might be the same across different types. The following type prefixes are supported: - galk: For GoogleAnalyticsLink sources. - mcdn: For MerchantCenterDestination sources.
+    #[serde(default, rename = "conversionSourceId")]
+    pub conversion_source_id: ::core::option::Option<String>,
+    /// Output only. The time when an archived conversion source becomes permanently deleted and is no longer available to undelete.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Immutable. Conversion Source of type "Link to Google Analytics Property".
+    #[serde(default, rename = "googleAnalyticsLink")]
+    pub google_analytics_link: ::core::option::Option<GoogleAnalyticsLink>,
+    /// Conversion Source of type "Merchant Center Tag Destination".
+    #[serde(default, rename = "merchantCenterDestination")]
+    pub merchant_center_destination: ::core::option::Option<MerchantCenterDestination>,
+    /// Output only. Current state of this conversion source. Can''t be edited through the API. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ARCHIVED", "PENDING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Information about CSS domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Css {
+    /// Output only. Immutable. The CSS domain ID.
+    #[serde(default, rename = "cssDomainId")]
+    pub css_domain_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The ID of the CSS group this CSS domain is affiliated with. Only populated for CSS group users.
+    #[serde(default, rename = "cssGroupId")]
+    pub css_group_id: ::core::option::Option<String>,
+    /// Output only. Immutable. The CSS domain''s display name, used when space is constrained.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Immutable. The CSS domain''s full name.
+    #[serde(default, rename = "fullName")]
+    pub full_name: ::core::option::Option<String>,
+    /// Output only. Immutable. The CSS domain''s homepage.
+    #[serde(default, rename = "homepageUri")]
+    pub homepage_uri: ::core::option::Option<String>,
+    /// A list of label IDs that are assigned to this CSS domain by its CSS group. Only populated for CSS group users.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The quota information per method in the Content API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MethodQuota {
+    /// Output only. The method name, for example products.list. Method name does not contain version because quota can be shared between different API versions of the same method.
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Output only. The maximum number of calls allowed per day for the method.
+    #[serde(default, rename = "quotaLimit")]
+    pub quota_limit: ::core::option::Option<String>,
+    /// Output only. The maximum number of calls allowed per minute for the method.
+    #[serde(default, rename = "quotaMinuteLimit")]
+    pub quota_minute_limit: ::core::option::Option<String>,
+    /// Output only. The current quota usage, meaning the number of calls already made to the method per day. Usage is reset every day at 12 PM midday UTC.
+    #[serde(default, rename = "quotaUsage")]
+    pub quota_usage: ::core::option::Option<String>,
+}
+
+/// Represents a promotion. See the following articles for more details. * [Promotions feed specification](https://support.google.com/merchants/answer/2906014) * [Local promotions feed specification](https://support.google.com/merchants/answer/10146130) * [Promotions on Buy on Google product data specification](https://support.google.com/merchants/answer/9173673)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Promotion {
+    /// Product filter by brand for the promotion.
+    #[serde(default)]
+    pub brand: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Product filter by brand exclusion for the promotion.
+    #[serde(default, rename = "brandExclusion")]
+    pub brand_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The content language used as part of the unique identifier. en content language is available for all target countries. fr content language is available for CA and FR target countries. de content language is available for DE target country. nl content language is available for NL target country. it content language is available for IT target country. pt content language is available for BR target country. ja content language is available for JP target country. ko content language is available for KR target country.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Required. Coupon value type for the promotion. // TODO: enum values: ["COUPON_VALUE_TYPE_UNSPECIFIED", "MONEY_OFF", "PERCENT_OFF", "BUY_M_GET_N_MONEY_OFF", "BUY_M_GET_N_PERCENT_OFF", "BUY_M_GET_MONEY_OFF", "BUY_M_GET_PERCENT_OFF", "FREE_GIFT", "FREE_GIFT_WITH_VALUE", "FREE_GIFT_WITH_ITEM_ID", "FREE_SHIPPING_STANDARD", "FREE_SHIPPING_OVERNIGHT", "FREE_SHIPPING_TWO_DAY"]
+    #[serde(default, rename = "couponValueType")]
+    pub coupon_value_type: ::core::option::Option<String>,
+    /// The custom redemption restriction for the promotion. If the redemption_restriction field is set to CUSTOM, this field must be set.
+    #[serde(default, rename = "customRedemptionRestriction")]
+    pub custom_redemption_restriction: ::core::option::Option<String>,
+    /// Free gift description for the promotion.
+    #[serde(default, rename = "freeGiftDescription")]
+    pub free_gift_description: ::core::option::Option<String>,
+    /// Free gift item ID for the promotion.
+    #[serde(default, rename = "freeGiftItemId")]
+    pub free_gift_item_id: ::core::option::Option<String>,
+    /// Free gift value for the promotion.
+    #[serde(default, rename = "freeGiftValue")]
+    pub free_gift_value: ::core::option::Option<PriceAmount>,
+    /// Generic redemption code for the promotion. To be used with the offerType field.
+    #[serde(default, rename = "genericRedemptionCode")]
+    pub generic_redemption_code: ::core::option::Option<String>,
+    /// The number of items discounted in the promotion.
+    #[serde(default, rename = "getThisQuantityDiscounted")]
+    pub get_this_quantity_discounted: ::core::option::Option<i32>,
+    /// Output only. The REST promotion ID to uniquely identify the promotion. Content API methods that operate on promotions take this as their promotionId parameter. The REST ID for a promotion is of the form channel:contentLanguage:targetCountry:promotionId The channel field has a value of "online", "in_store", or "online_in_store".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Product filter by item group ID for the promotion.
+    #[serde(default, rename = "itemGroupId")]
+    pub item_group_id: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Product filter by item group ID exclusion for the promotion.
+    #[serde(default, rename = "itemGroupIdExclusion")]
+    pub item_group_id_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Product filter by item ID for the promotion.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Product filter by item ID exclusion for the promotion.
+    #[serde(default, rename = "itemIdExclusion")]
+    pub item_id_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Maximum purchase quantity for the promotion.
+    #[serde(default, rename = "limitQuantity")]
+    pub limit_quantity: ::core::option::Option<i32>,
+    /// Maximum purchase value for the promotion.
+    #[serde(default, rename = "limitValue")]
+    pub limit_value: ::core::option::Option<PriceAmount>,
+    /// Required. Long title for the promotion.
+    #[serde(default, rename = "longTitle")]
+    pub long_title: ::core::option::Option<String>,
+    /// The maximum monetary discount a customer can receive for the promotion. This field is only supported with the Percent off coupon value type.
+    #[serde(default, rename = "maxDiscountAmount")]
+    pub max_discount_amount: ::core::option::Option<PriceAmount>,
+    /// Minimum purchase amount for the promotion.
+    #[serde(default, rename = "minimumPurchaseAmount")]
+    pub minimum_purchase_amount: ::core::option::Option<PriceAmount>,
+    /// Minimum purchase quantity for the promotion.
+    #[serde(default, rename = "minimumPurchaseQuantity")]
+    pub minimum_purchase_quantity: ::core::option::Option<i32>,
+    /// Cost cap for the promotion.
+    #[serde(default, rename = "moneyBudget")]
+    pub money_budget: ::core::option::Option<PriceAmount>,
+    /// The money off amount offered in the promotion.
+    #[serde(default, rename = "moneyOffAmount")]
+    pub money_off_amount: ::core::option::Option<PriceAmount>,
+    /// Required. Type of the promotion. // TODO: enum values: ["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"]
+    #[serde(default, rename = "offerType")]
+    pub offer_type: ::core::option::Option<String>,
+    /// Order limit for the promotion.
+    #[serde(default, rename = "orderLimit")]
+    pub order_limit: ::core::option::Option<i32>,
+    /// The percentage discount offered in the promotion.
+    #[serde(default, rename = "percentOff")]
+    pub percent_off: ::core::option::Option<i32>,
+    /// Required. Applicability of the promotion to either all products or only specific products. // TODO: enum values: ["PRODUCT_APPLICABILITY_UNSPECIFIED", "ALL_PRODUCTS", "SPECIFIC_PRODUCTS"]
+    #[serde(default, rename = "productApplicability")]
+    pub product_applicability: ::core::option::Option<String>,
+    /// Product filter by product type for the promotion.
+    #[serde(default, rename = "productType")]
+    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Product filter by product type exclusion for the promotion.
+    #[serde(default, rename = "productTypeExclusion")]
+    pub product_type_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Destination ID for the promotion.
+    #[serde(default, rename = "promotionDestinationIds")]
+    pub promotion_destination_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// String representation of the promotion display dates. Deprecated. Use promotion_display_time_period instead.
+    #[serde(default, rename = "promotionDisplayDates")]
+    pub promotion_display_dates: ::core::option::Option<String>,
+    /// TimePeriod representation of the promotion''s display dates.
+    #[serde(default, rename = "promotionDisplayTimePeriod")]
+    pub promotion_display_time_period: ::core::option::Option<TimePeriod>,
+    /// String representation of the promotion effective dates. Deprecated. Use promotion_effective_time_period instead.
+    #[serde(default, rename = "promotionEffectiveDates")]
+    pub promotion_effective_dates: ::core::option::Option<String>,
+    /// Required. TimePeriod representation of the promotion''s effective dates.
+    #[serde(default, rename = "promotionEffectiveTimePeriod")]
+    pub promotion_effective_time_period: ::core::option::Option<TimePeriod>,
+    /// Required. The user provided promotion ID to uniquely identify the promotion.
+    #[serde(default, rename = "promotionId")]
+    pub promotion_id: ::core::option::Option<String>,
+    /// Output only. The current status of the promotion.
+    #[serde(default, rename = "promotionStatus")]
+    pub promotion_status: ::core::option::Option<PromotionPromotionStatus>,
+    /// URL to the page on the merchant''s site where the promotion shows. Local Inventory ads promotions throw an error if no promo url is included. URL is used to confirm that the promotion is valid and can be redeemed.
+    #[serde(default, rename = "promotionUrl")]
+    pub promotion_url: ::core::option::Option<String>,
+    /// Required. Redemption channel for the promotion. At least one channel is required.
+    #[serde(default, rename = "redemptionChannel")]
+    pub redemption_channel: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The redemption restriction for the promotion. // TODO: enum values: ["REDEMPTION_RESTRICTION_UNSPECIFIED", "SUBSCRIBE_AND_SAVE", "FIRST_ORDER", "SIGN_UP_FOR_EMAIL", "SIGN_UP_FOR_TEXT", "FORMS_OF_PAYMENT", "CUSTOM"]
+    #[serde(default, rename = "redemptionRestriction")]
+    pub redemption_restriction: ::core::option::Option<String>,
+    /// Shipping service names for the promotion.
+    #[serde(default, rename = "shippingServiceNames")]
+    pub shipping_service_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether the promotion applies to all stores, or only specified stores. Local Inventory ads promotions throw an error if no store applicability is included. An INVALID_ARGUMENT error is thrown if store_applicability is set to ALL_STORES and store_code or score_code_exclusion is set to a value. // TODO: enum values: ["STORE_APPLICABILITY_UNSPECIFIED", "ALL_STORES", "SPECIFIC_STORES"]
+    #[serde(default, rename = "storeApplicability")]
+    pub store_applicability: ::core::option::Option<String>,
+    /// Store codes to include for the promotion.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Store codes to exclude for the promotion.
+    #[serde(default, rename = "storeCodeExclusion")]
+    pub store_code_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The target country used as part of the unique identifier. Can be AU, CA, DE, FR, GB, IN, US, BR, ES, NL, JP, IT or KR.
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+}
+
+/// Represents a geographic region that you can use as a target with both the RegionalInventory and ShippingSettings services. You can define regions as collections of either postal codes or, in some countries, using predefined geotargets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Region {
+    /// The display name of the region.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// A list of geotargets that defines the region area.
+    #[serde(default, rename = "geotargetArea")]
+    pub geotarget_area: ::core::option::Option<RegionGeoTargetArea>,
+    /// Output only. Immutable. Merchant that owns the region.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// A list of postal codes that defines the region area.
+    #[serde(default, rename = "postalCodeArea")]
+    pub postal_code_area: ::core::option::Option<RegionPostalCodeArea>,
+    /// Output only. Immutable. The ID uniquely identifying each region.
+    #[serde(default, rename = "regionId")]
+    pub region_id: ::core::option::Option<String>,
+    /// Output only. Indicates if the region is eligible to use in the Regional Inventory configuration.
+    #[serde(default, rename = "regionalInventoryEligible")]
+    pub regional_inventory_eligible: ::core::option::Option<bool>,
+    /// Output only. Indicates if the region is eligible to use in the Shipping Services configuration.
+    #[serde(default, rename = "shippingEligible")]
+    pub shipping_eligible: ::core::option::Option<bool>,
+}
+
+/// Return policy online object. This is currently used to represent return policies for ads and free listings programs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnPolicyOnline {
+    /// The countries of sale where the return policy is applicable. The values must be a valid 2 letter ISO 3166 code, e.g. "US".
+    #[serde(default)]
+    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The item conditions that are accepted for returns. This is required to not be empty unless the type of return policy is noReturns.
+    #[serde(default, rename = "itemConditions")]
+    pub item_conditions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The unique user-defined label of the return policy. The same label cannot be used in different return policies for the same country. Policies with the label ''default'' will apply to all products, unless a product specifies a return_policy_label attribute.
+    #[serde(default)]
+    pub label: ::core::option::Option<String>,
+    /// The name of the policy as shown in Merchant Center.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The return policy.
+    #[serde(default)]
+    pub policy: ::core::option::Option<ReturnPolicyOnlinePolicy>,
+    /// The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.
+    #[serde(default, rename = "restockingFee")]
+    pub restocking_fee: ::core::option::Option<ReturnPolicyOnlineRestockingFee>,
+    /// The return methods of how customers can return an item. This value is required to not be empty unless the type of return policy is noReturns.
+    #[serde(default, rename = "returnMethods")]
+    pub return_methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Return policy ID generated by Google.
+    #[serde(default, rename = "returnPolicyId")]
+    pub return_policy_id: ::core::option::Option<String>,
+    /// The return policy uri. This can used by Google to do a sanity check for the policy.
+    #[serde(default, rename = "returnPolicyUri")]
+    pub return_policy_uri: ::core::option::Option<String>,
+    /// The return reason category information. This required to not be empty unless the type of return policy is noReturns.
+    #[serde(default, rename = "returnReasonCategoryInfo")]
+    pub return_reason_category_info:
+        ::core::option::Option<::std::vec::Vec<ReturnPolicyOnlineReturnReasonCategoryInfo>>,
+}
+
+/// Batch entry encoding a single local inventory update request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalinventoryCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// Local inventory of the product.
+    #[serde(default, rename = "localInventory")]
+    pub local_inventory: ::core::option::Option<LocalInventory>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// Method of the batch request entry. Acceptable values are: - "insert"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The ID of the product for which to update local inventory.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Batch entry encoding a single local inventory update response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalinventoryCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#localinventoryCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
 }
 
 /// The line items of the order.
@@ -3015,50 +1979,6 @@ pub struct OrderTrackingSignalShippingInfo {
     pub tracking_id: ::core::option::Option<String>,
 }
 
-/// Additional information required for PAYMENT_SERVICE_PROVIDER link type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PaymentServiceProviderLinkInfo {
-    /// The business country of the merchant account as identified by the third party service provider.
-    #[serde(default, rename = "externalAccountBusinessCountry")]
-    pub external_account_business_country: ::core::option::Option<String>,
-    /// The id used by the third party service provider to identify the merchant.
-    #[serde(default, rename = "externalAccountId")]
-    pub external_account_id: ::core::option::Option<String>,
-}
-
-/// PickupCarrierService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PickupCarrierService {
-    /// The name of the pickup carrier (for example, "UPS"). Required.
-    #[serde(default, rename = "carrierName")]
-    pub carrier_name: ::core::option::Option<String>,
-    /// The name of the pickup service (for example, "Access point"). Required.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-}
-
-/// PickupServicesPickupService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PickupServicesPickupService {
-    /// The name of the carrier (for example, "UPS"). Always present.
-    #[serde(default, rename = "carrierName")]
-    pub carrier_name: ::core::option::Option<String>,
-    /// The CLDR country code of the carrier (for example, "US"). Always present.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The name of the pickup service (for example, "Access point"). Always present.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-}
-
-/// PosCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosCustomBatchRequest {
-    /// The request entries to be processed in the batch.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<PosCustomBatchRequestEntry>>,
-}
-
 /// PosCustomBatchRequestEntry resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PosCustomBatchRequestEntry {
@@ -3088,17 +2008,6 @@ pub struct PosCustomBatchRequestEntry {
     pub target_merchant_id: ::core::option::Option<String>,
 }
 
-/// PosCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosCustomBatchResponse {
-    /// The result of the execution of the batch requests.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<PosCustomBatchResponseEntry>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#posCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
 /// PosCustomBatchResponseEntry resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PosCustomBatchResponseEntry {
@@ -3122,6 +2031,630 @@ pub struct PosCustomBatchResponseEntry {
     pub store: ::core::option::Option<PosStore>,
 }
 
+/// A pairing of DeliveryArea associated with a DeliveryTime for this product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductDeliveryTimeAreaDeliveryTime {
+    /// Required. The delivery area associated with deliveryTime for this product.
+    #[serde(default, rename = "deliveryArea")]
+    pub delivery_area: ::core::option::Option<DeliveryArea>,
+    /// Required. The delivery time associated with deliveryArea for this product.
+    #[serde(default, rename = "deliveryTime")]
+    pub delivery_time: ::core::option::Option<ProductDeliveryTimeAreaDeliveryTimeDeliveryTime>,
+}
+
+/// The Content API ID of the product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductId {
+    /// The Content API ID of the product, in the form channel:contentLanguage:targetCountry:offerId.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch products request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductsCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The Content API Supplemental Feed ID. If present then product insertion or deletion applies to a supplemental feed instead of primary Content API feed.
+    #[serde(default, rename = "feedId")]
+    pub feed_id: ::core::option::Option<String>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "delete" - "get" - "insert" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The product to insert or update. Only required if the method is insert or update. If the update method is used with updateMask only to delete a field, then this isn''t required. For example, setting salePrice on the updateMask and not providing a product will result in an existing sale price on the product specified by productId being deleted.
+    #[serde(default)]
+    pub product: ::core::option::Option<Product>,
+    /// The ID of the product to get or mutate. Only defined if the method is get, delete, or update.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// The comma-separated list of product attributes to be updated. Example: "title,salePrice". Attributes specified in the update mask without a value specified in the body will be deleted from the product. *You must specify the update mask to delete attributes.* Only top-level product attributes can be updated. If not defined, product attributes with set values will be updated and other attributes will stay unchanged. Only defined if the method is update.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch products response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductsCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productsCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The inserted product. Only defined if the method is insert and if the request was successful.
+    #[serde(default)]
+    pub product: ::core::option::Option<Product>,
+}
+
+/// A batch entry encoding a single non-batch productstatuses request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductstatusesCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// If set, only issues for the specified destinations are returned, otherwise only issues for the Shopping destination.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Deprecated: Setting this field has no effect and attributes are never included.
+    #[serde(default, rename = "includeAttributes")]
+    pub include_attributes: ::core::option::Option<bool>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The ID of the product whose status to get.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// A batch entry encoding a single non-batch productstatuses response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductstatusesCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The requested product status. Only defined if the request was successful.
+    #[serde(default, rename = "productStatus")]
+    pub product_status: ::core::option::Option<ProductStatus>,
+}
+
+/// A batch entry encoding a single non-batch regional inventory request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalinventoryCustomBatchRequestEntry {
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// Method of the batch request entry. Acceptable values are: - "insert"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The ID of the product for which to update price and availability.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Price and availability of the product.
+    #[serde(default, rename = "regionalInventory")]
+    pub regional_inventory: ::core::option::Option<RegionalInventory>,
+}
+
+/// A batch entry encoding a single non-batch regional inventory response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalinventoryCustomBatchResponseEntry {
+    /// The ID of the request entry this entry responds to.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalinventoryCustomBatchResponseEntry".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Price and availability of the product.
+    #[serde(default, rename = "regionalInventory")]
+    pub regional_inventory: ::core::option::Option<RegionalInventory>,
+}
+
+/// An issue affecting specific merchant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountIssue {
+    /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
+    #[serde(default)]
+    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
+    /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
+    #[serde(default)]
+    pub impact: ::core::option::Option<AccountIssueImpact>,
+    /// Details of the issue as a pre-rendered HTML. HTML elements contain CSS classes that can be used to customize the style of the content. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * issue-detail - top level container for the detail of the issue * callout-banners - section of the issue-detail with callout banners * callout-banner - single callout banner, inside callout-banners * callout-banner-info - callout with important information (default) * callout-banner-warning - callout with a warning * callout-banner-error - callout informing about an error (most severe) * issue-content - section of the issue-detail, contains multiple content-element * content-element - content element such as a list, link or paragraph, inside issue-content * root-causes - unordered list with items describing root causes of the issue, inside issue-content * root-causes-intro - intro text before the root-causes list, inside issue-content * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon. * content-moderation - marks the paragraph that explains how the issue was identified. * new-element - Present for new elements added to the pre-rendered content in the future. To make sure that a new content element does not break your style, you can hide everything with this class.
+    #[serde(default, rename = "prerenderedContent")]
+    pub prerendered_content: ::core::option::Option<String>,
+    /// Pre-rendered HTML that contains a link to the external location where the ODS can be requested and instructions for how to request it. HTML elements contain CSS classes that can be used to customize the style of this snippet. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * ods-section* - wrapper around the out-of-court dispute resolution section * ods-description* - intro text for the out-of-court dispute resolution. It may contain multiple segments and a link. * ods-param* - wrapper around the header-value pair for parameters that merchant may need to provide during the ODS process. * ods-routing-id* - ods param for the Routing ID. * ods-reference-id* - ods param for the Routing ID. * ods-param-header* - header for the ODS parameter * ods-param-value* - value of the ODS parameter. This value should be rendered in a way that it is easy for merchants to identify and copy. * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon.
+    #[serde(default, rename = "prerenderedOutOfCourtDisputeSettlement")]
+    pub prerendered_out_of_court_dispute_settlement: ::core::option::Option<String>,
+    /// Title of the issue.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// The Alternate Dispute Resolution (ADR) that may be available to merchants in some regions. If present, the link should be shown on the same page as the list of issues.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlternateDisputeResolution {
+    /// The label for the alternate dispute resolution link.
+    #[serde(default)]
+    pub label: ::core::option::Option<String>,
+    /// The URL pointing to a page, where merchant can request alternative dispute resolution with an [external body](https://support.google.com/european-union-digital-services-act-redress-options/answer/13535501).
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// An issue affecting specific product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductIssue {
+    /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
+    #[serde(default)]
+    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
+    /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
+    #[serde(default)]
+    pub impact: ::core::option::Option<ProductIssueImpact>,
+    /// Details of the issue as a pre-rendered HTML. HTML elements contain CSS classes that can be used to customize the style of the content. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * issue-detail - top level container for the detail of the issue * callout-banners - section of the issue-detail with callout banners * callout-banner - single callout banner, inside callout-banners * callout-banner-info - callout with important information (default) * callout-banner-warning - callout with a warning * callout-banner-error - callout informing about an error (most severe) * issue-content - section of the issue-detail, contains multiple content-element * content-element - content element such as a list, link or paragraph, inside issue-content * root-causes - unordered list with items describing root causes of the issue, inside issue-content * root-causes-intro - intro text before the root-causes list, inside issue-content * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon. * content-moderation - marks the paragraph that explains how the issue was identified. * list-intro - marks the paragraph that contains an intro for a list. This paragraph will be always followed by a list. * new-element - Present for new elements added to the pre-rendered content in the future. To make sure that a new content element does not break your style, you can hide everything with this class.
+    #[serde(default, rename = "prerenderedContent")]
+    pub prerendered_content: ::core::option::Option<String>,
+    /// Pre-rendered HTML that contains a link to the external location where the ODS can be requested and instructions for how to request it. HTML elements contain CSS classes that can be used to customize the style of this snippet. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * ods-section* - wrapper around the out-of-court dispute resolution section * ods-description* - intro text for the out-of-court dispute resolution. It may contain multiple segments and a link. * ods-param* - wrapper around the header-value pair for parameters that merchant may need to provide during the ODS process. * ods-routing-id* - ods param for the Routing ID. * ods-reference-id* - ods param for the Routing ID. * ods-param-header* - header for the ODS parameter * ods-param-value* - value of the ODS parameter. This value should be rendered in a way that it is easy for merchants to identify and copy. * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon.
+    #[serde(default, rename = "prerenderedOutOfCourtDisputeSettlement")]
+    pub prerendered_out_of_court_dispute_settlement: ::core::option::Option<String>,
+    /// Title of the issue.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Result row returned from the search query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportRow {
+    /// Best sellers fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersProductClusterView or BestSellersBrandView.
+    #[serde(default, rename = "bestSellers")]
+    pub best_sellers: ::core::option::Option<BestSellers>,
+    /// Brand fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersBrandView.
+    #[serde(default)]
+    pub brand: ::core::option::Option<Brand>,
+    /// Competitive visibility fields requested by the merchant in the query. Field values are only set if the merchant queries CompetitiveVisibilityTopMerchantView, CompetitiveVisibilityBenchmarkView or CompetitiveVisibilityCompetitorView.
+    #[serde(default, rename = "competitiveVisibility")]
+    pub competitive_visibility: ::core::option::Option<CompetitiveVisibility>,
+    /// Metrics requested by the merchant in the query. Metric values are only set for metrics requested explicitly in the query.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<Metrics>,
+    /// Price competitiveness fields requested by the merchant in the query. Field values are only set if the merchant queries PriceCompetitivenessProductView.
+    #[serde(default, rename = "priceCompetitiveness")]
+    pub price_competitiveness: ::core::option::Option<PriceCompetitiveness>,
+    /// Price insights fields requested by the merchant in the query. Field values are only set if the merchant queries PriceInsightsProductView.
+    #[serde(default, rename = "priceInsights")]
+    pub price_insights: ::core::option::Option<PriceInsights>,
+    /// Product cluster fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersProductClusterView.
+    #[serde(default, rename = "productCluster")]
+    pub product_cluster: ::core::option::Option<ProductCluster>,
+    /// Product fields requested by the merchant in the query. Field values are only set if the merchant queries ProductView.
+    #[serde(default, rename = "productView")]
+    pub product_view: ::core::option::Option<ProductView>,
+    /// Segmentation dimensions requested by the merchant in the query. Dimension values are only set for dimensions requested explicitly in the query.
+    #[serde(default)]
+    pub segments: ::core::option::Option<Segments>,
+    /// [Topic trends](https://support.google.com/merchants/answer/13542370) fields requested by the merchant in the query. Field values are only set if the merchant queries TopicTrendsView.
+    #[serde(default, rename = "topicTrends")]
+    pub topic_trends: ::core::option::Option<TopicTrends>,
+}
+
+/// A batch entry encoding a single non-batch shippingsettings request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsCustomBatchRequestEntry {
+    /// The ID of the account for which to get/update account shipping settings.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// An entry ID, unique within the batch request.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// The ID of the managing account.
+    #[serde(default, rename = "merchantId")]
+    pub merchant_id: ::core::option::Option<String>,
+    /// The method of the batch entry. Acceptable values are: - "get" - "update"
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The account shipping settings to update. Only defined if the method is update.
+    #[serde(default, rename = "shippingSettings")]
+    pub shipping_settings: ::core::option::Option<ShippingSettings>,
+}
+
+/// A batch entry encoding a single non-batch shipping settings response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingsettingsCustomBatchResponseEntry {
+    /// The ID of the request entry to which this entry responds.
+    #[serde(default, rename = "batchId")]
+    pub batch_id: ::core::option::Option<i64>,
+    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
+    #[serde(default)]
+    pub errors: ::core::option::Option<Errors>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsCustomBatchResponseEntry"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The retrieved or updated account shipping settings.
+    #[serde(default, rename = "shippingSettings")]
+    pub shipping_settings: ::core::option::Option<ShippingSettings>,
+}
+
+/// CarriersCarrier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CarriersCarrier {
+    /// The CLDR country code of the carrier (for example, "US"). Always present.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// A list of services supported for EDD (Estimated Delivery Date) calculation. This is the list of valid values for WarehouseBasedDeliveryTime.carrierService.
+    #[serde(default, rename = "eddServices")]
+    pub edd_services: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the carrier (for example, "UPS"). Always present.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A list of supported services (for example, "ground") for that carrier. Contains at least one service. This is the list of valid values for CarrierRate.carrierService.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// HolidaysHoliday resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HolidaysHoliday {
+    /// The CLDR territory code of the country in which the holiday is available. For example, "US", "DE", "GB". A holiday cutoff can only be configured in a shipping settings service with matching delivery country. Always present.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// Date of the holiday, in ISO 8601 format. For example, "2016-12-25" for Christmas 2016. Always present.
+    #[serde(default)]
+    pub date: ::core::option::Option<String>,
+    /// Date on which the order has to arrive at the customer''s, in ISO 8601 format. For example, "2016-12-24" for 24th December 2016. Always present.
+    #[serde(default, rename = "deliveryGuaranteeDate")]
+    pub delivery_guarantee_date: ::core::option::Option<String>,
+    /// Hour of the day in the delivery location''s timezone on the guaranteed delivery date by which the order has to arrive at the customer''s. Possible values are: 0 (midnight), 1, ..., 12 (noon), 13, ..., 23. Always present.
+    #[serde(default, rename = "deliveryGuaranteeHour")]
+    pub delivery_guarantee_hour: ::core::option::Option<String>,
+    /// Unique identifier for the holiday to be used when configuring holiday cutoffs. Always present.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The holiday type. Always present. Acceptable values are: - "Christmas" - "Easter" - "Father''s Day" - "Halloween" - "Independence Day (USA)" - "Mother''s Day" - "Thanksgiving" - "Valentine''s Day"
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// PickupServicesPickupService resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PickupServicesPickupService {
+    /// The name of the carrier (for example, "UPS"). Always present.
+    #[serde(default, rename = "carrierName")]
+    pub carrier_name: ::core::option::Option<String>,
+    /// The CLDR country code of the carrier (for example, "US"). Always present.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The name of the pickup service (for example, "Access point"). Always present.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+}
+
+/// Status of program and region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShoppingAdsProgramStatusRegionStatus {
+    /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
+    #[serde(default, rename = "disapprovalDate")]
+    pub disapproval_date: ::core::option::Option<String>,
+    /// Eligibility status of the Shopping Ads program. // TODO: enum values: ["STATE_UNSPECIFIED", "APPROVED", "DISAPPROVED", "WARNING", "UNDER_REVIEW", "PENDING_REVIEW", "ONBOARDING"]
+    #[serde(default, rename = "eligibilityStatus")]
+    pub eligibility_status: ::core::option::Option<String>,
+    /// Issues that must be fixed to be eligible for review.
+    #[serde(default, rename = "onboardingIssues")]
+    pub onboarding_issues: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The two-letter [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) codes for all the regions with the same eligibilityStatus and reviewEligibility.
+    #[serde(default, rename = "regionCodes")]
+    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If a program is eligible for review in a specific region. Only visible if eligibilityStatus is DISAPPROVED. // TODO: enum values: ["REVIEW_ELIGIBILITY_UNSPECIFIED", "ELIGIBLE", "INELIGIBLE"]
+    #[serde(default, rename = "reviewEligibilityStatus")]
+    pub review_eligibility_status: ::core::option::Option<String>,
+    /// Review ineligibility reason if account is not eligible for review. // TODO: enum values: ["REVIEW_INELIGIBILITY_REASON_UNSPECIFIED", "ONBOARDING_ISSUES", "NOT_ENOUGH_OFFERS", "IN_COOLDOWN_PERIOD", "ALREADY_UNDER_REVIEW", "NO_REVIEW_REQUIRED", "WILL_BE_REVIEWED_AUTOMATICALLY", "IS_RETIRED", "ALREADY_REVIEWED"]
+    #[serde(default, rename = "reviewIneligibilityReason")]
+    pub review_ineligibility_reason: ::core::option::Option<String>,
+    /// Reason a program in a specific region isn’t eligible for review. Only visible if reviewEligibilityStatus is INELIGIBLE.
+    #[serde(default, rename = "reviewIneligibilityReasonDescription")]
+    pub review_ineligibility_reason_description: ::core::option::Option<String>,
+    /// Additional information for ineligibility. If reviewIneligibilityReason is IN_COOLDOWN_PERIOD, a timestamp for the end of the cooldown period is provided.
+    #[serde(default, rename = "reviewIneligibilityReasonDetails")]
+    pub review_ineligibility_reason_details:
+        ::core::option::Option<ShoppingAdsProgramStatusReviewIneligibilityReasonDetails>,
+    /// Issues evaluated in the review process. Fix all issues before requesting a review.
+    #[serde(default, rename = "reviewIssues")]
+    pub review_issues: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Input provided by the merchant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionInput {
+    /// Required. Id of the selected action flow.
+    #[serde(default, rename = "actionFlowId")]
+    pub action_flow_id: ::core::option::Option<String>,
+    /// Required. Values for input fields.
+    #[serde(default, rename = "inputValues")]
+    pub input_values: ::core::option::Option<::std::vec::Vec<InputValue>>,
+}
+
+/// AccountsCustomBatchRequestEntryLinkRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountsCustomBatchRequestEntryLinkRequest {
+    /// Action to perform for this link. The "request" action is only available to select merchants. Acceptable values are: - "approve" - "remove" - "request"
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Type of the link between the two accounts. Acceptable values are: - "channelPartner" - "eCommercePlatform" - "paymentServiceProvider" - "localProductManager"
+    #[serde(default, rename = "linkType")]
+    pub link_type: ::core::option::Option<String>,
+    /// The ID of the linked account.
+    #[serde(default, rename = "linkedAccountId")]
+    pub linked_account_id: ::core::option::Option<String>,
+    /// Provided services. Acceptable values are: - "shoppingAdsProductManagement" - "shoppingActionsProductManagement" - "shoppingActionsOrderManagement" - "paymentProcessing" - "localProductManagement"
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Account data. After the creation of a new account it may take a few minutes before it''s fully operational. The methods delete, insert, and update require the admin role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Account {
+    /// Output only. How the account is managed. Acceptable values are: - "manual" - "automatic"
+    #[serde(default, rename = "accountManagement")]
+    pub account_management: ::core::option::Option<String>,
+    /// Linked Ads accounts that are active or pending approval. To create a new link request, add a new link with status active to the list. It will remain in a pending state until approved or rejected either in the Ads interface or through the Google Ads API. To delete an active link, or to cancel a link request, remove it from the list.
+    #[serde(default, rename = "adsLinks")]
+    pub ads_links: ::core::option::Option<::std::vec::Vec<AccountAdsLink>>,
+    /// Indicates whether the merchant sells adult content.
+    #[serde(default, rename = "adultContent")]
+    pub adult_content: ::core::option::Option<bool>,
+    /// The automatic improvements of the account can be used to automatically update items, improve images and shipping. Each section inside AutomaticImprovements is updated separately.
+    #[serde(default, rename = "automaticImprovements")]
+    pub automatic_improvements: ::core::option::Option<AccountAutomaticImprovements>,
+    /// Automatically created label IDs that are assigned to the account by CSS Center.
+    #[serde(default, rename = "automaticLabelIds")]
+    pub automatic_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The business identity attributes can be used to self-declare attributes that let customers know more about your business.
+    #[serde(default, rename = "businessIdentity")]
+    pub business_identity: ::core::option::Option<AccountBusinessIdentity>,
+    /// The business information of the account.
+    #[serde(default, rename = "businessInformation")]
+    pub business_information: ::core::option::Option<AccountBusinessInformation>,
+    /// Settings for conversion tracking.
+    #[serde(default, rename = "conversionSettings")]
+    pub conversion_settings: ::core::option::Option<AccountConversionSettings>,
+    /// ID of CSS the account belongs to.
+    #[serde(default, rename = "cssId")]
+    pub css_id: ::core::option::Option<String>,
+    /// The Business Profile which is linked or in the process of being linked with the Merchant Center account.
+    #[serde(default, rename = "googleMyBusinessLink")]
+    pub google_my_business_link: ::core::option::Option<AccountGoogleMyBusinessLink>,
+    /// Required. 64-bit Merchant Center account ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#account".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Manually created label IDs that are assigned to the account by CSS.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Display name for the account.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Client-specific, locally-unique, internal ID for the child account.
+    #[serde(default, rename = "sellerId")]
+    pub seller_id: ::core::option::Option<String>,
+    /// Users with access to the account. Every account (except for subaccounts) must have at least one admin user.
+    #[serde(default)]
+    pub users: ::core::option::Option<::std::vec::Vec<AccountUser>>,
+    /// The merchant''s website.
+    #[serde(default, rename = "websiteUrl")]
+    pub website_url: ::core::option::Option<String>,
+    /// Linked YouTube channels that are active or pending approval. To create a new link request, add a new link with status active to the list. It will remain in a pending state until approved or rejected in the YT Creator Studio interface. To delete an active link, or to cancel a link request, remove it from the list.
+    #[serde(default, rename = "youtubeChannelLinks")]
+    pub youtube_channel_links: ::core::option::Option<::std::vec::Vec<AccountYouTubeChannelLink>>,
+}
+
+/// LinkService resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkService {
+    /// Service provided to or by the linked account. Acceptable values are: - "shoppingActionsOrderManagement" - "shoppingActionsProductManagement" - "shoppingAdsProductManagement" - "paymentProcessing"
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Status of the link Acceptable values are: - "active" - "inactive" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// The status of an account, that is, information about its products, which is computed offline and not returned immediately at insertion time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountStatus {
+    /// The ID of the account for which the status is reported.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// A list of account level issues.
+    #[serde(default, rename = "accountLevelIssues")]
+    pub account_level_issues:
+        ::core::option::Option<::std::vec::Vec<AccountStatusAccountLevelIssue>>,
+    /// How the account is managed. Acceptable values are: - "manual" - "automatic"
+    #[serde(default, rename = "accountManagement")]
+    pub account_management: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#accountStatus"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// List of product-related data by channel, destination, and country. Data in this field may be delayed by up to 30 minutes.
+    #[serde(default)]
+    pub products: ::core::option::Option<::std::vec::Vec<AccountStatusProducts>>,
+    /// Whether the account''s website is claimed or not.
+    #[serde(default, rename = "websiteClaimed")]
+    pub website_claimed: ::core::option::Option<bool>,
+}
+
+/// The tax settings of a merchant account. All methods require the admin role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountTax {
+    /// Required. The ID of the account to which these account tax settings belong.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#accountTax".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Tax rules. Updating the tax rules will enable "US" taxes (not reversible). Defining no rules is equivalent to not charging tax at all.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<AccountTaxTaxRule>>,
+}
+
+/// Datafeed configuration data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Datafeed {
+    /// The two-letter ISO 639-1 language in which the attributes are defined in the data feed.
+    #[serde(default, rename = "attributeLanguage")]
+    pub attribute_language: ::core::option::Option<String>,
+    /// Required. The type of data feed. For product inventory feeds, only feeds for local stores, not online stores, are supported. Acceptable values are: - "local products" - "product inventory" - "products"
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// Fetch schedule for the feed file.
+    #[serde(default, rename = "fetchSchedule")]
+    pub fetch_schedule: ::core::option::Option<DatafeedFetchSchedule>,
+    /// Required. The filename of the feed. All feeds must have a unique file name.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Format of the feed file.
+    #[serde(default)]
+    pub format: ::core::option::Option<DatafeedFormat>,
+    /// Required for update. The ID of the data feed.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#datafeed"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Required for insert. A descriptive name of the data feed.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The targets this feed should apply to (country, language, destinations).
+    #[serde(default)]
+    pub targets: ::core::option::Option<::std::vec::Vec<DatafeedTarget>>,
+}
+
+/// The status of a datafeed, that is, the result of the last retrieval of the datafeed computed asynchronously when the feed processing is finished.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedStatus {
+    /// The country for which the status is reported, represented as a CLDR territory code.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The ID of the feed for which the status is reported.
+    #[serde(default, rename = "datafeedId")]
+    pub datafeed_id: ::core::option::Option<String>,
+    /// The list of errors occurring in the feed.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<DatafeedStatusError>>,
+    /// The feed label status is reported for.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// The number of items in the feed that were processed.
+    #[serde(default, rename = "itemsTotal")]
+    pub items_total: ::core::option::Option<String>,
+    /// The number of items in the feed that were valid.
+    #[serde(default, rename = "itemsValid")]
+    pub items_valid: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedStatus"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The two-letter ISO 639-1 language for which the status is reported.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The last date at which the feed was uploaded.
+    #[serde(default, rename = "lastUploadDate")]
+    pub last_upload_date: ::core::option::Option<String>,
+    /// The processing status of the feed. Acceptable values are: - ""failure": The feed could not be processed or all items had errors." - "in progress": The feed is being processed. - "none": The feed has not yet been processed. For example, a feed that has never been uploaded will have this processing status. - "success": The feed was processed successfully, though some items might have had errors.
+    #[serde(default, rename = "processingStatus")]
+    pub processing_status: ::core::option::Option<String>,
+    /// The list of errors occurring in the feed.
+    #[serde(default)]
+    pub warnings: ::core::option::Option<::std::vec::Vec<DatafeedStatusError>>,
+}
+
+/// Additional details for review ineligibility reasons.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreeListingsProgramStatusReviewIneligibilityReasonDetails {
+    /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
+    #[serde(default, rename = "cooldownTime")]
+    pub cooldown_time: ::core::option::Option<String>,
+}
+
+/// Call to action (CTA) that explains how a merchant can implement this recommendation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationCallToAction {
+    /// Output only. Intent of the action. This value describes the intent (for example, OPEN_CREATE_EMAIL_CAMPAIGN_FLOW) and can vary from recommendation to recommendation. This value can change over time for the same recommendation. Currently available intent values: - OPEN_CREATE_EMAIL_CAMPAIGN_FLOW: Opens a user journey where they can create a marketing email campaign. (No default URL) - OPEN_CREATE_COLLECTION_TAB: Opens a user journey where they can [create a collection](https://support.google.com/merchants/answer/9703228) for their Merchant account. (No default URL)
+    #[serde(default)]
+    pub intent: ::core::option::Option<String>,
+    /// Output only. Localized text of the CTA. Optional.
+    #[serde(default, rename = "localizedText")]
+    pub localized_text: ::core::option::Option<String>,
+    /// Optional. URL of the CTA. This field will only be set for some recommendations where there is a suggested landing URL. Otherwise it will be set to an empty string. We recommend developers to use their own custom landing page according to the description of the intent field above when this uri field is empty.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Google-provided description for the recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationDescription {
+    /// Output only. Text of the description.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Output only. Type of the description. // TODO: enum values: ["DESCRIPTION_TYPE_UNSPECIFIED", "SHORT", "LONG"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Creative is a multimedia attachment to recommendation that can be used on the frontend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationCreative {
+    /// Type of the creative. // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "VIDEO", "PHOTO"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// URL of the creative.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// GmbAccounts resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GmbAccounts {
+    /// The ID of the Merchant Center account.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// A list of Business Profiles which are available to the merchant.
+    #[serde(default, rename = "gmbAccounts")]
+    pub gmb_accounts: ::core::option::Option<::std::vec::Vec<GmbAccountsGmbAccount>>,
+}
+
+/// Local Inventory ads (LIA) settings. All methods except listposdataproviders require the admin role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaSettings {
+    /// The ID of the account to which these LIA settings belong. Ignored upon update, always present in get request responses.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// The LIA settings for each country.
+    #[serde(default, rename = "countrySettings")]
+    pub country_settings: ::core::option::Option<::std::vec::Vec<LiaCountrySettings>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#liaSettings"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
 /// PosDataProviders resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PosDataProviders {
@@ -3134,18 +2667,256 @@ pub struct PosDataProviders {
         ::core::option::Option<::std::vec::Vec<PosDataProvidersPosDataProvider>>,
 }
 
-/// PosDataProvidersPosDataProvider resource type.
+/// Issue associated with the collection.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosDataProvidersPosDataProvider {
-    /// The display name of Pos data Provider.
+pub struct CollectionStatusItemLevelIssue {
+    /// Country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
+    #[serde(default, rename = "applicableCountries")]
+    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The attribute''s name, if the issue is caused by a single attribute.
+    #[serde(default, rename = "attributeName")]
+    pub attribute_name: ::core::option::Option<String>,
+    /// The error code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// A short issue description in English.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The destination the issue applies to.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// A detailed issue description in English.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The URL of a web page to help with resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Whether the issue can be resolved by the merchant.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+    /// How this issue affects the serving of the collection.
+    #[serde(default)]
+    pub servability: ::core::option::Option<String>,
+}
+
+/// Destination status message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectionStatusDestinationStatus {
+    /// Country codes (ISO 3166-1 alpha-2) where the collection is approved.
+    #[serde(default, rename = "approvedCountries")]
+    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the destination
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// Country codes (ISO 3166-1 alpha-2) where the collection is disapproved.
+    #[serde(default, rename = "disapprovedCountries")]
+    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Country codes (ISO 3166-1 alpha-2) where the collection is pending approval.
+    #[serde(default, rename = "pendingCountries")]
+    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The status for the specified destination in the collections target country.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// The message for FeaturedProduct. [FeaturedProduct](https://support.google.com/merchants/answer/9703736)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectionFeaturedProduct {
+    /// The unique identifier for the product item.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. X-coordinate of the product callout on the Shoppable Image.
+    #[serde(default)]
+    pub x: ::core::option::Option<f32>,
+    /// Required. Y-coordinate of the product callout on the Shoppable Image.
+    #[serde(default)]
+    pub y: ::core::option::Option<f32>,
+}
+
+/// "Google Analytics Link" sources can be used to get conversion data from an existing Google Analytics property into the linked Merchant Center account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsLink {
+    /// Output only. Attribution settings for the linked Google Analytics property.
+    #[serde(default, rename = "attributionSettings")]
+    pub attribution_settings: ::core::option::Option<AttributionSettings>,
+    /// Required. Immutable. ID of the Google Analytics property the merchant is linked to.
+    #[serde(default, rename = "propertyId")]
+    pub property_id: ::core::option::Option<String>,
+    /// Output only. Name of the Google Analytics property the merchant is linked to.
+    #[serde(default, rename = "propertyName")]
+    pub property_name: ::core::option::Option<String>,
+}
+
+/// "Merchant Center Destination" sources can be used to send conversion events from a website using a Google tag directly to a Merchant Center account where the source is created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MerchantCenterDestination {
+    /// Required. Attribution settings being used for the Merchant Center Destination.
+    #[serde(default, rename = "attributionSettings")]
+    pub attribution_settings: ::core::option::Option<AttributionSettings>,
+    /// Required. Three-letter currency code (ISO 4217). The currency code defines in which currency the conversions sent to this destination will be reported in Merchant Center.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Output only. Merchant Center Destination ID.
+    #[serde(default, rename = "destinationId")]
+    pub destination_id: ::core::option::Option<String>,
+    /// Required. Merchant-specified display name for the destination. This is the name that identifies the conversion source within the Merchant Center UI. Limited to 64 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// The full name of this POS data Provider.
-    #[serde(default, rename = "fullName")]
-    pub full_name: ::core::option::Option<String>,
-    /// The ID of the account.
-    #[serde(default, rename = "providerId")]
-    pub provider_id: ::core::option::Option<String>,
+}
+
+/// A message that represents a time period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimePeriod {
+    /// The ending timestamp.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The starting timestamp.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// The status of the promotion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromotionPromotionStatus {
+    /// Date on which the promotion has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
+    #[serde(default, rename = "creationDate")]
+    pub creation_date: ::core::option::Option<String>,
+    /// The intended destinations for the promotion.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<PromotionPromotionStatusDestinationStatus>>,
+    /// Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
+    #[serde(default, rename = "lastUpdateDate")]
+    pub last_update_date: ::core::option::Option<String>,
+    /// A list of issues associated with the promotion.
+    #[serde(default, rename = "promotionIssue")]
+    pub promotion_issue:
+        ::core::option::Option<::std::vec::Vec<PromotionPromotionStatusPromotionIssue>>,
+}
+
+/// A list of geotargets that defines the region area.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionGeoTargetArea {
+    /// Required. A non-empty list of [location IDs](https://developers.google.com/adwords/api/docs/appendix/geotargeting). They must all be of the same location type (e.g., state).
+    #[serde(default, rename = "geotargetCriteriaIds")]
+    pub geotarget_criteria_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A list of postal codes that defines the region area. Note: All regions defined using postal codes are accessible via the account''s ShippingSettings.postalCodeGroups resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionPostalCodeArea {
+    /// Required. A range of postal codes.
+    #[serde(default, rename = "postalCodes")]
+    pub postal_codes: ::core::option::Option<::std::vec::Vec<RegionPostalCodeAreaPostalCodeRange>>,
+    /// Required. CLDR territory code or the country the postal code group applies to.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// The available policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnPolicyOnlinePolicy {
+    /// The number of days items can be returned after delivery, where one day is defined to be 24 hours after the delivery timestamp. Required for numberOfDaysAfterDelivery returns.
+    #[serde(default)]
+    pub days: ::core::option::Option<String>,
+    /// Policy type. // TODO: enum values: ["TYPE_UNSPECIFIED", "NUMBER_OF_DAYS_AFTER_DELIVERY", "NO_RETURNS", "LIFETIME_RETURNS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The restocking fee. This can either be a fixed fee or a micro percent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnPolicyOnlineRestockingFee {
+    /// Fixed restocking fee.
+    #[serde(default, rename = "fixedFee")]
+    pub fixed_fee: ::core::option::Option<PriceAmount>,
+    /// Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.
+    #[serde(default, rename = "microPercent")]
+    pub micro_percent: ::core::option::Option<i32>,
+}
+
+/// The return reason category info wrapper.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnPolicyOnlineReturnReasonCategoryInfo {
+    /// The corresponding return label source. If the ReturnMethod field includes BY_MAIL, it is required to specify ReturnLabelSource for both BUYER_REMORSE and ITEM_DEFECT return reason categories. // TODO: enum values: ["RETURN_LABEL_SOURCE_UNSPECIFIED", "DOWNLOAD_AND_PRINT", "IN_THE_BOX", "CUSTOMER_RESPONSIBILITY"]
+    #[serde(default, rename = "returnLabelSource")]
+    pub return_label_source: ::core::option::Option<String>,
+    /// The return reason category. // TODO: enum values: ["RETURN_REASON_CATEGORY_UNSPECIFIED", "BUYER_REMORSE", "ITEM_DEFECT"]
+    #[serde(default, rename = "returnReasonCategory")]
+    pub return_reason_category: ::core::option::Option<String>,
+    /// The corresponding return shipping fee. This is only applicable when returnLabelSource is not the customer''s responsibility.
+    #[serde(default, rename = "returnShippingFee")]
+    pub return_shipping_fee: ::core::option::Option<ReturnPolicyOnlineReturnShippingFee>,
+}
+
+/// Local inventory resource. For accepted attribute values, see the local product inventory feed specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalInventory {
+    /// The availability of the product. For accepted attribute values, see the local product inventory feed specification.
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// A list of custom (merchant-provided) attributes. Can also be used to submit any attribute of the feed specification in its generic form, for example, { "name": "size type", "value": "regular" }.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// The in-store product location.
+    #[serde(default, rename = "instoreProductLocation")]
+    pub instore_product_location: ::core::option::Option<String>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#localInventory"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the local product inventory feed specification.
+    #[serde(default, rename = "pickupMethod")]
+    pub pickup_method: ::core::option::Option<String>,
+    /// The expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the local product inventory feed specification.
+    #[serde(default, rename = "pickupSla")]
+    pub pickup_sla: ::core::option::Option<String>,
+    /// The price of the product.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// The quantity of the product. Must be nonnegative.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<i64>,
+    /// The sale price of the product. Mandatory if sale_price_effective_date is defined.
+    #[serde(default, rename = "salePrice")]
+    pub sale_price: ::core::option::Option<Price>,
+    /// A date range represented by a pair of ISO 8601 dates separated by a space, comma, or slash. Both dates may be specified as ''null'' if undecided.
+    #[serde(default, rename = "salePriceEffectiveDate")]
+    pub sale_price_effective_date: ::core::option::Option<String>,
+    /// Required. The store code of this local inventory resource.
+    #[serde(default, rename = "storeCode")]
+    pub store_code: ::core::option::Option<String>,
+}
+
+/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateTime {
+    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
+    /// Time zone.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<TimeZone>,
+    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
+    #[serde(default, rename = "utcOffset")]
+    pub utc_offset: ::core::option::Option<String>,
+    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// The absolute quantity of an item available at the given store.
@@ -3186,89 +2957,6 @@ pub struct PosInventory {
     pub timestamp: ::core::option::Option<String>,
 }
 
-/// PosInventoryRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosInventoryRequest {
-    /// Required. The two-letter ISO 639-1 language code for the item.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Global Trade Item Number.
-    #[serde(default)]
-    pub gtin: ::core::option::Option<String>,
-    /// Required. A unique identifier for the item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Optional. Supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
-    #[serde(default, rename = "pickupMethod")]
-    pub pickup_method: ::core::option::Option<String>,
-    /// Optional. Expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
-    #[serde(default, rename = "pickupSla")]
-    pub pickup_sla: ::core::option::Option<String>,
-    /// Required. The current price of the item.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// Required. The available quantity of the item.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<String>,
-    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
-    /// Required. The CLDR territory code for the item.
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-    /// Required. The inventory timestamp, in ISO 8601 format.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// PosInventoryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosInventoryResponse {
-    /// Required. The two-letter ISO 639-1 language code for the item.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Global Trade Item Number.
-    #[serde(default)]
-    pub gtin: ::core::option::Option<String>,
-    /// Required. A unique identifier for the item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#posInventoryResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Optional. Supported pickup method for this offer. Unless the value is "not supported", this field must be submitted together with pickupSla. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
-    #[serde(default, rename = "pickupMethod")]
-    pub pickup_method: ::core::option::Option<String>,
-    /// Optional. Expected date that an order will be ready for pickup relative to the order date. Must be submitted together with pickupMethod. For accepted attribute values, see the [local product inventory feed specification](https://support.google.com/merchants/answer/3061342).
-    #[serde(default, rename = "pickupSla")]
-    pub pickup_sla: ::core::option::Option<String>,
-    /// Required. The current price of the item.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// Required. The available quantity of the item.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<String>,
-    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
-    /// Required. The CLDR territory code for the item.
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-    /// Required. The inventory timestamp, in ISO 8601 format.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// PosListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosListResponse {
-    /// Identifies what kind of resource this is. Value: the fixed string "content#posListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<PosStore>>,
-}
-
 /// The change of the available quantity of an item at the given store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PosSale {
@@ -3282,73 +2970,6 @@ pub struct PosSale {
     #[serde(default, rename = "itemId")]
     pub item_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "content#posSale"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Required. The price of the item.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// Required. The relative change of the available quantity. Negative for items returned.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<String>,
-    /// A unique ID to group items from the same sale event.
-    #[serde(default, rename = "saleId")]
-    pub sale_id: ::core::option::Option<String>,
-    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
-    /// Required. The CLDR territory code for the item.
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-    /// Required. The inventory timestamp, in ISO 8601 format.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// PosSaleRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosSaleRequest {
-    /// Required. The two-letter ISO 639-1 language code for the item.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Global Trade Item Number.
-    #[serde(default)]
-    pub gtin: ::core::option::Option<String>,
-    /// Required. A unique identifier for the item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Required. The price of the item.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// Required. The relative change of the available quantity. Negative for items returned.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<String>,
-    /// A unique ID to group items from the same sale event.
-    #[serde(default, rename = "saleId")]
-    pub sale_id: ::core::option::Option<String>,
-    /// Required. The identifier of the merchant''s store. Either a storeCode inserted through the API or the code of the store in a Business Profile.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<String>,
-    /// Required. The CLDR territory code for the item.
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-    /// Required. The inventory timestamp, in ISO 8601 format.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// PosSaleResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PosSaleResponse {
-    /// Required. The two-letter ISO 639-1 language code for the item.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Global Trade Item Number.
-    #[serde(default)]
-    pub gtin: ::core::option::Option<String>,
-    /// Required. A unique identifier for the item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#posSaleResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
     /// Required. The price of the item.
@@ -3406,97 +3027,35 @@ pub struct PosStore {
     pub website_url: ::core::option::Option<String>,
 }
 
-/// PostalCodeGroup resource type.
+/// A delivery area for the product. Only one of countryCode or postalCodeRange must be set.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostalCodeGroup {
-    /// The CLDR territory code of the country the postal code group applies to. Required.
-    #[serde(default)]
-    pub country: ::core::option::Option<String>,
-    /// The name of the postal code group, referred to in headers. Required.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A range of postal codes. Required.
-    #[serde(default, rename = "postalCodeRanges")]
-    pub postal_code_ranges: ::core::option::Option<::std::vec::Vec<PostalCodeRange>>,
-}
-
-/// PostalCodeRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostalCodeRange {
-    /// A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*". Required.
-    #[serde(default, rename = "postalCodeRangeBegin")]
-    pub postal_code_range_begin: ::core::option::Option<String>,
-    /// A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area. It must have the same length as postalCodeRangeBegin: if postalCodeRangeBegin is a postal code then postalCodeRangeEnd must be a postal code too; if postalCodeRangeBegin is a pattern then postalCodeRangeEnd must be a pattern with the same prefix length. Optional: if not set, then the area is defined as being all the postal codes matching postalCodeRangeBegin.
-    #[serde(default, rename = "postalCodeRangeEnd")]
-    pub postal_code_range_end: ::core::option::Option<String>,
-}
-
-/// Price resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Price {
-    /// The currency of the price.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// The price represented as a number.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The price represented as a number and currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PriceAmount {
-    /// The currency of the price.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// The price represented as a number.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Price competitiveness fields requested by the merchant in the query. Field values are only set if the merchant queries PriceCompetitivenessProductView. https://support.google.com/merchants/answer/9626903
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PriceCompetitiveness {
-    /// The price benchmark currency (ISO 4217 code).
-    #[serde(default, rename = "benchmarkPriceCurrencyCode")]
-    pub benchmark_price_currency_code: ::core::option::Option<String>,
-    /// The latest available price benchmark in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) for the product''s catalog in the benchmark country.
-    #[serde(default, rename = "benchmarkPriceMicros")]
-    pub benchmark_price_micros: ::core::option::Option<String>,
-    /// The country of the price benchmark (ISO 3166 code).
+pub struct DeliveryArea {
+    /// Required. The country that the product can be delivered to. Submit a [unicode CLDR region](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) such as US or CH.
     #[serde(default, rename = "countryCode")]
     pub country_code: ::core::option::Option<String>,
+    /// A postal code, postal code range or postal code prefix that defines this area. Limited to US and AUS.
+    #[serde(default, rename = "postalCodeRange")]
+    pub postal_code_range: ::core::option::Option<DeliveryAreaPostalCodeRange>,
+    /// A state, territory, or prefecture. This is supported for the United States, Australia, and Japan. Provide a subdivision code from the ISO 3166-2 code tables ([US](https://en.wikipedia.org/wiki/ISO_3166-2:US), [AU](https://en.wikipedia.org/wiki/ISO_3166-2:AU), or [JP](https://en.wikipedia.org/wiki/ISO_3166-2:JP)) without country prefix (for example, "NY", "NSW", "03").
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
 }
 
-/// Price insights fields requested by the merchant in the query. Field values are only set if the merchant queries PriceInsightsProductView. https://support.google.com/merchants/answer/11916926
+/// A delivery time for this product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PriceInsights {
-    /// The predicted effectiveness of applying the price suggestion, bucketed. // TODO: enum values: ["EFFECTIVENESS_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
-    #[serde(default)]
-    pub effectiveness: ::core::option::Option<String>,
-    /// The predicted change in clicks as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in clicks.
-    #[serde(default, rename = "predictedClicksChangeFraction")]
-    pub predicted_clicks_change_fraction: ::core::option::Option<f64>,
-    /// The predicted change in conversions as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in conversions).
-    #[serde(default, rename = "predictedConversionsChangeFraction")]
-    pub predicted_conversions_change_fraction: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and will start returning 0. The predicted change in gross profit as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in gross profit.
-    #[serde(default, rename = "predictedGrossProfitChangeFraction")]
-    pub predicted_gross_profit_change_fraction: ::core::option::Option<f64>,
-    /// The predicted change in impressions as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in impressions.
-    #[serde(default, rename = "predictedImpressionsChangeFraction")]
-    pub predicted_impressions_change_fraction: ::core::option::Option<f64>,
-    /// *Deprecated*: This field is no longer supported and will start returning USD for all requests. The predicted monthly gross profit change currency (ISO 4217 code).
-    #[serde(default, rename = "predictedMonthlyGrossProfitChangeCurrencyCode")]
-    pub predicted_monthly_gross_profit_change_currency_code: ::core::option::Option<String>,
-    /// *Deprecated*: This field is no longer supported and will start returning 0. The predicted change in gross profit in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) after introducing the suggested price for a month compared to current active price.
-    #[serde(default, rename = "predictedMonthlyGrossProfitChangeMicros")]
-    pub predicted_monthly_gross_profit_change_micros: ::core::option::Option<String>,
-    /// The suggested price currency (ISO 4217 code).
-    #[serde(default, rename = "suggestedPriceCurrencyCode")]
-    pub suggested_price_currency_code: ::core::option::Option<String>,
-    /// The latest suggested price in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) for the product.
-    #[serde(default, rename = "suggestedPriceMicros")]
-    pub suggested_price_micros: ::core::option::Option<String>,
+pub struct ProductDeliveryTimeAreaDeliveryTimeDeliveryTime {
+    /// Required. The maximum number of business days (inclusive) between when an order is placed and when the product ships. If a product ships in the same day, set this value to 0.
+    #[serde(default, rename = "maxHandlingTimeDays")]
+    pub max_handling_time_days: ::core::option::Option<i32>,
+    /// Required. The maximum number of business days (inclusive) between when the product ships and when the product is delivered.
+    #[serde(default, rename = "maxTransitTimeDays")]
+    pub max_transit_time_days: ::core::option::Option<i32>,
+    /// Required. The minimum number of business days (inclusive) between when an order is placed and when the product ships. If a product ships in the same day, set this value to 0.
+    #[serde(default, rename = "minHandlingTimeDays")]
+    pub min_handling_time_days: ::core::option::Option<i32>,
+    /// Required. The minimum number of business days (inclusive) between when the product ships and when the product is delivered.
+    #[serde(default, rename = "minTransitTimeDays")]
+    pub min_transit_time_days: ::core::option::Option<i32>,
 }
 
 ///  Required product attributes are primarily defined by the product data specification. See the Product Data Specification Help Center article for information. Product data. After inserting, updating, or deleting a product, it may take several minutes before changes take effect. The following reference documentation lists the field names in the **camelCase** casing style while the Products Data Specification lists the names in the **snake_case** casing style.
@@ -3818,21 +3377,295 @@ pub struct Product {
     pub virtual_model_link: ::core::option::Option<String>,
 }
 
-/// Product [certification](https://support.google.com/merchants/answer/13528839), introduced for EU energy efficiency labeling compliance using the [EU EPREL](https://eprel.ec.europa.eu/screen/home) database.
+/// The status of a product, that is, information about a product computed asynchronously.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductCertification {
-    /// The certification authority, for example "European_Commission". Maximum length is 2000 characters.
-    #[serde(default, rename = "certificationAuthority")]
-    pub certification_authority: ::core::option::Option<String>,
-    /// The certification code, for eaxample "123456". Maximum length is 2000 characters.
-    #[serde(default, rename = "certificationCode")]
-    pub certification_code: ::core::option::Option<String>,
-    /// The name of the certification, for example "EPREL". Maximum length is 2000 characters.
-    #[serde(default, rename = "certificationName")]
-    pub certification_name: ::core::option::Option<String>,
-    /// The certification value (also known as class, level or grade), for example "A+", "C", "gold". Maximum length is 2000 characters.
-    #[serde(default, rename = "certificationValue")]
-    pub certification_value: ::core::option::Option<String>,
+pub struct ProductStatus {
+    /// Date on which the item has been created, in ISO 8601 format.
+    #[serde(default, rename = "creationDate")]
+    pub creation_date: ::core::option::Option<String>,
+    /// The intended destinations for the product.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<ProductStatusDestinationStatus>>,
+    /// Date on which the item expires in Google Shopping, in ISO 8601 format.
+    #[serde(default, rename = "googleExpirationDate")]
+    pub google_expiration_date: ::core::option::Option<String>,
+    /// A list of all issues associated with the product.
+    #[serde(default, rename = "itemLevelIssues")]
+    pub item_level_issues: ::core::option::Option<::std::vec::Vec<ProductStatusItemLevelIssue>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#productStatus"
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Date on which the item has been last updated, in ISO 8601 format.
+    #[serde(default, rename = "lastUpdateDate")]
+    pub last_update_date: ::core::option::Option<String>,
+    /// The link to the product.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// The ID of the product for which status is reported.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// The title of the product.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Regional inventory resource. contains the regional name and all attributes which are overridden for the specified region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalInventory {
+    /// The availability of the product.
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalInventory".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The price of the product.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// The ID uniquely identifying each region.
+    #[serde(default, rename = "regionId")]
+    pub region_id: ::core::option::Option<String>,
+    /// The sale price of the product. Mandatory if sale_price_effective_date is defined.
+    #[serde(default, rename = "salePrice")]
+    pub sale_price: ::core::option::Option<Price>,
+    /// A date range represented by a pair of ISO 8601 dates separated by a space, comma, or slash. Both dates might be specified as ''null'' if undecided.
+    #[serde(default, rename = "salePriceEffectiveDate")]
+    pub sale_price_effective_date: ::core::option::Option<String>,
+}
+
+/// Overall impact of the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountIssueImpact {
+    /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
+    #[serde(default)]
+    pub breakdowns: ::core::option::Option<::std::vec::Vec<Breakdown>>,
+    /// Optional. Message summarizing the overall impact of the issue. If present, it should be rendered to the merchant. For example: "Disapproves 90k offers in 25 countries"
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Overall impact of product issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductIssueImpact {
+    /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
+    #[serde(default)]
+    pub breakdowns: ::core::option::Option<::std::vec::Vec<Breakdown>>,
+    /// Optional. Message summarizing the overall impact of the issue. If present, it should be rendered to the merchant. For example: "Limits visibility in France"
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Fields related to the [Best sellers reports](https://support.google.com/merchants/answer/9488679).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BestSellers {
+    /// Google product category ID to calculate the ranking for, represented in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436). If a WHERE condition on best_sellers.category_id is not specified in the query, rankings for all top-level categories are returned.
+    #[serde(default, rename = "categoryId")]
+    pub category_id: ::core::option::Option<String>,
+    /// Country where the ranking is calculated. A WHERE condition on best_sellers.country_code is required in the query.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// Popularity rank in the previous week or month.
+    #[serde(default, rename = "previousRank")]
+    pub previous_rank: ::core::option::Option<String>,
+    /// Estimated demand in relation to the item with the highest popularity rank in the same category and country in the previous week or month. // TODO: enum values: ["RELATIVE_DEMAND_UNSPECIFIED", "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"]
+    #[serde(default, rename = "previousRelativeDemand")]
+    pub previous_relative_demand: ::core::option::Option<String>,
+    /// Popularity on Shopping ads and free listings, in the selected category and country, based on the estimated number of units sold.
+    #[serde(default)]
+    pub rank: ::core::option::Option<String>,
+    /// Estimated demand in relation to the item with the highest popularity rank in the same category and country. // TODO: enum values: ["RELATIVE_DEMAND_UNSPECIFIED", "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"]
+    #[serde(default, rename = "relativeDemand")]
+    pub relative_demand: ::core::option::Option<String>,
+    /// Change in the estimated demand. Whether it rose, sank or remained flat. // TODO: enum values: ["RELATIVE_DEMAND_CHANGE_TYPE_UNSPECIFIED", "SINKER", "FLAT", "RISER"]
+    #[serde(default, rename = "relativeDemandChange")]
+    pub relative_demand_change: ::core::option::Option<String>,
+    /// Report date. The value of this field can only be one of the following: * The first day of the week (Monday) for weekly reports. * The first day of the month for monthly reports. If a WHERE condition on best_sellers.report_date is not specified in the query, the latest available weekly or monthly report is returned.
+    #[serde(default, rename = "reportDate")]
+    pub report_date: ::core::option::Option<Date>,
+    /// Granularity of the report. The ranking can be done over a week or a month timeframe. A WHERE condition on best_sellers.report_granularity is required in the query. // TODO: enum values: ["REPORT_GRANULARITY_UNSPECIFIED", "WEEKLY", "MONTHLY"]
+    #[serde(default, rename = "reportGranularity")]
+    pub report_granularity: ::core::option::Option<String>,
+}
+
+/// Brand fields. Values are only set for fields requested explicitly in the request''s search query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Brand {
+    /// Name of the brand.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Fields related to [competitive visibility reports] (https://support.google.com/merchants/answer/11366442).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompetitiveVisibility {
+    /// [Ads / organic ratio] (https://support.google.com/merchants/answer/11366442#zippy=%2Cadsfree-ratio) shows how often a merchant receives impressions from Shopping ads compared to organic traffic. The number is rounded and bucketed. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "adsOrganicRatio")]
+    pub ads_organic_ratio: ::core::option::Option<f64>,
+    /// Change in visibility based on impressions with respect to the start of the selected time range (or first day with non-zero impressions) for a combined set of merchants with highest visibility approximating the market. Available only in CompetitiveVisibilityBenchmarkView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "categoryBenchmarkVisibilityTrend")]
+    pub category_benchmark_visibility_trend: ::core::option::Option<f64>,
+    /// Google product category ID to calculate the report for, represented in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436). Required in the SELECT clause. A WHERE condition on competitive_visibility.category_id is required in the query.
+    #[serde(default, rename = "categoryId")]
+    pub category_id: ::core::option::Option<String>,
+    /// The country where impression appeared. Required in the SELECT clause. A WHERE condition on competitive_visibility.country_code is required in the query.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+    /// Date of this row. Available only in CompetitiveVisibilityBenchmarkView and CompetitiveVisibilityCompetitorView. Required in the SELECT clause for CompetitiveVisibilityMarketBenchmarkView.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Domain of your competitor or your domain, if ''is_your_domain'' is true. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Required in the SELECT clause for CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Higher position rate shows how often a competitor’s offer got placed in a higher position on the page than your offer. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "higherPositionRate")]
+    pub higher_position_rate: ::core::option::Option<f64>,
+    /// True if this row contains data for your domain. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "isYourDomain")]
+    pub is_your_domain: ::core::option::Option<bool>,
+    /// Page overlap rate describes how frequently competing retailers’ offers are shown together with your offers on the same page. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "pageOverlapRate")]
+    pub page_overlap_rate: ::core::option::Option<f64>,
+    /// Position of the domain in the top merchants ranking for the selected keys (date, category_id, country_code, listing_type) based on impressions. 1 is the highest. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default)]
+    pub rank: ::core::option::Option<String>,
+    /// Relative visibility shows how often your competitors’ offers are shown compared to your offers. In other words, this is the number of displayed impressions of a competitor retailer divided by the number of your displayed impressions during a selected time range for a selected product category and country. Available only in CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "relativeVisibility")]
+    pub relative_visibility: ::core::option::Option<f64>,
+    /// Type of impression listing. Required in the SELECT clause. Cannot be filtered on in the ''WHERE'' clause. // TODO: enum values: ["UNKNOWN", "ORGANIC", "ADS", "ALL"]
+    #[serde(default, rename = "trafficSource")]
+    pub traffic_source: ::core::option::Option<String>,
+    /// Change in visibility based on impressions for your domain with respect to the start of the selected time range (or first day with non-zero impressions). Available only in CompetitiveVisibilityBenchmarkView. Cannot be filtered on in the ''WHERE'' clause.
+    #[serde(default, rename = "yourDomainVisibilityTrend")]
+    pub your_domain_visibility_trend: ::core::option::Option<f64>,
+}
+
+/// Performance metrics. Values are only set for metrics requested explicitly in the request''s search query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Metrics {
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average order size - the average number of items in an order. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default)]
+    pub aos: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average order value in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) - the average value (total price of items) of all placed orders. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default, rename = "aovMicros")]
+    pub aov_micros: ::core::option::Option<f64>,
+    /// Number of clicks.
+    #[serde(default)]
+    pub clicks: ::core::option::Option<String>,
+    /// Number of conversions divided by the number of clicks, reported on the impression date. The metric is currently available only for the FREE_PRODUCT_LISTING program.
+    #[serde(default, rename = "conversionRate")]
+    pub conversion_rate: ::core::option::Option<f64>,
+    /// Value of conversions in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) attributed to the product, reported on the conversion date. The metric is currently available only for the FREE_PRODUCT_LISTING program. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response.
+    #[serde(default, rename = "conversionValueMicros")]
+    pub conversion_value_micros: ::core::option::Option<String>,
+    /// Number of conversions attributed to the product, reported on the conversion date. Depending on the attribution model, a conversion might be distributed across multiple clicks, where each click gets its own credit assigned. This metric is a sum of all such credits. The metric is currently available only for the FREE_PRODUCT_LISTING program.
+    #[serde(default)]
+    pub conversions: ::core::option::Option<f64>,
+    /// Click-through rate - the number of clicks merchant''s products receive (clicks) divided by the number of times the products are shown (impressions).
+    #[serde(default)]
+    pub ctr: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average number of days between an order being placed and the order being fully shipped, reported on the last shipment date. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default, rename = "daysToShip")]
+    pub days_to_ship: ::core::option::Option<f64>,
+    /// Number of times merchant''s products are shown.
+    #[serde(default)]
+    pub impressions: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average number of days between an item being ordered and the item being **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "itemDaysToShip")]
+    pub item_days_to_ship: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Percentage of shipped items in relation to all finalized items (shipped or rejected by the merchant; unshipped items are not taken into account), reported on the order date. Item fill rate is lowered by merchant rejections. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "itemFillRate")]
+    pub item_fill_rate: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of ordered items in micros (1 millionth of a standard unit, 1 USD = 1000000 micros). Excludes shipping, taxes (US only), and customer cancellations that happened within 30 minutes of placing the order. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "orderedItemSalesMicros")]
+    pub ordered_item_sales_micros: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items. Excludes customer cancellations that happened within 30 minutes of placing the order. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "orderedItems")]
+    pub ordered_items: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of placed orders. Excludes customer cancellations that happened within 30 minutes of placing the order. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default)]
+    pub orders: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items canceled by the merchant, reported on the order date. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "rejectedItems")]
+    pub rejected_items: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of returned items divided by the total price of shipped items, reported on the order date. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "returnRate")]
+    pub return_rate: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items sent back for return, reported on the date when the merchant accepted the return. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "returnedItems")]
+    pub returned_items: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of ordered items sent back for return in micros (1 millionth of a standard unit, 1 USD = 1000000 micros), reported on the date when the merchant accepted the return. The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "returnsMicros")]
+    pub returns_micros: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Total price of shipped items in micros (1 millionth of a standard unit, 1 USD = 1000000 micros), reported on the order date. Excludes shipping and taxes (US only). The currency of the returned value is stored in the currency_code segment. If this metric is selected, ''segments.currency_code'' is automatically added to the SELECT clause in the search query (unless it is explicitly selected by the user) and the currency_code segment is populated in the response. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "shippedItemSalesMicros")]
+    pub shipped_item_sales_micros: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of shipped items, reported on the shipment date. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "shippedItems")]
+    pub shipped_items: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of fully shipped orders, reported on the last shipment date. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default, rename = "shippedOrders")]
+    pub shipped_orders: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of ordered items not shipped up until the end of the queried day. If a multi-day period is specified in the search query, the returned value is the average number of unshipped items over the days in the queried period. **This metric cannot be segmented by customer_country_code.**
+    #[serde(default, rename = "unshippedItems")]
+    pub unshipped_items: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Number of orders not shipped or partially shipped up until the end of the queried day. If a multi-day period is specified in the search query, the returned value is the average number of unshipped orders over the days in the queried period. **This metric cannot be segmented by product dimensions and customer_country_code.**
+    #[serde(default, rename = "unshippedOrders")]
+    pub unshipped_orders: ::core::option::Option<f64>,
+}
+
+/// Price competitiveness fields requested by the merchant in the query. Field values are only set if the merchant queries PriceCompetitivenessProductView. https://support.google.com/merchants/answer/9626903
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PriceCompetitiveness {
+    /// The price benchmark currency (ISO 4217 code).
+    #[serde(default, rename = "benchmarkPriceCurrencyCode")]
+    pub benchmark_price_currency_code: ::core::option::Option<String>,
+    /// The latest available price benchmark in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) for the product''s catalog in the benchmark country.
+    #[serde(default, rename = "benchmarkPriceMicros")]
+    pub benchmark_price_micros: ::core::option::Option<String>,
+    /// The country of the price benchmark (ISO 3166 code).
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+}
+
+/// Price insights fields requested by the merchant in the query. Field values are only set if the merchant queries PriceInsightsProductView. https://support.google.com/merchants/answer/11916926
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PriceInsights {
+    /// The predicted effectiveness of applying the price suggestion, bucketed. // TODO: enum values: ["EFFECTIVENESS_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
+    #[serde(default)]
+    pub effectiveness: ::core::option::Option<String>,
+    /// The predicted change in clicks as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in clicks.
+    #[serde(default, rename = "predictedClicksChangeFraction")]
+    pub predicted_clicks_change_fraction: ::core::option::Option<f64>,
+    /// The predicted change in conversions as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in conversions).
+    #[serde(default, rename = "predictedConversionsChangeFraction")]
+    pub predicted_conversions_change_fraction: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and will start returning 0. The predicted change in gross profit as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in gross profit.
+    #[serde(default, rename = "predictedGrossProfitChangeFraction")]
+    pub predicted_gross_profit_change_fraction: ::core::option::Option<f64>,
+    /// The predicted change in impressions as a fraction after introducing the suggested price compared to current active price. For example, 0.05 is a 5% predicted increase in impressions.
+    #[serde(default, rename = "predictedImpressionsChangeFraction")]
+    pub predicted_impressions_change_fraction: ::core::option::Option<f64>,
+    /// *Deprecated*: This field is no longer supported and will start returning USD for all requests. The predicted monthly gross profit change currency (ISO 4217 code).
+    #[serde(default, rename = "predictedMonthlyGrossProfitChangeCurrencyCode")]
+    pub predicted_monthly_gross_profit_change_currency_code: ::core::option::Option<String>,
+    /// *Deprecated*: This field is no longer supported and will start returning 0. The predicted change in gross profit in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) after introducing the suggested price for a month compared to current active price.
+    #[serde(default, rename = "predictedMonthlyGrossProfitChangeMicros")]
+    pub predicted_monthly_gross_profit_change_micros: ::core::option::Option<String>,
+    /// The suggested price currency (ISO 4217 code).
+    #[serde(default, rename = "suggestedPriceCurrencyCode")]
+    pub suggested_price_currency_code: ::core::option::Option<String>,
+    /// The latest suggested price in micros (1 millionth of a standard unit, 1 USD = 1000000 micros) for the product.
+    #[serde(default, rename = "suggestedPriceMicros")]
+    pub suggested_price_micros: ::core::option::Option<String>,
 }
 
 /// Product cluster fields. A product cluster is a grouping for different offers that represent the same product. Values are only set for fields requested explicitly in the request''s search query.
@@ -3870,97 +3703,777 @@ pub struct ProductCluster {
     pub variant_gtins: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// The estimated days to deliver a product after an order is placed. Only authorized shipping signals partners working with a merchant can use this resource. Merchants should use the [products](https://developers.google.com/shopping-content/reference/rest/v2.1/products#productshipping) resource instead.
+/// Product fields. Values are only set for fields requested explicitly in the request''s search query.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductDeliveryTime {
-    /// Required. A set of associations between DeliveryArea and DeliveryTime entries. The total number of areaDeliveryTimes can be at most 100.
-    #[serde(default, rename = "areaDeliveryTimes")]
-    pub area_delivery_times:
-        ::core::option::Option<::std::vec::Vec<ProductDeliveryTimeAreaDeliveryTime>>,
-    /// Required. The id of the product.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<ProductId>,
-}
-
-/// A pairing of DeliveryArea associated with a DeliveryTime for this product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductDeliveryTimeAreaDeliveryTime {
-    /// Required. The delivery area associated with deliveryTime for this product.
-    #[serde(default, rename = "deliveryArea")]
-    pub delivery_area: ::core::option::Option<DeliveryArea>,
-    /// Required. The delivery time associated with deliveryArea for this product.
-    #[serde(default, rename = "deliveryTime")]
-    pub delivery_time: ::core::option::Option<ProductDeliveryTimeAreaDeliveryTimeDeliveryTime>,
-}
-
-/// A delivery time for this product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductDeliveryTimeAreaDeliveryTimeDeliveryTime {
-    /// Required. The maximum number of business days (inclusive) between when an order is placed and when the product ships. If a product ships in the same day, set this value to 0.
-    #[serde(default, rename = "maxHandlingTimeDays")]
-    pub max_handling_time_days: ::core::option::Option<i32>,
-    /// Required. The maximum number of business days (inclusive) between when the product ships and when the product is delivered.
-    #[serde(default, rename = "maxTransitTimeDays")]
-    pub max_transit_time_days: ::core::option::Option<i32>,
-    /// Required. The minimum number of business days (inclusive) between when an order is placed and when the product ships. If a product ships in the same day, set this value to 0.
-    #[serde(default, rename = "minHandlingTimeDays")]
-    pub min_handling_time_days: ::core::option::Option<i32>,
-    /// Required. The minimum number of business days (inclusive) between when the product ships and when the product is delivered.
-    #[serde(default, rename = "minTransitTimeDays")]
-    pub min_transit_time_days: ::core::option::Option<i32>,
-}
-
-/// ProductDimension resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductDimension {
-    /// Required. The length units. Acceptable values are: - "in" - "cm"
+pub struct ProductView {
+    /// Aggregated destination status. // TODO: enum values: ["AGGREGATED_STATUS_UNSPECIFIED", "NOT_ELIGIBLE_OR_DISAPPROVED", "PENDING", "ELIGIBLE_LIMITED", "ELIGIBLE"]
+    #[serde(default, rename = "aggregatedDestinationStatus")]
+    pub aggregated_destination_status: ::core::option::Option<String>,
+    /// Availability of the product.
     #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// Required. The length value represented as a number. The value can have a maximum precision of four decimal places.
+    pub availability: ::core::option::Option<String>,
+    /// Brand of the product.
     #[serde(default)]
-    pub value: ::core::option::Option<f64>,
-}
-
-/// The Content API ID of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductId {
-    /// The Content API ID of the product, in the form channel:contentLanguage:targetCountry:offerId.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// An issue affecting specific product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductIssue {
-    /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
+    pub brand: ::core::option::Option<String>,
+    /// First level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "categoryL1")]
+    pub category_l1: ::core::option::Option<String>,
+    /// Second level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "categoryL2")]
+    pub category_l2: ::core::option::Option<String>,
+    /// Third level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "categoryL3")]
+    pub category_l3: ::core::option::Option<String>,
+    /// Fourth level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "categoryL4")]
+    pub category_l4: ::core::option::Option<String>,
+    /// Fifth level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "categoryL5")]
+    pub category_l5: ::core::option::Option<String>,
+    /// Channel of the product (online versus local). // TODO: enum values: ["CHANNEL_UNSPECIFIED", "LOCAL", "ONLINE"]
     #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
-    /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
+    pub channel: ::core::option::Option<String>,
+    /// Estimated performance potential compared to highest performing products of the merchant. // TODO: enum values: ["CLICK_POTENTIAL_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
+    #[serde(default, rename = "clickPotential")]
+    pub click_potential: ::core::option::Option<String>,
+    /// Normalized click potential of the product. Values range from 1 to 1000, where 1 is the highest click potential and 1000 is the theoretical lowest.
+    #[serde(default, rename = "clickPotentialRank")]
+    pub click_potential_rank: ::core::option::Option<String>,
+    /// Condition of the product.
     #[serde(default)]
-    pub impact: ::core::option::Option<ProductIssueImpact>,
-    /// Details of the issue as a pre-rendered HTML. HTML elements contain CSS classes that can be used to customize the style of the content. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * issue-detail - top level container for the detail of the issue * callout-banners - section of the issue-detail with callout banners * callout-banner - single callout banner, inside callout-banners * callout-banner-info - callout with important information (default) * callout-banner-warning - callout with a warning * callout-banner-error - callout informing about an error (most severe) * issue-content - section of the issue-detail, contains multiple content-element * content-element - content element such as a list, link or paragraph, inside issue-content * root-causes - unordered list with items describing root causes of the issue, inside issue-content * root-causes-intro - intro text before the root-causes list, inside issue-content * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon. * content-moderation - marks the paragraph that explains how the issue was identified. * list-intro - marks the paragraph that contains an intro for a list. This paragraph will be always followed by a list. * new-element - Present for new elements added to the pre-rendered content in the future. To make sure that a new content element does not break your style, you can hide everything with this class.
-    #[serde(default, rename = "prerenderedContent")]
-    pub prerendered_content: ::core::option::Option<String>,
-    /// Pre-rendered HTML that contains a link to the external location where the ODS can be requested and instructions for how to request it. HTML elements contain CSS classes that can be used to customize the style of this snippet. Always sanitize the HTML before embedding it directly to your application. The sanitizer needs to allow basic HTML tags, such as: div, span, p, a, ul, li, table, tr, td. For example, you can use [DOMPurify](https://www.npmjs.com/package/dompurify). CSS classes: * ods-section* - wrapper around the out-of-court dispute resolution section * ods-description* - intro text for the out-of-court dispute resolution. It may contain multiple segments and a link. * ods-param* - wrapper around the header-value pair for parameters that merchant may need to provide during the ODS process. * ods-routing-id* - ods param for the Routing ID. * ods-reference-id* - ods param for the Routing ID. * ods-param-header* - header for the ODS parameter * ods-param-value* - value of the ODS parameter. This value should be rendered in a way that it is easy for merchants to identify and copy. * segment - section of the text, span inside paragraph * segment-attribute - section of the text that represents a product attribute, for example ''image\_link'' * segment-literal - section of the text that contains a special value, for example ''0-1000 kg'' * segment-bold - section of the text that should be rendered as bold * segment-italic - section of the text that should be rendered as italic * tooltip - used on paragraphs that should be rendered with a tooltip. A section of the text in such a paragraph will have a class tooltip-text and is intended to be shown in a mouse over dialog. If the style is not used, the tooltip-text section would be shown on a new line, after the main part of the text. * tooltip-text - marks a section of the text within a tooltip, that is intended to be shown in a mouse over dialog. * tooltip-icon - marks a section of the text within a tooltip, that can be replaced with a tooltip icon, for example ''?'' or ''i''. By default, this section contains a br tag, that is separating the main text and the tooltip text when the style is not used. * tooltip-style-question - the tooltip shows helpful information, can use the ''?'' as an icon. * tooltip-style-info - the tooltip adds additional information fitting to the context, can use the ''i'' as an icon.
-    #[serde(default, rename = "prerenderedOutOfCourtDisputeSettlement")]
-    pub prerendered_out_of_court_dispute_settlement: ::core::option::Option<String>,
-    /// Title of the issue.
+    pub condition: ::core::option::Option<String>,
+    /// The time the merchant created the product in timestamp seconds.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Product price currency code (for example, ISO 4217). Absent if product price is not available.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Expiration date for the product. Specified on insertion.
+    #[serde(default, rename = "expirationDate")]
+    pub expiration_date: ::core::option::Option<Date>,
+    /// GTIN of the product.
+    #[serde(default)]
+    pub gtin: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The REST ID of the product, in the form of channel:contentLanguage:targetCountry:offerId. Content API methods that operate on products take this as their productId parameter. Should always be included in the SELECT clause.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Item group ID provided by the merchant for grouping variants together.
+    #[serde(default, rename = "itemGroupId")]
+    pub item_group_id: ::core::option::Option<String>,
+    /// List of item issues for the product.
+    #[serde(default, rename = "itemIssues")]
+    pub item_issues: ::core::option::Option<::std::vec::Vec<ProductViewItemIssue>>,
+    /// Language code of the product in BCP 47 format.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Merchant-provided id of the product.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Product price specified as micros (1 millionth of a standard unit, 1 USD = 1000000 micros) in the product currency. Absent in case the information about the price of the product is not available.
+    #[serde(default, rename = "priceMicros")]
+    pub price_micros: ::core::option::Option<String>,
+    /// First level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "productTypeL1")]
+    pub product_type_l1: ::core::option::Option<String>,
+    /// Second level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "productTypeL2")]
+    pub product_type_l2: ::core::option::Option<String>,
+    /// Third level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "productTypeL3")]
+    pub product_type_l3: ::core::option::Option<String>,
+    /// Fourth level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "productTypeL4")]
+    pub product_type_l4: ::core::option::Option<String>,
+    /// Fifth level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
+    #[serde(default, rename = "productTypeL5")]
+    pub product_type_l5: ::core::option::Option<String>,
+    /// The normalized shipping label specified in the feed
+    #[serde(default, rename = "shippingLabel")]
+    pub shipping_label: ::core::option::Option<String>,
+    /// Title of the product.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// Overall impact of product issue.
+/// Dimensions according to which metrics are segmented in the response. Values of product dimensions, such as offer_id, reflect the state of a product at the time of the corresponding event, for example, impression or order. Segment fields cannot be selected in queries without also selecting at least one metric field. Values are only set for dimensions requested explicitly in the request''s search query.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductIssueImpact {
-    /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
+pub struct Segments {
+    /// Brand of the product.
     #[serde(default)]
-    pub breakdowns: ::core::option::Option<::std::vec::Vec<Breakdown>>,
-    /// Optional. Message summarizing the overall impact of the issue. If present, it should be rendered to the merchant. For example: "Limits visibility in France"
+    pub brand: ::core::option::Option<String>,
+    /// [Product category (1st level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
+    #[serde(default, rename = "categoryL1")]
+    pub category_l1: ::core::option::Option<String>,
+    /// [Product category (2nd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
+    #[serde(default, rename = "categoryL2")]
+    pub category_l2: ::core::option::Option<String>,
+    /// [Product category (3rd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
+    #[serde(default, rename = "categoryL3")]
+    pub category_l3: ::core::option::Option<String>,
+    /// [Product category (4th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
+    #[serde(default, rename = "categoryL4")]
+    pub category_l4: ::core::option::Option<String>,
+    /// [Product category (5th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
+    #[serde(default, rename = "categoryL5")]
+    pub category_l5: ::core::option::Option<String>,
+    /// Currency in which price metrics are represented, for example, if you select ordered_item_sales_micros, the returned value will be represented by this currency.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Custom label 0 for custom grouping of products.
+    #[serde(default, rename = "customLabel0")]
+    pub custom_label0: ::core::option::Option<String>,
+    /// Custom label 1 for custom grouping of products.
+    #[serde(default, rename = "customLabel1")]
+    pub custom_label1: ::core::option::Option<String>,
+    /// Custom label 2 for custom grouping of products.
+    #[serde(default, rename = "customLabel2")]
+    pub custom_label2: ::core::option::Option<String>,
+    /// Custom label 3 for custom grouping of products.
+    #[serde(default, rename = "customLabel3")]
+    pub custom_label3: ::core::option::Option<String>,
+    /// Custom label 4 for custom grouping of products.
+    #[serde(default, rename = "customLabel4")]
+    pub custom_label4: ::core::option::Option<String>,
+    /// Code of the country where the customer is located at the time of the event. Represented in the ISO 3166 format. If the customer country cannot be determined, a special ''ZZ'' code is returned.
+    #[serde(default, rename = "customerCountryCode")]
+    pub customer_country_code: ::core::option::Option<String>,
+    /// Date in the merchant timezone to which metrics apply.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Merchant-provided id of the product.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// [Product type (1st level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
+    #[serde(default, rename = "productTypeL1")]
+    pub product_type_l1: ::core::option::Option<String>,
+    /// [Product type (2nd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
+    #[serde(default, rename = "productTypeL2")]
+    pub product_type_l2: ::core::option::Option<String>,
+    /// [Product type (3rd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
+    #[serde(default, rename = "productTypeL3")]
+    pub product_type_l3: ::core::option::Option<String>,
+    /// [Product type (4th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
+    #[serde(default, rename = "productTypeL4")]
+    pub product_type_l4: ::core::option::Option<String>,
+    /// [Product type (5th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
+    #[serde(default, rename = "productTypeL5")]
+    pub product_type_l5: ::core::option::Option<String>,
+    /// Program to which metrics apply, for example, Free Product Listing. // TODO: enum values: ["PROGRAM_UNSPECIFIED", "SHOPPING_ADS", "FREE_PRODUCT_LISTING", "FREE_LOCAL_PRODUCT_LISTING", "BUY_ON_GOOGLE_LISTING"]
+    #[serde(default)]
+    pub program: ::core::option::Option<String>,
+    /// Title of the product.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// First day of the week (Monday) of the metrics date in the merchant timezone.
+    #[serde(default)]
+    pub week: ::core::option::Option<Date>,
+}
+
+/// Topic trends fields requested by the merchant in the query. Field values are only set if the merchant queries TopicTrendsView. Forecast data can be queried up to 13 weeks by passing a future date in the date field. Historical data is measured daily, and forecasted data is projected weekly. All data points are normalized based on the highest data points returned in the response. If you make separate queries with different date ranges, you might see different values for the same date in each response. The recommended way to get a trend score of a topic is last7_days_search_interest / last{$day}_days_search_interest - 1. You can view trends for up to eight topics at a time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicTrends {
+    /// Country trends are calculated for. Must be a two-letter country code (ISO 3166-1-alpha-2 code), for example, “US”.
+    #[serde(default, rename = "customerCountryCode")]
+    pub customer_country_code: ::core::option::Option<String>,
+    /// Date the trend score was retrieved.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Search interest in the last 120 days, with the same normalization as search_interest. This field is only present for a past date.
+    #[serde(default, rename = "last120DaysSearchInterest")]
+    pub last120_days_search_interest: ::core::option::Option<f64>,
+    /// Search interest in the last 30 days, with the same normalization as search_interest. This field is only present for a past date.
+    #[serde(default, rename = "last30DaysSearchInterest")]
+    pub last30_days_search_interest: ::core::option::Option<f64>,
+    /// Search interest in the last 7 days, with the same normalization as search_interest. This field is only present for a past date.
+    #[serde(default, rename = "last7DaysSearchInterest")]
+    pub last7_days_search_interest: ::core::option::Option<f64>,
+    /// Search interest in the last 90 days, with the same normalization as search_interest. This field is only present for a past date.
+    #[serde(default, rename = "last90DaysSearchInterest")]
+    pub last90_days_search_interest: ::core::option::Option<f64>,
+    /// Estimated search interest in the next 7 days, with the same normalization as search_interest. This field is only present for a future date.
+    #[serde(default, rename = "next7DaysSearchInterest")]
+    pub next7_days_search_interest: ::core::option::Option<f64>,
+    /// Daily search interest, normalized to the time and country to make comparisons easier, with 100 representing peak popularity (from 0 to 100) for the requested time period and location.
+    #[serde(default, rename = "searchInterest")]
+    pub search_interest: ::core::option::Option<f64>,
+    /// Google-provided topic trends are calculated for. Only top eight topics are returned. Topic is what shoppers are searching for on Google, grouped by the same concept.
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// A list of errors returned by a failed batch entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Errors {
+    /// The HTTP status of the first error in errors.
+    #[serde(default)]
+    pub code: ::core::option::Option<i64>,
+    /// A list of errors.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<Error>>,
+    /// The message of the first error in errors.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
+}
+
+/// The merchant account''s shipping settings. All methods except getsupportedcarriers and getsupportedholidays require the admin role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShippingSettings {
+    /// The ID of the account to which these account shipping settings belong. Ignored upon update, always present in get request responses.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// A list of postal code groups that can be referred to in services. Optional.
+    #[serde(default, rename = "postalCodeGroups")]
+    pub postal_code_groups: ::core::option::Option<::std::vec::Vec<PostalCodeGroup>>,
+    /// The target account''s list of services. Optional.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<Service>>,
+    /// Optional. A list of warehouses which can be referred to in services.
+    #[serde(default)]
+    pub warehouses: ::core::option::Option<::std::vec::Vec<Warehouse>>,
+}
+
+/// Additional details for review ineligibility reasons.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShoppingAdsProgramStatusReviewIneligibilityReasonDetails {
+    /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
+    #[serde(default, rename = "cooldownTime")]
+    pub cooldown_time: ::core::option::Option<String>,
+}
+
+/// Input provided by the merchant for input field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputValue {
+    /// Value for checkbox input field.
+    #[serde(default, rename = "checkboxInputValue")]
+    pub checkbox_input_value: ::core::option::Option<InputValueCheckboxInputValue>,
+    /// Value for choice input field.
+    #[serde(default, rename = "choiceInputValue")]
+    pub choice_input_value: ::core::option::Option<InputValueChoiceInputValue>,
+    /// Required. Id of the corresponding input field.
+    #[serde(default, rename = "inputFieldId")]
+    pub input_field_id: ::core::option::Option<String>,
+    /// Value for text input field.
+    #[serde(default, rename = "textInputValue")]
+    pub text_input_value: ::core::option::Option<InputValueTextInputValue>,
+}
+
+/// AccountAdsLink resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountAdsLink {
+    /// Customer ID of the Ads account.
+    #[serde(default, rename = "adsId")]
+    pub ads_id: ::core::option::Option<String>,
+    /// Status of the link between this Merchant Center account and the Ads account. Upon retrieval, it represents the actual status of the link and can be either active if it was approved in Google Ads or pending if it''s pending approval. Upon insertion, it represents the *intended* status of the link. Re-uploading a link with status active when it''s still pending or with status pending when it''s already active will have no effect: the status will remain unchanged. Re-uploading a link with deprecated status inactive is equivalent to not submitting the link at all and will delete the link if it was active or cancel the link request if it was pending. Acceptable values are: - "active" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// The automatic improvements of the account can be used to automatically update items, improve images and shipping.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountAutomaticImprovements {
+    /// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973) This field is only updated (cleared) if provided.
+    #[serde(default, rename = "imageImprovements")]
+    pub image_improvements: ::core::option::Option<AccountImageImprovements>,
+    /// Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren''t shown. This field is only updated (cleared) if provided.
+    #[serde(default, rename = "itemUpdates")]
+    pub item_updates: ::core::option::Option<AccountItemUpdates>,
+    /// Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: - Delivery address of an order - Current handling time and shipping time settings - Estimated weekdays or business days - Parcel tracking data This field is only updated (cleared) if provided.
+    #[serde(default, rename = "shippingImprovements")]
+    pub shipping_improvements: ::core::option::Option<AccountShippingImprovements>,
+}
+
+/// The [business identity attributes](https://support.google.com/merchants/answer/10342414) can be used to self-declare attributes that let customers know more about your business.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountBusinessIdentity {
+    /// Specifies whether the business identifies itself as being black-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
+    #[serde(default, rename = "blackOwned")]
+    pub black_owned: ::core::option::Option<AccountIdentityType>,
+    /// Required. By setting this field, your business may be included in promotions for all the selected attributes. If you clear this option, it won''t affect your identification with any of the attributes. For this field to be set, the merchant must self identify with at least one of the AccountIdentityType. If none are included, the request will be considered invalid.
+    #[serde(default, rename = "includeForPromotions")]
+    pub include_for_promotions: ::core::option::Option<bool>,
+    /// Specifies whether the business identifies itself as being latino-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
+    #[serde(default, rename = "latinoOwned")]
+    pub latino_owned: ::core::option::Option<AccountIdentityType>,
+    /// Specifies whether the business identifies itself as a small business. This optional field is only available for merchants with a business country set to "US". It is also not allowed for marketplaces, but it is allowed to marketplace sellers.
+    #[serde(default, rename = "smallBusiness")]
+    pub small_business: ::core::option::Option<AccountIdentityType>,
+    /// Specifies whether the business identifies itself as being veteran-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
+    #[serde(default, rename = "veteranOwned")]
+    pub veteran_owned: ::core::option::Option<AccountIdentityType>,
+    /// Specifies whether the business identifies itself as being women-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
+    #[serde(default, rename = "womenOwned")]
+    pub women_owned: ::core::option::Option<AccountIdentityType>,
+}
+
+/// AccountBusinessInformation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountBusinessInformation {
+    /// The address of the business. Use \n to add a second address line.
+    #[serde(default)]
+    pub address: ::core::option::Option<AccountAddress>,
+    /// The customer service information of the business.
+    #[serde(default, rename = "customerService")]
+    pub customer_service: ::core::option::Option<AccountCustomerService>,
+    /// The 10-digit [Korean business registration number](https://support.google.com/merchants/answer/9037766) separated with dashes in the format: XXX-XX-XXXXX. This field will only be updated if explicitly set.
+    #[serde(default, rename = "koreanBusinessRegistrationNumber")]
+    pub korean_business_registration_number: ::core::option::Option<String>,
+    /// The phone number of the business in [E.164](https://en.wikipedia.org/wiki/E.164) format. This can only be updated if a verified phone number is not already set. To replace a verified phone number use the Accounts.requestphoneverification and Accounts.verifyphonenumber.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Verification status of the phone number of the business. This status is read only and can be updated only by successful phone verification. Acceptable values are: - "verified" - "unverified"
+    #[serde(default, rename = "phoneVerificationStatus")]
+    pub phone_verification_status: ::core::option::Option<String>,
+}
+
+/// Settings for conversion tracking.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountConversionSettings {
+    /// When enabled, free listing URLs have a parameter to enable conversion tracking for products owned by the current merchant account. See [auto-tagging](https://support.google.com/merchants/answer/11127659).
+    #[serde(default, rename = "freeListingsAutoTaggingEnabled")]
+    pub free_listings_auto_tagging_enabled: ::core::option::Option<bool>,
+}
+
+/// AccountGoogleMyBusinessLink resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountGoogleMyBusinessLink {
+    /// The ID of the Business Profile. If this is provided, then gmbEmail is ignored. The value of this field should match the accountId used by the Business Profile API.
+    #[serde(default, rename = "gmbAccountId")]
+    pub gmb_account_id: ::core::option::Option<String>,
+    /// The Business Profile email address of a specific account within a Business Profile. A sample account within a Business Profile could be a business account with set of locations, managed under the Business Profile.
+    #[serde(default, rename = "gmbEmail")]
+    pub gmb_email: ::core::option::Option<String>,
+    /// Status of the link between this Merchant Center account and the Business Profile. Acceptable values are: - "active" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// AccountUser resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountUser {
+    /// Whether user is an admin.
+    #[serde(default)]
+    pub admin: ::core::option::Option<bool>,
+    /// User''s email address.
+    #[serde(default, rename = "emailAddress")]
+    pub email_address: ::core::option::Option<String>,
+    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
+    #[serde(default, rename = "orderManager")]
+    pub order_manager: ::core::option::Option<bool>,
+    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
+    #[serde(default, rename = "paymentsAnalyst")]
+    pub payments_analyst: ::core::option::Option<bool>,
+    /// This role is deprecated and can no longer be assigned. Any value set will be ignored.
+    #[serde(default, rename = "paymentsManager")]
+    pub payments_manager: ::core::option::Option<bool>,
+    /// Optional. Whether user has standard read-only access.
+    #[serde(default, rename = "readOnly")]
+    pub read_only: ::core::option::Option<bool>,
+    /// Whether user is a reporting manager. This role is equivalent to the Performance and insights role in Merchant Center.
+    #[serde(default, rename = "reportingManager")]
+    pub reporting_manager: ::core::option::Option<bool>,
+}
+
+/// AccountYouTubeChannelLink resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountYouTubeChannelLink {
+    /// Channel ID.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// Status of the link between this Merchant Center account and the YouTube channel. Upon retrieval, it represents the actual status of the link and can be either active if it was approved in YT Creator Studio or pending if it''s pending approval. Upon insertion, it represents the *intended* status of the link. Re-uploading a link with status active when it''s still pending or with status pending when it''s already active will have no effect: the status will remain unchanged. Re-uploading a link with deprecated status inactive is equivalent to not submitting the link at all and will delete the link if it was active or cancel the link request if it was pending.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// AccountStatusAccountLevelIssue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountStatusAccountLevelIssue {
+    /// Country for which this issue is reported.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The destination the issue applies to. If this field is empty then the issue applies to all available destinations.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// Additional details about the issue.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The URL of a web page to help resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Issue identifier.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Severity of the issue. Acceptable values are: - "critical" - "error" - "suggestion"
     #[serde(default)]
     pub severity: ::core::option::Option<String>,
+    /// Short description of the issue.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// AccountStatusProducts resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountStatusProducts {
+    /// The channel the data applies to. Acceptable values are: - "local" - "online"
+    #[serde(default)]
+    pub channel: ::core::option::Option<String>,
+    /// The country the data applies to.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The destination the data applies to.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// List of item-level issues.
+    #[serde(default, rename = "itemLevelIssues")]
+    pub item_level_issues: ::core::option::Option<::std::vec::Vec<AccountStatusItemLevelIssue>>,
+    /// Aggregated product statistics.
+    #[serde(default)]
+    pub statistics: ::core::option::Option<AccountStatusStatistics>,
+}
+
+/// Tax calculation rule to apply in a state or province (US only).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountTaxTaxRule {
+    /// Country code in which tax is applicable.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// Required. State (or province) is which the tax is applicable, described by its location ID (also called criteria ID).
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Explicit tax rate in percent, represented as a floating point number without the percentage character. Must not be negative.
+    #[serde(default, rename = "ratePercent")]
+    pub rate_percent: ::core::option::Option<String>,
+    /// If true, shipping charges are also taxed.
+    #[serde(default, rename = "shippingTaxed")]
+    pub shipping_taxed: ::core::option::Option<bool>,
+    /// Whether the tax rate is taken from a global tax table or specified explicitly.
+    #[serde(default, rename = "useGlobalRate")]
+    pub use_global_rate: ::core::option::Option<bool>,
+}
+
+/// The required fields vary based on the frequency of fetching. For a monthly fetch schedule, day_of_month and hour are required. For a weekly fetch schedule, weekday and hour are required. For a daily fetch schedule, only hour is required.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedFetchSchedule {
+    /// The day of the month the feed file should be fetched (1-31).
+    #[serde(default, rename = "dayOfMonth")]
+    pub day_of_month: ::core::option::Option<i64>,
+    /// The URL where the feed file can be fetched. Google Merchant Center will support automatic scheduled uploads using the HTTP, HTTPS, FTP, or SFTP protocols, so the value will need to be a valid link using one of those four protocols.
+    #[serde(default, rename = "fetchUrl")]
+    pub fetch_url: ::core::option::Option<String>,
+    /// The hour of the day the feed file should be fetched (0-23).
+    #[serde(default)]
+    pub hour: ::core::option::Option<i64>,
+    /// The minute of the hour the feed file should be fetched (0-59). Read-only.
+    #[serde(default, rename = "minuteOfHour")]
+    pub minute_of_hour: ::core::option::Option<i64>,
+    /// An optional password for fetch_url.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Whether the scheduled fetch is paused or not.
+    #[serde(default)]
+    pub paused: ::core::option::Option<bool>,
+    /// Time zone used for schedule. UTC by default. For example, "America/Los_Angeles".
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+    /// An optional user name for fetch_url.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+    /// The day of the week the feed file should be fetched. Acceptable values are: - "monday" - "tuesday" - "wednesday" - "thursday" - "friday" - "saturday" - "sunday"
+    #[serde(default)]
+    pub weekday: ::core::option::Option<String>,
+}
+
+/// DatafeedFormat resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedFormat {
+    /// Delimiter for the separation of values in a delimiter-separated values feed. If not specified, the delimiter will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "pipe" - "tab" - "tilde"
+    #[serde(default, rename = "columnDelimiter")]
+    pub column_delimiter: ::core::option::Option<String>,
+    /// Character encoding scheme of the data feed. If not specified, the encoding will be auto-detected. Acceptable values are: - "latin-1" - "utf-16be" - "utf-16le" - "utf-8" - "windows-1252"
+    #[serde(default, rename = "fileEncoding")]
+    pub file_encoding: ::core::option::Option<String>,
+    /// Specifies how double quotes are interpreted. If not specified, the mode will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "normal character" - "value quoting"
+    #[serde(default, rename = "quotingMode")]
+    pub quoting_mode: ::core::option::Option<String>,
+}
+
+/// DatafeedTarget resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedTarget {
+    /// Deprecated. Use feedLabel instead. The country where the items in the feed will be included in the search index, represented as a CLDR territory code.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The list of [destinations to exclude](//support.google.com/merchants/answer/6324486) for this target (corresponds to cleared check boxes in Merchant Center). Products that are excluded from all destinations for more than 7 days are automatically deleted.
+    #[serde(default, rename = "excludedDestinations")]
+    pub excluded_destinations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Feed label for the DatafeedTarget. Either country or feedLabel is required. If both feedLabel and country is specified, the values must match. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// The list of [destinations to include](//support.google.com/merchants/answer/7501026) for this target (corresponds to checked check boxes in Merchant Center). Default destinations are always included unless provided in excludedDestinations.
+    #[serde(default, rename = "includedDestinations")]
+    pub included_destinations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The two-letter ISO 639-1 language of the items in the feed. Must be a valid language for targets[].country.
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The countries where the items may be displayed. Represented as a CLDR territory code. Will be ignored for "product inventory" feeds.
+    #[serde(default, rename = "targetCountries")]
+    pub target_countries: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An error occurring in the feed, like "invalid price".
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedStatusError {
+    /// The code of the error, for example, "validation/invalid_value".
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The number of occurrences of the error in the feed.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// A list of example occurrences of the error, grouped by product.
+    #[serde(default)]
+    pub examples: ::core::option::Option<::std::vec::Vec<DatafeedStatusExample>>,
+    /// The error message, for example, "Invalid price".
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// GmbAccountsGmbAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GmbAccountsGmbAccount {
+    /// The email which identifies the Business Profile.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Number of listings under this account.
+    #[serde(default, rename = "listingCount")]
+    pub listing_count: ::core::option::Option<String>,
+    /// The name of the Business Profile.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The type of the Business Profile (User or Business).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// LiaCountrySettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaCountrySettings {
+    /// The settings for the About page.
+    #[serde(default)]
+    pub about: ::core::option::Option<LiaAboutPageSettings>,
+    /// Required. CLDR country code (for example, "US").
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The status of the "Merchant hosted local storefront" feature.
+    #[serde(default, rename = "hostedLocalStorefrontActive")]
+    pub hosted_local_storefront_active: ::core::option::Option<bool>,
+    /// LIA inventory verification settings.
+    #[serde(default)]
+    pub inventory: ::core::option::Option<LiaInventorySettings>,
+    /// The omnichannel experience configured for this country.
+    #[serde(default, rename = "omnichannelExperience")]
+    pub omnichannel_experience: ::core::option::Option<LiaOmnichannelExperience>,
+    /// LIA "On Display To Order" settings.
+    #[serde(default, rename = "onDisplayToOrder")]
+    pub on_display_to_order: ::core::option::Option<LiaOnDisplayToOrderSettings>,
+    /// The POS data provider linked with this country.
+    #[serde(default, rename = "posDataProvider")]
+    pub pos_data_provider: ::core::option::Option<LiaPosDataProvider>,
+    /// The status of the "Store pickup" feature.
+    #[serde(default, rename = "storePickupActive")]
+    pub store_pickup_active: ::core::option::Option<bool>,
+}
+
+/// PosDataProvidersPosDataProvider resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PosDataProvidersPosDataProvider {
+    /// The display name of Pos data Provider.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The full name of this POS data Provider.
+    #[serde(default, rename = "fullName")]
+    pub full_name: ::core::option::Option<String>,
+    /// The ID of the account.
+    #[serde(default, rename = "providerId")]
+    pub provider_id: ::core::option::Option<String>,
+}
+
+/// Represents attribution settings for conversion sources receiving pre-attribution data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributionSettings {
+    /// Required. Lookback windows (in days) used for attribution in this source. Supported values are 7, 30, 40.
+    #[serde(default, rename = "attributionLookbackWindowInDays")]
+    pub attribution_lookback_window_in_days: ::core::option::Option<i32>,
+    /// TODO: enum values: ["ATTRIBUTION_MODEL_UNSPECIFIED", "CROSS_CHANNEL_LAST_CLICK", "ADS_PREFERRED_LAST_CLICK", "CROSS_CHANNEL_DATA_DRIVEN", "CROSS_CHANNEL_FIRST_CLICK", "CROSS_CHANNEL_LINEAR", "CROSS_CHANNEL_POSITION_BASED", "CROSS_CHANNEL_TIME_DECAY"]
+    #[serde(default, rename = "attributionModel")]
+    pub attribution_model: ::core::option::Option<String>,
+    /// Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.
+    #[serde(default, rename = "conversionType")]
+    pub conversion_type: ::core::option::Option<::std::vec::Vec<AttributionSettingsConversionType>>,
+}
+
+/// The destination status of the promotion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromotionPromotionStatusDestinationStatus {
+    /// The name of the destination.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// The status for the specified destination. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_REVIEW", "REJECTED", "LIVE", "STOPPED", "EXPIRED", "PENDING"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// The issue associated with the promotion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromotionPromotionStatusPromotionIssue {
+    /// Code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Explanation of the issue.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+}
+
+/// A range of postal codes that defines the region area.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionPostalCodeAreaPostalCodeRange {
+    /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
+    #[serde(default)]
+    pub begin: ::core::option::Option<String>,
+    /// Optional. A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area. It must have the same length as postalCodeRangeBegin: if postalCodeRangeBegin is a postal code then postalCodeRangeEnd must be a postal code too; if postalCodeRangeBegin is a pattern then postalCodeRangeEnd must be a pattern with the same prefix length. Optional: if not set, then the area is defined as being all the postal codes matching postalCodeRangeBegin.
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+}
+
+/// The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnPolicyOnlineReturnShippingFee {
+    /// Fixed return shipping fee amount. This value is only applicable when type is FIXED. We will treat the return shipping fee as free if type is FIXED and this value is not set.
+    #[serde(default, rename = "fixedFee")]
+    pub fixed_fee: ::core::option::Option<PriceAmount>,
+    /// Type of return shipping fee. // TODO: enum values: ["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeZone {
+    /// IANA Time Zone Database time zone. For example "America/New_York".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. IANA Time Zone Database version number. For example "2019a".
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// A range of postal codes that defines the delivery area. Only set firstPostalCode when specifying a single postal code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeliveryAreaPostalCodeRange {
+    /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
+    #[serde(default, rename = "firstPostalCode")]
+    pub first_postal_code: ::core::option::Option<String>,
+    /// A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area (for example [070* - 078*] results in the range [07000 - 07899]). It must have the same length as firstPostalCode: if firstPostalCode is a postal code then lastPostalCode must be a postal code too; if firstPostalCode is a pattern then lastPostalCode must be a pattern with the same prefix length. Ignored if not set, then the area is defined as being all the postal codes matching firstPostalCode.
+    #[serde(default, rename = "lastPostalCode")]
+    pub last_postal_code: ::core::option::Option<String>,
+}
+
+/// Product [certification](https://support.google.com/merchants/answer/13528839), introduced for EU energy efficiency labeling compliance using the [EU EPREL](https://eprel.ec.europa.eu/screen/home) database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductCertification {
+    /// The certification authority, for example "European_Commission". Maximum length is 2000 characters.
+    #[serde(default, rename = "certificationAuthority")]
+    pub certification_authority: ::core::option::Option<String>,
+    /// The certification code, for eaxample "123456". Maximum length is 2000 characters.
+    #[serde(default, rename = "certificationCode")]
+    pub certification_code: ::core::option::Option<String>,
+    /// The name of the certification, for example "EPREL". Maximum length is 2000 characters.
+    #[serde(default, rename = "certificationName")]
+    pub certification_name: ::core::option::Option<String>,
+    /// The certification value (also known as class, level or grade), for example "A+", "C", "gold". Maximum length is 2000 characters.
+    #[serde(default, rename = "certificationValue")]
+    pub certification_value: ::core::option::Option<String>,
+}
+
+/// Product property for the Cloud Retail API. For example, properties for a TV product could be "Screen-Resolution" or "Screen-Size".
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudExportAdditionalProperties {
+    /// Boolean value of the given property. For example for a TV product, "True" or "False" if the screen is UHD.
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// Float values of the given property. For example for a TV product 1.2345. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order.
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<::std::vec::Vec<f32>>,
+    /// Integer values of the given property. For example, 1080 for a screen resolution of a TV product. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order.
+    #[serde(default, rename = "intValue")]
+    pub int_value: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Maximum float value of the given property. For example for a TV product 100.00.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<f32>,
+    /// Minimum float value of the given property. For example for a TV product 1.00.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<f32>,
+    /// Name of the given property. For example, "Screen-Resolution" for a TV product. Maximum string size is 256 characters.
+    #[serde(default, rename = "propertyName")]
+    pub property_name: ::core::option::Option<String>,
+    /// Text value of the given property. For example, "8K(UHD)" could be a text value for a TV product. Maximum number of specified values for this field is 400. Values are stored in an arbitrary but consistent order. Maximum string size is 256 characters.
+    #[serde(default, rename = "textValue")]
+    pub text_value: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Unit of the given property. For example, "Pixels" for a TV product. Maximum string size is 256 bytes.
+    #[serde(default, rename = "unitCode")]
+    pub unit_code: ::core::option::Option<String>,
+}
+
+/// Conditions to be met for a product to have free shipping.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreeShippingThreshold {
+    /// Required. The [CLDR territory code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of the country to which an item will ship.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// Required. The minimum product price for the shipping cost to become free. Represented as a number.
+    #[serde(default, rename = "priceThreshold")]
+    pub price_threshold: ::core::option::Option<Price>,
+}
+
+/// Details of a monthly installment payment offering. [Learn more](https://support.google.com/merchants/answer/6324474) about installments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Installment {
+    /// The amount the buyer has to pay per month.
+    #[serde(default)]
+    pub amount: ::core::option::Option<Price>,
+    /// Optional. Type of installment payments. Supported values are: - "finance" - "lease"
+    #[serde(default, rename = "creditType")]
+    pub credit_type: ::core::option::Option<String>,
+    /// Optional. The initial down payment amount the buyer has to pay.
+    #[serde(default)]
+    pub downpayment: ::core::option::Option<Price>,
+    /// The number of installments the buyer has to pay.
+    #[serde(default)]
+    pub months: ::core::option::Option<String>,
+}
+
+/// Allows the setting up of loyalty program benefits (for example price or points). https://support.google.com/merchants/answer/12922446
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoyaltyProgram {
+    /// Optional. The cashback that can be used for future purchases.
+    #[serde(default, rename = "cashbackForFutureUse")]
+    pub cashback_for_future_use: ::core::option::Option<Price>,
+    /// Optional. The amount of loyalty points earned on a purchase.
+    #[serde(default, rename = "loyaltyPoints")]
+    pub loyalty_points: ::core::option::Option<String>,
+    /// Optional. A date range during which the item is eligible for member price. If not specified, the member price is always applicable. The date range is represented by a pair of ISO 8601 dates separated by a space, comma, or slash.
+    #[serde(default, rename = "memberPriceEffectiveDate")]
+    pub member_price_effective_date: ::core::option::Option<String>,
+    /// Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.
+    #[serde(default)]
+    pub price: ::core::option::Option<Price>,
+    /// Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.
+    #[serde(default, rename = "programLabel")]
+    pub program_label: ::core::option::Option<String>,
+    /// Optional. The shipping label for the loyalty program. You can use this label to indicate whether this offer has the loyalty shipping benefit. If not specified, the item is not eligible for loyalty shipping for the given loyalty tier.
+    #[serde(default, rename = "shippingLabel")]
+    pub shipping_label: ::core::option::Option<String>,
+    /// Required. The label of the tier within the loyalty program. Must match one of the labels within the program.
+    #[serde(default, rename = "tierLabel")]
+    pub tier_label: ::core::option::Option<String>,
 }
 
 /// ProductProductDetail resource type.
@@ -3975,6 +4488,28 @@ pub struct ProductProductDetail {
     /// The section header used to group a set of product details.
     #[serde(default, rename = "sectionName")]
     pub section_name: ::core::option::Option<String>,
+}
+
+/// ProductDimension resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductDimension {
+    /// Required. The length units. Acceptable values are: - "in" - "cm"
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// Required. The length value represented as a number. The value can have a maximum precision of four decimal places.
+    #[serde(default)]
+    pub value: ::core::option::Option<f64>,
+}
+
+/// ProductWeight resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductWeight {
+    /// Required. The weight unit. Acceptable values are: - "g" - "kg" - "oz" - "lb"
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// Required. The weight represented as a number. The weight can have a maximum precision of four decimal places.
+    #[serde(default)]
+    pub value: ::core::option::Option<f64>,
 }
 
 /// ProductShipping resource type.
@@ -4035,94 +4570,6 @@ pub struct ProductShippingWeight {
     /// The weight of the product used to calculate the shipping cost of the item.
     #[serde(default)]
     pub value: ::core::option::Option<f64>,
-}
-
-/// The status of a product, that is, information about a product computed asynchronously.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductStatus {
-    /// Date on which the item has been created, in ISO 8601 format.
-    #[serde(default, rename = "creationDate")]
-    pub creation_date: ::core::option::Option<String>,
-    /// The intended destinations for the product.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses:
-        ::core::option::Option<::std::vec::Vec<ProductStatusDestinationStatus>>,
-    /// Date on which the item expires in Google Shopping, in ISO 8601 format.
-    #[serde(default, rename = "googleExpirationDate")]
-    pub google_expiration_date: ::core::option::Option<String>,
-    /// A list of all issues associated with the product.
-    #[serde(default, rename = "itemLevelIssues")]
-    pub item_level_issues: ::core::option::Option<::std::vec::Vec<ProductStatusItemLevelIssue>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productStatus"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Date on which the item has been last updated, in ISO 8601 format.
-    #[serde(default, rename = "lastUpdateDate")]
-    pub last_update_date: ::core::option::Option<String>,
-    /// The link to the product.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// The ID of the product for which status is reported.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// The title of the product.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// ProductStatusDestinationStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductStatusDestinationStatus {
-    /// List of country codes (ISO 3166-1 alpha-2) where the offer is approved.
-    #[serde(default, rename = "approvedCountries")]
-    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The channel of the destination.
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-    /// The name of the destination
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// List of country codes (ISO 3166-1 alpha-2) where the offer is disapproved.
-    #[serde(default, rename = "disapprovedCountries")]
-    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of country codes (ISO 3166-1 alpha-2) where the offer is pending approval.
-    #[serde(default, rename = "pendingCountries")]
-    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Deprecated. Destination approval status in targetCountry of the offer.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// ProductStatusItemLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductStatusItemLevelIssue {
-    /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
-    #[serde(default, rename = "applicableCountries")]
-    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The attribute''s name, if the issue is caused by a single attribute.
-    #[serde(default, rename = "attributeName")]
-    pub attribute_name: ::core::option::Option<String>,
-    /// The error code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// A short issue description in English.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The destination the issue applies to.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// A detailed issue description in English.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The URL of a web page to help with resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Whether the issue can be resolved by the merchant.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-    /// How this issue affects serving of the offer.
-    #[serde(default)]
-    pub servability: ::core::option::Option<String>,
 }
 
 /// Structured description, for algorithmically (AI)-generated descriptions. See [description](https://support.google.com/merchants/answer/6324468#When_to_use) for more information.
@@ -4220,96 +4667,84 @@ pub struct ProductUnitPricingMeasure {
     pub value: ::core::option::Option<f64>,
 }
 
-/// Product fields. Values are only set for fields requested explicitly in the request''s search query.
+/// ProductStatusDestinationStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductView {
-    /// Aggregated destination status. // TODO: enum values: ["AGGREGATED_STATUS_UNSPECIFIED", "NOT_ELIGIBLE_OR_DISAPPROVED", "PENDING", "ELIGIBLE_LIMITED", "ELIGIBLE"]
-    #[serde(default, rename = "aggregatedDestinationStatus")]
-    pub aggregated_destination_status: ::core::option::Option<String>,
-    /// Availability of the product.
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// Brand of the product.
-    #[serde(default)]
-    pub brand: ::core::option::Option<String>,
-    /// First level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "categoryL1")]
-    pub category_l1: ::core::option::Option<String>,
-    /// Second level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "categoryL2")]
-    pub category_l2: ::core::option::Option<String>,
-    /// Third level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "categoryL3")]
-    pub category_l3: ::core::option::Option<String>,
-    /// Fourth level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "categoryL4")]
-    pub category_l4: ::core::option::Option<String>,
-    /// Fifth level of the product category in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "categoryL5")]
-    pub category_l5: ::core::option::Option<String>,
-    /// Channel of the product (online versus local). // TODO: enum values: ["CHANNEL_UNSPECIFIED", "LOCAL", "ONLINE"]
+pub struct ProductStatusDestinationStatus {
+    /// List of country codes (ISO 3166-1 alpha-2) where the offer is approved.
+    #[serde(default, rename = "approvedCountries")]
+    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The channel of the destination.
     #[serde(default)]
     pub channel: ::core::option::Option<String>,
-    /// Estimated performance potential compared to highest performing products of the merchant. // TODO: enum values: ["CLICK_POTENTIAL_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
-    #[serde(default, rename = "clickPotential")]
-    pub click_potential: ::core::option::Option<String>,
-    /// Normalized click potential of the product. Values range from 1 to 1000, where 1 is the highest click potential and 1000 is the theoretical lowest.
-    #[serde(default, rename = "clickPotentialRank")]
-    pub click_potential_rank: ::core::option::Option<String>,
-    /// Condition of the product.
+    /// The name of the destination
     #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-    /// The time the merchant created the product in timestamp seconds.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Product price currency code (for example, ISO 4217). Absent if product price is not available.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Expiration date for the product. Specified on insertion.
-    #[serde(default, rename = "expirationDate")]
-    pub expiration_date: ::core::option::Option<Date>,
-    /// GTIN of the product.
+    pub destination: ::core::option::Option<String>,
+    /// List of country codes (ISO 3166-1 alpha-2) where the offer is disapproved.
+    #[serde(default, rename = "disapprovedCountries")]
+    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of country codes (ISO 3166-1 alpha-2) where the offer is pending approval.
+    #[serde(default, rename = "pendingCountries")]
+    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Deprecated. Destination approval status in targetCountry of the offer.
     #[serde(default)]
-    pub gtin: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The REST ID of the product, in the form of channel:contentLanguage:targetCountry:offerId. Content API methods that operate on products take this as their productId parameter. Should always be included in the SELECT clause.
+    pub status: ::core::option::Option<String>,
+}
+
+/// ProductStatusItemLevelIssue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductStatusItemLevelIssue {
+    /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
+    #[serde(default, rename = "applicableCountries")]
+    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The attribute''s name, if the issue is caused by a single attribute.
+    #[serde(default, rename = "attributeName")]
+    pub attribute_name: ::core::option::Option<String>,
+    /// The error code of the issue.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Item group ID provided by the merchant for grouping variants together.
-    #[serde(default, rename = "itemGroupId")]
-    pub item_group_id: ::core::option::Option<String>,
-    /// List of item issues for the product.
-    #[serde(default, rename = "itemIssues")]
-    pub item_issues: ::core::option::Option<::std::vec::Vec<ProductViewItemIssue>>,
-    /// Language code of the product in BCP 47 format.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Merchant-provided id of the product.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Product price specified as micros (1 millionth of a standard unit, 1 USD = 1000000 micros) in the product currency. Absent in case the information about the price of the product is not available.
-    #[serde(default, rename = "priceMicros")]
-    pub price_micros: ::core::option::Option<String>,
-    /// First level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "productTypeL1")]
-    pub product_type_l1: ::core::option::Option<String>,
-    /// Second level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "productTypeL2")]
-    pub product_type_l2: ::core::option::Option<String>,
-    /// Third level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "productTypeL3")]
-    pub product_type_l3: ::core::option::Option<String>,
-    /// Fourth level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "productTypeL4")]
-    pub product_type_l4: ::core::option::Option<String>,
-    /// Fifth level of the product type in merchant''s own [product taxonomy](https://support.google.com/merchants/answer/6324436).
-    #[serde(default, rename = "productTypeL5")]
-    pub product_type_l5: ::core::option::Option<String>,
-    /// The normalized shipping label specified in the feed
-    #[serde(default, rename = "shippingLabel")]
-    pub shipping_label: ::core::option::Option<String>,
-    /// Title of the product.
+    pub code: ::core::option::Option<String>,
+    /// A short issue description in English.
     #[serde(default)]
-    pub title: ::core::option::Option<String>,
+    pub description: ::core::option::Option<String>,
+    /// The destination the issue applies to.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// A detailed issue description in English.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The URL of a web page to help with resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Whether the issue can be resolved by the merchant.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+    /// How this issue affects serving of the offer.
+    #[serde(default)]
+    pub servability: ::core::option::Option<String>,
+}
+
+/// A message that represents custom attributes. Exactly one of value or groupValues must be provided. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set per merchant, with total size of 102.4kB.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomAttribute {
+    /// Subattributes within this attribute group. Exactly one of value or groupValues must be provided.
+    #[serde(default, rename = "groupValues")]
+    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// The name of the attribute. Underscores will be replaced by spaces upon insertion.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The value of the attribute.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A detailed impact breakdown for a group of regions where the impact of the issue on different shopping destinations is the same.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Breakdown {
+    /// Human readable, localized description of issue''s effect on different targets. Should be rendered as a list. For example: * "Products not showing in ads" * "Products not showing organically"
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Lists of regions. Should be rendered as a title for this group of details. The full list should be shown to merchant. If the list is too long, it is recommended to make it expandable.
+    #[serde(default)]
+    pub regions: ::core::option::Option<::std::vec::Vec<BreakdownRegion>>,
 }
 
 /// Item issue associated with the product.
@@ -4326,954 +4761,46 @@ pub struct ProductViewItemIssue {
     pub severity: ::core::option::Option<ProductViewItemIssueItemIssueSeverity>,
 }
 
-/// Issue severity for all affected regions in a destination.
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductViewItemIssueIssueSeverityPerDestination {
-    /// List of demoted countries in the destination.
-    #[serde(default, rename = "demotedCountries")]
-    pub demoted_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Issue destination.
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// List of disapproved countries in the destination.
-    #[serde(default, rename = "disapprovedCountries")]
-    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
-/// Severity of an issue per destination in a region, and aggregated severity.
+/// An error returned by the API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductViewItemIssueItemIssueSeverity {
-    /// Severity of an issue aggregated for destination. // TODO: enum values: ["AGGREGATED_ISSUE_SEVERITY_UNSPECIFIED", "DISAPPROVED", "DEMOTED", "PENDING"]
-    #[serde(default, rename = "aggregatedSeverity")]
-    pub aggregated_severity: ::core::option::Option<String>,
-    /// Item issue severity for every destination.
-    #[serde(default, rename = "severityPerDestination")]
-    pub severity_per_destination:
-        ::core::option::Option<::std::vec::Vec<ProductViewItemIssueIssueSeverityPerDestination>>,
+pub struct Error {
+    /// The domain of the error.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// A description of the error.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The error code.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
 }
 
-/// Type of the item issue.
+/// PostalCodeGroup resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductViewItemIssueItemIssueType {
-    /// Canonical attribute name for attribute-specific issues.
-    #[serde(default, rename = "canonicalAttribute")]
-    pub canonical_attribute: ::core::option::Option<String>,
-    /// Error code of the issue.
+pub struct PostalCodeGroup {
+    /// The CLDR territory code of the country the postal code group applies to. Required.
     #[serde(default)]
-    pub code: ::core::option::Option<String>,
-}
-
-/// ProductWeight resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductWeight {
-    /// Required. The weight unit. Acceptable values are: - "g" - "kg" - "oz" - "lb"
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// Required. The weight represented as a number. The weight can have a maximum precision of four decimal places.
-    #[serde(default)]
-    pub value: ::core::option::Option<f64>,
-}
-
-/// ProductsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductsCustomBatchRequest {
-    /// The request entries to be processed in the batch.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ProductsCustomBatchRequestEntry>>,
-}
-
-/// A batch entry encoding a single non-batch products request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductsCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The Content API Supplemental Feed ID. If present then product insertion or deletion applies to a supplemental feed instead of primary Content API feed.
-    #[serde(default, rename = "feedId")]
-    pub feed_id: ::core::option::Option<String>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "delete" - "get" - "insert" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The product to insert or update. Only required if the method is insert or update. If the update method is used with updateMask only to delete a field, then this isn''t required. For example, setting salePrice on the updateMask and not providing a product will result in an existing sale price on the product specified by productId being deleted.
-    #[serde(default)]
-    pub product: ::core::option::Option<Product>,
-    /// The ID of the product to get or mutate. Only defined if the method is get, delete, or update.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// The comma-separated list of product attributes to be updated. Example: "title,salePrice". Attributes specified in the update mask without a value specified in the body will be deleted from the product. *You must specify the update mask to delete attributes.* Only top-level product attributes can be updated. If not defined, product attributes with set values will be updated and other attributes will stay unchanged. Only defined if the method is update.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// ProductsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductsCustomBatchResponse {
-    /// The result of the execution of the batch requests.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ProductsCustomBatchResponseEntry>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productsCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch products response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductsCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productsCustomBatchResponseEntry"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The inserted product. Only defined if the method is insert and if the request was successful.
-    #[serde(default)]
-    pub product: ::core::option::Option<Product>,
-}
-
-/// ProductsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductsListResponse {
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productsListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token for the retrieval of the next page of products.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<Product>>,
-}
-
-/// ProductstatusesCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductstatusesCustomBatchRequest {
-    /// The request entries to be processed in the batch.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ProductstatusesCustomBatchRequestEntry>>,
-}
-
-/// A batch entry encoding a single non-batch productstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductstatusesCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// If set, only issues for the specified destinations are returned, otherwise only issues for the Shopping destination.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Deprecated: Setting this field has no effect and attributes are never included.
-    #[serde(default, rename = "includeAttributes")]
-    pub include_attributes: ::core::option::Option<bool>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The ID of the product whose status to get.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// ProductstatusesCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductstatusesCustomBatchResponse {
-    /// The result of the execution of the batch requests.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ProductstatusesCustomBatchResponseEntry>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch productstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductstatusesCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesCustomBatchResponseEntry"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The requested product status. Only defined if the request was successful.
-    #[serde(default, rename = "productStatus")]
-    pub product_status: ::core::option::Option<ProductStatus>,
-}
-
-/// ProductstatusesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductstatusesListResponse {
-    /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token for the retrieval of the next page of products statuses.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<ProductStatus>>,
-}
-
-/// Represents a promotion. See the following articles for more details. * [Promotions feed specification](https://support.google.com/merchants/answer/2906014) * [Local promotions feed specification](https://support.google.com/merchants/answer/10146130) * [Promotions on Buy on Google product data specification](https://support.google.com/merchants/answer/9173673)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Promotion {
-    /// Product filter by brand for the promotion.
-    #[serde(default)]
-    pub brand: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Product filter by brand exclusion for the promotion.
-    #[serde(default, rename = "brandExclusion")]
-    pub brand_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The content language used as part of the unique identifier. en content language is available for all target countries. fr content language is available for CA and FR target countries. de content language is available for DE target country. nl content language is available for NL target country. it content language is available for IT target country. pt content language is available for BR target country. ja content language is available for JP target country. ko content language is available for KR target country.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Required. Coupon value type for the promotion. // TODO: enum values: ["COUPON_VALUE_TYPE_UNSPECIFIED", "MONEY_OFF", "PERCENT_OFF", "BUY_M_GET_N_MONEY_OFF", "BUY_M_GET_N_PERCENT_OFF", "BUY_M_GET_MONEY_OFF", "BUY_M_GET_PERCENT_OFF", "FREE_GIFT", "FREE_GIFT_WITH_VALUE", "FREE_GIFT_WITH_ITEM_ID", "FREE_SHIPPING_STANDARD", "FREE_SHIPPING_OVERNIGHT", "FREE_SHIPPING_TWO_DAY"]
-    #[serde(default, rename = "couponValueType")]
-    pub coupon_value_type: ::core::option::Option<String>,
-    /// The custom redemption restriction for the promotion. If the redemption_restriction field is set to CUSTOM, this field must be set.
-    #[serde(default, rename = "customRedemptionRestriction")]
-    pub custom_redemption_restriction: ::core::option::Option<String>,
-    /// Free gift description for the promotion.
-    #[serde(default, rename = "freeGiftDescription")]
-    pub free_gift_description: ::core::option::Option<String>,
-    /// Free gift item ID for the promotion.
-    #[serde(default, rename = "freeGiftItemId")]
-    pub free_gift_item_id: ::core::option::Option<String>,
-    /// Free gift value for the promotion.
-    #[serde(default, rename = "freeGiftValue")]
-    pub free_gift_value: ::core::option::Option<PriceAmount>,
-    /// Generic redemption code for the promotion. To be used with the offerType field.
-    #[serde(default, rename = "genericRedemptionCode")]
-    pub generic_redemption_code: ::core::option::Option<String>,
-    /// The number of items discounted in the promotion.
-    #[serde(default, rename = "getThisQuantityDiscounted")]
-    pub get_this_quantity_discounted: ::core::option::Option<i32>,
-    /// Output only. The REST promotion ID to uniquely identify the promotion. Content API methods that operate on promotions take this as their promotionId parameter. The REST ID for a promotion is of the form channel:contentLanguage:targetCountry:promotionId The channel field has a value of "online", "in_store", or "online_in_store".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Product filter by item group ID for the promotion.
-    #[serde(default, rename = "itemGroupId")]
-    pub item_group_id: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Product filter by item group ID exclusion for the promotion.
-    #[serde(default, rename = "itemGroupIdExclusion")]
-    pub item_group_id_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Product filter by item ID for the promotion.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Product filter by item ID exclusion for the promotion.
-    #[serde(default, rename = "itemIdExclusion")]
-    pub item_id_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Maximum purchase quantity for the promotion.
-    #[serde(default, rename = "limitQuantity")]
-    pub limit_quantity: ::core::option::Option<i32>,
-    /// Maximum purchase value for the promotion.
-    #[serde(default, rename = "limitValue")]
-    pub limit_value: ::core::option::Option<PriceAmount>,
-    /// Required. Long title for the promotion.
-    #[serde(default, rename = "longTitle")]
-    pub long_title: ::core::option::Option<String>,
-    /// The maximum monetary discount a customer can receive for the promotion. This field is only supported with the Percent off coupon value type.
-    #[serde(default, rename = "maxDiscountAmount")]
-    pub max_discount_amount: ::core::option::Option<PriceAmount>,
-    /// Minimum purchase amount for the promotion.
-    #[serde(default, rename = "minimumPurchaseAmount")]
-    pub minimum_purchase_amount: ::core::option::Option<PriceAmount>,
-    /// Minimum purchase quantity for the promotion.
-    #[serde(default, rename = "minimumPurchaseQuantity")]
-    pub minimum_purchase_quantity: ::core::option::Option<i32>,
-    /// Cost cap for the promotion.
-    #[serde(default, rename = "moneyBudget")]
-    pub money_budget: ::core::option::Option<PriceAmount>,
-    /// The money off amount offered in the promotion.
-    #[serde(default, rename = "moneyOffAmount")]
-    pub money_off_amount: ::core::option::Option<PriceAmount>,
-    /// Required. Type of the promotion. // TODO: enum values: ["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"]
-    #[serde(default, rename = "offerType")]
-    pub offer_type: ::core::option::Option<String>,
-    /// Order limit for the promotion.
-    #[serde(default, rename = "orderLimit")]
-    pub order_limit: ::core::option::Option<i32>,
-    /// The percentage discount offered in the promotion.
-    #[serde(default, rename = "percentOff")]
-    pub percent_off: ::core::option::Option<i32>,
-    /// Required. Applicability of the promotion to either all products or only specific products. // TODO: enum values: ["PRODUCT_APPLICABILITY_UNSPECIFIED", "ALL_PRODUCTS", "SPECIFIC_PRODUCTS"]
-    #[serde(default, rename = "productApplicability")]
-    pub product_applicability: ::core::option::Option<String>,
-    /// Product filter by product type for the promotion.
-    #[serde(default, rename = "productType")]
-    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Product filter by product type exclusion for the promotion.
-    #[serde(default, rename = "productTypeExclusion")]
-    pub product_type_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Destination ID for the promotion.
-    #[serde(default, rename = "promotionDestinationIds")]
-    pub promotion_destination_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// String representation of the promotion display dates. Deprecated. Use promotion_display_time_period instead.
-    #[serde(default, rename = "promotionDisplayDates")]
-    pub promotion_display_dates: ::core::option::Option<String>,
-    /// TimePeriod representation of the promotion''s display dates.
-    #[serde(default, rename = "promotionDisplayTimePeriod")]
-    pub promotion_display_time_period: ::core::option::Option<TimePeriod>,
-    /// String representation of the promotion effective dates. Deprecated. Use promotion_effective_time_period instead.
-    #[serde(default, rename = "promotionEffectiveDates")]
-    pub promotion_effective_dates: ::core::option::Option<String>,
-    /// Required. TimePeriod representation of the promotion''s effective dates.
-    #[serde(default, rename = "promotionEffectiveTimePeriod")]
-    pub promotion_effective_time_period: ::core::option::Option<TimePeriod>,
-    /// Required. The user provided promotion ID to uniquely identify the promotion.
-    #[serde(default, rename = "promotionId")]
-    pub promotion_id: ::core::option::Option<String>,
-    /// Output only. The current status of the promotion.
-    #[serde(default, rename = "promotionStatus")]
-    pub promotion_status: ::core::option::Option<PromotionPromotionStatus>,
-    /// URL to the page on the merchant''s site where the promotion shows. Local Inventory ads promotions throw an error if no promo url is included. URL is used to confirm that the promotion is valid and can be redeemed.
-    #[serde(default, rename = "promotionUrl")]
-    pub promotion_url: ::core::option::Option<String>,
-    /// Required. Redemption channel for the promotion. At least one channel is required.
-    #[serde(default, rename = "redemptionChannel")]
-    pub redemption_channel: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The redemption restriction for the promotion. // TODO: enum values: ["REDEMPTION_RESTRICTION_UNSPECIFIED", "SUBSCRIBE_AND_SAVE", "FIRST_ORDER", "SIGN_UP_FOR_EMAIL", "SIGN_UP_FOR_TEXT", "FORMS_OF_PAYMENT", "CUSTOM"]
-    #[serde(default, rename = "redemptionRestriction")]
-    pub redemption_restriction: ::core::option::Option<String>,
-    /// Shipping service names for the promotion.
-    #[serde(default, rename = "shippingServiceNames")]
-    pub shipping_service_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether the promotion applies to all stores, or only specified stores. Local Inventory ads promotions throw an error if no store applicability is included. An INVALID_ARGUMENT error is thrown if store_applicability is set to ALL_STORES and store_code or score_code_exclusion is set to a value. // TODO: enum values: ["STORE_APPLICABILITY_UNSPECIFIED", "ALL_STORES", "SPECIFIC_STORES"]
-    #[serde(default, rename = "storeApplicability")]
-    pub store_applicability: ::core::option::Option<String>,
-    /// Store codes to include for the promotion.
-    #[serde(default, rename = "storeCode")]
-    pub store_code: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Store codes to exclude for the promotion.
-    #[serde(default, rename = "storeCodeExclusion")]
-    pub store_code_exclusion: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The target country used as part of the unique identifier. Can be AU, CA, DE, FR, GB, IN, US, BR, ES, NL, JP, IT or KR.
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-}
-
-/// The status of the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromotionPromotionStatus {
-    /// Date on which the promotion has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
-    #[serde(default, rename = "creationDate")]
-    pub creation_date: ::core::option::Option<String>,
-    /// The intended destinations for the promotion.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses:
-        ::core::option::Option<::std::vec::Vec<PromotionPromotionStatusDestinationStatus>>,
-    /// Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
-    #[serde(default, rename = "lastUpdateDate")]
-    pub last_update_date: ::core::option::Option<String>,
-    /// A list of issues associated with the promotion.
-    #[serde(default, rename = "promotionIssue")]
-    pub promotion_issue:
-        ::core::option::Option<::std::vec::Vec<PromotionPromotionStatusPromotionIssue>>,
-}
-
-/// The destination status of the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromotionPromotionStatusDestinationStatus {
-    /// The name of the destination.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// The status for the specified destination. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_REVIEW", "REJECTED", "LIVE", "STOPPED", "EXPIRED", "PENDING"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// The issue associated with the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromotionPromotionStatusPromotionIssue {
-    /// Code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Explanation of the issue.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-}
-
-/// Settings for Pub/Sub notifications, all methods require that the caller is a direct user of the merchant center account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubsubNotificationSettings {
-    /// Cloud pub/sub topic to which notifications are sent (read-only).
-    #[serde(default, rename = "cloudTopicName")]
-    pub cloud_topic_name: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#pubsubNotificationSettings"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// List of event types. Acceptable values are: - "orderPendingShipment"
-    #[serde(default, rename = "registeredEvents")]
-    pub registered_events: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// RateGroup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RateGroup {
-    /// A list of shipping labels defining the products to which this rate group applies to. This is a disjunction: only one of the labels has to match for the rate group to apply. May only be empty for the last rate group of a service. Required.
-    #[serde(default, rename = "applicableShippingLabels")]
-    pub applicable_shipping_labels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of carrier rates that can be referred to by mainTable or singleValue.
-    #[serde(default, rename = "carrierRates")]
-    pub carrier_rates: ::core::option::Option<::std::vec::Vec<CarrierRate>>,
-    /// A table defining the rate group, when singleValue is not expressive enough. Can only be set if singleValue is not set.
-    #[serde(default, rename = "mainTable")]
-    pub main_table: ::core::option::Option<Table>,
-    /// Name of the rate group. Optional. If set has to be unique within shipping service.
+    pub country: ::core::option::Option<String>,
+    /// The name of the postal code group, referred to in headers. Required.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The value of the rate group (for example, flat rate $10). Can only be set if mainTable and subtables are not set.
-    #[serde(default, rename = "singleValue")]
-    pub single_value: ::core::option::Option<ApiValue>,
-    /// A list of subtables referred to by mainTable. Can only be set if mainTable is set.
-    #[serde(default)]
-    pub subtables: ::core::option::Option<::std::vec::Vec<Table>>,
-}
-
-/// Recommendations are suggested ways to improve your merchant account''s performance. For example, to engage with a feature, or start using a new Google product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Recommendation {
-    /// Output only. CTAs of this recommendation. Repeated.
-    #[serde(default, rename = "additionalCallToAction")]
-    pub additional_call_to_action:
-        ::core::option::Option<::std::vec::Vec<RecommendationCallToAction>>,
-    /// Output only. List of additional localized descriptions for a recommendation. Localication uses the languageCode field in GenerateRecommendations requests. Not all description types are guaranteed to be present and we recommend to rely on default description.
-    #[serde(default, rename = "additionalDescriptions")]
-    pub additional_descriptions: ::core::option::Option<::std::vec::Vec<RecommendationDescription>>,
-    /// Output only. Any creatives attached to the recommendation. Repeated.
-    #[serde(default)]
-    pub creative: ::core::option::Option<::std::vec::Vec<RecommendationCreative>>,
-    /// Optional. Default CTA of the recommendation.
-    #[serde(default, rename = "defaultCallToAction")]
-    pub default_call_to_action: ::core::option::Option<RecommendationCallToAction>,
-    /// Optional. Localized recommendation description. The localization the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
-    #[serde(default, rename = "defaultDescription")]
-    pub default_description: ::core::option::Option<String>,
-    /// Optional. A numerical score of the impact from the recommendation''s description. For example, a recommendation might suggest an upward trend in sales for a certain product. Higher number means larger impact.
-    #[serde(default, rename = "numericalImpact")]
-    pub numerical_impact: ::core::option::Option<i32>,
-    /// Optional. Indicates whether a user needs to pay when they complete the user journey suggested by the recommendation.
-    #[serde(default)]
-    pub paid: ::core::option::Option<bool>,
-    /// Optional. Localized recommendation name. The localization uses the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
-    #[serde(default, rename = "recommendationName")]
-    pub recommendation_name: ::core::option::Option<String>,
-    /// Optional. Subtype of the recommendations. Only applicable when multiple recommendations can be generated per type, and is used as an identifier of recommendation under the same recommendation type.
-    #[serde(default, rename = "subType")]
-    pub sub_type: ::core::option::Option<String>,
-    /// Optional. Localized Recommendation Title. Localization uses the {@link GenerateRecommendationsRequest.language_code} field in {@link GenerateRecommendationsRequest} requests.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Output only. Type of the recommendation. List of currently available recommendation types: - OPPORTUNITY_CREATE_NEW_COLLECTION - OPPORTUNITY_CREATE_EMAIL_CAMPAIGN
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Call to action (CTA) that explains how a merchant can implement this recommendation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecommendationCallToAction {
-    /// Output only. Intent of the action. This value describes the intent (for example, OPEN_CREATE_EMAIL_CAMPAIGN_FLOW) and can vary from recommendation to recommendation. This value can change over time for the same recommendation. Currently available intent values: - OPEN_CREATE_EMAIL_CAMPAIGN_FLOW: Opens a user journey where they can create a marketing email campaign. (No default URL) - OPEN_CREATE_COLLECTION_TAB: Opens a user journey where they can [create a collection](https://support.google.com/merchants/answer/9703228) for their Merchant account. (No default URL)
-    #[serde(default)]
-    pub intent: ::core::option::Option<String>,
-    /// Output only. Localized text of the CTA. Optional.
-    #[serde(default, rename = "localizedText")]
-    pub localized_text: ::core::option::Option<String>,
-    /// Optional. URL of the CTA. This field will only be set for some recommendations where there is a suggested landing URL. Otherwise it will be set to an empty string. We recommend developers to use their own custom landing page according to the description of the intent field above when this uri field is empty.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Creative is a multimedia attachment to recommendation that can be used on the frontend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecommendationCreative {
-    /// Type of the creative. // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "VIDEO", "PHOTO"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// URL of the creative.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Google-provided description for the recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecommendationDescription {
-    /// Output only. Text of the description.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Output only. Type of the description. // TODO: enum values: ["DESCRIPTION_TYPE_UNSPECIFIED", "SHORT", "LONG"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents a geographic region that you can use as a target with both the RegionalInventory and ShippingSettings services. You can define regions as collections of either postal codes or, in some countries, using predefined geotargets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Region {
-    /// The display name of the region.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// A list of geotargets that defines the region area.
-    #[serde(default, rename = "geotargetArea")]
-    pub geotarget_area: ::core::option::Option<RegionGeoTargetArea>,
-    /// Output only. Immutable. Merchant that owns the region.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// A list of postal codes that defines the region area.
-    #[serde(default, rename = "postalCodeArea")]
-    pub postal_code_area: ::core::option::Option<RegionPostalCodeArea>,
-    /// Output only. Immutable. The ID uniquely identifying each region.
-    #[serde(default, rename = "regionId")]
-    pub region_id: ::core::option::Option<String>,
-    /// Output only. Indicates if the region is eligible to use in the Regional Inventory configuration.
-    #[serde(default, rename = "regionalInventoryEligible")]
-    pub regional_inventory_eligible: ::core::option::Option<bool>,
-    /// Output only. Indicates if the region is eligible to use in the Shipping Services configuration.
-    #[serde(default, rename = "shippingEligible")]
-    pub shipping_eligible: ::core::option::Option<bool>,
-}
-
-/// A list of geotargets that defines the region area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionGeoTargetArea {
-    /// Required. A non-empty list of [location IDs](https://developers.google.com/adwords/api/docs/appendix/geotargeting). They must all be of the same location type (e.g., state).
-    #[serde(default, rename = "geotargetCriteriaIds")]
-    pub geotarget_criteria_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A list of postal codes that defines the region area. Note: All regions defined using postal codes are accessible via the account''s ShippingSettings.postalCodeGroups resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionPostalCodeArea {
-    /// Required. A range of postal codes.
-    #[serde(default, rename = "postalCodes")]
-    pub postal_codes: ::core::option::Option<::std::vec::Vec<RegionPostalCodeAreaPostalCodeRange>>,
-    /// Required. CLDR territory code or the country the postal code group applies to.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// A range of postal codes that defines the region area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionPostalCodeAreaPostalCodeRange {
-    /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
-    #[serde(default)]
-    pub begin: ::core::option::Option<String>,
-    /// Optional. A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area. It must have the same length as postalCodeRangeBegin: if postalCodeRangeBegin is a postal code then postalCodeRangeEnd must be a postal code too; if postalCodeRangeBegin is a pattern then postalCodeRangeEnd must be a pattern with the same prefix length. Optional: if not set, then the area is defined as being all the postal codes matching postalCodeRangeBegin.
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-}
-
-/// Regional inventory resource. contains the regional name and all attributes which are overridden for the specified region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalInventory {
-    /// The availability of the product.
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalInventory".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The price of the product.
-    #[serde(default)]
-    pub price: ::core::option::Option<Price>,
-    /// The ID uniquely identifying each region.
-    #[serde(default, rename = "regionId")]
-    pub region_id: ::core::option::Option<String>,
-    /// The sale price of the product. Mandatory if sale_price_effective_date is defined.
-    #[serde(default, rename = "salePrice")]
-    pub sale_price: ::core::option::Option<Price>,
-    /// A date range represented by a pair of ISO 8601 dates separated by a space, comma, or slash. Both dates might be specified as ''null'' if undecided.
-    #[serde(default, rename = "salePriceEffectiveDate")]
-    pub sale_price_effective_date: ::core::option::Option<String>,
-}
-
-/// RegionalinventoryCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalinventoryCustomBatchRequest {
-    /// The request entries to be processed in the batch.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<RegionalinventoryCustomBatchRequestEntry>>,
-}
-
-/// A batch entry encoding a single non-batch regional inventory request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalinventoryCustomBatchRequestEntry {
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// Method of the batch request entry. Acceptable values are: - "insert"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The ID of the product for which to update price and availability.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Price and availability of the product.
-    #[serde(default, rename = "regionalInventory")]
-    pub regional_inventory: ::core::option::Option<RegionalInventory>,
-}
-
-/// RegionalinventoryCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalinventoryCustomBatchResponse {
-    /// The result of the execution of the batch requests.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<RegionalinventoryCustomBatchResponseEntry>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalinventoryCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch regional inventory response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalinventoryCustomBatchResponseEntry {
-    /// The ID of the request entry this entry responds to.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#regionalinventoryCustomBatchResponseEntry".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Price and availability of the product.
-    #[serde(default, rename = "regionalInventory")]
-    pub regional_inventory: ::core::option::Option<RegionalInventory>,
-}
-
-/// The payload for configuring how the content should be rendered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenderAccountIssuesRequestPayload {
-    /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
-    #[serde(default, rename = "contentOption")]
-    pub content_option: ::core::option::Option<String>,
-    /// Optional. How actions with user input form should be handled. If not provided, actions will be returned as links that points merchant to Merchant Center where they can request the action. // TODO: enum values: ["USER_INPUT_ACTION_RENDERING_OPTION_UNSPECIFIED", "REDIRECT_TO_MERCHANT_CENTER", "BUILT_IN_USER_INPUT_ACTIONS"]
-    #[serde(default, rename = "userInputActionOption")]
-    pub user_input_action_option: ::core::option::Option<String>,
-}
-
-/// Response containing support content and actions for listed account issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenderAccountIssuesResponse {
-    /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
-    #[serde(default, rename = "alternateDisputeResolution")]
-    pub alternate_dispute_resolution: ::core::option::Option<AlternateDisputeResolution>,
-    /// List of account issues for a given account. This list can be shown with compressed, expandable items. In the compressed form, the title and impact should be shown for each issue. Once the issue is expanded, the detailed content and available actions should be rendered.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<AccountIssue>>,
-}
-
-/// The payload for configuring how the content should be rendered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenderProductIssuesRequestPayload {
-    /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
-    #[serde(default, rename = "contentOption")]
-    pub content_option: ::core::option::Option<String>,
-    /// Optional. How actions with user input form should be handled. If not provided, actions will be returned as links that points merchant to Merchant Center where they can request the action. // TODO: enum values: ["USER_INPUT_ACTION_RENDERING_OPTION_UNSPECIFIED", "REDIRECT_TO_MERCHANT_CENTER", "BUILT_IN_USER_INPUT_ACTIONS"]
-    #[serde(default, rename = "userInputActionOption")]
-    pub user_input_action_option: ::core::option::Option<String>,
-}
-
-/// Response containing support content and actions for listed product issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RenderProductIssuesResponse {
-    /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
-    #[serde(default, rename = "alternateDisputeResolution")]
-    pub alternate_dispute_resolution: ::core::option::Option<AlternateDisputeResolution>,
-    /// List of issues for a given product. This list can be shown with compressed, expandable items. In the compressed form, the title and impact should be shown for each issue. Once the issue is expanded, the detailed content and available actions should be rendered.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<ProductIssue>>,
-}
-
-/// Request to report interactions on a recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReportInteractionRequest {
-    /// Required. Type of the interaction that is reported, for example INTERACTION_CLICK. // TODO: enum values: ["INTERACTION_TYPE_UNSPECIFIED", "INTERACTION_DISMISS", "INTERACTION_CLICK"]
-    #[serde(default, rename = "interactionType")]
-    pub interaction_type: ::core::option::Option<String>,
-    /// Required. Token of the response when recommendation was returned.
-    #[serde(default, rename = "responseToken")]
-    pub response_token: ::core::option::Option<String>,
-    /// Optional. Subtype of the recommendations this interaction happened on. This field must be set only to the value that is returned by {@link RecommendationsService.GenerateRecommendations} call.
-    #[serde(default)]
-    pub subtype: ::core::option::Option<String>,
-    /// Required. Type of the recommendations on which this interaction happened. This field must be set only to the value that is returned by {@link GenerateRecommendationsResponse} call.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Result row returned from the search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReportRow {
-    /// Best sellers fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersProductClusterView or BestSellersBrandView.
-    #[serde(default, rename = "bestSellers")]
-    pub best_sellers: ::core::option::Option<BestSellers>,
-    /// Brand fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersBrandView.
-    #[serde(default)]
-    pub brand: ::core::option::Option<Brand>,
-    /// Competitive visibility fields requested by the merchant in the query. Field values are only set if the merchant queries CompetitiveVisibilityTopMerchantView, CompetitiveVisibilityBenchmarkView or CompetitiveVisibilityCompetitorView.
-    #[serde(default, rename = "competitiveVisibility")]
-    pub competitive_visibility: ::core::option::Option<CompetitiveVisibility>,
-    /// Metrics requested by the merchant in the query. Metric values are only set for metrics requested explicitly in the query.
-    #[serde(default)]
-    pub metrics: ::core::option::Option<Metrics>,
-    /// Price competitiveness fields requested by the merchant in the query. Field values are only set if the merchant queries PriceCompetitivenessProductView.
-    #[serde(default, rename = "priceCompetitiveness")]
-    pub price_competitiveness: ::core::option::Option<PriceCompetitiveness>,
-    /// Price insights fields requested by the merchant in the query. Field values are only set if the merchant queries PriceInsightsProductView.
-    #[serde(default, rename = "priceInsights")]
-    pub price_insights: ::core::option::Option<PriceInsights>,
-    /// Product cluster fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersProductClusterView.
-    #[serde(default, rename = "productCluster")]
-    pub product_cluster: ::core::option::Option<ProductCluster>,
-    /// Product fields requested by the merchant in the query. Field values are only set if the merchant queries ProductView.
-    #[serde(default, rename = "productView")]
-    pub product_view: ::core::option::Option<ProductView>,
-    /// Segmentation dimensions requested by the merchant in the query. Dimension values are only set for dimensions requested explicitly in the query.
-    #[serde(default)]
-    pub segments: ::core::option::Option<Segments>,
-    /// [Topic trends](https://support.google.com/merchants/answer/13542370) fields requested by the merchant in the query. Field values are only set if the merchant queries TopicTrendsView.
-    #[serde(default, rename = "topicTrends")]
-    pub topic_trends: ::core::option::Option<TopicTrends>,
-}
-
-/// Request message for the RequestPhoneVerification method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestPhoneVerificationRequest {
-    /// Language code [IETF BCP 47 syntax](https://tools.ietf.org/html/bcp47) (for example, en-US). Language code is used to provide localized SMS and PHONE_CALL. Default language used is en-US if not provided.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Phone number to be verified.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Required. Two letter country code for the phone number, for example CA for Canadian numbers. See the [ISO 3166-1 alpha-2](https://wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) officially assigned codes.
-    #[serde(default, rename = "phoneRegionCode")]
-    pub phone_region_code: ::core::option::Option<String>,
-    /// Verification method to receive verification code. // TODO: enum values: ["PHONE_VERIFICATION_METHOD_UNSPECIFIED", "SMS", "PHONE_CALL"]
-    #[serde(default, rename = "phoneVerificationMethod")]
-    pub phone_verification_method: ::core::option::Option<String>,
-}
-
-/// Response message for the RequestPhoneVerification method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestPhoneVerificationResponse {
-    /// The verification ID to use in subsequent calls to verifyphonenumber.
-    #[serde(default, rename = "verificationId")]
-    pub verification_id: ::core::option::Option<String>,
-}
-
-/// Request message for the RequestReviewFreeListings Program method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestReviewFreeListingsRequest {
-    /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Request message for the RequestReviewShoppingAds program method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestReviewShoppingAdsRequest {
-    /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Return policy online object. This is currently used to represent return policies for ads and free listings programs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnPolicyOnline {
-    /// The countries of sale where the return policy is applicable. The values must be a valid 2 letter ISO 3166 code, e.g. "US".
-    #[serde(default)]
-    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The item conditions that are accepted for returns. This is required to not be empty unless the type of return policy is noReturns.
-    #[serde(default, rename = "itemConditions")]
-    pub item_conditions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The unique user-defined label of the return policy. The same label cannot be used in different return policies for the same country. Policies with the label ''default'' will apply to all products, unless a product specifies a return_policy_label attribute.
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-    /// The name of the policy as shown in Merchant Center.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The return policy.
-    #[serde(default)]
-    pub policy: ::core::option::Option<ReturnPolicyOnlinePolicy>,
-    /// The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.
-    #[serde(default, rename = "restockingFee")]
-    pub restocking_fee: ::core::option::Option<ReturnPolicyOnlineRestockingFee>,
-    /// The return methods of how customers can return an item. This value is required to not be empty unless the type of return policy is noReturns.
-    #[serde(default, rename = "returnMethods")]
-    pub return_methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Return policy ID generated by Google.
-    #[serde(default, rename = "returnPolicyId")]
-    pub return_policy_id: ::core::option::Option<String>,
-    /// The return policy uri. This can used by Google to do a sanity check for the policy.
-    #[serde(default, rename = "returnPolicyUri")]
-    pub return_policy_uri: ::core::option::Option<String>,
-    /// The return reason category information. This required to not be empty unless the type of return policy is noReturns.
-    #[serde(default, rename = "returnReasonCategoryInfo")]
-    pub return_reason_category_info:
-        ::core::option::Option<::std::vec::Vec<ReturnPolicyOnlineReturnReasonCategoryInfo>>,
-}
-
-/// The available policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnPolicyOnlinePolicy {
-    /// The number of days items can be returned after delivery, where one day is defined to be 24 hours after the delivery timestamp. Required for numberOfDaysAfterDelivery returns.
-    #[serde(default)]
-    pub days: ::core::option::Option<String>,
-    /// Policy type. // TODO: enum values: ["TYPE_UNSPECIFIED", "NUMBER_OF_DAYS_AFTER_DELIVERY", "NO_RETURNS", "LIFETIME_RETURNS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The restocking fee. This can either be a fixed fee or a micro percent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnPolicyOnlineRestockingFee {
-    /// Fixed restocking fee.
-    #[serde(default, rename = "fixedFee")]
-    pub fixed_fee: ::core::option::Option<PriceAmount>,
-    /// Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.
-    #[serde(default, rename = "microPercent")]
-    pub micro_percent: ::core::option::Option<i32>,
-}
-
-/// The return reason category info wrapper.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnPolicyOnlineReturnReasonCategoryInfo {
-    /// The corresponding return label source. If the ReturnMethod field includes BY_MAIL, it is required to specify ReturnLabelSource for both BUYER_REMORSE and ITEM_DEFECT return reason categories. // TODO: enum values: ["RETURN_LABEL_SOURCE_UNSPECIFIED", "DOWNLOAD_AND_PRINT", "IN_THE_BOX", "CUSTOMER_RESPONSIBILITY"]
-    #[serde(default, rename = "returnLabelSource")]
-    pub return_label_source: ::core::option::Option<String>,
-    /// The return reason category. // TODO: enum values: ["RETURN_REASON_CATEGORY_UNSPECIFIED", "BUYER_REMORSE", "ITEM_DEFECT"]
-    #[serde(default, rename = "returnReasonCategory")]
-    pub return_reason_category: ::core::option::Option<String>,
-    /// The corresponding return shipping fee. This is only applicable when returnLabelSource is not the customer''s responsibility.
-    #[serde(default, rename = "returnShippingFee")]
-    pub return_shipping_fee: ::core::option::Option<ReturnPolicyOnlineReturnShippingFee>,
-}
-
-/// The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnPolicyOnlineReturnShippingFee {
-    /// Fixed return shipping fee amount. This value is only applicable when type is FIXED. We will treat the return shipping fee as free if type is FIXED and this value is not set.
-    #[serde(default, rename = "fixedFee")]
-    pub fixed_fee: ::core::option::Option<PriceAmount>,
-    /// Type of return shipping fee. // TODO: enum values: ["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Row resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Row {
-    /// The list of cells that constitute the row. Must have the same length as columnHeaders for two-dimensional tables, a length of 1 for one-dimensional tables. Required.
-    #[serde(default)]
-    pub cells: ::core::option::Option<::std::vec::Vec<ApiValue>>,
-}
-
-/// Request message for the ReportService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchRequest {
-    /// Number of ReportRows to retrieve in a single page. Defaults to 1000. Values above 5000 are coerced to 5000.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Token of the page to retrieve. If not specified, the first page of results is returned. In order to request the next page of results, the value obtained from next_page_token in the previous response should be used.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Required. Query that defines performance metrics to retrieve and dimensions according to which the metrics are to be segmented. For details on how to construct your query, see the [Query Language guide](https://developers.google.com/shopping-content/guides/reports/query-language/overview).
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-}
-
-/// Response message for the ReportService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResponse {
-    /// Token which can be sent as page_token to retrieve the next page. If omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Rows that matched the search query.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<ReportRow>>,
-}
-
-/// Dimensions according to which metrics are segmented in the response. Values of product dimensions, such as offer_id, reflect the state of a product at the time of the corresponding event, for example, impression or order. Segment fields cannot be selected in queries without also selecting at least one metric field. Values are only set for dimensions requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Segments {
-    /// Brand of the product.
-    #[serde(default)]
-    pub brand: ::core::option::Option<String>,
-    /// [Product category (1st level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
-    #[serde(default, rename = "categoryL1")]
-    pub category_l1: ::core::option::Option<String>,
-    /// [Product category (2nd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
-    #[serde(default, rename = "categoryL2")]
-    pub category_l2: ::core::option::Option<String>,
-    /// [Product category (3rd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
-    #[serde(default, rename = "categoryL3")]
-    pub category_l3: ::core::option::Option<String>,
-    /// [Product category (4th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
-    #[serde(default, rename = "categoryL4")]
-    pub category_l4: ::core::option::Option<String>,
-    /// [Product category (5th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in Google''s product taxonomy.
-    #[serde(default, rename = "categoryL5")]
-    pub category_l5: ::core::option::Option<String>,
-    /// Currency in which price metrics are represented, for example, if you select ordered_item_sales_micros, the returned value will be represented by this currency.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Custom label 0 for custom grouping of products.
-    #[serde(default, rename = "customLabel0")]
-    pub custom_label0: ::core::option::Option<String>,
-    /// Custom label 1 for custom grouping of products.
-    #[serde(default, rename = "customLabel1")]
-    pub custom_label1: ::core::option::Option<String>,
-    /// Custom label 2 for custom grouping of products.
-    #[serde(default, rename = "customLabel2")]
-    pub custom_label2: ::core::option::Option<String>,
-    /// Custom label 3 for custom grouping of products.
-    #[serde(default, rename = "customLabel3")]
-    pub custom_label3: ::core::option::Option<String>,
-    /// Custom label 4 for custom grouping of products.
-    #[serde(default, rename = "customLabel4")]
-    pub custom_label4: ::core::option::Option<String>,
-    /// Code of the country where the customer is located at the time of the event. Represented in the ISO 3166 format. If the customer country cannot be determined, a special ''ZZ'' code is returned.
-    #[serde(default, rename = "customerCountryCode")]
-    pub customer_country_code: ::core::option::Option<String>,
-    /// Date in the merchant timezone to which metrics apply.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Merchant-provided id of the product.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// [Product type (1st level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
-    #[serde(default, rename = "productTypeL1")]
-    pub product_type_l1: ::core::option::Option<String>,
-    /// [Product type (2nd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
-    #[serde(default, rename = "productTypeL2")]
-    pub product_type_l2: ::core::option::Option<String>,
-    /// [Product type (3rd level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
-    #[serde(default, rename = "productTypeL3")]
-    pub product_type_l3: ::core::option::Option<String>,
-    /// [Product type (4th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
-    #[serde(default, rename = "productTypeL4")]
-    pub product_type_l4: ::core::option::Option<String>,
-    /// [Product type (5th level)](https://developers.google.com/shopping-content/guides/reports/segmentation#category_and_product_type) in merchant''s own product taxonomy.
-    #[serde(default, rename = "productTypeL5")]
-    pub product_type_l5: ::core::option::Option<String>,
-    /// Program to which metrics apply, for example, Free Product Listing. // TODO: enum values: ["PROGRAM_UNSPECIFIED", "SHOPPING_ADS", "FREE_PRODUCT_LISTING", "FREE_LOCAL_PRODUCT_LISTING", "BUY_ON_GOOGLE_LISTING"]
-    #[serde(default)]
-    pub program: ::core::option::Option<String>,
-    /// Title of the product.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// First day of the week (Monday) of the metrics date in the merchant timezone.
-    #[serde(default)]
-    pub week: ::core::option::Option<Date>,
+    /// A range of postal codes. Required.
+    #[serde(default, rename = "postalCodeRanges")]
+    pub postal_code_ranges: ::core::option::Option<::std::vec::Vec<PostalCodeRange>>,
 }
 
 /// Service resource type.
@@ -5317,408 +4844,6 @@ pub struct Service {
     pub store_config: ::core::option::Option<ServiceStoreConfig>,
 }
 
-/// Stores that provide local delivery. Only valid with local delivery fulfillment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceStoreConfig {
-    /// Time local delivery ends for the day. This can be either local_cutoff_time or store_close_offset_hours, if both are provided an error is thrown.
-    #[serde(default, rename = "cutoffConfig")]
-    pub cutoff_config: ::core::option::Option<ServiceStoreConfigCutoffConfig>,
-    /// Maximum delivery radius. Only needed for local delivery fulfillment type.
-    #[serde(default, rename = "serviceRadius")]
-    pub service_radius: ::core::option::Option<Distance>,
-    /// A list of store codes that provide local delivery. If empty, then store_service_type must be all_stores, or an error is thrown. If not empty, then store_service_type must be selected_stores, or an error is thrown.
-    #[serde(default, rename = "storeCodes")]
-    pub store_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Indicates whether all stores listed by this merchant provide local delivery or not. Acceptable values are all stores and selected stores
-    #[serde(default, rename = "storeServiceType")]
-    pub store_service_type: ::core::option::Option<String>,
-}
-
-/// Time local delivery ends for the day based on the local timezone of the store. local_cutoff_time and store_close_offset_hours are mutually exclusive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceStoreConfigCutoffConfig {
-    /// Time in hours and minutes in the local timezone when local delivery ends.
-    #[serde(default, rename = "localCutoffTime")]
-    pub local_cutoff_time: ::core::option::Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
-    /// Merchants can opt-out of showing n+1 day local delivery when they have a shipping service configured to n day local delivery. For example, if the shipping service defines same-day delivery, and it''s past the cut-off, setting this field to true results in the calculated shipping service rate returning NO_DELIVERY_POST_CUTOFF. In the same example, setting this field to false results in the calculated shipping time being one day. This is only for local delivery.
-    #[serde(default, rename = "noDeliveryPostCutoff")]
-    pub no_delivery_post_cutoff: ::core::option::Option<bool>,
-    /// Represents cutoff time as the number of hours before store closing. Mutually exclusive with other fields (hour and minute).
-    #[serde(default, rename = "storeCloseOffsetHours")]
-    pub store_close_offset_hours: ::core::option::Option<String>,
-}
-
-/// Time in hours and minutes in the local timezone when local delivery ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
-    /// Hour local delivery orders must be placed by to process the same day.
-    #[serde(default)]
-    pub hour: ::core::option::Option<String>,
-    /// Minute local delivery orders must be placed by to process the same day.
-    #[serde(default)]
-    pub minute: ::core::option::Option<String>,
-}
-
-/// The merchant account''s shipping settings. All methods except getsupportedcarriers and getsupportedholidays require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingSettings {
-    /// The ID of the account to which these account shipping settings belong. Ignored upon update, always present in get request responses.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// A list of postal code groups that can be referred to in services. Optional.
-    #[serde(default, rename = "postalCodeGroups")]
-    pub postal_code_groups: ::core::option::Option<::std::vec::Vec<PostalCodeGroup>>,
-    /// The target account''s list of services. Optional.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<Service>>,
-    /// Optional. A list of warehouses which can be referred to in services.
-    #[serde(default)]
-    pub warehouses: ::core::option::Option<::std::vec::Vec<Warehouse>>,
-}
-
-/// ShippingsettingsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsCustomBatchRequest {
-    /// The request entries to be processed in the batch.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ShippingsettingsCustomBatchRequestEntry>>,
-}
-
-/// A batch entry encoding a single non-batch shippingsettings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsCustomBatchRequestEntry {
-    /// The ID of the account for which to get/update account shipping settings.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// An entry ID, unique within the batch request.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// The ID of the managing account.
-    #[serde(default, rename = "merchantId")]
-    pub merchant_id: ::core::option::Option<String>,
-    /// The method of the batch entry. Acceptable values are: - "get" - "update"
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The account shipping settings to update. Only defined if the method is update.
-    #[serde(default, rename = "shippingSettings")]
-    pub shipping_settings: ::core::option::Option<ShippingSettings>,
-}
-
-/// ShippingsettingsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsCustomBatchResponse {
-    /// The result of the execution of the batch requests.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<ShippingsettingsCustomBatchResponseEntry>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsCustomBatchResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// A batch entry encoding a single non-batch shipping settings response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsCustomBatchResponseEntry {
-    /// The ID of the request entry to which this entry responds.
-    #[serde(default, rename = "batchId")]
-    pub batch_id: ::core::option::Option<i64>,
-    /// A list of errors for failed custombatch entries. *Note:* Schema errors fail the whole request.
-    #[serde(default)]
-    pub errors: ::core::option::Option<Errors>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsCustomBatchResponseEntry"
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The retrieved or updated account shipping settings.
-    #[serde(default, rename = "shippingSettings")]
-    pub shipping_settings: ::core::option::Option<ShippingSettings>,
-}
-
-/// ShippingsettingsGetSupportedCarriersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsGetSupportedCarriersResponse {
-    /// A list of supported carriers. May be empty.
-    #[serde(default)]
-    pub carriers: ::core::option::Option<::std::vec::Vec<CarriersCarrier>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedCarriersResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// ShippingsettingsGetSupportedHolidaysResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsGetSupportedHolidaysResponse {
-    /// A list of holidays applicable for delivery guarantees. May be empty.
-    #[serde(default)]
-    pub holidays: ::core::option::Option<::std::vec::Vec<HolidaysHoliday>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedHolidaysResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// ShippingsettingsGetSupportedPickupServicesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsGetSupportedPickupServicesResponse {
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedPickupServicesResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// A list of supported pickup services. May be empty.
-    #[serde(default, rename = "pickupServices")]
-    pub pickup_services: ::core::option::Option<::std::vec::Vec<PickupServicesPickupService>>,
-}
-
-/// ShippingsettingsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShippingsettingsListResponse {
-    /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsListResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token for the retrieval of the next page of shipping settings.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<ShippingSettings>>,
-}
-
-/// Response message for GetShoppingAdsProgramStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShoppingAdsProgramStatus {
-    /// State of the program. ENABLED if there are offers for at least one region. // TODO: enum values: ["PROGRAM_STATE_UNSPECIFIED", "NOT_ENABLED", "NO_OFFERS_UPLOADED", "ENABLED"]
-    #[serde(default, rename = "globalState")]
-    pub global_state: ::core::option::Option<String>,
-    /// Status of the program in each region. Regions with the same status and review eligibility are grouped together in regionCodes.
-    #[serde(default, rename = "regionStatuses")]
-    pub region_statuses:
-        ::core::option::Option<::std::vec::Vec<ShoppingAdsProgramStatusRegionStatus>>,
-}
-
-/// Status of program and region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShoppingAdsProgramStatusRegionStatus {
-    /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
-    #[serde(default, rename = "disapprovalDate")]
-    pub disapproval_date: ::core::option::Option<String>,
-    /// Eligibility status of the Shopping Ads program. // TODO: enum values: ["STATE_UNSPECIFIED", "APPROVED", "DISAPPROVED", "WARNING", "UNDER_REVIEW", "PENDING_REVIEW", "ONBOARDING"]
-    #[serde(default, rename = "eligibilityStatus")]
-    pub eligibility_status: ::core::option::Option<String>,
-    /// Issues that must be fixed to be eligible for review.
-    #[serde(default, rename = "onboardingIssues")]
-    pub onboarding_issues: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The two-letter [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) codes for all the regions with the same eligibilityStatus and reviewEligibility.
-    #[serde(default, rename = "regionCodes")]
-    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If a program is eligible for review in a specific region. Only visible if eligibilityStatus is DISAPPROVED. // TODO: enum values: ["REVIEW_ELIGIBILITY_UNSPECIFIED", "ELIGIBLE", "INELIGIBLE"]
-    #[serde(default, rename = "reviewEligibilityStatus")]
-    pub review_eligibility_status: ::core::option::Option<String>,
-    /// Review ineligibility reason if account is not eligible for review. // TODO: enum values: ["REVIEW_INELIGIBILITY_REASON_UNSPECIFIED", "ONBOARDING_ISSUES", "NOT_ENOUGH_OFFERS", "IN_COOLDOWN_PERIOD", "ALREADY_UNDER_REVIEW", "NO_REVIEW_REQUIRED", "WILL_BE_REVIEWED_AUTOMATICALLY", "IS_RETIRED", "ALREADY_REVIEWED"]
-    #[serde(default, rename = "reviewIneligibilityReason")]
-    pub review_ineligibility_reason: ::core::option::Option<String>,
-    /// Reason a program in a specific region isn’t eligible for review. Only visible if reviewEligibilityStatus is INELIGIBLE.
-    #[serde(default, rename = "reviewIneligibilityReasonDescription")]
-    pub review_ineligibility_reason_description: ::core::option::Option<String>,
-    /// Additional information for ineligibility. If reviewIneligibilityReason is IN_COOLDOWN_PERIOD, a timestamp for the end of the cooldown period is provided.
-    #[serde(default, rename = "reviewIneligibilityReasonDetails")]
-    pub review_ineligibility_reason_details:
-        ::core::option::Option<ShoppingAdsProgramStatusReviewIneligibilityReasonDetails>,
-    /// Issues evaluated in the review process. Fix all issues before requesting a review.
-    #[serde(default, rename = "reviewIssues")]
-    pub review_issues: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Additional details for review ineligibility reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShoppingAdsProgramStatusReviewIneligibilityReasonDetails {
-    /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
-    #[serde(default, rename = "cooldownTime")]
-    pub cooldown_time: ::core::option::Option<String>,
-}
-
-/// Table resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Table {
-    /// Headers of the table''s columns. Optional: if not set then the table has only one dimension.
-    #[serde(default, rename = "columnHeaders")]
-    pub column_headers: ::core::option::Option<Headers>,
-    /// Name of the table. Required for subtables, ignored for the main table.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Headers of the table''s rows. Required.
-    #[serde(default, rename = "rowHeaders")]
-    pub row_headers: ::core::option::Option<Headers>,
-    /// The list of rows that constitute the table. Must have the same length as rowHeaders. Required.
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<Row>>,
-}
-
-/// Block of text that may contain a tooltip with more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextWithTooltip {
-    /// Value of the tooltip as a simple text.
-    #[serde(default, rename = "simpleTooltipValue")]
-    pub simple_tooltip_value: ::core::option::Option<String>,
-    /// Value of the message as a simple text.
-    #[serde(default, rename = "simpleValue")]
-    pub simple_value: ::core::option::Option<String>,
-    /// The suggested type of an icon for tooltip, if a tooltip is present. // TODO: enum values: ["TOOLTIP_ICON_STYLE_UNSPECIFIED", "INFO", "QUESTION"]
-    #[serde(default, rename = "tooltipIconStyle")]
-    pub tooltip_icon_style: ::core::option::Option<String>,
-}
-
-/// A message that represents a time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimePeriod {
-    /// The ending timestamp.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The starting timestamp.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeZone {
-    /// IANA Time Zone Database time zone. For example "America/New_York".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. IANA Time Zone Database version number. For example "2019a".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Topic trends fields requested by the merchant in the query. Field values are only set if the merchant queries TopicTrendsView. Forecast data can be queried up to 13 weeks by passing a future date in the date field. Historical data is measured daily, and forecasted data is projected weekly. All data points are normalized based on the highest data points returned in the response. If you make separate queries with different date ranges, you might see different values for the same date in each response. The recommended way to get a trend score of a topic is last7_days_search_interest / last{$day}_days_search_interest - 1. You can view trends for up to eight topics at a time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TopicTrends {
-    /// Country trends are calculated for. Must be a two-letter country code (ISO 3166-1-alpha-2 code), for example, “US”.
-    #[serde(default, rename = "customerCountryCode")]
-    pub customer_country_code: ::core::option::Option<String>,
-    /// Date the trend score was retrieved.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Search interest in the last 120 days, with the same normalization as search_interest. This field is only present for a past date.
-    #[serde(default, rename = "last120DaysSearchInterest")]
-    pub last120_days_search_interest: ::core::option::Option<f64>,
-    /// Search interest in the last 30 days, with the same normalization as search_interest. This field is only present for a past date.
-    #[serde(default, rename = "last30DaysSearchInterest")]
-    pub last30_days_search_interest: ::core::option::Option<f64>,
-    /// Search interest in the last 7 days, with the same normalization as search_interest. This field is only present for a past date.
-    #[serde(default, rename = "last7DaysSearchInterest")]
-    pub last7_days_search_interest: ::core::option::Option<f64>,
-    /// Search interest in the last 90 days, with the same normalization as search_interest. This field is only present for a past date.
-    #[serde(default, rename = "last90DaysSearchInterest")]
-    pub last90_days_search_interest: ::core::option::Option<f64>,
-    /// Estimated search interest in the next 7 days, with the same normalization as search_interest. This field is only present for a future date.
-    #[serde(default, rename = "next7DaysSearchInterest")]
-    pub next7_days_search_interest: ::core::option::Option<f64>,
-    /// Daily search interest, normalized to the time and country to make comparisons easier, with 100 representing peak popularity (from 0 to 100) for the requested time period and location.
-    #[serde(default, rename = "searchInterest")]
-    pub search_interest: ::core::option::Option<f64>,
-    /// Google-provided topic trends are calculated for. Only top eight topics are returned. Topic is what shoppers are searching for on Google, grouped by the same concept.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-}
-
-/// TransitTable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransitTable {
-    /// A list of postal group names. The last value can be "all other locations". Example: ["zone 1", "zone 2", "all other locations"]. The referred postal code groups must match the delivery country of the service.
-    #[serde(default, rename = "postalCodeGroupNames")]
-    pub postal_code_group_names: ::core::option::Option<::std::vec::Vec<String>>,
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<TransitTableTransitTimeRow>>,
-    /// A list of transit time labels. The last value can be "all other labels". Example: ["food", "electronics", "all other labels"].
-    #[serde(default, rename = "transitTimeLabels")]
-    pub transit_time_labels: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// TransitTableTransitTimeRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransitTableTransitTimeRow {
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<TransitTableTransitTimeRowTransitTimeValue>>,
-}
-
-/// TransitTableTransitTimeRowTransitTimeValue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransitTableTransitTimeRowTransitTimeValue {
-    /// Must be greater than or equal to minTransitTimeInDays.
-    #[serde(default, rename = "maxTransitTimeInDays")]
-    pub max_transit_time_in_days: ::core::option::Option<i64>,
-    /// Transit time range (min-max) in business days. 0 means same day delivery, 1 means next day delivery.
-    #[serde(default, rename = "minTransitTimeInDays")]
-    pub min_transit_time_in_days: ::core::option::Option<i64>,
-}
-
-/// The payload for the triggered action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionPayload {
-    /// Required. The context from the selected action. The value is obtained from rendered issues and needs to be sent back to identify the action that is being triggered.
-    #[serde(default, rename = "actionContext")]
-    pub action_context: ::core::option::Option<String>,
-    /// Required. Input provided by the merchant.
-    #[serde(default, rename = "actionInput")]
-    pub action_input: ::core::option::Option<ActionInput>,
-}
-
-/// Response informing about the started action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionResponse {
-    /// The message for merchant.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Specifications related to the Checkout URL. The UriTemplate is of the form https://www.mystore.com/checkout?item_id={id} where {id} will be automatically replaced with data from the merchant account with this attribute [offer_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.offer_id)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UrlSettings {
-    /// URL template when the placeholders are expanded will redirect the buyer to the cart page on the merchant website with the selected item in cart.
-    #[serde(default, rename = "cartUriTemplate")]
-    pub cart_uri_template: ::core::option::Option<String>,
-    /// URL template when the placeholders are expanded will redirect the buyer to the merchant checkout page with the item in the cart.
-    #[serde(default, rename = "checkoutUriTemplate")]
-    pub checkout_uri_template: ::core::option::Option<String>,
-}
-
-/// The single value of a rate group or the value of a rate group table''s cell. Exactly one of noShipping, flatRate, pricePercentage, carrierRateName, subtableName must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiValue {
-    /// The name of a carrier rate referring to a carrier rate defined in the same rate group. Can only be set if all other fields are not set.
-    #[serde(default, rename = "carrierRateName")]
-    pub carrier_rate_name: ::core::option::Option<String>,
-    /// A flat rate. Can only be set if all other fields are not set.
-    #[serde(default, rename = "flatRate")]
-    pub flat_rate: ::core::option::Option<Price>,
-    /// If true, then the product can''t ship. Must be true when set, can only be set if all other fields are not set.
-    #[serde(default, rename = "noShipping")]
-    pub no_shipping: ::core::option::Option<bool>,
-    /// A percentage of the price represented as a number in decimal notation (for example, "5.4"). Can only be set if all other fields are not set.
-    #[serde(default, rename = "pricePercentage")]
-    pub price_percentage: ::core::option::Option<String>,
-    /// The name of a subtable. Can only be set in table cells (not for single values), and only if all other fields are not set.
-    #[serde(default, rename = "subtableName")]
-    pub subtable_name: ::core::option::Option<String>,
-}
-
-/// Request message for the VerifyPhoneNumber method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyPhoneNumberRequest {
-    /// Verification method used to receive verification code. // TODO: enum values: ["PHONE_VERIFICATION_METHOD_UNSPECIFIED", "SMS", "PHONE_CALL"]
-    #[serde(default, rename = "phoneVerificationMethod")]
-    pub phone_verification_method: ::core::option::Option<String>,
-    /// The verification code that was sent to the phone number for validation.
-    #[serde(default, rename = "verificationCode")]
-    pub verification_code: ::core::option::Option<String>,
-    /// The verification ID returned by requestphoneverification.
-    #[serde(default, rename = "verificationId")]
-    pub verification_id: ::core::option::Option<String>,
-}
-
-/// Response message for the VerifyPhoneNumber method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyPhoneNumberResponse {
-    /// Verified phone number if verification is successful. This phone number can only be replaced by another verified phone number.
-    #[serde(default, rename = "verifiedPhoneNumber")]
-    pub verified_phone_number: ::core::option::Option<String>,
-}
-
 /// A fulfillment warehouse, which stores and handles inventory.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Warehouse {
@@ -5737,6 +4862,523 @@ pub struct Warehouse {
     /// Required. Shipping address of the warehouse.
     #[serde(default, rename = "shippingAddress")]
     pub shipping_address: ::core::option::Option<Address>,
+}
+
+/// Value for checkbox input field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputValueCheckboxInputValue {
+    /// Required. True if the merchant checked the box field. False otherwise.
+    #[serde(default)]
+    pub value: ::core::option::Option<bool>,
+}
+
+/// Value for choice input field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputValueChoiceInputValue {
+    /// Required. Id of the option that was selected by the merchant.
+    #[serde(default, rename = "choiceInputOptionId")]
+    pub choice_input_option_id: ::core::option::Option<String>,
+}
+
+/// Value for text input field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputValueTextInputValue {
+    /// Required. Text provided by the merchant.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountImageImprovements {
+    /// Determines how the images should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
+    #[serde(default, rename = "accountImageImprovementsSettings")]
+    pub account_image_improvements_settings:
+        ::core::option::Option<AccountImageImprovementsSettings>,
+    /// Output only. The effective value of allow_automatic_image_improvements. If account_image_improvements_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
+    #[serde(default, rename = "effectiveAllowAutomaticImageImprovements")]
+    pub effective_allow_automatic_image_improvements: ::core::option::Option<bool>,
+}
+
+/// Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren''t shown.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountItemUpdates {
+    /// Determines which attributes of the items should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
+    #[serde(default, rename = "accountItemUpdatesSettings")]
+    pub account_item_updates_settings: ::core::option::Option<AccountItemUpdatesSettings>,
+    /// Output only. The effective value of allow_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
+    #[serde(default, rename = "effectiveAllowAvailabilityUpdates")]
+    pub effective_allow_availability_updates: ::core::option::Option<bool>,
+    /// Output only. The effective value of allow_condition_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
+    #[serde(default, rename = "effectiveAllowConditionUpdates")]
+    pub effective_allow_condition_updates: ::core::option::Option<bool>,
+    /// Output only. The effective value of allow_price_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
+    #[serde(default, rename = "effectiveAllowPriceUpdates")]
+    pub effective_allow_price_updates: ::core::option::Option<bool>,
+    /// Output only. The effective value of allow_strict_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.
+    #[serde(default, rename = "effectiveAllowStrictAvailabilityUpdates")]
+    pub effective_allow_strict_availability_updates: ::core::option::Option<bool>,
+}
+
+/// Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: * Delivery address of an order * Current handling time and shipping time settings * Estimated weekdays or business days * Parcel tracking data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountShippingImprovements {
+    /// Enables automatic shipping improvements.
+    #[serde(default, rename = "allowShippingImprovements")]
+    pub allow_shipping_improvements: ::core::option::Option<bool>,
+}
+
+/// The account identity type used to specify attributes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountIdentityType {
+    /// Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.
+    #[serde(default, rename = "selfIdentified")]
+    pub self_identified: ::core::option::Option<bool>,
+}
+
+/// AccountAddress resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountAddress {
+    /// CLDR country code (for example, "US"). All MCA sub-accounts inherit the country of their parent MCA by default, however the country can be updated for individual sub-accounts.
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// City, town or commune. May also include dependent localities or sublocalities (for example, neighborhoods or suburbs).
+    #[serde(default)]
+    pub locality: ::core::option::Option<String>,
+    /// Postal code or ZIP (for example, "94043").
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Top-level administrative subdivision of the country. For example, a state like California ("CA") or a province like Quebec ("QC").
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Street-level part of the address. Use \n to add a second line.
+    #[serde(default, rename = "streetAddress")]
+    pub street_address: ::core::option::Option<String>,
+}
+
+/// AccountCustomerService resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountCustomerService {
+    /// Customer service email.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Customer service phone number.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Customer service URL.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// AccountStatusItemLevelIssue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountStatusItemLevelIssue {
+    /// The attribute''s name, if the issue is caused by a single attribute.
+    #[serde(default, rename = "attributeName")]
+    pub attribute_name: ::core::option::Option<String>,
+    /// The error code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// A short issue description in English.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A detailed issue description in English.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The URL of a web page to help with resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Number of items with this issue.
+    #[serde(default, rename = "numItems")]
+    pub num_items: ::core::option::Option<String>,
+    /// Whether the issue can be resolved by the merchant.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+    /// How this issue affects serving of the offer.
+    #[serde(default)]
+    pub servability: ::core::option::Option<String>,
+}
+
+/// AccountStatusStatistics resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountStatusStatistics {
+    /// Number of active offers.
+    #[serde(default)]
+    pub active: ::core::option::Option<String>,
+    /// Number of disapproved offers.
+    #[serde(default)]
+    pub disapproved: ::core::option::Option<String>,
+    /// Number of expiring offers.
+    #[serde(default)]
+    pub expiring: ::core::option::Option<String>,
+    /// Number of pending offers.
+    #[serde(default)]
+    pub pending: ::core::option::Option<String>,
+}
+
+/// An example occurrence for a particular error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatafeedStatusExample {
+    /// The ID of the example item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Line number in the data feed where the example is found.
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<String>,
+    /// The problematic value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// LiaAboutPageSettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaAboutPageSettings {
+    /// The status of the verification process for the About page. Supported values are: - "active" - "inactive" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The URL for the About page.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// LiaInventorySettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaInventorySettings {
+    /// The email of the contact for the inventory verification process.
+    #[serde(default, rename = "inventoryVerificationContactEmail")]
+    pub inventory_verification_contact_email: ::core::option::Option<String>,
+    /// The name of the contact for the inventory verification process.
+    #[serde(default, rename = "inventoryVerificationContactName")]
+    pub inventory_verification_contact_name: ::core::option::Option<String>,
+    /// The status of the verification contact. Acceptable values are: - "active" - "inactive" - "pending"
+    #[serde(default, rename = "inventoryVerificationContactStatus")]
+    pub inventory_verification_contact_status: ::core::option::Option<String>,
+    /// The status of the inventory verification process. Acceptable values are: - "active" - "inactive" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Omnichannel experience details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaOmnichannelExperience {
+    /// The CLDR country code (for example, "US").
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// The Local Store Front (LSF) type for this country. Acceptable values are: - "ghlsf" (Google-Hosted Local Store Front) - "mhlsfBasic" (Merchant-Hosted Local Store Front Basic) - "mhlsfFull" (Merchant-Hosted Local Store Front Full) More details about these types can be found here.
+    #[serde(default, rename = "lsfType")]
+    pub lsf_type: ::core::option::Option<String>,
+    /// The Pickup types for this country. Acceptable values are: - "pickupToday" - "pickupLater"
+    #[serde(default, rename = "pickupTypes")]
+    pub pickup_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// LiaOnDisplayToOrderSettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaOnDisplayToOrderSettings {
+    /// Shipping cost and policy URL.
+    #[serde(default, rename = "shippingCostPolicyUrl")]
+    pub shipping_cost_policy_url: ::core::option::Option<String>,
+    /// The status of the ?On display to order? feature. Acceptable values are: - "active" - "inactive" - "pending"
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// LiaPosDataProvider resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LiaPosDataProvider {
+    /// The ID of the POS data provider.
+    #[serde(default, rename = "posDataProviderId")]
+    pub pos_data_provider_id: ::core::option::Option<String>,
+    /// The account ID by which this merchant is known to the POS data provider.
+    #[serde(default, rename = "posExternalAccountId")]
+    pub pos_external_account_id: ::core::option::Option<String>,
+}
+
+/// Message representing a types of conversion events
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributionSettingsConversionType {
+    /// Output only. Option indicating if the type should be included in Merchant Center reporting.
+    #[serde(default, rename = "includeInReporting")]
+    pub include_in_reporting: ::core::option::Option<bool>,
+    /// Output only. Conversion event name, as it''ll be reported by the client.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The price represented as a number and currency.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PriceAmount {
+    /// The currency of the price.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// The price represented as a number.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Region with code and localized name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BreakdownRegion {
+    /// The [CLDR territory code] (http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml)
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The localized name of the region. For region with code=''001'' the value is ''All countries'' or the equivalent in other languages.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Type of the item issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductViewItemIssueItemIssueType {
+    /// Canonical attribute name for attribute-specific issues.
+    #[serde(default, rename = "canonicalAttribute")]
+    pub canonical_attribute: ::core::option::Option<String>,
+    /// Error code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+}
+
+/// Severity of an issue per destination in a region, and aggregated severity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductViewItemIssueItemIssueSeverity {
+    /// Severity of an issue aggregated for destination. // TODO: enum values: ["AGGREGATED_ISSUE_SEVERITY_UNSPECIFIED", "DISAPPROVED", "DEMOTED", "PENDING"]
+    #[serde(default, rename = "aggregatedSeverity")]
+    pub aggregated_severity: ::core::option::Option<String>,
+    /// Item issue severity for every destination.
+    #[serde(default, rename = "severityPerDestination")]
+    pub severity_per_destination:
+        ::core::option::Option<::std::vec::Vec<ProductViewItemIssueIssueSeverityPerDestination>>,
+}
+
+/// PostalCodeRange resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostalCodeRange {
+    /// A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*". Required.
+    #[serde(default, rename = "postalCodeRangeBegin")]
+    pub postal_code_range_begin: ::core::option::Option<String>,
+    /// A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area. It must have the same length as postalCodeRangeBegin: if postalCodeRangeBegin is a postal code then postalCodeRangeEnd must be a postal code too; if postalCodeRangeBegin is a pattern then postalCodeRangeEnd must be a pattern with the same prefix length. Optional: if not set, then the area is defined as being all the postal codes matching postalCodeRangeBegin.
+    #[serde(default, rename = "postalCodeRangeEnd")]
+    pub postal_code_range_end: ::core::option::Option<String>,
+}
+
+/// DeliveryTime resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeliveryTime {
+    /// Business days cutoff time definition. If not configured, the cutoff time will be defaulted to 8AM PST. If local delivery, use Service.StoreConfig.CutoffConfig.
+    #[serde(default, rename = "cutoffTime")]
+    pub cutoff_time: ::core::option::Option<CutoffTime>,
+    /// The business days during which orders can be handled. If not provided, Monday to Friday business days will be assumed.
+    #[serde(default, rename = "handlingBusinessDayConfig")]
+    pub handling_business_day_config: ::core::option::Option<BusinessDayConfig>,
+    /// Holiday cutoff definitions. If configured, they specify order cutoff times for holiday-specific shipping.
+    #[serde(default, rename = "holidayCutoffs")]
+    pub holiday_cutoffs: ::core::option::Option<::std::vec::Vec<HolidayCutoff>>,
+    /// Maximum number of business days spent before an order is shipped. 0 means same day shipped, 1 means next day shipped. Must be greater than or equal to minHandlingTimeInDays.
+    #[serde(default, rename = "maxHandlingTimeInDays")]
+    pub max_handling_time_in_days: ::core::option::Option<i64>,
+    /// Maximum number of business days that are spent in transit. 0 means same day delivery, 1 means next day delivery. Must be greater than or equal to minTransitTimeInDays.
+    #[serde(default, rename = "maxTransitTimeInDays")]
+    pub max_transit_time_in_days: ::core::option::Option<i64>,
+    /// Minimum number of business days spent before an order is shipped. 0 means same day shipped, 1 means next day shipped.
+    #[serde(default, rename = "minHandlingTimeInDays")]
+    pub min_handling_time_in_days: ::core::option::Option<i64>,
+    /// Minimum number of business days that are spent in transit. 0 means same day delivery, 1 means next day delivery. Either {min,max}TransitTimeInDays or transitTimeTable must be set, but not both.
+    #[serde(default, rename = "minTransitTimeInDays")]
+    pub min_transit_time_in_days: ::core::option::Option<i64>,
+    /// The business days during which orders can be in-transit. If not provided, Monday to Friday business days will be assumed.
+    #[serde(default, rename = "transitBusinessDayConfig")]
+    pub transit_business_day_config: ::core::option::Option<BusinessDayConfig>,
+    /// Transit time table, number of business days spent in transit based on row and column dimensions. Either {min,max}TransitTimeInDays or transitTimeTable can be set, but not both.
+    #[serde(default, rename = "transitTimeTable")]
+    pub transit_time_table: ::core::option::Option<TransitTable>,
+    /// Indicates that the delivery time should be calculated per warehouse (shipping origin location) based on the settings of the selected carrier. When set, no other transit time related field in DeliveryTime should be set.
+    #[serde(default, rename = "warehouseBasedDeliveryTimes")]
+    pub warehouse_based_delivery_times:
+        ::core::option::Option<::std::vec::Vec<WarehouseBasedDeliveryTime>>,
+}
+
+/// MinimumOrderValueTable resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MinimumOrderValueTable {
+    #[serde(default, rename = "storeCodeSetWithMovs")]
+    pub store_code_set_with_movs:
+        ::core::option::Option<::std::vec::Vec<MinimumOrderValueTableStoreCodeSetWithMov>>,
+}
+
+/// PickupCarrierService resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PickupCarrierService {
+    /// The name of the pickup carrier (for example, "UPS"). Required.
+    #[serde(default, rename = "carrierName")]
+    pub carrier_name: ::core::option::Option<String>,
+    /// The name of the pickup service (for example, "Access point"). Required.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+}
+
+/// RateGroup resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RateGroup {
+    /// A list of shipping labels defining the products to which this rate group applies to. This is a disjunction: only one of the labels has to match for the rate group to apply. May only be empty for the last rate group of a service. Required.
+    #[serde(default, rename = "applicableShippingLabels")]
+    pub applicable_shipping_labels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of carrier rates that can be referred to by mainTable or singleValue.
+    #[serde(default, rename = "carrierRates")]
+    pub carrier_rates: ::core::option::Option<::std::vec::Vec<CarrierRate>>,
+    /// A table defining the rate group, when singleValue is not expressive enough. Can only be set if singleValue is not set.
+    #[serde(default, rename = "mainTable")]
+    pub main_table: ::core::option::Option<Table>,
+    /// Name of the rate group. Optional. If set has to be unique within shipping service.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The value of the rate group (for example, flat rate $10). Can only be set if mainTable and subtables are not set.
+    #[serde(default, rename = "singleValue")]
+    pub single_value: ::core::option::Option<ApiValue>,
+    /// A list of subtables referred to by mainTable. Can only be set if mainTable is set.
+    #[serde(default)]
+    pub subtables: ::core::option::Option<::std::vec::Vec<Table>>,
+}
+
+/// Stores that provide local delivery. Only valid with local delivery fulfillment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceStoreConfig {
+    /// Time local delivery ends for the day. This can be either local_cutoff_time or store_close_offset_hours, if both are provided an error is thrown.
+    #[serde(default, rename = "cutoffConfig")]
+    pub cutoff_config: ::core::option::Option<ServiceStoreConfigCutoffConfig>,
+    /// Maximum delivery radius. Only needed for local delivery fulfillment type.
+    #[serde(default, rename = "serviceRadius")]
+    pub service_radius: ::core::option::Option<Distance>,
+    /// A list of store codes that provide local delivery. If empty, then store_service_type must be all_stores, or an error is thrown. If not empty, then store_service_type must be selected_stores, or an error is thrown.
+    #[serde(default, rename = "storeCodes")]
+    pub store_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Indicates whether all stores listed by this merchant provide local delivery or not. Acceptable values are all stores and selected stores
+    #[serde(default, rename = "storeServiceType")]
+    pub store_service_type: ::core::option::Option<String>,
+}
+
+/// WarehouseCutoffTime resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WarehouseCutoffTime {
+    /// Required. Hour (24-hour clock) of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Hour is based on the timezone of warehouse.
+    #[serde(default)]
+    pub hour: ::core::option::Option<i32>,
+    /// Required. Minute of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Minute is based on the timezone of warehouse.
+    #[serde(default)]
+    pub minute: ::core::option::Option<i32>,
+}
+
+/// Address resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Address {
+    /// Required. Top-level administrative subdivision of the country. For example, a state like California ("CA") or a province like Quebec ("QC").
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Required. City, town or commune. May also include dependent localities or sublocalities (for example, neighborhoods or suburbs).
+    #[serde(default)]
+    pub city: ::core::option::Option<String>,
+    /// Required. [CLDR country code](https://github.com/unicode-org/cldr/blob/latest/common/main/en.xml) (for example, "US").
+    #[serde(default)]
+    pub country: ::core::option::Option<String>,
+    /// Required. Postal code or ZIP (for example, "94043").
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Street-level part of the address. Use \n to add a second line.
+    #[serde(default, rename = "streetAddress")]
+    pub street_address: ::core::option::Option<String>,
+}
+
+/// Settings for the Automatic Image Improvements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountImageImprovementsSettings {
+    /// Enables automatic image improvements.
+    #[serde(default, rename = "allowAutomaticImageImprovements")]
+    pub allow_automatic_image_improvements: ::core::option::Option<bool>,
+}
+
+/// Settings for the Automatic Item Updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountItemUpdatesSettings {
+    /// If availability updates are enabled, any previous availability values get overwritten if Google finds an out-of-stock annotation on the offer''s page. If additionally allow_availability_updates field is set to true, values get overwritten if Google finds an in-stock annotation on the offer’s page.
+    #[serde(default, rename = "allowAvailabilityUpdates")]
+    pub allow_availability_updates: ::core::option::Option<bool>,
+    /// If condition updates are enabled, Google always updates item condition with the condition detected from the details of your product.
+    #[serde(default, rename = "allowConditionUpdates")]
+    pub allow_condition_updates: ::core::option::Option<bool>,
+    /// If price updates are enabled, Google always updates the active price with the crawled information.
+    #[serde(default, rename = "allowPriceUpdates")]
+    pub allow_price_updates: ::core::option::Option<bool>,
+    /// If allow_availability_updates is enabled, items are automatically updated in all your Shopping target countries. By default, availability updates will only be applied to items that are ''out of stock'' on your website but ''in stock'' on Shopping. Set this to true to also update items that are ''in stock'' on your website, but ''out of stock'' on Google Shopping. In order for this field to have an effect, you must also allow availability updates.
+    #[serde(default, rename = "allowStrictAvailabilityUpdates")]
+    pub allow_strict_availability_updates: ::core::option::Option<bool>,
+}
+
+/// Issue severity for all affected regions in a destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductViewItemIssueIssueSeverityPerDestination {
+    /// List of demoted countries in the destination.
+    #[serde(default, rename = "demotedCountries")]
+    pub demoted_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Issue destination.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// List of disapproved countries in the destination.
+    #[serde(default, rename = "disapprovedCountries")]
+    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// CutoffTime resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CutoffTime {
+    /// Hour of the cutoff time until which an order has to be placed to be processed in the same day. Required.
+    #[serde(default)]
+    pub hour: ::core::option::Option<i64>,
+    /// Minute of the cutoff time until which an order has to be placed to be processed in the same day. Required.
+    #[serde(default)]
+    pub minute: ::core::option::Option<i64>,
+    /// Timezone identifier for the cutoff time (for example, "Europe/Zurich"). List of identifiers. Required.
+    #[serde(default)]
+    pub timezone: ::core::option::Option<String>,
+}
+
+/// BusinessDayConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BusinessDayConfig {
+    /// Regular business days, such as ''"monday"''. May not be empty.
+    #[serde(default, rename = "businessDays")]
+    pub business_days: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// HolidayCutoff resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HolidayCutoff {
+    /// Date of the order deadline, in ISO 8601 format. For example, "2016-11-29" for 29th November 2016. Required.
+    #[serde(default, rename = "deadlineDate")]
+    pub deadline_date: ::core::option::Option<String>,
+    /// Hour of the day on the deadline date until which the order has to be placed to qualify for the delivery guarantee. Possible values are: 0 (midnight), 1, ..., 12 (noon), 13, ..., 23. Required.
+    #[serde(default, rename = "deadlineHour")]
+    pub deadline_hour: ::core::option::Option<i64>,
+    /// Timezone identifier for the deadline hour (for example, "Europe/Zurich"). List of identifiers. Required.
+    #[serde(default, rename = "deadlineTimezone")]
+    pub deadline_timezone: ::core::option::Option<String>,
+    /// Unique identifier for the holiday. Required.
+    #[serde(default, rename = "holidayId")]
+    pub holiday_id: ::core::option::Option<String>,
+    /// Date on which the deadline will become visible to consumers in ISO 8601 format. For example, "2016-10-31" for 31st October 2016. Required.
+    #[serde(default, rename = "visibleFromDate")]
+    pub visible_from_date: ::core::option::Option<String>,
+}
+
+/// TransitTable resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitTable {
+    /// A list of postal group names. The last value can be "all other locations". Example: ["zone 1", "zone 2", "all other locations"]. The referred postal code groups must match the delivery country of the service.
+    #[serde(default, rename = "postalCodeGroupNames")]
+    pub postal_code_group_names: ::core::option::Option<::std::vec::Vec<String>>,
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<TransitTableTransitTimeRow>>,
+    /// A list of transit time labels. The last value can be "all other labels". Example: ["food", "electronics", "all other labels"].
+    #[serde(default, rename = "transitTimeLabels")]
+    pub transit_time_labels: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// WarehouseBasedDeliveryTime resource type.
@@ -5768,15 +5410,145 @@ pub struct WarehouseBasedDeliveryTime {
     pub warehouse_name: ::core::option::Option<String>,
 }
 
-/// WarehouseCutoffTime resource type.
+/// A list of store code sets sharing the same minimum order value. At least two sets are required and the last one must be empty, which signifies ''MOV for all other stores''. Each store code can only appear once across all the sets. All prices within a service must have the same currency.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WarehouseCutoffTime {
-    /// Required. Hour (24-hour clock) of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Hour is based on the timezone of warehouse.
+pub struct MinimumOrderValueTableStoreCodeSetWithMov {
+    /// A list of unique store codes or empty for the catch all.
+    #[serde(default, rename = "storeCodes")]
+    pub store_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The minimum order value for the given stores.
     #[serde(default)]
-    pub hour: ::core::option::Option<i32>,
-    /// Required. Minute of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Minute is based on the timezone of warehouse.
+    pub value: ::core::option::Option<Price>,
+}
+
+/// CarrierRate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CarrierRate {
+    /// Carrier service, such as "UPS" or "Fedex". The list of supported carriers can be retrieved through the getSupportedCarriers method. Required.
+    #[serde(default, rename = "carrierName")]
+    pub carrier_name: ::core::option::Option<String>,
+    /// Carrier service, such as "ground" or "2 days". The list of supported services for a carrier can be retrieved through the getSupportedCarriers method. Required.
+    #[serde(default, rename = "carrierService")]
+    pub carrier_service: ::core::option::Option<String>,
+    /// Additive shipping rate modifier. Can be negative. For example { "value": "1", "currency" : "USD" } adds $1 to the rate, { "value": "-3", "currency" : "USD" } removes $3 from the rate. Optional.
+    #[serde(default, rename = "flatAdjustment")]
+    pub flat_adjustment: ::core::option::Option<Price>,
+    /// Name of the carrier rate. Must be unique per rate group. Required.
     #[serde(default)]
-    pub minute: ::core::option::Option<i32>,
+    pub name: ::core::option::Option<String>,
+    /// Shipping origin for this carrier rate. Required.
+    #[serde(default, rename = "originPostalCode")]
+    pub origin_postal_code: ::core::option::Option<String>,
+    /// Multiplicative shipping rate modifier as a number in decimal notation. Can be negative. For example "5.4" increases the rate by 5.4%, "-3" decreases the rate by 3%. Optional.
+    #[serde(default, rename = "percentageAdjustment")]
+    pub percentage_adjustment: ::core::option::Option<String>,
+}
+
+/// Table resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Table {
+    /// Headers of the table''s columns. Optional: if not set then the table has only one dimension.
+    #[serde(default, rename = "columnHeaders")]
+    pub column_headers: ::core::option::Option<Headers>,
+    /// Name of the table. Required for subtables, ignored for the main table.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Headers of the table''s rows. Required.
+    #[serde(default, rename = "rowHeaders")]
+    pub row_headers: ::core::option::Option<Headers>,
+    /// The list of rows that constitute the table. Must have the same length as rowHeaders. Required.
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<Row>>,
+}
+
+/// Time local delivery ends for the day based on the local timezone of the store. local_cutoff_time and store_close_offset_hours are mutually exclusive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceStoreConfigCutoffConfig {
+    /// Time in hours and minutes in the local timezone when local delivery ends.
+    #[serde(default, rename = "localCutoffTime")]
+    pub local_cutoff_time: ::core::option::Option<ServiceStoreConfigCutoffConfigLocalCutoffTime>,
+    /// Merchants can opt-out of showing n+1 day local delivery when they have a shipping service configured to n day local delivery. For example, if the shipping service defines same-day delivery, and it''s past the cut-off, setting this field to true results in the calculated shipping service rate returning NO_DELIVERY_POST_CUTOFF. In the same example, setting this field to false results in the calculated shipping time being one day. This is only for local delivery.
+    #[serde(default, rename = "noDeliveryPostCutoff")]
+    pub no_delivery_post_cutoff: ::core::option::Option<bool>,
+    /// Represents cutoff time as the number of hours before store closing. Mutually exclusive with other fields (hour and minute).
+    #[serde(default, rename = "storeCloseOffsetHours")]
+    pub store_close_offset_hours: ::core::option::Option<String>,
+}
+
+/// Distance represented by an integer and unit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Distance {
+    /// The distance unit. Acceptable values are None, Miles, and Kilometers.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// The distance represented as a number.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// TransitTableTransitTimeRow resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitTableTransitTimeRow {
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<TransitTableTransitTimeRowTransitTimeValue>>,
+}
+
+/// A non-empty list of row or column headers for a table. Exactly one of prices, weights, numItems, postalCodeGroupNames, or location must be set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Headers {
+    /// A list of location ID sets. Must be non-empty. Can only be set if all other fields are not set.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<LocationIdSet>>,
+    /// A list of inclusive number of items upper bounds. The last value can be "infinity". For example ["10", "50", "infinity"] represents the headers "&lt;= 10 items", "&lt;= 50 items", and "&gt; 50 items". Must be non-empty. Can only be set if all other fields are not set.
+    #[serde(default, rename = "numberOfItems")]
+    pub number_of_items: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of postal group names. The last value can be "all other locations". Example: ["zone 1", "zone 2", "all other locations"]. The referred postal code groups must match the delivery country of the service. Must be non-empty. Can only be set if all other fields are not set.
+    #[serde(default, rename = "postalCodeGroupNames")]
+    pub postal_code_group_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of inclusive order price upper bounds. The last price''s value can be "infinity". For example [{"value": "10", "currency": "USD"}, {"value": "500", "currency": "USD"}, {"value": "infinity", "currency": "USD"}] represents the headers "&lt;= $10", "&lt;= $500", and "&gt; $500". All prices within a service must have the same currency. Must be non-empty. Can only be set if all other fields are not set.
+    #[serde(default)]
+    pub prices: ::core::option::Option<::std::vec::Vec<Price>>,
+    /// A list of inclusive order weight upper bounds. The last weight''s value can be "infinity". For example [{"value": "10", "unit": "kg"}, {"value": "50", "unit": "kg"}, {"value": "infinity", "unit": "kg"}] represents the headers "&lt;= 10kg", "&lt;= 50kg", and "&gt; 50kg". All weights within a service must have the same unit. Must be non-empty. Can only be set if all other fields are not set.
+    #[serde(default)]
+    pub weights: ::core::option::Option<::std::vec::Vec<Weight>>,
+}
+
+/// Row resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Row {
+    /// The list of cells that constitute the row. Must have the same length as columnHeaders for two-dimensional tables, a length of 1 for one-dimensional tables. Required.
+    #[serde(default)]
+    pub cells: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+}
+
+/// Time in hours and minutes in the local timezone when local delivery ends.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
+    /// Hour local delivery orders must be placed by to process the same day.
+    #[serde(default)]
+    pub hour: ::core::option::Option<String>,
+    /// Minute local delivery orders must be placed by to process the same day.
+    #[serde(default)]
+    pub minute: ::core::option::Option<String>,
+}
+
+/// TransitTableTransitTimeRowTransitTimeValue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitTableTransitTimeRowTransitTimeValue {
+    /// Must be greater than or equal to minTransitTimeInDays.
+    #[serde(default, rename = "maxTransitTimeInDays")]
+    pub max_transit_time_in_days: ::core::option::Option<i64>,
+    /// Transit time range (min-max) in business days. 0 means same day delivery, 1 means next day delivery.
+    #[serde(default, rename = "minTransitTimeInDays")]
+    pub min_transit_time_in_days: ::core::option::Option<i64>,
+}
+
+/// LocationIdSet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationIdSet {
+    /// A non-empty list of location IDs. They must all be of the same location type (for example, state).
+    #[serde(default, rename = "locationIds")]
+    pub location_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Weight resource type.
@@ -5788,4 +5560,232 @@ pub struct Weight {
     /// Required. The weight represented as a number. The weight can have a maximum precision of four decimal places.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// The single value of a rate group or the value of a rate group table''s cell. Exactly one of noShipping, flatRate, pricePercentage, carrierRateName, subtableName must be set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiValue {
+    /// The name of a carrier rate referring to a carrier rate defined in the same rate group. Can only be set if all other fields are not set.
+    #[serde(default, rename = "carrierRateName")]
+    pub carrier_rate_name: ::core::option::Option<String>,
+    /// A flat rate. Can only be set if all other fields are not set.
+    #[serde(default, rename = "flatRate")]
+    pub flat_rate: ::core::option::Option<Price>,
+    /// If true, then the product can''t ship. Must be true when set, can only be set if all other fields are not set.
+    #[serde(default, rename = "noShipping")]
+    pub no_shipping: ::core::option::Option<bool>,
+    /// A percentage of the price represented as a number in decimal notation (for example, "5.4"). Can only be set if all other fields are not set.
+    #[serde(default, rename = "pricePercentage")]
+    pub price_percentage: ::core::option::Option<String>,
+    /// The name of a subtable. Can only be set in table cells (not for single values), and only if all other fields are not set.
+    #[serde(default, rename = "subtableName")]
+    pub subtable_name: ::core::option::Option<String>,
+}
+
+/// Price resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Price {
+    /// The currency of the price.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// The price represented as a number.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// An actionable step that can be executed to solve the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Action {
+    /// Action implemented and performed in (your) third-party application. The application should point the merchant to the place, where they can access the corresponding functionality or provide instructions, if the specific functionality is not available.
+    #[serde(default, rename = "builtinSimpleAction")]
+    pub builtin_simple_action: ::core::option::Option<BuiltInSimpleAction>,
+    /// Action implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant as specified for given action. They can trigger the action only when they provided all required inputs.
+    #[serde(default, rename = "builtinUserInputAction")]
+    pub builtin_user_input_action: ::core::option::Option<BuiltInUserInputAction>,
+    /// Label of the action button.
+    #[serde(default, rename = "buttonLabel")]
+    pub button_label: ::core::option::Option<String>,
+    /// Action that is implemented and performed outside of (your) third-party application. The application needs to redirect the merchant to the external location where they can perform the action.
+    #[serde(default, rename = "externalAction")]
+    pub external_action: ::core::option::Option<ExternalAction>,
+    /// Controlling whether the button is active or disabled. The value is ''false'' when the action was already requested or is not available. If the action is not available then a reason will be present. If (your) third-party application shows a disabled button for action that is not available, then it should also show reasons.
+    #[serde(default, rename = "isAvailable")]
+    pub is_available: ::core::option::Option<bool>,
+    /// List of reasons why the action is not available. The list of reasons is empty if the action is available. If there is only one reason, it can be displayed next to the disabled button. If there are more reasons, all of them should be displayed, for example in a pop-up dialog.
+    #[serde(default)]
+    pub reasons: ::core::option::Option<::std::vec::Vec<ActionReason>>,
+}
+
+/// Flow that can be selected for an action. When merchant selects a flow, application should open a dialog with more information and input form.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionFlow {
+    /// Label for the button to trigger the action from the action dialog. For example: "Request review"
+    #[serde(default, rename = "dialogButtonLabel")]
+    pub dialog_button_label: ::core::option::Option<String>,
+    /// Important message to be highlighted in the request dialog. For example: "You can only request a review for disagreeing with this issue once. If it''s not approved, you''ll need to fix the issue and wait a few days before you can request another review."
+    #[serde(default, rename = "dialogCallout")]
+    pub dialog_callout: ::core::option::Option<Callout>,
+    /// Message displayed in the request dialog. For example: "Make sure you''ve fixed all your country-specific issues. If not, you may have to wait 7 days to request another review". There may be an more information to be shown in a tooltip.
+    #[serde(default, rename = "dialogMessage")]
+    pub dialog_message: ::core::option::Option<TextWithTooltip>,
+    /// Title of the request dialog. For example: "Before you request a review"
+    #[serde(default, rename = "dialogTitle")]
+    pub dialog_title: ::core::option::Option<String>,
+    /// Not for display but need to be sent back for the selected action flow.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A list of input fields.
+    #[serde(default)]
+    pub inputs: ::core::option::Option<::std::vec::Vec<InputField>>,
+    /// Text value describing the intent for the action flow. It can be used as an input label if merchant needs to pick one of multiple flows. For example: "I disagree with the issue"
+    #[serde(default)]
+    pub label: ::core::option::Option<String>,
+}
+
+/// A single reason why the action is not available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionReason {
+    /// Optional. An action that needs to be performed to solve the problem represented by this reason. This action will always be available. Should be rendered as a link or button next to the summarizing message. For example, the review may be available only once merchant configure all required attributes. In such a situation this action can be a link to the form, where they can fill the missing attribute to unblock the main action.
+    #[serde(default)]
+    pub action: ::core::option::Option<Action>,
+    /// Detailed explanation of the reason. Should be displayed as a hint if present.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// Messages summarizing the reason, why the action is not available. For example: "Review requested on Jan 03. Review requests can take a few days to complete."
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Action that is implemented and performed in (your) third-party application. Represents various functionality that is expected to be available to merchant and will help them with resolving the issue. The application should point the merchant to the place, where they can access the corresponding functionality. If the functionality is not supported, it is recommended to explain the situation to merchant and provide them with instructions how to solve the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuiltInSimpleAction {
+    /// Long text from an external source that should be available to the merchant. Present when the type is SHOW_ADDITIONAL_CONTENT.
+    #[serde(default, rename = "additionalContent")]
+    pub additional_content: ::core::option::Option<BuiltInSimpleActionAdditionalContent>,
+    /// The attribute that needs to be updated. Present when the type is EDIT_ITEM_ATTRIBUTE. This field contains a code for attribute, represented in snake_case. You can find a list of product''s attributes, with their codes [here](https://support.google.com/merchants/answer/7052112).
+    #[serde(default, rename = "attributeCode")]
+    pub attribute_code: ::core::option::Option<String>,
+    /// The type of action that represents a functionality that is expected to be available in third-party application. // TODO: enum values: ["BUILT_IN_SIMPLE_ACTION_TYPE_UNSPECIFIED", "VERIFY_PHONE", "CLAIM_WEBSITE", "ADD_PRODUCTS", "ADD_CONTACT_INFO", "LINK_ADS_ACCOUNT", "ADD_BUSINESS_REGISTRATION_NUMBER", "EDIT_ITEM_ATTRIBUTE", "FIX_ACCOUNT_ISSUE", "SHOW_ADDITIONAL_CONTENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Long text from external source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuiltInSimpleActionAdditionalContent {
+    /// Long text organized into paragraphs.
+    #[serde(default)]
+    pub paragraphs: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Title of the additional content;
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Action that is implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant. They can start the action only when they provided all required inputs. The application will request processing of the action by calling the [triggeraction method](https://developers.google.com/shopping-content/reference/rest/v2.1/merchantsupport/triggeraction).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuiltInUserInputAction {
+    /// Internal details. Not for display but need to be sent back when triggering the action.
+    #[serde(default, rename = "actionContext")]
+    pub action_context: ::core::option::Option<String>,
+    /// Actions may provide multiple different flows. Merchant selects one that fits best to their intent. Selecting the flow is the first step in user''s interaction with the action. It affects what input fields will be available and required and also how the request will be processed.
+    #[serde(default)]
+    pub flows: ::core::option::Option<::std::vec::Vec<ActionFlow>>,
+}
+
+/// An important message that should be highlighted. Usually displayed as a banner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Callout {
+    /// A full message that needs to be shown to the merchant.
+    #[serde(default, rename = "fullMessage")]
+    pub full_message: ::core::option::Option<TextWithTooltip>,
+    /// Can be used to render messages with different severity in different styles. Snippets off all types contain important information that should be displayed to merchants. // TODO: enum values: ["CALLOUT_STYLE_HINT_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
+    #[serde(default, rename = "styleHint")]
+    pub style_hint: ::core::option::Option<String>,
+}
+
+/// Action that is implemented and performed outside of the third-party application. It should redirect the merchant to the provided URL of an external system where they can perform the action. For example to request a review in the Merchant Center.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalAction {
+    /// The type of external action. // TODO: enum values: ["EXTERNAL_ACTION_TYPE_UNSPECIFIED", "REVIEW_PRODUCT_ISSUE_IN_MERCHANT_CENTER", "REVIEW_ACCOUNT_ISSUE_IN_MERCHANT_CENTER", "LEGAL_APPEAL_IN_HELP_CENTER", "VERIFY_IDENTITY_IN_MERCHANT_CENTER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// URL to external system, for example Merchant Center, where the merchant can perform the action.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Input field that needs to be available to the merchant. If the field is marked as required, then a value needs to be provided for a successful processing of the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputField {
+    /// Input field to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox).
+    #[serde(default, rename = "checkboxInput")]
+    pub checkbox_input: ::core::option::Option<serde_json::Value>,
+    /// Input field to select one of the offered choices. Corresponds to the [html input type=radio](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.radio.html#input.radio).
+    #[serde(default, rename = "choiceInput")]
+    pub choice_input: ::core::option::Option<InputFieldChoiceInput>,
+    /// Not for display but need to be sent back for the given input field.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Input field label. There may be more information to be shown in a tooltip.
+    #[serde(default)]
+    pub label: ::core::option::Option<TextWithTooltip>,
+    /// Whether the field is required. The action button needs to stay disabled till values for all required fields are provided.
+    #[serde(default)]
+    pub required: ::core::option::Option<bool>,
+    /// Input field to provide text information. Corresponds to the [html input type=text](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.text.html#input.text) or [html textarea](https://www.w3.org/TR/2012/WD-html-markup-20121025/textarea.html#textarea).
+    #[serde(default, rename = "textInput")]
+    pub text_input: ::core::option::Option<InputFieldTextInput>,
+}
+
+/// Choice input allows merchants to select one of the offered choices. Some choices may be linked to additional input fields that should be displayed under or next to the choice option. The value for the additional input field needs to be provided only when the specific choice is selected by the merchant. For example, additional input field can be hidden or disabled until the merchant selects the specific choice.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputFieldChoiceInput {
+    /// A list of choices. Only one option can be selected.
+    #[serde(default)]
+    pub options: ::core::option::Option<::std::vec::Vec<InputFieldChoiceInputChoiceInputOption>>,
+}
+
+/// A choice that merchant can select.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputFieldChoiceInputChoiceInputOption {
+    /// Input that should be displayed when this option is selected. The additional input will not contain a ChoiceInput.
+    #[serde(default, rename = "additionalInput")]
+    pub additional_input: ::core::option::Option<InputField>,
+    /// Not for display but need to be sent back for the selected choice option.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Short description of the choice option. There may be more information to be shown as a tooltip.
+    #[serde(default)]
+    pub label: ::core::option::Option<TextWithTooltip>,
+}
+
+/// Text input allows merchants to provide a text value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputFieldTextInput {
+    /// Additional info regarding the field to be displayed to merchant. For example, warning to not include personal identifiable information. There may be more information to be shown in a tooltip.
+    #[serde(default, rename = "additionalInfo")]
+    pub additional_info: ::core::option::Option<TextWithTooltip>,
+    /// Text to be used as the [aria-label](https://www.w3.org/TR/WCAG20-TECHS/ARIA14.html) for the input.
+    #[serde(default, rename = "ariaLabel")]
+    pub aria_label: ::core::option::Option<String>,
+    /// Information about the required format. If present, it should be shown close to the input field to help merchants to provide a correct value. For example: "VAT numbers should be in a format similar to SK9999999999"
+    #[serde(default, rename = "formatInfo")]
+    pub format_info: ::core::option::Option<String>,
+    /// Type of the text input // TODO: enum values: ["TEXT_INPUT_TYPE_UNSPECIFIED", "GENERIC_SHORT_TEXT", "GENERIC_LONG_TEXT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Block of text that may contain a tooltip with more information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextWithTooltip {
+    /// Value of the tooltip as a simple text.
+    #[serde(default, rename = "simpleTooltipValue")]
+    pub simple_tooltip_value: ::core::option::Option<String>,
+    /// Value of the message as a simple text.
+    #[serde(default, rename = "simpleValue")]
+    pub simple_value: ::core::option::Option<String>,
+    /// The suggested type of an icon for tooltip, if a tooltip is present. // TODO: enum values: ["TOOLTIP_ICON_STYLE_UNSPECIFIED", "INFO", "QUESTION"]
+    #[serde(default, rename = "tooltipIconStyle")]
+    pub tooltip_icon_style: ::core::option::Option<String>,
 }

@@ -46,240 +46,6 @@ pub struct BatchModifyMessagesRequest {
     pub remove_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Field values for a classification label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClassificationLabelFieldValue {
-    /// Required. The field ID for the Classification Label Value. Maps to the ID field of the Google Drive Label.Field object.
-    #[serde(default, rename = "fieldId")]
-    pub field_id: ::core::option::Option<String>,
-    /// Selection choice ID for the selection option. Should only be set if the field type is SELECTION in the Google Drive Label.Field object. Maps to the id field of the Google Drive Label.Field.SelectionOptions resource.
-    #[serde(default)]
-    pub selection: ::core::option::Option<String>,
-}
-
-/// Classification Labels applied to the email message. Classification Labels are different from Gmail inbox labels. Only used for Google Workspace accounts. [Learn more about classification labels](https://support.google.com/a/answer/9292382).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClassificationLabelValue {
-    /// Field values for the given classification label ID.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<ClassificationLabelFieldValue>>,
-    /// Required. The canonical or raw alphanumeric classification label ID. Maps to the ID field of the Google Drive Label resource.
-    #[serde(default, rename = "labelId")]
-    pub label_id: ::core::option::Option<String>,
-}
-
-/// The client-side encryption (CSE) configuration for the email address of an authenticated user. Gmail uses CSE configurations to save drafts of client-side encrypted email messages, and to sign and send encrypted email messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CseIdentity {
-    /// The email address for the sending identity. The email address must be the primary email address of the authenticated user.
-    #[serde(default, rename = "emailAddress")]
-    pub email_address: ::core::option::Option<String>,
-    /// If a key pair is associated, the ID of the key pair, CseKeyPair.
-    #[serde(default, rename = "primaryKeyPairId")]
-    pub primary_key_pair_id: ::core::option::Option<String>,
-    /// The configuration of a CSE identity that uses different key pairs for signing and encryption.
-    #[serde(default, rename = "signAndEncryptKeyPairs")]
-    pub sign_and_encrypt_key_pairs: ::core::option::Option<SignAndEncryptKeyPairs>,
-}
-
-/// A client-side encryption S/MIME key pair, which is comprised of a public key, its certificate chain, and metadata for its paired private key. Gmail uses the key pair to complete the following tasks: - Sign outgoing client-side encrypted messages. - Save and reopen drafts of client-side encrypted messages. - Save and reopen sent messages. - Decrypt incoming or archived S/MIME messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CseKeyPair {
-    /// Output only. If a key pair is set to DISABLED, the time that the key pair''s state changed from ENABLED to DISABLED. This field is present only when the key pair is in state DISABLED.
-    #[serde(default, rename = "disableTime")]
-    pub disable_time: ::core::option::Option<String>,
-    /// Output only. The current state of the key pair. // TODO: enum values: ["stateUnspecified", "enabled", "disabled"]
-    #[serde(default, rename = "enablementState")]
-    pub enablement_state: ::core::option::Option<String>,
-    /// Output only. The immutable ID for the client-side encryption S/MIME key pair.
-    #[serde(default, rename = "keyPairId")]
-    pub key_pair_id: ::core::option::Option<String>,
-    /// Output only. The public key and its certificate chain, in [PEM](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) format.
-    #[serde(default)]
-    pub pem: ::core::option::Option<String>,
-    /// Input only. The public key and its certificate chain. The chain must be in [PKCS#7](https://en.wikipedia.org/wiki/PKCS_7) format and use PEM encoding and ASCII armor.
-    #[serde(default)]
-    pub pkcs7: ::core::option::Option<String>,
-    /// Metadata for instances of this key pair''s private key.
-    #[serde(default, rename = "privateKeyMetadata")]
-    pub private_key_metadata: ::core::option::Option<::std::vec::Vec<CsePrivateKeyMetadata>>,
-    /// Output only. The email address identities that are specified on the leaf certificate.
-    #[serde(default, rename = "subjectEmailAddresses")]
-    pub subject_email_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Metadata for a private key instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CsePrivateKeyMetadata {
-    /// Metadata for hardware keys.
-    #[serde(default, rename = "hardwareKeyMetadata")]
-    pub hardware_key_metadata: ::core::option::Option<HardwareKeyMetadata>,
-    /// Metadata for a private key instance managed by an external key access control list service.
-    #[serde(default, rename = "kaclsKeyMetadata")]
-    pub kacls_key_metadata: ::core::option::Option<KaclsKeyMetadata>,
-    /// Output only. The immutable ID for the private key metadata instance.
-    #[serde(default, rename = "privateKeyMetadataId")]
-    pub private_key_metadata_id: ::core::option::Option<String>,
-}
-
-/// Settings for a delegate. Delegates can read, send, and delete messages, as well as view and add contacts, for the delegator''s account. See "Set up mail delegation" for more information about delegates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Delegate {
-    /// The email address of the delegate.
-    #[serde(default, rename = "delegateEmail")]
-    pub delegate_email: ::core::option::Option<String>,
-    /// Indicates whether this address has been verified and can act as a delegate for the account. Read-only. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending", "rejected", "expired"]
-    #[serde(default, rename = "verificationStatus")]
-    pub verification_status: ::core::option::Option<String>,
-}
-
-/// A draft email in the user''s mailbox.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Draft {
-    /// The immutable ID of the draft.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The message content of the draft.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// Resource definition for Gmail filters. Filters apply to specific messages instead of an entire email thread.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Filter {
-    /// Action that the filter performs.
-    #[serde(default)]
-    pub action: ::core::option::Option<FilterAction>,
-    /// Matching criteria for the filter.
-    #[serde(default)]
-    pub criteria: ::core::option::Option<FilterCriteria>,
-    /// The server assigned ID of the filter.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// A set of actions to perform on a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterAction {
-    /// List of labels to add to the message.
-    #[serde(default, rename = "addLabelIds")]
-    pub add_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Email address that the message should be forwarded to.
-    #[serde(default)]
-    pub forward: ::core::option::Option<String>,
-    /// List of labels to remove from the message.
-    #[serde(default, rename = "removeLabelIds")]
-    pub remove_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message matching criteria.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterCriteria {
-    /// Whether the response should exclude chats.
-    #[serde(default, rename = "excludeChats")]
-    pub exclude_chats: ::core::option::Option<bool>,
-    /// The sender''s display name or email address.
-    #[serde(default)]
-    pub from: ::core::option::Option<String>,
-    /// Whether the message has any attachment.
-    #[serde(default, rename = "hasAttachment")]
-    pub has_attachment: ::core::option::Option<bool>,
-    /// Only return messages not matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
-    #[serde(default, rename = "negatedQuery")]
-    pub negated_query: ::core::option::Option<String>,
-    /// Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// The size of the entire RFC822 message in bytes, including all headers and attachments.
-    #[serde(default)]
-    pub size: ::core::option::Option<i32>,
-    /// How the message size in bytes should be in relation to the size field. // TODO: enum values: ["unspecified", "smaller", "larger"]
-    #[serde(default, rename = "sizeComparison")]
-    pub size_comparison: ::core::option::Option<String>,
-    /// Case-insensitive phrase found in the message''s subject. Trailing and leading whitespace are be trimmed and adjacent spaces are collapsed.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// The recipient''s display name or email address. Includes recipients in the "to", "cc", and "bcc" header fields. You can use simply the local part of the email address. For example, "example" and "example@" both match "example@gmail.com". This field is case-insensitive.
-    #[serde(default)]
-    pub to: ::core::option::Option<String>,
-}
-
-/// Settings for a forwarding address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ForwardingAddress {
-    /// An email address to which messages can be forwarded.
-    #[serde(default, rename = "forwardingEmail")]
-    pub forwarding_email: ::core::option::Option<String>,
-    /// Indicates whether this address has been verified and is usable for forwarding. Read-only. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending"]
-    #[serde(default, rename = "verificationStatus")]
-    pub verification_status: ::core::option::Option<String>,
-}
-
-/// Metadata for hardware keys. If [hardware key encryption](https://support.google.com/a/answer/14153163) is set up for the Google Workspace organization, users can optionally store their private key on their smart card and use it to sign and decrypt email messages in Gmail by inserting their smart card into a reader attached to their Windows device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HardwareKeyMetadata {
-    /// Description about the hardware key.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-}
-
-/// A record of a change to the user''s mailbox. Each history change may affect multiple messages in multiple ways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct History {
-    /// The mailbox sequence ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Labels added to messages in this history record.
-    #[serde(default, rename = "labelsAdded")]
-    pub labels_added: ::core::option::Option<::std::vec::Vec<HistoryLabelAdded>>,
-    /// Labels removed from messages in this history record.
-    #[serde(default, rename = "labelsRemoved")]
-    pub labels_removed: ::core::option::Option<::std::vec::Vec<HistoryLabelRemoved>>,
-    /// List of messages changed in this history record. The fields for specific change types, such as messagesAdded may duplicate messages in this field. We recommend using the specific change-type fields instead of this.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// Messages added to the mailbox in this history record.
-    #[serde(default, rename = "messagesAdded")]
-    pub messages_added: ::core::option::Option<::std::vec::Vec<HistoryMessageAdded>>,
-    /// Messages deleted (not Trashed) from the mailbox in this history record.
-    #[serde(default, rename = "messagesDeleted")]
-    pub messages_deleted: ::core::option::Option<::std::vec::Vec<HistoryMessageDeleted>>,
-}
-
-/// HistoryLabelAdded resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryLabelAdded {
-    /// Label IDs added to the message.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// HistoryLabelRemoved resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryLabelRemoved {
-    /// Label IDs removed from the message.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// HistoryMessageAdded resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryMessageAdded {
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// HistoryMessageDeleted resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryMessageDeleted {
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
 /// IMAP settings for an account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImapSettings {
@@ -295,63 +61,6 @@ pub struct ImapSettings {
     /// An optional limit on the number of messages that an IMAP folder may contain. Legal values are 0, 1000, 2000, 5000 or 10000. A value of zero is interpreted to mean that there is no limit.
     #[serde(default, rename = "maxFolderSize")]
     pub max_folder_size: ::core::option::Option<i32>,
-}
-
-/// Metadata for private keys managed by an external key access control list service. For details about managing key access, see [Google Workspace CSE API Reference](https://developers.google.com/workspace/cse/reference).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KaclsKeyMetadata {
-    /// Opaque data generated and used by the key access control list service. Maximum size: 8 KiB.
-    #[serde(default, rename = "kaclsData")]
-    pub kacls_data: ::core::option::Option<String>,
-    /// The URI of the key access control list service that manages the private key.
-    #[serde(default, rename = "kaclsUri")]
-    pub kacls_uri: ::core::option::Option<String>,
-}
-
-/// Labels are used to categorize messages and threads within the user''s mailbox. The maximum number of labels supported for a user''s mailbox is 10,000.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Label {
-    /// The color to assign to the label. Color is only available for labels that have their type set to user.
-    #[serde(default)]
-    pub color: ::core::option::Option<LabelColor>,
-    /// The immutable ID of the label.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The visibility of the label in the label list in the Gmail web interface. // TODO: enum values: ["labelShow", "labelShowIfUnread", "labelHide"]
-    #[serde(default, rename = "labelListVisibility")]
-    pub label_list_visibility: ::core::option::Option<String>,
-    /// The visibility of messages with this label in the message list in the Gmail web interface. // TODO: enum values: ["show", "hide"]
-    #[serde(default, rename = "messageListVisibility")]
-    pub message_list_visibility: ::core::option::Option<String>,
-    /// The total number of messages with the label.
-    #[serde(default, rename = "messagesTotal")]
-    pub messages_total: ::core::option::Option<i32>,
-    /// The number of unread messages with the label.
-    #[serde(default, rename = "messagesUnread")]
-    pub messages_unread: ::core::option::Option<i32>,
-    /// The display name of the label.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The total number of threads with the label.
-    #[serde(default, rename = "threadsTotal")]
-    pub threads_total: ::core::option::Option<i32>,
-    /// The number of unread threads with the label.
-    #[serde(default, rename = "threadsUnread")]
-    pub threads_unread: ::core::option::Option<i32>,
-    /// The owner type for the label. User labels are created by the user and can be modified and deleted by the user and can be applied to any message or thread. System labels are internally created and cannot be added, modified, or deleted. System labels may be able to be applied to or removed from messages and threads under some circumstances but this is not guaranteed. For example, users can apply and remove the INBOX and UNREAD labels from messages and threads, but cannot apply or remove the DRAFTS or SENT labels from messages or threads. // TODO: enum values: ["system", "user"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// LabelColor resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LabelColor {
-    /// The background color represented as hex string #RRGGBB (ex #000000). This field is required in order to set the color of a label. Only the following predefined set of color values are allowed: \#000000, #434343, #666666, #999999, #cccccc, #efefef, #f3f3f3, #ffffff, \#fb4c2f, #ffad47, #fad165, #16a766, #43d692, #4a86e8, #a479e2, #f691b3, \#f6c5be, #ffe6c7, #fef1d1, #b9e4d0, #c6f3de, #c9daf8, #e4d7f5, #fcdee8, \#efa093, #ffd6a2, #fce8b3, #89d3b2, #a0eac9, #a4c2f4, #d0bcf1, #fbc8d9, \#e66550, #ffbc6b, #fcda83, #44b984, #68dfa9, #6d9eeb, #b694e8, #f7a7c0, \#cc3a21, #eaa041, #f2c960, #149e60, #3dc789, #3c78d8, #8e63ce, #e07798, \#ac2b16, #cf8933, #d5ae49, #0b804b, #2a9c68, #285bac, #653e9b, #b65775, \#822111, #a46a21, #aa8831, #076239, #1a764d, #1c4587, #41236d, #83334c \#464646, #e7e7e7, #0d3472, #b6cff5, #0d3b44, #98d7e4, #3d188e, #e3d7ff, \#711a36, #fbd3e0, #8a1c0a, #f2b2a8, #7a2e0b, #ffc8af, #7a4706, #ffdeb5, \#594c05, #fbe983, #684e07, #fdedc1, #0b4f30, #b3efd3, #04502e, #a2dcc1, \#c2c2c2, #4986e7, #2da2bb, #b99aff, #994a64, #f691b2, #ff7537, #ffad46, \#662e37, #ebdbde, #cca6ac, #094228, #42d692, #16a765
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<String>,
-    /// The text color of the label, represented as hex string. This field is required in order to set the color of a label. Only the following predefined set of color values are allowed: \#000000, #434343, #666666, #999999, #cccccc, #efefef, #f3f3f3, #ffffff, \#fb4c2f, #ffad47, #fad165, #16a766, #43d692, #4a86e8, #a479e2, #f691b3, \#f6c5be, #ffe6c7, #fef1d1, #b9e4d0, #c6f3de, #c9daf8, #e4d7f5, #fcdee8, \#efa093, #ffd6a2, #fce8b3, #89d3b2, #a0eac9, #a4c2f4, #d0bcf1, #fbc8d9, \#e66550, #ffbc6b, #fcda83, #44b984, #68dfa9, #6d9eeb, #b694e8, #f7a7c0, \#cc3a21, #eaa041, #f2c960, #149e60, #3dc789, #3c78d8, #8e63ce, #e07798, \#ac2b16, #cf8933, #d5ae49, #0b804b, #2a9c68, #285bac, #653e9b, #b65775, \#822111, #a46a21, #aa8831, #076239, #1a764d, #1c4587, #41236d, #83334c \#464646, #e7e7e7, #0d3472, #b6cff5, #0d3b44, #98d7e4, #3d188e, #e3d7ff, \#711a36, #fbd3e0, #8a1c0a, #f2b2a8, #7a2e0b, #ffc8af, #7a4706, #ffdeb5, \#594c05, #fbe983, #684e07, #fdedc1, #0b4f30, #b3efd3, #04502e, #a2dcc1, \#c2c2c2, #4986e7, #2da2bb, #b99aff, #994a64, #f691b2, #ff7537, #ffad46, \#662e37, #ebdbde, #cca6ac, #094228, #42d692, #16a765
-    #[serde(default, rename = "textColor")]
-    pub text_color: ::core::option::Option<String>,
 }
 
 /// Language settings for an account. These settings correspond to the "Language settings" feature in the web interface.
@@ -488,90 +197,6 @@ pub struct ListThreadsResponse {
     pub threads: ::core::option::Option<::std::vec::Vec<Thread>>,
 }
 
-/// An email message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    /// Classification Label values on the message. Available Classification Label schemas can be queried using the Google Drive Labels API. Each classification label ID must be unique. If duplicate IDs are provided, only one will be retained, and the selection is arbitrary. Only used for Google Workspace accounts.
-    #[serde(default, rename = "classificationLabelValues")]
-    pub classification_label_values:
-        ::core::option::Option<::std::vec::Vec<ClassificationLabelValue>>,
-    /// The ID of the last history record that modified this message.
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// The immutable ID of the message.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The internal message creation timestamp (epoch ms), which determines ordering in the inbox. For normal SMTP-received email, this represents the time the message was originally accepted by Google, which is more reliable than the Date header. However, for API-migrated mail, it can be configured by client to be based on the Date header.
-    #[serde(default, rename = "internalDate")]
-    pub internal_date: ::core::option::Option<String>,
-    /// List of IDs of labels applied to this message.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The parsed email structure in the message parts.
-    #[serde(default)]
-    pub payload: ::core::option::Option<MessagePart>,
-    /// The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in messages.get and drafts.get responses when the format=RAW parameter is supplied.
-    #[serde(default)]
-    pub raw: ::core::option::Option<String>,
-    /// Estimated size in bytes of the message.
-    #[serde(default, rename = "sizeEstimate")]
-    pub size_estimate: ::core::option::Option<i32>,
-    /// A short part of the message text.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<String>,
-    /// The ID of the thread the message belongs to. To add a message or draft to a thread, the following criteria must be met: 1. The requested threadId must be specified on the Message or Draft.Message you supply with your request. 2. The References and In-Reply-To headers must be set in compliance with the [RFC 2822](https://tools.ietf.org/html/rfc2822) standard. 3. The Subject headers must match.
-    #[serde(default, rename = "threadId")]
-    pub thread_id: ::core::option::Option<String>,
-}
-
-/// A single MIME message part.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessagePart {
-    /// The message part body for this part, which may be empty for container MIME message parts.
-    #[serde(default)]
-    pub body: ::core::option::Option<MessagePartBody>,
-    /// The filename of the attachment. Only present if this message part represents an attachment.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-    /// List of headers on this message part. For the top-level message part, representing the entire message payload, it will contain the standard RFC 2822 email headers such as To, From, and Subject.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<MessagePartHeader>>,
-    /// The MIME type of the message part.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// The immutable ID of the message part.
-    #[serde(default, rename = "partId")]
-    pub part_id: ::core::option::Option<String>,
-    /// The child MIME message parts of this part. This only applies to container MIME message parts, for example multipart/*. For non- container MIME message part types, such as text/plain, this field is empty. For more information, see RFC 1521.
-    #[serde(default)]
-    pub parts: ::core::option::Option<::std::vec::Vec<MessagePart>>,
-}
-
-/// The body of a single MIME message part.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessagePartBody {
-    /// When present, contains the ID of an external attachment that can be retrieved in a separate messages.attachments.get request. When not present, the entire content of the message part body is contained in the data field.
-    #[serde(default, rename = "attachmentId")]
-    pub attachment_id: ::core::option::Option<String>,
-    /// The body data of a MIME message part as a base64url encoded string. May be empty for MIME container types that have no message body or when the body data is sent as a separate attachment. An attachment ID is present if the body data is contained in a separate attachment.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Number of bytes for the message part data (encoding notwithstanding).
-    #[serde(default)]
-    pub size: ::core::option::Option<i32>,
-}
-
-/// MessagePartHeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessagePartHeader {
-    /// The name of the header before the : separator. For example, To.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The value of the header after the : separator. For example, someuser@example.com.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// ModifyMessageRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModifyMessageRequest {
@@ -620,112 +245,6 @@ pub struct Profile {
     /// The total number of threads in the mailbox.
     #[serde(default, rename = "threadsTotal")]
     pub threads_total: ::core::option::Option<i32>,
-}
-
-/// Settings associated with a send-as alias, which can be either the primary login address associated with the account or a custom "from" address. Send-as aliases correspond to the "Send Mail As" feature in the web interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SendAs {
-    /// A name that appears in the "From:" header for mail sent using this alias. For custom "from" addresses, when this is empty, Gmail will populate the "From:" header with the name that is used for the primary address associated with the account. If the admin has disabled the ability for users to update their name format, requests to update this field for the primary login will silently fail.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Whether this address is selected as the default "From:" address in situations such as composing a new message or sending a vacation auto-reply. Every Gmail account has exactly one default send-as address, so the only legal value that clients may write to this field is true. Changing this from false to true for an address will result in this field becoming false for the other previous default address.
-    #[serde(default, rename = "isDefault")]
-    pub is_default: ::core::option::Option<bool>,
-    /// Whether this address is the primary address used to login to the account. Every Gmail account has exactly one primary address, and it cannot be deleted from the collection of send-as aliases. This field is read-only.
-    #[serde(default, rename = "isPrimary")]
-    pub is_primary: ::core::option::Option<bool>,
-    /// An optional email address that is included in a "Reply-To:" header for mail sent using this alias. If this is empty, Gmail will not generate a "Reply-To:" header.
-    #[serde(default, rename = "replyToAddress")]
-    pub reply_to_address: ::core::option::Option<String>,
-    /// The email address that appears in the "From:" header for mail sent using this alias. This is read-only for all operations except create.
-    #[serde(default, rename = "sendAsEmail")]
-    pub send_as_email: ::core::option::Option<String>,
-    /// An optional HTML signature that is included in messages composed with this alias in the Gmail web UI. This signature is added to new emails only.
-    #[serde(default)]
-    pub signature: ::core::option::Option<String>,
-    /// An optional SMTP service that will be used as an outbound relay for mail sent using this alias. If this is empty, outbound mail will be sent directly from Gmail''s servers to the destination SMTP service. This setting only applies to custom "from" aliases.
-    #[serde(default, rename = "smtpMsa")]
-    pub smtp_msa: ::core::option::Option<SmtpMsa>,
-    /// Whether Gmail should treat this address as an alias for the user''s primary email address. This setting only applies to custom "from" aliases.
-    #[serde(default, rename = "treatAsAlias")]
-    pub treat_as_alias: ::core::option::Option<bool>,
-    /// Indicates whether this address has been verified for use as a send-as alias. Read-only. This setting only applies to custom "from" aliases. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending"]
-    #[serde(default, rename = "verificationStatus")]
-    pub verification_status: ::core::option::Option<String>,
-}
-
-/// The configuration of a CSE identity that uses different key pairs for signing and encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignAndEncryptKeyPairs {
-    /// The ID of the CseKeyPair that encrypts signed outgoing mail.
-    #[serde(default, rename = "encryptionKeyPairId")]
-    pub encryption_key_pair_id: ::core::option::Option<String>,
-    /// The ID of the CseKeyPair that signs outgoing mail.
-    #[serde(default, rename = "signingKeyPairId")]
-    pub signing_key_pair_id: ::core::option::Option<String>,
-}
-
-/// An S/MIME email config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SmimeInfo {
-    /// Encrypted key password, when key is encrypted.
-    #[serde(default, rename = "encryptedKeyPassword")]
-    pub encrypted_key_password: ::core::option::Option<String>,
-    /// When the certificate expires (in milliseconds since epoch).
-    #[serde(default)]
-    pub expiration: ::core::option::Option<String>,
-    /// The immutable ID for the SmimeInfo.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Whether this SmimeInfo is the default one for this user''s send-as address.
-    #[serde(default, rename = "isDefault")]
-    pub is_default: ::core::option::Option<bool>,
-    /// The S/MIME certificate issuer''s common name.
-    #[serde(default, rename = "issuerCn")]
-    pub issuer_cn: ::core::option::Option<String>,
-    /// PEM formatted X509 concatenated certificate string (standard base64 encoding). Format used for returning key, which includes public key as well as certificate chain (not private key).
-    #[serde(default)]
-    pub pem: ::core::option::Option<String>,
-    /// PKCS#12 format containing a single private/public key pair and certificate chain. This format is only accepted from client for creating a new SmimeInfo and is never returned, because the private key is not intended to be exported. PKCS#12 may be encrypted, in which case encryptedKeyPassword should be set appropriately.
-    #[serde(default)]
-    pub pkcs12: ::core::option::Option<String>,
-}
-
-/// Configuration for communication with an SMTP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SmtpMsa {
-    /// The hostname of the SMTP service. Required.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// The password that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// The port of the SMTP service. Required.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// The protocol that will be used to secure communication with the SMTP service. Required. // TODO: enum values: ["securityModeUnspecified", "none", "ssl", "starttls"]
-    #[serde(default, rename = "securityMode")]
-    pub security_mode: ::core::option::Option<String>,
-    /// The username that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// A collection of messages representing a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thread {
-    /// The ID of the last history record that modified this thread.
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// The unique ID of the thread.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The list of messages in the thread.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// A short part of the message text.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<String>,
 }
 
 /// Vacation auto-reply settings for an account. These settings correspond to the "Vacation responder" feature in the web interface.
@@ -783,4 +302,485 @@ pub struct WatchResponse {
     /// The ID of the mailbox''s current history record.
     #[serde(default, rename = "historyId")]
     pub history_id: ::core::option::Option<String>,
+}
+
+/// The client-side encryption (CSE) configuration for the email address of an authenticated user. Gmail uses CSE configurations to save drafts of client-side encrypted email messages, and to sign and send encrypted email messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CseIdentity {
+    /// The email address for the sending identity. The email address must be the primary email address of the authenticated user.
+    #[serde(default, rename = "emailAddress")]
+    pub email_address: ::core::option::Option<String>,
+    /// If a key pair is associated, the ID of the key pair, CseKeyPair.
+    #[serde(default, rename = "primaryKeyPairId")]
+    pub primary_key_pair_id: ::core::option::Option<String>,
+    /// The configuration of a CSE identity that uses different key pairs for signing and encryption.
+    #[serde(default, rename = "signAndEncryptKeyPairs")]
+    pub sign_and_encrypt_key_pairs: ::core::option::Option<SignAndEncryptKeyPairs>,
+}
+
+/// A client-side encryption S/MIME key pair, which is comprised of a public key, its certificate chain, and metadata for its paired private key. Gmail uses the key pair to complete the following tasks: - Sign outgoing client-side encrypted messages. - Save and reopen drafts of client-side encrypted messages. - Save and reopen sent messages. - Decrypt incoming or archived S/MIME messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CseKeyPair {
+    /// Output only. If a key pair is set to DISABLED, the time that the key pair''s state changed from ENABLED to DISABLED. This field is present only when the key pair is in state DISABLED.
+    #[serde(default, rename = "disableTime")]
+    pub disable_time: ::core::option::Option<String>,
+    /// Output only. The current state of the key pair. // TODO: enum values: ["stateUnspecified", "enabled", "disabled"]
+    #[serde(default, rename = "enablementState")]
+    pub enablement_state: ::core::option::Option<String>,
+    /// Output only. The immutable ID for the client-side encryption S/MIME key pair.
+    #[serde(default, rename = "keyPairId")]
+    pub key_pair_id: ::core::option::Option<String>,
+    /// Output only. The public key and its certificate chain, in [PEM](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) format.
+    #[serde(default)]
+    pub pem: ::core::option::Option<String>,
+    /// Input only. The public key and its certificate chain. The chain must be in [PKCS#7](https://en.wikipedia.org/wiki/PKCS_7) format and use PEM encoding and ASCII armor.
+    #[serde(default)]
+    pub pkcs7: ::core::option::Option<String>,
+    /// Metadata for instances of this key pair''s private key.
+    #[serde(default, rename = "privateKeyMetadata")]
+    pub private_key_metadata: ::core::option::Option<::std::vec::Vec<CsePrivateKeyMetadata>>,
+    /// Output only. The email address identities that are specified on the leaf certificate.
+    #[serde(default, rename = "subjectEmailAddresses")]
+    pub subject_email_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Settings for a delegate. Delegates can read, send, and delete messages, as well as view and add contacts, for the delegator''s account. See "Set up mail delegation" for more information about delegates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Delegate {
+    /// The email address of the delegate.
+    #[serde(default, rename = "delegateEmail")]
+    pub delegate_email: ::core::option::Option<String>,
+    /// Indicates whether this address has been verified and can act as a delegate for the account. Read-only. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending", "rejected", "expired"]
+    #[serde(default, rename = "verificationStatus")]
+    pub verification_status: ::core::option::Option<String>,
+}
+
+/// A draft email in the user''s mailbox.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Draft {
+    /// The immutable ID of the draft.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The message content of the draft.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// Resource definition for Gmail filters. Filters apply to specific messages instead of an entire email thread.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Filter {
+    /// Action that the filter performs.
+    #[serde(default)]
+    pub action: ::core::option::Option<FilterAction>,
+    /// Matching criteria for the filter.
+    #[serde(default)]
+    pub criteria: ::core::option::Option<FilterCriteria>,
+    /// The server assigned ID of the filter.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Settings for a forwarding address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForwardingAddress {
+    /// An email address to which messages can be forwarded.
+    #[serde(default, rename = "forwardingEmail")]
+    pub forwarding_email: ::core::option::Option<String>,
+    /// Indicates whether this address has been verified and is usable for forwarding. Read-only. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending"]
+    #[serde(default, rename = "verificationStatus")]
+    pub verification_status: ::core::option::Option<String>,
+}
+
+/// A record of a change to the user''s mailbox. Each history change may affect multiple messages in multiple ways.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct History {
+    /// The mailbox sequence ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Labels added to messages in this history record.
+    #[serde(default, rename = "labelsAdded")]
+    pub labels_added: ::core::option::Option<::std::vec::Vec<HistoryLabelAdded>>,
+    /// Labels removed from messages in this history record.
+    #[serde(default, rename = "labelsRemoved")]
+    pub labels_removed: ::core::option::Option<::std::vec::Vec<HistoryLabelRemoved>>,
+    /// List of messages changed in this history record. The fields for specific change types, such as messagesAdded may duplicate messages in this field. We recommend using the specific change-type fields instead of this.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// Messages added to the mailbox in this history record.
+    #[serde(default, rename = "messagesAdded")]
+    pub messages_added: ::core::option::Option<::std::vec::Vec<HistoryMessageAdded>>,
+    /// Messages deleted (not Trashed) from the mailbox in this history record.
+    #[serde(default, rename = "messagesDeleted")]
+    pub messages_deleted: ::core::option::Option<::std::vec::Vec<HistoryMessageDeleted>>,
+}
+
+/// Labels are used to categorize messages and threads within the user''s mailbox. The maximum number of labels supported for a user''s mailbox is 10,000.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Label {
+    /// The color to assign to the label. Color is only available for labels that have their type set to user.
+    #[serde(default)]
+    pub color: ::core::option::Option<LabelColor>,
+    /// The immutable ID of the label.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The visibility of the label in the label list in the Gmail web interface. // TODO: enum values: ["labelShow", "labelShowIfUnread", "labelHide"]
+    #[serde(default, rename = "labelListVisibility")]
+    pub label_list_visibility: ::core::option::Option<String>,
+    /// The visibility of messages with this label in the message list in the Gmail web interface. // TODO: enum values: ["show", "hide"]
+    #[serde(default, rename = "messageListVisibility")]
+    pub message_list_visibility: ::core::option::Option<String>,
+    /// The total number of messages with the label.
+    #[serde(default, rename = "messagesTotal")]
+    pub messages_total: ::core::option::Option<i32>,
+    /// The number of unread messages with the label.
+    #[serde(default, rename = "messagesUnread")]
+    pub messages_unread: ::core::option::Option<i32>,
+    /// The display name of the label.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The total number of threads with the label.
+    #[serde(default, rename = "threadsTotal")]
+    pub threads_total: ::core::option::Option<i32>,
+    /// The number of unread threads with the label.
+    #[serde(default, rename = "threadsUnread")]
+    pub threads_unread: ::core::option::Option<i32>,
+    /// The owner type for the label. User labels are created by the user and can be modified and deleted by the user and can be applied to any message or thread. System labels are internally created and cannot be added, modified, or deleted. System labels may be able to be applied to or removed from messages and threads under some circumstances but this is not guaranteed. For example, users can apply and remove the INBOX and UNREAD labels from messages and threads, but cannot apply or remove the DRAFTS or SENT labels from messages or threads. // TODO: enum values: ["system", "user"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Settings associated with a send-as alias, which can be either the primary login address associated with the account or a custom "from" address. Send-as aliases correspond to the "Send Mail As" feature in the web interface.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendAs {
+    /// A name that appears in the "From:" header for mail sent using this alias. For custom "from" addresses, when this is empty, Gmail will populate the "From:" header with the name that is used for the primary address associated with the account. If the admin has disabled the ability for users to update their name format, requests to update this field for the primary login will silently fail.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Whether this address is selected as the default "From:" address in situations such as composing a new message or sending a vacation auto-reply. Every Gmail account has exactly one default send-as address, so the only legal value that clients may write to this field is true. Changing this from false to true for an address will result in this field becoming false for the other previous default address.
+    #[serde(default, rename = "isDefault")]
+    pub is_default: ::core::option::Option<bool>,
+    /// Whether this address is the primary address used to login to the account. Every Gmail account has exactly one primary address, and it cannot be deleted from the collection of send-as aliases. This field is read-only.
+    #[serde(default, rename = "isPrimary")]
+    pub is_primary: ::core::option::Option<bool>,
+    /// An optional email address that is included in a "Reply-To:" header for mail sent using this alias. If this is empty, Gmail will not generate a "Reply-To:" header.
+    #[serde(default, rename = "replyToAddress")]
+    pub reply_to_address: ::core::option::Option<String>,
+    /// The email address that appears in the "From:" header for mail sent using this alias. This is read-only for all operations except create.
+    #[serde(default, rename = "sendAsEmail")]
+    pub send_as_email: ::core::option::Option<String>,
+    /// An optional HTML signature that is included in messages composed with this alias in the Gmail web UI. This signature is added to new emails only.
+    #[serde(default)]
+    pub signature: ::core::option::Option<String>,
+    /// An optional SMTP service that will be used as an outbound relay for mail sent using this alias. If this is empty, outbound mail will be sent directly from Gmail''s servers to the destination SMTP service. This setting only applies to custom "from" aliases.
+    #[serde(default, rename = "smtpMsa")]
+    pub smtp_msa: ::core::option::Option<SmtpMsa>,
+    /// Whether Gmail should treat this address as an alias for the user''s primary email address. This setting only applies to custom "from" aliases.
+    #[serde(default, rename = "treatAsAlias")]
+    pub treat_as_alias: ::core::option::Option<bool>,
+    /// Indicates whether this address has been verified for use as a send-as alias. Read-only. This setting only applies to custom "from" aliases. // TODO: enum values: ["verificationStatusUnspecified", "accepted", "pending"]
+    #[serde(default, rename = "verificationStatus")]
+    pub verification_status: ::core::option::Option<String>,
+}
+
+/// An S/MIME email config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmimeInfo {
+    /// Encrypted key password, when key is encrypted.
+    #[serde(default, rename = "encryptedKeyPassword")]
+    pub encrypted_key_password: ::core::option::Option<String>,
+    /// When the certificate expires (in milliseconds since epoch).
+    #[serde(default)]
+    pub expiration: ::core::option::Option<String>,
+    /// The immutable ID for the SmimeInfo.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Whether this SmimeInfo is the default one for this user''s send-as address.
+    #[serde(default, rename = "isDefault")]
+    pub is_default: ::core::option::Option<bool>,
+    /// The S/MIME certificate issuer''s common name.
+    #[serde(default, rename = "issuerCn")]
+    pub issuer_cn: ::core::option::Option<String>,
+    /// PEM formatted X509 concatenated certificate string (standard base64 encoding). Format used for returning key, which includes public key as well as certificate chain (not private key).
+    #[serde(default)]
+    pub pem: ::core::option::Option<String>,
+    /// PKCS#12 format containing a single private/public key pair and certificate chain. This format is only accepted from client for creating a new SmimeInfo and is never returned, because the private key is not intended to be exported. PKCS#12 may be encrypted, in which case encryptedKeyPassword should be set appropriately.
+    #[serde(default)]
+    pub pkcs12: ::core::option::Option<String>,
+}
+
+/// A collection of messages representing a conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Thread {
+    /// The ID of the last history record that modified this thread.
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// The unique ID of the thread.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The list of messages in the thread.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// A short part of the message text.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<String>,
+}
+
+/// The configuration of a CSE identity that uses different key pairs for signing and encryption.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignAndEncryptKeyPairs {
+    /// The ID of the CseKeyPair that encrypts signed outgoing mail.
+    #[serde(default, rename = "encryptionKeyPairId")]
+    pub encryption_key_pair_id: ::core::option::Option<String>,
+    /// The ID of the CseKeyPair that signs outgoing mail.
+    #[serde(default, rename = "signingKeyPairId")]
+    pub signing_key_pair_id: ::core::option::Option<String>,
+}
+
+/// Metadata for a private key instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsePrivateKeyMetadata {
+    /// Metadata for hardware keys.
+    #[serde(default, rename = "hardwareKeyMetadata")]
+    pub hardware_key_metadata: ::core::option::Option<HardwareKeyMetadata>,
+    /// Metadata for a private key instance managed by an external key access control list service.
+    #[serde(default, rename = "kaclsKeyMetadata")]
+    pub kacls_key_metadata: ::core::option::Option<KaclsKeyMetadata>,
+    /// Output only. The immutable ID for the private key metadata instance.
+    #[serde(default, rename = "privateKeyMetadataId")]
+    pub private_key_metadata_id: ::core::option::Option<String>,
+}
+
+/// A set of actions to perform on a message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterAction {
+    /// List of labels to add to the message.
+    #[serde(default, rename = "addLabelIds")]
+    pub add_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Email address that the message should be forwarded to.
+    #[serde(default)]
+    pub forward: ::core::option::Option<String>,
+    /// List of labels to remove from the message.
+    #[serde(default, rename = "removeLabelIds")]
+    pub remove_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message matching criteria.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterCriteria {
+    /// Whether the response should exclude chats.
+    #[serde(default, rename = "excludeChats")]
+    pub exclude_chats: ::core::option::Option<bool>,
+    /// The sender''s display name or email address.
+    #[serde(default)]
+    pub from: ::core::option::Option<String>,
+    /// Whether the message has any attachment.
+    #[serde(default, rename = "hasAttachment")]
+    pub has_attachment: ::core::option::Option<bool>,
+    /// Only return messages not matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
+    #[serde(default, rename = "negatedQuery")]
+    pub negated_query: ::core::option::Option<String>,
+    /// Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// The size of the entire RFC822 message in bytes, including all headers and attachments.
+    #[serde(default)]
+    pub size: ::core::option::Option<i32>,
+    /// How the message size in bytes should be in relation to the size field. // TODO: enum values: ["unspecified", "smaller", "larger"]
+    #[serde(default, rename = "sizeComparison")]
+    pub size_comparison: ::core::option::Option<String>,
+    /// Case-insensitive phrase found in the message''s subject. Trailing and leading whitespace are be trimmed and adjacent spaces are collapsed.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// The recipient''s display name or email address. Includes recipients in the "to", "cc", and "bcc" header fields. You can use simply the local part of the email address. For example, "example" and "example@" both match "example@gmail.com". This field is case-insensitive.
+    #[serde(default)]
+    pub to: ::core::option::Option<String>,
+}
+
+/// HistoryLabelAdded resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryLabelAdded {
+    /// Label IDs added to the message.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// HistoryLabelRemoved resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryLabelRemoved {
+    /// Label IDs removed from the message.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// HistoryMessageAdded resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryMessageAdded {
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// HistoryMessageDeleted resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryMessageDeleted {
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// LabelColor resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LabelColor {
+    /// The background color represented as hex string #RRGGBB (ex #000000). This field is required in order to set the color of a label. Only the following predefined set of color values are allowed: \#000000, #434343, #666666, #999999, #cccccc, #efefef, #f3f3f3, #ffffff, \#fb4c2f, #ffad47, #fad165, #16a766, #43d692, #4a86e8, #a479e2, #f691b3, \#f6c5be, #ffe6c7, #fef1d1, #b9e4d0, #c6f3de, #c9daf8, #e4d7f5, #fcdee8, \#efa093, #ffd6a2, #fce8b3, #89d3b2, #a0eac9, #a4c2f4, #d0bcf1, #fbc8d9, \#e66550, #ffbc6b, #fcda83, #44b984, #68dfa9, #6d9eeb, #b694e8, #f7a7c0, \#cc3a21, #eaa041, #f2c960, #149e60, #3dc789, #3c78d8, #8e63ce, #e07798, \#ac2b16, #cf8933, #d5ae49, #0b804b, #2a9c68, #285bac, #653e9b, #b65775, \#822111, #a46a21, #aa8831, #076239, #1a764d, #1c4587, #41236d, #83334c \#464646, #e7e7e7, #0d3472, #b6cff5, #0d3b44, #98d7e4, #3d188e, #e3d7ff, \#711a36, #fbd3e0, #8a1c0a, #f2b2a8, #7a2e0b, #ffc8af, #7a4706, #ffdeb5, \#594c05, #fbe983, #684e07, #fdedc1, #0b4f30, #b3efd3, #04502e, #a2dcc1, \#c2c2c2, #4986e7, #2da2bb, #b99aff, #994a64, #f691b2, #ff7537, #ffad46, \#662e37, #ebdbde, #cca6ac, #094228, #42d692, #16a765
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<String>,
+    /// The text color of the label, represented as hex string. This field is required in order to set the color of a label. Only the following predefined set of color values are allowed: \#000000, #434343, #666666, #999999, #cccccc, #efefef, #f3f3f3, #ffffff, \#fb4c2f, #ffad47, #fad165, #16a766, #43d692, #4a86e8, #a479e2, #f691b3, \#f6c5be, #ffe6c7, #fef1d1, #b9e4d0, #c6f3de, #c9daf8, #e4d7f5, #fcdee8, \#efa093, #ffd6a2, #fce8b3, #89d3b2, #a0eac9, #a4c2f4, #d0bcf1, #fbc8d9, \#e66550, #ffbc6b, #fcda83, #44b984, #68dfa9, #6d9eeb, #b694e8, #f7a7c0, \#cc3a21, #eaa041, #f2c960, #149e60, #3dc789, #3c78d8, #8e63ce, #e07798, \#ac2b16, #cf8933, #d5ae49, #0b804b, #2a9c68, #285bac, #653e9b, #b65775, \#822111, #a46a21, #aa8831, #076239, #1a764d, #1c4587, #41236d, #83334c \#464646, #e7e7e7, #0d3472, #b6cff5, #0d3b44, #98d7e4, #3d188e, #e3d7ff, \#711a36, #fbd3e0, #8a1c0a, #f2b2a8, #7a2e0b, #ffc8af, #7a4706, #ffdeb5, \#594c05, #fbe983, #684e07, #fdedc1, #0b4f30, #b3efd3, #04502e, #a2dcc1, \#c2c2c2, #4986e7, #2da2bb, #b99aff, #994a64, #f691b2, #ff7537, #ffad46, \#662e37, #ebdbde, #cca6ac, #094228, #42d692, #16a765
+    #[serde(default, rename = "textColor")]
+    pub text_color: ::core::option::Option<String>,
+}
+
+/// Configuration for communication with an SMTP service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmtpMsa {
+    /// The hostname of the SMTP service. Required.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// The password that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// The port of the SMTP service. Required.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// The protocol that will be used to secure communication with the SMTP service. Required. // TODO: enum values: ["securityModeUnspecified", "none", "ssl", "starttls"]
+    #[serde(default, rename = "securityMode")]
+    pub security_mode: ::core::option::Option<String>,
+    /// The username that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Metadata for hardware keys. If [hardware key encryption](https://support.google.com/a/answer/14153163) is set up for the Google Workspace organization, users can optionally store their private key on their smart card and use it to sign and decrypt email messages in Gmail by inserting their smart card into a reader attached to their Windows device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HardwareKeyMetadata {
+    /// Description about the hardware key.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+}
+
+/// Metadata for private keys managed by an external key access control list service. For details about managing key access, see [Google Workspace CSE API Reference](https://developers.google.com/workspace/cse/reference).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KaclsKeyMetadata {
+    /// Opaque data generated and used by the key access control list service. Maximum size: 8 KiB.
+    #[serde(default, rename = "kaclsData")]
+    pub kacls_data: ::core::option::Option<String>,
+    /// The URI of the key access control list service that manages the private key.
+    #[serde(default, rename = "kaclsUri")]
+    pub kacls_uri: ::core::option::Option<String>,
+}
+
+/// An email message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    /// Classification Label values on the message. Available Classification Label schemas can be queried using the Google Drive Labels API. Each classification label ID must be unique. If duplicate IDs are provided, only one will be retained, and the selection is arbitrary. Only used for Google Workspace accounts.
+    #[serde(default, rename = "classificationLabelValues")]
+    pub classification_label_values:
+        ::core::option::Option<::std::vec::Vec<ClassificationLabelValue>>,
+    /// The ID of the last history record that modified this message.
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// The immutable ID of the message.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The internal message creation timestamp (epoch ms), which determines ordering in the inbox. For normal SMTP-received email, this represents the time the message was originally accepted by Google, which is more reliable than the Date header. However, for API-migrated mail, it can be configured by client to be based on the Date header.
+    #[serde(default, rename = "internalDate")]
+    pub internal_date: ::core::option::Option<String>,
+    /// List of IDs of labels applied to this message.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The parsed email structure in the message parts.
+    #[serde(default)]
+    pub payload: ::core::option::Option<MessagePart>,
+    /// The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in messages.get and drafts.get responses when the format=RAW parameter is supplied.
+    #[serde(default)]
+    pub raw: ::core::option::Option<String>,
+    /// Estimated size in bytes of the message.
+    #[serde(default, rename = "sizeEstimate")]
+    pub size_estimate: ::core::option::Option<i32>,
+    /// A short part of the message text.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<String>,
+    /// The ID of the thread the message belongs to. To add a message or draft to a thread, the following criteria must be met: 1. The requested threadId must be specified on the Message or Draft.Message you supply with your request. 2. The References and In-Reply-To headers must be set in compliance with the [RFC 2822](https://tools.ietf.org/html/rfc2822) standard. 3. The Subject headers must match.
+    #[serde(default, rename = "threadId")]
+    pub thread_id: ::core::option::Option<String>,
+}
+
+/// Classification Labels applied to the email message. Classification Labels are different from Gmail inbox labels. Only used for Google Workspace accounts. [Learn more about classification labels](https://support.google.com/a/answer/9292382).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClassificationLabelValue {
+    /// Field values for the given classification label ID.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<ClassificationLabelFieldValue>>,
+    /// Required. The canonical or raw alphanumeric classification label ID. Maps to the ID field of the Google Drive Label resource.
+    #[serde(default, rename = "labelId")]
+    pub label_id: ::core::option::Option<String>,
+}
+
+/// A single MIME message part.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePart {
+    /// The message part body for this part, which may be empty for container MIME message parts.
+    #[serde(default)]
+    pub body: ::core::option::Option<MessagePartBody>,
+    /// The filename of the attachment. Only present if this message part represents an attachment.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
+    /// List of headers on this message part. For the top-level message part, representing the entire message payload, it will contain the standard RFC 2822 email headers such as To, From, and Subject.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<MessagePartHeader>>,
+    /// The MIME type of the message part.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// The immutable ID of the message part.
+    #[serde(default, rename = "partId")]
+    pub part_id: ::core::option::Option<String>,
+    /// The child MIME message parts of this part. This only applies to container MIME message parts, for example multipart/*. For non- container MIME message part types, such as text/plain, this field is empty. For more information, see RFC 1521.
+    #[serde(default)]
+    pub parts: ::core::option::Option<::std::vec::Vec<MessagePart>>,
+}
+
+/// Field values for a classification label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClassificationLabelFieldValue {
+    /// Required. The field ID for the Classification Label Value. Maps to the ID field of the Google Drive Label.Field object.
+    #[serde(default, rename = "fieldId")]
+    pub field_id: ::core::option::Option<String>,
+    /// Selection choice ID for the selection option. Should only be set if the field type is SELECTION in the Google Drive Label.Field object. Maps to the id field of the Google Drive Label.Field.SelectionOptions resource.
+    #[serde(default)]
+    pub selection: ::core::option::Option<String>,
+}
+
+/// The body of a single MIME message part.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePartBody {
+    /// When present, contains the ID of an external attachment that can be retrieved in a separate messages.attachments.get request. When not present, the entire content of the message part body is contained in the data field.
+    #[serde(default, rename = "attachmentId")]
+    pub attachment_id: ::core::option::Option<String>,
+    /// The body data of a MIME message part as a base64url encoded string. May be empty for MIME container types that have no message body or when the body data is sent as a separate attachment. An attachment ID is present if the body data is contained in a separate attachment.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Number of bytes for the message part data (encoding notwithstanding).
+    #[serde(default)]
+    pub size: ::core::option::Option<i32>,
+}
+
+/// MessagePartHeader resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePartHeader {
+    /// The name of the header before the : separator. For example, To.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The value of the header after the : separator. For example, someuser@example.com.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

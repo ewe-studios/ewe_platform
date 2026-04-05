@@ -10,41 +10,478 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// AuthorizedNetwork contains metadata for an authorized network.
+/// Operation metadata returned by the CLH during resource state reconciliation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthorizedNetwork {
-    /// CIDR range for one authorzied network of the instance.
-    #[serde(default, rename = "cidrRange")]
-    pub cidr_range: ::core::option::Option<String>,
+pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
+    /// DEPRECATED. Use exclusive_action instead.
+    #[serde(default, rename = "deleteResource")]
+    pub delete_resource: ::core::option::Option<bool>,
+    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
+    #[serde(default, rename = "exclusiveAction")]
+    pub exclusive_action: ::core::option::Option<String>,
 }
 
-/// Message describing the user-specified automated backup policy. All fields in the automated backup policy are optional. Defaults for each field are provided if they are not set.
+/// ConnectionInfo singleton resource. https://google.aip.dev/156
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutomatedBackupPolicy {
-    /// The length of the time window during which a backup can be taken. If a backup does not succeed within this time window, it will be canceled and considered failed. The backup window must be at least 5 minutes long. There is no upper bound on the window. If not set, it defaults to 1 hour.
-    #[serde(default, rename = "backupWindow")]
-    pub backup_window: ::core::option::Option<String>,
-    /// Whether automated automated backups are enabled. If not set, defaults to true.
+pub struct ConnectionInfo {
+    /// Output only. The unique ID of the Instance.
+    #[serde(default, rename = "instanceUid")]
+    pub instance_uid: ::core::option::Option<String>,
+    /// Output only. The private network IP address for the Instance. This is the default IP for the instance and is always created (even if enable_public_ip is set). This is the connection endpoint for an end-user application.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// The name of the ConnectionInfo singleton resource, e.g.: projects/{project}/locations/{location}/clusters/*/instances/*/connectionInfo This field currently has no semantic meaning.
     #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster''s encryption config.
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// Labels to apply to backups created using this configuration.
+    pub name: ::core::option::Option<String>,
+    /// Output only. The public IP addresses for the Instance. This is available ONLY when enable_public_ip is set. This is the connection endpoint for an end-user application.
+    #[serde(default, rename = "publicIpAddress")]
+    pub public_ip_address: ::core::option::Option<String>,
+}
+
+/// Export cluster request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportClusterRequest {
+    /// Options for exporting data in CSV format. Required field to be set for CSV file type.
+    #[serde(default, rename = "csvExportOptions")]
+    pub csv_export_options: ::core::option::Option<CsvExportOptions>,
+    /// Required. Name of the database where the export command will be executed. Note - Value provided should be the same as expected from SELECT current_database(); and NOT as a resource reference.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Required. Option to export data to cloud storage.
+    #[serde(default, rename = "gcsDestination")]
+    pub gcs_destination: ::core::option::Option<GcsDestination>,
+    /// Options for exporting data in SQL format. Required field to be set for SQL file type.
+    #[serde(default, rename = "sqlExportOptions")]
+    pub sql_export_options: ::core::option::Option<SqlExportOptions>,
+}
+
+/// Response of export cluster rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportClusterResponse {
+    /// Required. Option to export data to cloud storage.
+    #[serde(default, rename = "gcsDestination")]
+    pub gcs_destination: ::core::option::Option<GcsDestination>,
+}
+
+/// Message for triggering failover on an Instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FailoverInstanceRequest {
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Import cluster request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportClusterRequest {
+    /// Options for importing data in CSV format.
+    #[serde(default, rename = "csvImportOptions")]
+    pub csv_import_options: ::core::option::Option<CsvImportOptions>,
+    /// Optional. Name of the database to which the import will be done. For import from SQL file, this is required only if the file does not specify a database. Note - Value provided should be the same as expected from SELECT current_database(); and NOT as a resource reference.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Required. The path to the file in Google Cloud Storage where the source file for import will be stored. The URI is in the form gs://bucketName/fileName.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// Options for importing data in SQL format.
+    #[serde(default, rename = "sqlImportOptions")]
+    pub sql_import_options: ::core::option::Option<serde_json::Value>,
+    /// Optional. Database user to be used for importing the data. Note - Value provided should be the same as expected from SELECT current_user; and NOT as a resource reference.
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
+/// Response of import rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportClusterResponse {
+    /// Required. Size of the object downloaded from Google Cloud Storage in bytes.
+    #[serde(default, rename = "bytesDownloaded")]
+    pub bytes_downloaded: ::core::option::Option<String>,
+}
+
+/// Message for triggering fault injection on an instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InjectFaultRequest {
+    /// Required. The type of fault to be injected in an instance. // TODO: enum values: ["FAULT_TYPE_UNSPECIFIED", "STOP_VM"]
+    #[serde(default, rename = "faultType")]
+    pub fault_type: ::core::option::Option<String>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Message for response to listing Backups
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBackupsResponse {
+    /// The list of Backup
+    #[serde(default)]
+    pub backups: ::core::option::Option<::std::vec::Vec<Backup>>,
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to listing Clusters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListClustersResponse {
+    /// The list of Cluster
+    #[serde(default)]
+    pub clusters: ::core::option::Option<::std::vec::Vec<Cluster>>,
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to listing Instances
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstancesResponse {
+    /// The list of Instance
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for response to listing SupportedDatabaseFlags.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSupportedDatabaseFlagsResponse {
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of SupportedDatabaseFlags.
+    #[serde(default, rename = "supportedDatabaseFlags")]
+    pub supported_database_flags: ::core::option::Option<::std::vec::Vec<SupportedDatabaseFlag>>,
+}
+
+/// Message for response to listing Users
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListUsersResponse {
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The list of User
+    #[serde(default)]
+    pub users: ::core::option::Option<::std::vec::Vec<User>>,
+}
+
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. UpgradeClusterStatus related metadata.
+    #[serde(default, rename = "upgradeClusterStatus")]
+    pub upgrade_cluster_status: ::core::option::Option<UpgradeClusterStatus>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Message for promoting a Cluster
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromoteClusterRequest {
+    /// Optional. The current etag of the Cluster. If an etag is provided and does not match the current etag of the Cluster, deletion will be blocked and an ABORTED error will be returned.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// RestartInstanceRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartInstanceRequest {
+    /// Optional. Full name of the nodes as obtained from INSTANCE_VIEW_FULL to restart upon. Applicable only to read instances.
+    #[serde(default, rename = "nodeIds")]
+    pub node_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Message for restoring a Cluster from a backup or another cluster at a given point in time. NEXT_ID: 11
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreClusterRequest {
+    /// Backup source.
+    #[serde(default, rename = "backupSource")]
+    pub backup_source: ::core::option::Option<BackupSource>,
+    /// BackupDR backup source.
+    #[serde(default, rename = "backupdrBackupSource")]
+    pub backupdr_backup_source: ::core::option::Option<BackupDrBackupSource>,
+    /// BackupDR source used for point in time recovery.
+    #[serde(default, rename = "backupdrPitrSource")]
+    pub backupdr_pitr_source: ::core::option::Option<BackupDrPitrSource>,
+    /// Required. The resource being created
+    #[serde(default)]
+    pub cluster: ::core::option::Option<Cluster>,
+    /// Required. ID of the requesting object.
+    #[serde(default, rename = "clusterId")]
+    pub cluster_id: ::core::option::Option<String>,
+    /// ContinuousBackup source. Continuous backup needs to be enabled in the source cluster for this operation to succeed.
+    #[serde(default, rename = "continuousBackupSource")]
+    pub continuous_backup_source: ::core::option::Option<ContinuousBackupSource>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Message for registering Restoring from CloudSQL resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreFromCloudSQLRequest {
+    /// Cluster created from CloudSQL backup run.
+    #[serde(default, rename = "cloudsqlBackupRunSource")]
+    pub cloudsql_backup_run_source: ::core::option::Option<CloudSQLBackupRunSource>,
+    /// Required. The resource being created
+    #[serde(default)]
+    pub cluster: ::core::option::Option<Cluster>,
+    /// Required. ID of the requesting object.
+    #[serde(default, rename = "clusterId")]
+    pub cluster_id: ::core::option::Option<String>,
+}
+
+/// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceFeed {
+    /// BackupDR metadata is used to ingest metadata from BackupDR.
+    #[serde(default, rename = "backupdrMetadata")]
+    pub backupdr_metadata:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupDRMetadata>,
+    /// Config based signal data is used to ingest signals that are generated based on the configuration of the database resource.
+    #[serde(default, rename = "configBasedSignalData")]
+    pub config_based_signal_data:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainConfigBasedSignalData>,
+    /// Database resource signal data is used to ingest signals from database resource signal feeds.
+    #[serde(default, rename = "databaseResourceSignalData")]
+    pub database_resource_signal_data:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData>,
+    /// Required. Timestamp when feed is generated.
+    #[serde(default, rename = "feedTimestamp")]
+    pub feed_timestamp: ::core::option::Option<String>,
+    /// Required. Type feed to be ingested into condor // TODO: enum values: ["FEEDTYPE_UNSPECIFIED", "RESOURCE_METADATA", "OBSERVABILITY_DATA", "SECURITY_FINDING_DATA", "RECOMMENDATION_SIGNAL_DATA", "CONFIG_BASED_SIGNAL_DATA", "BACKUPDR_METADATA", "DATABASE_RESOURCE_SIGNAL_DATA"]
+    #[serde(default, rename = "feedType")]
+    pub feed_type: ::core::option::Option<String>,
+    #[serde(default, rename = "observabilityMetricData")]
+    pub observability_metric_data:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainObservabilityMetricData>,
+    #[serde(default, rename = "recommendationSignalData")]
+    pub recommendation_signal_data: ::core::option::Option<
+        StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalData,
+    >,
+    #[serde(default, rename = "resourceHealthSignalData")]
+    pub resource_health_signal_data: ::core::option::Option<
+        StorageDatabasecenterPartnerapiV1mainDatabaseResourceHealthSignalData,
+    >,
+    /// Primary key associated with the Resource. resource_id is available in individual feed level as well.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
+    #[serde(default, rename = "resourceMetadata")]
+    pub resource_metadata:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceMetadata>,
+    /// Optional. If true, the feed won''t be ingested by DB Center. This indicates that the feed is intentionally skipped. For example, BackupDR feeds are only needed for resources integrated with DB Center (e.g., CloudSQL, AlloyDB). Feeds for non-integrated resources (e.g., Compute Engine, Persistent Disk) can be skipped.
+    #[serde(default, rename = "skipIngestion")]
+    pub skip_ingestion: ::core::option::Option<bool>,
+}
+
+/// Restrictions on STRING type values
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StringRestrictions {
+    /// The list of allowed values, if bounded. This field will be empty if there is a unbounded number of allowed values.
+    #[serde(default, rename = "allowedValues")]
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for switching over to a cluster
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwitchoverClusterRequest {
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Upgrades a cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeClusterRequest {
+    /// Optional. The current etag of the Cluster. If an etag is provided and does not match the current etag of the Cluster, upgrade will be blocked and an ABORTED error will be returned.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+    /// Required. The version the cluster is going to be upgraded to. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// UpgradeClusterResponse contains the response for upgrade cluster operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeClusterResponse {
+    /// Array of upgrade details for the current cluster and all the secondary clusters associated with this cluster.
+    #[serde(default, rename = "clusterUpgradeDetails")]
+    pub cluster_upgrade_details: ::core::option::Option<::std::vec::Vec<ClusterUpgradeDetails>>,
+    /// A user friendly message summarising the upgrade operation details and the next steps for the user if there is any.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Status of upgrade operation. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Options for exporting data in CSV format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsvExportOptions {
+    /// Optional. Specifies the character that should appear before a data character that needs to be escaped. The default is the same as quote character. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "escapeCharacter")]
+    pub escape_character: ::core::option::Option<String>,
+    /// Optional. Specifies the character that separates columns within each row (line) of the file. The default is comma. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "fieldDelimiter")]
+    pub field_delimiter: ::core::option::Option<String>,
+    /// Optional. Specifies the quoting character to be used when a data value is quoted. The default is double-quote. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "quoteCharacter")]
+    pub quote_character: ::core::option::Option<String>,
+    /// Required. The SELECT query used to extract the data.
+    #[serde(default, rename = "selectQuery")]
+    pub select_query: ::core::option::Option<String>,
+}
+
+/// Options for exporting data in SQL format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlExportOptions {
+    /// Optional. If true, output commands to DROP all the dumped database objects prior to outputting the commands for creating them.
+    #[serde(default, rename = "cleanTargetObjects")]
+    pub clean_target_objects: ::core::option::Option<bool>,
+    /// Optional. If true, use DROP ... IF EXISTS commands to check for the object''s existence before dropping it in clean_target_objects mode.
+    #[serde(default, rename = "ifExistTargetObjects")]
+    pub if_exist_target_objects: ::core::option::Option<bool>,
+    /// Optional. If true, only export the schema.
+    #[serde(default, rename = "schemaOnly")]
+    pub schema_only: ::core::option::Option<bool>,
+    /// Optional. Tables to export from.
+    #[serde(default)]
+    pub tables: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Destination for Export. Export will be done to cloud storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsDestination {
+    /// Required. The path to the file in Google Cloud Storage where the export will be stored. The URI is in the form gs://bucketName/fileName.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationLocation {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
     pub labels: ::core::option::Option<serde_json::Value>,
-    /// The location where the backup will be stored. Currently, the only supported option is to store the backup in the same region as the cluster. If empty, defaults to the region of the cluster.
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Quantity-based Backup retention policy to retain recent backups.
-    #[serde(default, rename = "quantityBasedRetention")]
-    pub quantity_based_retention: ::core::option::Option<QuantityBasedRetention>,
-    /// Time-based Backup retention policy.
-    #[serde(default, rename = "timeBasedRetention")]
-    pub time_based_retention: ::core::option::Option<TimeBasedRetention>,
-    /// Weekly schedule for the Backup.
-    #[serde(default, rename = "weeklySchedule")]
-    pub weekly_schedule: ::core::option::Option<WeeklySchedule>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Options for importing data in CSV format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsvImportOptions {
+    /// Optional. The columns to which CSV data is imported. If not specified, all columns of the database table are loaded with CSV data.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Specifies the character that should appear before a data character that needs to be escaped. The default is same as quote character. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "escapeCharacter")]
+    pub escape_character: ::core::option::Option<String>,
+    /// Optional. Specifies the character that separates columns within each row (line) of the file. The default is comma. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "fieldDelimiter")]
+    pub field_delimiter: ::core::option::Option<String>,
+    /// Optional. Specifies the quoting character to be used when a data value is quoted. The default is double-quote. The value of this argument has to be a character in Hex ASCII Code.
+    #[serde(default, rename = "quoteCharacter")]
+    pub quote_character: ::core::option::Option<String>,
+    /// Required. The database table to import CSV file into.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
 }
 
 /// Message describing Backup object
@@ -124,55 +561,203 @@ pub struct Backup {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Message describing a BackupDrBackupSource.
+/// An Instance is a computing unit that an end customer can connect to. It''s the main unit of computing resources in AlloyDB.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrBackupSource {
-    /// Required. The name of the backup resource with the format: * projects/{project}/locations/{location}/backupVaults/{backupvault_id}/dataSources/{datasource_id}/backups/{backup_id}
+pub struct Instance {
+    /// Optional. Specifies whether an instance needs to spin up. Once the instance is active, the activation policy can be updated to the NEVER to stop the instance. Likewise, the activation policy can be updated to ALWAYS to start the instance. There are restrictions around when an instance can/cannot be activated (for example, a read pool instance should be stopped before stopping primary etc.). Please refer to the API documentation for more details. // TODO: enum values: ["ACTIVATION_POLICY_UNSPECIFIED", "ALWAYS", "NEVER"]
+    #[serde(default, rename = "activationPolicy")]
+    pub activation_policy: ::core::option::Option<String>,
+    /// Annotations to allow client tools to store small amount of arbitrary data. This is distinct from labels. https://google.aip.dev/128
     #[serde(default)]
-    pub backup: ::core::option::Option<String>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Availability type of an Instance. If empty, defaults to REGIONAL for primary instances. For read pools, availability_type is always UNSPECIFIED. Instances in the read pools are evenly distributed across available zones within the region (i.e. read pools with more than one node will have a node in at least two zones). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL"]
+    #[serde(default, rename = "availabilityType")]
+    pub availability_type: ::core::option::Option<String>,
+    /// Optional. Client connection specific configurations
+    #[serde(default, rename = "clientConnectionConfig")]
+    pub client_connection_config: ::core::option::Option<ClientConnectionConfig>,
+    /// Optional. The configuration for Managed Connection Pool (MCP).
+    #[serde(default, rename = "connectionPoolConfig")]
+    pub connection_pool_config: ::core::option::Option<ConnectionPoolConfig>,
+    /// Output only. Create time stamp
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Controls whether the Data API is enabled for this instance. When enabled, this allows authorized users to connect to the instance from the public internet using the executeSql API, even for private IP instances. If this is not specified, the data API is enabled by default for Google internal services like AlloyDB Studio. Disable it explicitly to disallow Google internal services as well. // TODO: enum values: ["DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES", "DISABLED", "ENABLED"]
+    #[serde(default, rename = "dataApiAccess")]
+    pub data_api_access: ::core::option::Option<String>,
+    /// Database flags. Set at the instance level. They are copied from the primary instance on secondary instance creation. Flags that have restrictions default to the value at primary instance on read instances during creation. Read instances can set new flags or override existing flags that are relevant for reads, for example, for enabling columnar cache on a read instance. Flags set on read instance might or might not be present on the primary instance. This is a list of "key": "value" pairs. "key": The name of the flag. These flags are passed at instance setup time, so include both server options and system variables for Postgres. Flags are specified with underscores, not hyphens. "value": The value of the flag. Booleans are set to **on** for true and **off** for false. This field must be omitted if the flag doesn''t take a value.
+    #[serde(default, rename = "databaseFlags")]
+    pub database_flags: ::core::option::Option<serde_json::Value>,
+    /// Output only. Delete time stamp
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// User-settable and human-readable display name for the Instance.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// For Resource freshness validation (https://google.aip.dev/154)
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The Compute Engine zone that the instance should serve from, per https://cloud.google.com/compute/docs/regions-zones This can ONLY be specified for ZONAL instances. If present for a REGIONAL instance, an error will be thrown. If this is absent for a ZONAL instance, instance is created in a random zone with available capacity.
+    #[serde(default, rename = "gceZone")]
+    pub gce_zone: ::core::option::Option<String>,
+    /// Required. The type of the instance. Specified at creation time. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "PRIMARY", "READ_POOL", "SECONDARY"]
+    #[serde(default, rename = "instanceType")]
+    pub instance_type: ::core::option::Option<String>,
+    /// Output only. The IP address for the Instance. This is the connection endpoint for an end-user application.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Labels as key value pairs
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Configurations for the machines that host the underlying database engine.
+    #[serde(default, rename = "machineConfig")]
+    pub machine_config: ::core::option::Option<MachineConfig>,
+    /// Output only. Maintenance version of the instance, for example: POSTGRES_15.2025_07_15.04_00. Output only. Update this field via the parent cluster''s maintenance_version field(s).
+    #[serde(default, rename = "maintenanceVersionName")]
+    pub maintenance_version_name: ::core::option::Option<String>,
+    /// Output only. The name of the instance resource with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}/instances/{instance_id} where the cluster and instance ID segments should satisfy the regex expression [a-z]([a-z0-9-]{0,61}[a-z0-9])?, e.g. 1-63 characters of lowercase letters, numbers, and dashes, starting with a letter, and ending with a letter or number. For more details see https://google.aip.dev/122. The prefix of the instance resource name is the name of the parent resource: * projects/{project}/locations/{region}/clusters/{cluster_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Instance-level network configuration.
+    #[serde(default, rename = "networkConfig")]
+    pub network_config: ::core::option::Option<InstanceNetworkConfig>,
+    /// Output only. List of available read-only VMs in this instance, including the standby for a PRIMARY instance.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<Node>>,
+    /// Configuration for observability.
+    #[serde(default, rename = "observabilityConfig")]
+    pub observability_config: ::core::option::Option<ObservabilityInstanceConfig>,
+    /// Output only. All outbound public IP addresses configured for the instance.
+    #[serde(default, rename = "outboundPublicIpAddresses")]
+    pub outbound_public_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The configuration for Private Service Connect (PSC) for the instance.
+    #[serde(default, rename = "pscInstanceConfig")]
+    pub psc_instance_config: ::core::option::Option<PscInstanceConfig>,
+    /// Output only. The public IP addresses for the Instance. This is available ONLY when enable_public_ip is set. This is the connection endpoint for an end-user application.
+    #[serde(default, rename = "publicIpAddress")]
+    pub public_ip_address: ::core::option::Option<String>,
+    /// Configuration for query insights.
+    #[serde(default, rename = "queryInsightsConfig")]
+    pub query_insights_config: ::core::option::Option<QueryInsightsInstanceConfig>,
+    /// Read pool instance configuration. This is required if the value of instanceType is READ_POOL.
+    #[serde(default, rename = "readPoolConfig")]
+    pub read_pool_config: ::core::option::Option<ReadPoolConfig>,
+    /// Output only. Reconciling (https://google.aip.dev/128#reconciliation). Set to true if the current state of Instance does not match the user''s intended state, and the service is actively updating the resource to reconcile them. This can happen due to user-triggered updates or system actions like failover or maintenance.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The current serving state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "STOPPED", "CREATING", "DELETING", "MAINTENANCE", "FAILED", "BOOTSTRAPPING", "PROMOTING", "SWITCHOVER", "STOPPING", "STARTING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The system-generated UID of the resource. The UID is assigned when the resource is created, and it is retained until it is deleted.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Update time stamp
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. This is set for the read-write VM of the PRIMARY instance only.
+    #[serde(default, rename = "writableNode")]
+    pub writable_node: ::core::option::Option<Node>,
 }
 
-/// Information about a single window when BackupDR was enabled for this cluster.
+/// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrEnabledWindow {
-    /// Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.
-    #[serde(default, rename = "automatedBackupPreviouslyEnabled")]
-    pub automated_backup_previously_enabled: ::core::option::Option<bool>,
-    /// The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.
-    #[serde(default, rename = "backupPlanAssociation")]
-    pub backup_plan_association: ::core::option::Option<String>,
-    /// The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.
-    #[serde(default, rename = "continuousBackupPreviousRecoveryWindowDays")]
-    pub continuous_backup_previous_recovery_window_days: ::core::option::Option<i32>,
-    /// Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.
-    #[serde(default, rename = "continuousBackupPreviouslyEnabled")]
-    pub continuous_backup_previously_enabled: ::core::option::Option<bool>,
-    /// The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.
-    #[serde(default, rename = "continuousBackupPreviouslyEnabledTime")]
-    pub continuous_backup_previously_enabled_time: ::core::option::Option<String>,
-    /// The DataSource resource that represents the cluster in BackupDR.
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-    /// Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the current_window.
-    #[serde(default, rename = "disabledTime")]
-    pub disabled_time: ::core::option::Option<String>,
-    /// Time when the BackupDR protection for this cluster was enabled.
-    #[serde(default, rename = "enabledTime")]
-    pub enabled_time: ::core::option::Option<String>,
-    /// The retention period for logs generated by BackupDR for this cluster.
-    #[serde(default, rename = "logRetentionPeriod")]
-    pub log_retention_period: ::core::option::Option<String>,
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Information about BackupDR protection for this cluster.
+/// SupportedDatabaseFlag gives general information about a database flag, like type and allowed values. This is a static value that is defined on the server side, and it cannot be modified by callers. To set the Database flags on a particular Instance, a caller should modify the Instance.database_flags field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrInfo {
-    /// The current BackupDR configuration for this cluster. If BackupDR protection is not enabled for this cluster, this field will be empty.
-    #[serde(default, rename = "currentWindow")]
-    pub current_window: ::core::option::Option<BackupDrEnabledWindow>,
-    /// Windows during which BackupDR was enabled for this cluster, along with associated configuration for that window. These are used to determine points-in-time for which restores can be performed. The windows are ordered with the most recent window last. Windows are mutally exclusive. Windows which closed more than 1 year ago will be removed from this list.
-    #[serde(default, rename = "previousWindows")]
-    pub previous_windows: ::core::option::Option<::std::vec::Vec<BackupDrEnabledWindow>>,
+pub struct SupportedDatabaseFlag {
+    /// Whether the database flag accepts multiple values. If true, a comma-separated list of stringified values may be specified.
+    #[serde(default, rename = "acceptsMultipleValues")]
+    pub accepts_multiple_values: ::core::option::Option<bool>,
+    /// The name of the database flag, e.g. "max_allowed_packets". The is a possibly key for the Instance.database_flags map field.
+    #[serde(default, rename = "flagName")]
+    pub flag_name: ::core::option::Option<String>,
+    /// Restriction on INTEGER type value.
+    #[serde(default, rename = "integerRestrictions")]
+    pub integer_restrictions: ::core::option::Option<IntegerRestrictions>,
+    /// The name of the flag resource, following Google Cloud conventions, e.g.: * projects/{project}/locations/{location}/flags/{flag} This field currently has no semantic meaning.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The recommended value for an INTEGER flag.
+    #[serde(default, rename = "recommendedIntegerValue")]
+    pub recommended_integer_value: ::core::option::Option<String>,
+    /// The recommended value for a STRING flag.
+    #[serde(default, rename = "recommendedStringValue")]
+    pub recommended_string_value: ::core::option::Option<String>,
+    /// Whether setting or updating this flag on an Instance requires a database restart. If a flag that requires database restart is set, the backend will automatically restart the database (making sure to satisfy any availability SLO''s).
+    #[serde(default, rename = "requiresDbRestart")]
+    pub requires_db_restart: ::core::option::Option<bool>,
+    /// The scope of the flag. // TODO: enum values: ["SCOPE_UNSPECIFIED", "DATABASE", "CONNECTION_POOL"]
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// Restriction on STRING type value.
+    #[serde(default, rename = "stringRestrictions")]
+    pub string_restrictions: ::core::option::Option<StringRestrictions>,
+    /// Major database engine versions for which this flag is supported.
+    #[serde(default, rename = "supportedDbVersions")]
+    pub supported_db_versions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "STRING", "INTEGER", "FLOAT", "NONE"]
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// Message describing User object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    /// Optional. List of database roles this user has. The database role strings are subject to the PostgreSQL naming conventions.
+    #[serde(default, rename = "databaseRoles")]
+    pub database_roles: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Input only. If the user already exists and it has additional roles, keep them granted.
+    #[serde(default, rename = "keepExtraRoles")]
+    pub keep_extra_roles: ::core::option::Option<bool>,
+    /// Output only. Name of the resource in the form of projects/{project}/locations/{location}/cluster/{cluster}/users/{user}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Input only. Password for the user.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Optional. Type of this user. // TODO: enum values: ["USER_TYPE_UNSPECIFIED", "ALLOYDB_BUILT_IN", "ALLOYDB_IAM_USER"]
+    #[serde(default, rename = "userType")]
+    pub user_type: ::core::option::Option<String>,
+}
+
+/// Message for current status of the Major Version Upgrade operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeClusterStatus {
+    /// Whether the operation is cancellable.
+    #[serde(default)]
+    pub cancellable: ::core::option::Option<bool>,
+    /// Source database major version. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
+    #[serde(default, rename = "sourceVersion")]
+    pub source_version: ::core::option::Option<String>,
+    /// Status of all upgrade stages.
+    #[serde(default)]
+    pub stages: ::core::option::Option<::std::vec::Vec<StageStatus>>,
+    /// Cluster Major Version Upgrade state. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Target database major version. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
+    #[serde(default, rename = "targetVersion")]
+    pub target_version: ::core::option::Option<String>,
 }
 
 /// Message describing a BackupDrPitrSource.
@@ -186,51 +771,15 @@ pub struct BackupDrPitrSource {
     pub point_in_time: ::core::option::Option<String>,
 }
 
-/// Message describing a BackupSource.
+/// Message describing a ContinuousBackupSource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupSource {
-    /// Required. The name of the backup resource with the format: * projects/{project}/locations/{region}/backups/{backup_id}
-    #[serde(default, rename = "backupName")]
-    pub backup_name: ::core::option::Option<String>,
-    /// Output only. The system-generated UID of the backup which was used to create this resource. The UID is generated when the backup is created, and it is retained until the backup is deleted.
-    #[serde(default, rename = "backupUid")]
-    pub backup_uid: ::core::option::Option<String>,
-}
-
-/// Client connection configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientConnectionConfig {
-    /// Optional. Configuration to enforce connectors only (ex: AuthProxy) connections to the database.
-    #[serde(default, rename = "requireConnectors")]
-    pub require_connectors: ::core::option::Option<bool>,
-    /// Optional. SSL configuration option for this instance.
-    #[serde(default, rename = "sslConfig")]
-    pub ssl_config: ::core::option::Option<SslConfig>,
-}
-
-/// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
-    /// DEPRECATED. Use exclusive_action instead.
-    #[serde(default, rename = "deleteResource")]
-    pub delete_resource: ::core::option::Option<bool>,
-    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
-    #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: ::core::option::Option<String>,
-}
-
-/// The source CloudSQL backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSQLBackupRunSource {
-    /// Required. The CloudSQL backup run ID.
-    #[serde(default, rename = "backupRunId")]
-    pub backup_run_id: ::core::option::Option<String>,
-    /// Required. The CloudSQL instance ID.
-    #[serde(default, rename = "instanceId")]
-    pub instance_id: ::core::option::Option<String>,
-    /// The project ID of the source CloudSQL instance. This should be the same as the AlloyDB cluster''s project.
+pub struct ContinuousBackupSource {
+    /// Required. The source cluster from which to restore. This cluster must have continuous backup enabled for this operation to succeed. For the required format, see the comment on the Cluster.name field.
     #[serde(default)]
-    pub project: ::core::option::Option<String>,
+    pub cluster: ::core::option::Option<String>,
+    /// Required. The point in time to restore to.
+    #[serde(default, rename = "pointInTime")]
+    pub point_in_time: ::core::option::Option<String>,
 }
 
 /// A cluster is a collection of regional AlloyDB resources. It can include a primary instance and one or more read pool instances. All cluster resources share a storage layer, which scales as needed.
@@ -351,1045 +900,6 @@ pub struct Cluster {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Upgrade details of a cluster. This cluster can be primary or secondary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClusterUpgradeDetails {
-    /// Cluster type which can either be primary or secondary. // TODO: enum values: ["CLUSTER_TYPE_UNSPECIFIED", "PRIMARY", "SECONDARY"]
-    #[serde(default, rename = "clusterType")]
-    pub cluster_type: ::core::option::Option<String>,
-    /// Database version of the cluster after the upgrade operation. This will be the target version if the upgrade was successful otherwise it remains the same as that before the upgrade operation. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
-    #[serde(default, rename = "databaseVersion")]
-    pub database_version: ::core::option::Option<String>,
-    /// Upgrade details of the instances directly associated with this cluster.
-    #[serde(default, rename = "instanceUpgradeDetails")]
-    pub instance_upgrade_details: ::core::option::Option<::std::vec::Vec<InstanceUpgradeDetails>>,
-    /// Normalized name of the cluster
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Array containing stage info associated with this cluster.
-    #[serde(default, rename = "stageInfo")]
-    pub stage_info: ::core::option::Option<::std::vec::Vec<StageInfo>>,
-    /// Upgrade status of the cluster. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default, rename = "upgradeStatus")]
-    pub upgrade_status: ::core::option::Option<String>,
-}
-
-/// ConnectionInfo singleton resource. https://google.aip.dev/156
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionInfo {
-    /// Output only. The unique ID of the Instance.
-    #[serde(default, rename = "instanceUid")]
-    pub instance_uid: ::core::option::Option<String>,
-    /// Output only. The private network IP address for the Instance. This is the default IP for the instance and is always created (even if enable_public_ip is set). This is the connection endpoint for an end-user application.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// The name of the ConnectionInfo singleton resource, e.g.: projects/{project}/locations/{location}/clusters/*/instances/*/connectionInfo This field currently has no semantic meaning.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The public IP addresses for the Instance. This is available ONLY when enable_public_ip is set. This is the connection endpoint for an end-user application.
-    #[serde(default, rename = "publicIpAddress")]
-    pub public_ip_address: ::core::option::Option<String>,
-}
-
-/// Configuration for Managed Connection Pool (MCP).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionPoolConfig {
-    /// Optional. Whether to enable Managed Connection Pool (MCP).
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. Connection Pool flags, as a list of "key": "value" pairs.
-    #[serde(default)]
-    pub flags: ::core::option::Option<serde_json::Value>,
-    /// Output only. The number of running poolers per instance.
-    #[serde(default, rename = "poolerCount")]
-    pub pooler_count: ::core::option::Option<i32>,
-}
-
-/// ContinuousBackupConfig describes the continuous backups recovery configurations of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContinuousBackupConfig {
-    /// Whether ContinuousBackup is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster''s encryption config.
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// The number of days that are eligible to restore from using PITR. To support the entire recovery window, backups and logs are retained for one day more than the recovery window. If not set, defaults to 14 days.
-    #[serde(default, rename = "recoveryWindowDays")]
-    pub recovery_window_days: ::core::option::Option<i32>,
-}
-
-/// ContinuousBackupInfo describes the continuous backup properties of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContinuousBackupInfo {
-    /// Output only. The earliest restorable time that can be restored to. If continuous backups and recovery was recently enabled, the earliest restorable time is the creation time of the earliest eligible backup within this cluster''s continuous backup recovery window. After a cluster has had continuous backups enabled for the duration of its recovery window, the earliest restorable time becomes "now minus the recovery window". For example, assuming a point in time recovery is attempted at 04/16/2025 3:23:00PM with a 14d recovery window, the earliest restorable time would be 04/02/2025 3:23:00PM. This field is only visible if the CLUSTER_VIEW_CONTINUOUS_BACKUP cluster view is provided.
-    #[serde(default, rename = "earliestRestorableTime")]
-    pub earliest_restorable_time: ::core::option::Option<String>,
-    /// Output only. When ContinuousBackup was most recently enabled. Set to null if ContinuousBackup is not enabled.
-    #[serde(default, rename = "enabledTime")]
-    pub enabled_time: ::core::option::Option<String>,
-    /// Output only. The encryption information for the WALs and backups required for ContinuousBackup.
-    #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: ::core::option::Option<EncryptionInfo>,
-    /// Output only. Days of the week on which a continuous backup is taken.
-    #[serde(default)]
-    pub schedule: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message describing a ContinuousBackupSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContinuousBackupSource {
-    /// Required. The source cluster from which to restore. This cluster must have continuous backup enabled for this operation to succeed. For the required format, see the comment on the Cluster.name field.
-    #[serde(default)]
-    pub cluster: ::core::option::Option<String>,
-    /// Required. The point in time to restore to.
-    #[serde(default, rename = "pointInTime")]
-    pub point_in_time: ::core::option::Option<String>,
-}
-
-/// Options for exporting data in CSV format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CsvExportOptions {
-    /// Optional. Specifies the character that should appear before a data character that needs to be escaped. The default is the same as quote character. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "escapeCharacter")]
-    pub escape_character: ::core::option::Option<String>,
-    /// Optional. Specifies the character that separates columns within each row (line) of the file. The default is comma. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "fieldDelimiter")]
-    pub field_delimiter: ::core::option::Option<String>,
-    /// Optional. Specifies the quoting character to be used when a data value is quoted. The default is double-quote. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "quoteCharacter")]
-    pub quote_character: ::core::option::Option<String>,
-    /// Required. The SELECT query used to extract the data.
-    #[serde(default, rename = "selectQuery")]
-    pub select_query: ::core::option::Option<String>,
-}
-
-/// Options for importing data in CSV format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CsvImportOptions {
-    /// Optional. The columns to which CSV data is imported. If not specified, all columns of the database table are loaded with CSV data.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Specifies the character that should appear before a data character that needs to be escaped. The default is same as quote character. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "escapeCharacter")]
-    pub escape_character: ::core::option::Option<String>,
-    /// Optional. Specifies the character that separates columns within each row (line) of the file. The default is comma. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "fieldDelimiter")]
-    pub field_delimiter: ::core::option::Option<String>,
-    /// Optional. Specifies the quoting character to be used when a data value is quoted. The default is double-quote. The value of this argument has to be a character in Hex ASCII Code.
-    #[serde(default, rename = "quoteCharacter")]
-    pub quote_character: ::core::option::Option<String>,
-    /// Required. The database table to import CSV file into.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Configuration for Dataplex integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataplexConfig {
-    /// Dataplex is enabled by default for resources such as clusters and instances. This flag controls the integration of AlloyDB PG resources (like databases, schemas, and tables) with Dataplex."
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// DenyMaintenancePeriod definition. Excepting emergencies, maintenance will not be scheduled to start within this deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DenyMaintenancePeriod {
-    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<GoogleTypeDate>,
-    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<GoogleTypeDate>,
-    /// Time in UTC when the deny period starts on start_date and ends on end_date. This can be: * Full time OR * All zeros for 00:00:00 UTC
-    #[serde(default)]
-    pub time: ::core::option::Option<GoogleTypeTimeOfDay>,
-}
-
-/// EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-}
-
-/// EncryptionInfo describes the encryption information of a cluster or a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionInfo {
-    /// Output only. Type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
-    #[serde(default, rename = "encryptionType")]
-    pub encryption_type: ::core::option::Option<String>,
-    /// Output only. Cloud KMS key versions that are being used to protect the database or the backup.
-    #[serde(default, rename = "kmsKeyVersions")]
-    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Export cluster request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportClusterRequest {
-    /// Options for exporting data in CSV format. Required field to be set for CSV file type.
-    #[serde(default, rename = "csvExportOptions")]
-    pub csv_export_options: ::core::option::Option<CsvExportOptions>,
-    /// Required. Name of the database where the export command will be executed. Note - Value provided should be the same as expected from SELECT current_database(); and NOT as a resource reference.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Required. Option to export data to cloud storage.
-    #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: ::core::option::Option<GcsDestination>,
-    /// Options for exporting data in SQL format. Required field to be set for SQL file type.
-    #[serde(default, rename = "sqlExportOptions")]
-    pub sql_export_options: ::core::option::Option<SqlExportOptions>,
-}
-
-/// Response of export cluster rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportClusterResponse {
-    /// Required. Option to export data to cloud storage.
-    #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: ::core::option::Option<GcsDestination>,
-}
-
-/// Message for triggering failover on an Instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FailoverInstanceRequest {
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Destination for Export. Export will be done to cloud storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsDestination {
-    /// Required. The path to the file in Google Cloud Storage where the export will be stored. The URI is in the form gs://bucketName/fileName.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationLocation {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeTimeOfDay {
-    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-}
-
-/// Import cluster request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportClusterRequest {
-    /// Options for importing data in CSV format.
-    #[serde(default, rename = "csvImportOptions")]
-    pub csv_import_options: ::core::option::Option<CsvImportOptions>,
-    /// Optional. Name of the database to which the import will be done. For import from SQL file, this is required only if the file does not specify a database. Note - Value provided should be the same as expected from SELECT current_database(); and NOT as a resource reference.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Required. The path to the file in Google Cloud Storage where the source file for import will be stored. The URI is in the form gs://bucketName/fileName.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// Options for importing data in SQL format.
-    #[serde(default, rename = "sqlImportOptions")]
-    pub sql_import_options: ::core::option::Option<serde_json::Value>,
-    /// Optional. Database user to be used for importing the data. Note - Value provided should be the same as expected from SELECT current_user; and NOT as a resource reference.
-    #[serde(default)]
-    pub user: ::core::option::Option<String>,
-}
-
-/// Response of import rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportClusterResponse {
-    /// Required. Size of the object downloaded from Google Cloud Storage in bytes.
-    #[serde(default, rename = "bytesDownloaded")]
-    pub bytes_downloaded: ::core::option::Option<String>,
-}
-
-/// Message for triggering fault injection on an instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InjectFaultRequest {
-    /// Required. The type of fault to be injected in an instance. // TODO: enum values: ["FAULT_TYPE_UNSPECIFIED", "STOP_VM"]
-    #[serde(default, rename = "faultType")]
-    pub fault_type: ::core::option::Option<String>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// An Instance is a computing unit that an end customer can connect to. It''s the main unit of computing resources in AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Instance {
-    /// Optional. Specifies whether an instance needs to spin up. Once the instance is active, the activation policy can be updated to the NEVER to stop the instance. Likewise, the activation policy can be updated to ALWAYS to start the instance. There are restrictions around when an instance can/cannot be activated (for example, a read pool instance should be stopped before stopping primary etc.). Please refer to the API documentation for more details. // TODO: enum values: ["ACTIVATION_POLICY_UNSPECIFIED", "ALWAYS", "NEVER"]
-    #[serde(default, rename = "activationPolicy")]
-    pub activation_policy: ::core::option::Option<String>,
-    /// Annotations to allow client tools to store small amount of arbitrary data. This is distinct from labels. https://google.aip.dev/128
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Availability type of an Instance. If empty, defaults to REGIONAL for primary instances. For read pools, availability_type is always UNSPECIFIED. Instances in the read pools are evenly distributed across available zones within the region (i.e. read pools with more than one node will have a node in at least two zones). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL"]
-    #[serde(default, rename = "availabilityType")]
-    pub availability_type: ::core::option::Option<String>,
-    /// Optional. Client connection specific configurations
-    #[serde(default, rename = "clientConnectionConfig")]
-    pub client_connection_config: ::core::option::Option<ClientConnectionConfig>,
-    /// Optional. The configuration for Managed Connection Pool (MCP).
-    #[serde(default, rename = "connectionPoolConfig")]
-    pub connection_pool_config: ::core::option::Option<ConnectionPoolConfig>,
-    /// Output only. Create time stamp
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Controls whether the Data API is enabled for this instance. When enabled, this allows authorized users to connect to the instance from the public internet using the executeSql API, even for private IP instances. If this is not specified, the data API is enabled by default for Google internal services like AlloyDB Studio. Disable it explicitly to disallow Google internal services as well. // TODO: enum values: ["DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES", "DISABLED", "ENABLED"]
-    #[serde(default, rename = "dataApiAccess")]
-    pub data_api_access: ::core::option::Option<String>,
-    /// Database flags. Set at the instance level. They are copied from the primary instance on secondary instance creation. Flags that have restrictions default to the value at primary instance on read instances during creation. Read instances can set new flags or override existing flags that are relevant for reads, for example, for enabling columnar cache on a read instance. Flags set on read instance might or might not be present on the primary instance. This is a list of "key": "value" pairs. "key": The name of the flag. These flags are passed at instance setup time, so include both server options and system variables for Postgres. Flags are specified with underscores, not hyphens. "value": The value of the flag. Booleans are set to **on** for true and **off** for false. This field must be omitted if the flag doesn''t take a value.
-    #[serde(default, rename = "databaseFlags")]
-    pub database_flags: ::core::option::Option<serde_json::Value>,
-    /// Output only. Delete time stamp
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// User-settable and human-readable display name for the Instance.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// For Resource freshness validation (https://google.aip.dev/154)
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The Compute Engine zone that the instance should serve from, per https://cloud.google.com/compute/docs/regions-zones This can ONLY be specified for ZONAL instances. If present for a REGIONAL instance, an error will be thrown. If this is absent for a ZONAL instance, instance is created in a random zone with available capacity.
-    #[serde(default, rename = "gceZone")]
-    pub gce_zone: ::core::option::Option<String>,
-    /// Required. The type of the instance. Specified at creation time. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "PRIMARY", "READ_POOL", "SECONDARY"]
-    #[serde(default, rename = "instanceType")]
-    pub instance_type: ::core::option::Option<String>,
-    /// Output only. The IP address for the Instance. This is the connection endpoint for an end-user application.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Labels as key value pairs
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Configurations for the machines that host the underlying database engine.
-    #[serde(default, rename = "machineConfig")]
-    pub machine_config: ::core::option::Option<MachineConfig>,
-    /// Output only. Maintenance version of the instance, for example: POSTGRES_15.2025_07_15.04_00. Output only. Update this field via the parent cluster''s maintenance_version field(s).
-    #[serde(default, rename = "maintenanceVersionName")]
-    pub maintenance_version_name: ::core::option::Option<String>,
-    /// Output only. The name of the instance resource with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}/instances/{instance_id} where the cluster and instance ID segments should satisfy the regex expression [a-z]([a-z0-9-]{0,61}[a-z0-9])?, e.g. 1-63 characters of lowercase letters, numbers, and dashes, starting with a letter, and ending with a letter or number. For more details see https://google.aip.dev/122. The prefix of the instance resource name is the name of the parent resource: * projects/{project}/locations/{region}/clusters/{cluster_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Instance-level network configuration.
-    #[serde(default, rename = "networkConfig")]
-    pub network_config: ::core::option::Option<InstanceNetworkConfig>,
-    /// Output only. List of available read-only VMs in this instance, including the standby for a PRIMARY instance.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<Node>>,
-    /// Configuration for observability.
-    #[serde(default, rename = "observabilityConfig")]
-    pub observability_config: ::core::option::Option<ObservabilityInstanceConfig>,
-    /// Output only. All outbound public IP addresses configured for the instance.
-    #[serde(default, rename = "outboundPublicIpAddresses")]
-    pub outbound_public_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The configuration for Private Service Connect (PSC) for the instance.
-    #[serde(default, rename = "pscInstanceConfig")]
-    pub psc_instance_config: ::core::option::Option<PscInstanceConfig>,
-    /// Output only. The public IP addresses for the Instance. This is available ONLY when enable_public_ip is set. This is the connection endpoint for an end-user application.
-    #[serde(default, rename = "publicIpAddress")]
-    pub public_ip_address: ::core::option::Option<String>,
-    /// Configuration for query insights.
-    #[serde(default, rename = "queryInsightsConfig")]
-    pub query_insights_config: ::core::option::Option<QueryInsightsInstanceConfig>,
-    /// Read pool instance configuration. This is required if the value of instanceType is READ_POOL.
-    #[serde(default, rename = "readPoolConfig")]
-    pub read_pool_config: ::core::option::Option<ReadPoolConfig>,
-    /// Output only. Reconciling (https://google.aip.dev/128#reconciliation). Set to true if the current state of Instance does not match the user''s intended state, and the service is actively updating the resource to reconcile them. This can happen due to user-triggered updates or system actions like failover or maintenance.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The current serving state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "STOPPED", "CREATING", "DELETING", "MAINTENANCE", "FAILED", "BOOTSTRAPPING", "PROMOTING", "SWITCHOVER", "STOPPING", "STARTING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The system-generated UID of the resource. The UID is assigned when the resource is created, and it is retained until it is deleted.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Update time stamp
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. This is set for the read-write VM of the PRIMARY instance only.
-    #[serde(default, rename = "writableNode")]
-    pub writable_node: ::core::option::Option<Node>,
-}
-
-/// Metadata related to instance-level network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceNetworkConfig {
-    /// Optional. Name of the allocated IP range for the private IP AlloyDB instance, for example: "google-managed-services-default". If set, the instance IPs will be created from this allocated range and will override the IP range used by the parent cluster. The range name must comply with [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.
-    #[serde(default, rename = "allocatedIpRangeOverride")]
-    pub allocated_ip_range_override: ::core::option::Option<String>,
-    /// Optional. A list of external network authorized to access this instance.
-    #[serde(default, rename = "authorizedExternalNetworks")]
-    pub authorized_external_networks: ::core::option::Option<::std::vec::Vec<AuthorizedNetwork>>,
-    /// Optional. Enabling an outbound public IP address to support a database server sending requests out into the internet.
-    #[serde(default, rename = "enableOutboundPublicIp")]
-    pub enable_outbound_public_ip: ::core::option::Option<bool>,
-    /// Optional. Enabling public ip for the instance.
-    #[serde(default, rename = "enablePublicIp")]
-    pub enable_public_ip: ::core::option::Option<bool>,
-    /// Output only. The resource link for the VPC network in which instance resources are created and from which they are accessible via Private IP. This will be the same value as the parent cluster''s network. It is specified in the form: // projects/{project_number}/global/networks/{network_id}.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-}
-
-/// Details regarding the upgrade of instances associated with a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceUpgradeDetails {
-    /// Instance type. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "PRIMARY", "READ_POOL", "SECONDARY"]
-    #[serde(default, rename = "instanceType")]
-    pub instance_type: ::core::option::Option<String>,
-    /// Normalized name of the instance.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Upgrade status of the instance. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default, rename = "upgradeStatus")]
-    pub upgrade_status: ::core::option::Option<String>,
-}
-
-/// Restrictions on INTEGER type values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntegerRestrictions {
-    /// The maximum value that can be specified, if applicable.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// The minimum value that can be specified, if applicable.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-}
-
-/// Message for response to listing Backups
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBackupsResponse {
-    /// The list of Backup
-    #[serde(default)]
-    pub backups: ::core::option::Option<::std::vec::Vec<Backup>>,
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to listing Clusters
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListClustersResponse {
-    /// The list of Cluster
-    #[serde(default)]
-    pub clusters: ::core::option::Option<::std::vec::Vec<Cluster>>,
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to listing Instances
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstancesResponse {
-    /// The list of Instance
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for response to listing SupportedDatabaseFlags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSupportedDatabaseFlagsResponse {
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of SupportedDatabaseFlags.
-    #[serde(default, rename = "supportedDatabaseFlags")]
-    pub supported_database_flags: ::core::option::Option<::std::vec::Vec<SupportedDatabaseFlag>>,
-}
-
-/// Message for response to listing Users
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListUsersResponse {
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The list of User
-    #[serde(default)]
-    pub users: ::core::option::Option<::std::vec::Vec<User>>,
-}
-
-/// MachineConfig describes the configuration of a machine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MachineConfig {
-    /// The number of CPU''s in the VM instance.
-    #[serde(default, rename = "cpuCount")]
-    pub cpu_count: ::core::option::Option<i32>,
-    /// Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-}
-
-/// MaintenanceSchedule stores the maintenance schedule generated from the MaintenanceUpdatePolicy, once a maintenance rollout is triggered, if MaintenanceWindow is set, and if there is no conflicting DenyPeriod. The schedule is cleared once the update takes place. This field cannot be manually changed; modify the MaintenanceUpdatePolicy instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceSchedule {
-    /// Output only. The scheduled start time for the maintenance.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// MaintenanceUpdatePolicy defines the policy for system updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceUpdatePolicy {
-    /// Periods to deny maintenance. Currently limited to 1.
-    #[serde(default, rename = "denyMaintenancePeriods")]
-    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
-    /// Preferred windows to perform maintenance. Currently limited to 1.
-    #[serde(default, rename = "maintenanceWindows")]
-    pub maintenance_windows: ::core::option::Option<::std::vec::Vec<MaintenanceWindow>>,
-}
-
-/// MaintenanceWindow specifies a preferred day and time for maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceWindow {
-    /// Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Preferred time to start the maintenance operation on the specified day. Maintenance will start within 1 hour of this time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<GoogleTypeTimeOfDay>,
-}
-
-/// Subset of the source instance configuration that is available when reading the cluster resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrationSource {
-    /// Output only. The host and port of the on-premises instance in host:port format
-    #[serde(default, rename = "hostPort")]
-    pub host_port: ::core::option::Option<String>,
-    /// Output only. Place holder for the external source identifier(e.g DMS job name) that created the cluster.
-    #[serde(default, rename = "referenceId")]
-    pub reference_id: ::core::option::Option<String>,
-    /// Output only. Type of migration source. // TODO: enum values: ["MIGRATION_SOURCE_TYPE_UNSPECIFIED", "DMS"]
-    #[serde(default, rename = "sourceType")]
-    pub source_type: ::core::option::Option<String>,
-}
-
-/// Metadata related to network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfig {
-    /// Optional. Name of the allocated IP range for the private IP AlloyDB cluster, for example: "google-managed-services-default". If set, the instance IPs for this cluster will be created in the allocated range. The range name must comply with RFC 1035. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Field name is intended to be consistent with Cloud SQL.
-    #[serde(default, rename = "allocatedIpRange")]
-    pub allocated_ip_range: ::core::option::Option<String>,
-    /// Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: projects/{project_number}/global/networks/{network_id}. This is required to create a cluster.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-}
-
-/// Details of a single node in the instance. Nodes in an AlloyDB instance are ephemeral, they can change during update, failover, autohealing and resize operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Node {
-    /// Output only. The identifier of the VM e.g. "test-read-0601-407e52be-ms3l".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. The private IP address of the VM e.g. "10.57.0.34".
-    #[serde(default)]
-    pub ip: ::core::option::Option<String>,
-    /// Output only. Indicates whether the node set up to be configured as a hot standby.
-    #[serde(default, rename = "isHotStandby")]
-    pub is_hot_standby: ::core::option::Option<bool>,
-    /// Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The Compute Engine zone of the VM e.g. "us-central1-b".
-    #[serde(default, rename = "zoneId")]
-    pub zone_id: ::core::option::Option<String>,
-}
-
-/// Observability Instance specific configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObservabilityInstanceConfig {
-    /// Observability feature status for an instance. This flag is turned "off" by default.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Query string length. The default value is 10k.
-    #[serde(default, rename = "maxQueryStringLength")]
-    pub max_query_string_length: ::core::option::Option<i32>,
-    /// Preserve comments in query string for an instance. This flag is turned "off" by default.
-    #[serde(default, rename = "preserveComments")]
-    pub preserve_comments: ::core::option::Option<bool>,
-    /// Number of query execution plans captured by Insights per minute for all queries combined. The default value is 200. Any integer between 0 to 200 is considered valid.
-    #[serde(default, rename = "queryPlansPerMinute")]
-    pub query_plans_per_minute: ::core::option::Option<i32>,
-    /// Record application tags for an instance. This flag is turned "off" by default.
-    #[serde(default, rename = "recordApplicationTags")]
-    pub record_application_tags: ::core::option::Option<bool>,
-    /// Track actively running queries on the instance. If not set, this flag is "off" by default.
-    #[serde(default, rename = "trackActiveQueries")]
-    pub track_active_queries: ::core::option::Option<bool>,
-    /// Output only. Track wait event types during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on. This is read-only flag and only modifiable by internal API.
-    #[serde(default, rename = "trackWaitEventTypes")]
-    pub track_wait_event_types: ::core::option::Option<bool>,
-    /// Track wait events during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on.
-    #[serde(default, rename = "trackWaitEvents")]
-    pub track_wait_events: ::core::option::Option<bool>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. UpgradeClusterStatus related metadata.
-    #[serde(default, rename = "upgradeClusterStatus")]
-    pub upgrade_cluster_status: ::core::option::Option<UpgradeClusterStatus>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Configuration for the primary cluster. It has the list of clusters that are replicating from this cluster. This should be set if and only if the cluster is of type PRIMARY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimaryConfig {
-    /// Output only. Names of the clusters that are replicating from this cluster.
-    #[serde(default, rename = "secondaryClusterNames")]
-    pub secondary_cluster_names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for promoting a Cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromoteClusterRequest {
-    /// Optional. The current etag of the Cluster. If an etag is provided and does not match the current etag of the Cluster, deletion will be blocked and an ABORTED error will be returned.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Configuration for setting up PSC service automation. Consumer projects in the configs will be allowlisted automatically for the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscAutoConnectionConfig {
-    /// The consumer network for the PSC service automation, example: "projects/vpc-host-project/global/networks/default". The consumer network might be hosted a different project than the consumer project.
-    #[serde(default, rename = "consumerNetwork")]
-    pub consumer_network: ::core::option::Option<String>,
-    /// Output only. The status of the service connection policy. Possible values: "STATE_UNSPECIFIED" - Default state, when Connection Map is created initially. "VALID" - Set when policy and map configuration is valid, and their matching can lead to allowing creation of PSC Connections subject to other constraints like connections limit. "CONNECTION_POLICY_MISSING" - No Service Connection Policy found for this network and Service Class "POLICY_LIMIT_REACHED" - Service Connection Policy limit reached for this network and Service Class "CONSUMER_INSTANCE_PROJECT_NOT_ALLOWLISTED" - The consumer instance project is not in AllowedGoogleProducersResourceHierarchyLevels of the matching ServiceConnectionPolicy.
-    #[serde(default, rename = "consumerNetworkStatus")]
-    pub consumer_network_status: ::core::option::Option<String>,
-    /// The consumer project to which the PSC service automation endpoint will be created.
-    #[serde(default, rename = "consumerProject")]
-    pub consumer_project: ::core::option::Option<String>,
-    /// Output only. The IP address of the PSC service automation endpoint.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Output only. The status of the PSC service automation connection. Possible values: "STATE_UNSPECIFIED" - An invalid state as the default case. "ACTIVE" - The connection has been created successfully. "FAILED" - The connection is not functional since some resources on the connection fail to be created. "CREATING" - The connection is being created. "DELETING" - The connection is being deleted. "CREATE_REPAIRING" - The connection is being repaired to complete creation. "DELETE_REPAIRING" - The connection is being repaired to complete deletion.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// PscConfig contains PSC related configuration at a cluster level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscConfig {
-    /// Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.
-    #[serde(default, rename = "pscEnabled")]
-    pub psc_enabled: ::core::option::Option<bool>,
-    /// Output only. The project number that needs to be allowlisted on the network attachment to enable outbound connectivity.
-    #[serde(default, rename = "serviceOwnedProjectNumber")]
-    pub service_owned_project_number: ::core::option::Option<String>,
-}
-
-/// PscInstanceConfig contains PSC related configuration at an instance level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscInstanceConfig {
-    /// Optional. List of consumer projects that are allowed to create PSC endpoints to service-attachments to this instance.
-    #[serde(default, rename = "allowedConsumerProjects")]
-    pub allowed_consumer_projects: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Configurations for setting up PSC service automation.
-    #[serde(default, rename = "pscAutoConnections")]
-    pub psc_auto_connections: ::core::option::Option<::std::vec::Vec<PscAutoConnectionConfig>>,
-    /// Output only. The DNS name of the instance for PSC connectivity. Name convention: ...alloydb-psc.goog
-    #[serde(default, rename = "pscDnsName")]
-    pub psc_dns_name: ::core::option::Option<String>,
-    /// Optional. Configurations for setting up PSC interfaces attached to the instance which are used for outbound connectivity. Only primary instances can have PSC interface attached. Currently we only support 0 or 1 PSC interface.
-    #[serde(default, rename = "pscInterfaceConfigs")]
-    pub psc_interface_configs: ::core::option::Option<::std::vec::Vec<PscInterfaceConfig>>,
-    /// Output only. The service attachment created when Private Service Connect (PSC) is enabled for the instance. The name of the resource will be in the format of projects//regions//serviceAttachments/
-    #[serde(default, rename = "serviceAttachmentLink")]
-    pub service_attachment_link: ::core::option::Option<String>,
-}
-
-/// Configuration for setting up a PSC interface to enable outbound connectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscInterfaceConfig {
-    /// The network attachment resource created in the consumer network to which the PSC interface will be linked. This is of the format: "projects/${CONSUMER_PROJECT}/regions/${REGION}/networkAttachments/${NETWORK_ATTACHMENT_NAME}". The network attachment must be in the same region as the instance.
-    #[serde(default, rename = "networkAttachmentResource")]
-    pub network_attachment_resource: ::core::option::Option<String>,
-}
-
-/// A backup''s position in a quantity-based retention queue, of backups with the same source cluster and type, with length, retention, specified by the backup''s retention policy. Once the position is greater than the retention, the backup is eligible to be garbage collected. Example: 5 backups from the same source cluster and type with a quantity-based retention of 3 and denoted by backup_id (position, retention). Safe: backup_5 (1, 3), backup_4, (2, 3), backup_3 (3, 3). Awaiting garbage collection: backup_2 (4, 3), backup_1 (5, 3)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuantityBasedExpiry {
-    /// Output only. The backup''s position among its backups with the same source cluster and type, by descending chronological order create time(i.e. newest first).
-    #[serde(default, rename = "retentionCount")]
-    pub retention_count: ::core::option::Option<i32>,
-    /// Output only. The length of the quantity-based queue, specified by the backup''s retention policy.
-    #[serde(default, rename = "totalRetentionCount")]
-    pub total_retention_count: ::core::option::Option<i32>,
-}
-
-/// A quantity based policy specifies that a certain number of the most recent successful backups should be retained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuantityBasedRetention {
-    /// The number of backups to retain.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-}
-
-/// QueryInsights Instance specific configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryInsightsInstanceConfig {
-    /// Number of query execution plans captured by Insights per minute for all queries combined. The default value is 5. Any integer between 0 and 20 is considered valid.
-    #[serde(default, rename = "queryPlansPerMinute")]
-    pub query_plans_per_minute: ::core::option::Option<i64>,
-    /// Query string length. The default value is 1024. Any integer between 256 and 4500 is considered valid.
-    #[serde(default, rename = "queryStringLength")]
-    pub query_string_length: ::core::option::Option<i64>,
-    /// Record application tags for an instance. This flag is turned "on" by default.
-    #[serde(default, rename = "recordApplicationTags")]
-    pub record_application_tags: ::core::option::Option<bool>,
-    /// Record client address for an instance. Client address is PII information. This flag is turned "on" by default.
-    #[serde(default, rename = "recordClientAddress")]
-    pub record_client_address: ::core::option::Option<bool>,
-}
-
-/// Configuration for a read pool instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadPoolConfig {
-    /// Read capacity, i.e. number of nodes in a read pool instance.
-    #[serde(default, rename = "nodeCount")]
-    pub node_count: ::core::option::Option<i32>,
-}
-
-/// Read pool instances upgrade specific status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadPoolInstancesUpgradeStageStatus {
-    /// Read pool instances upgrade statistics.
-    #[serde(default, rename = "upgradeStats")]
-    pub upgrade_stats: ::core::option::Option<Stats>,
-}
-
-/// RestartInstanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestartInstanceRequest {
-    /// Optional. Full name of the nodes as obtained from INSTANCE_VIEW_FULL to restart upon. Applicable only to read instances.
-    #[serde(default, rename = "nodeIds")]
-    pub node_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Message for restoring a Cluster from a backup or another cluster at a given point in time. NEXT_ID: 11
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreClusterRequest {
-    /// Backup source.
-    #[serde(default, rename = "backupSource")]
-    pub backup_source: ::core::option::Option<BackupSource>,
-    /// BackupDR backup source.
-    #[serde(default, rename = "backupdrBackupSource")]
-    pub backupdr_backup_source: ::core::option::Option<BackupDrBackupSource>,
-    /// BackupDR source used for point in time recovery.
-    #[serde(default, rename = "backupdrPitrSource")]
-    pub backupdr_pitr_source: ::core::option::Option<BackupDrPitrSource>,
-    /// Required. The resource being created
-    #[serde(default)]
-    pub cluster: ::core::option::Option<Cluster>,
-    /// Required. ID of the requesting object.
-    #[serde(default, rename = "clusterId")]
-    pub cluster_id: ::core::option::Option<String>,
-    /// ContinuousBackup source. Continuous backup needs to be enabled in the source cluster for this operation to succeed.
-    #[serde(default, rename = "continuousBackupSource")]
-    pub continuous_backup_source: ::core::option::Option<ContinuousBackupSource>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Message for registering Restoring from CloudSQL resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreFromCloudSQLRequest {
-    /// Cluster created from CloudSQL backup run.
-    #[serde(default, rename = "cloudsqlBackupRunSource")]
-    pub cloudsql_backup_run_source: ::core::option::Option<CloudSQLBackupRunSource>,
-    /// Required. The resource being created
-    #[serde(default)]
-    pub cluster: ::core::option::Option<Cluster>,
-    /// Required. ID of the requesting object.
-    #[serde(default, rename = "clusterId")]
-    pub cluster_id: ::core::option::Option<String>,
-}
-
-/// Configuration information for the secondary cluster. This should be set if and only if the cluster is of type SECONDARY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecondaryConfig {
-    /// The name of the primary cluster name with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}
-    #[serde(default, rename = "primaryClusterName")]
-    pub primary_cluster_name: ::core::option::Option<String>,
-}
-
-/// Options for exporting data in SQL format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlExportOptions {
-    /// Optional. If true, output commands to DROP all the dumped database objects prior to outputting the commands for creating them.
-    #[serde(default, rename = "cleanTargetObjects")]
-    pub clean_target_objects: ::core::option::Option<bool>,
-    /// Optional. If true, use DROP ... IF EXISTS commands to check for the object''s existence before dropping it in clean_target_objects mode.
-    #[serde(default, rename = "ifExistTargetObjects")]
-    pub if_exist_target_objects: ::core::option::Option<bool>,
-    /// Optional. If true, only export the schema.
-    #[serde(default, rename = "schemaOnly")]
-    pub schema_only: ::core::option::Option<bool>,
-    /// Optional. Tables to export from.
-    #[serde(default)]
-    pub tables: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// SSL configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SslConfig {
-    /// Optional. Certificate Authority (CA) source. Only CA_SOURCE_MANAGED is supported currently, and is the default value. // TODO: enum values: ["CA_SOURCE_UNSPECIFIED", "CA_SOURCE_MANAGED"]
-    #[serde(default, rename = "caSource")]
-    pub ca_source: ::core::option::Option<String>,
-    /// Optional. SSL mode. Specifies client-server SSL/TLS connection behavior. // TODO: enum values: ["SSL_MODE_UNSPECIFIED", "SSL_MODE_ALLOW", "SSL_MODE_REQUIRE", "SSL_MODE_VERIFY_CA", "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "ENCRYPTED_ONLY"]
-    #[serde(default, rename = "sslMode")]
-    pub ssl_mode: ::core::option::Option<String>,
-}
-
-/// Stage information for different stages in the upgrade process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StageInfo {
-    /// logs_url is the URL for the logs associated with a stage if that stage has logs. Right now, only three stages have logs: ALLOYDB_PRECHECK, PG_UPGRADE_CHECK, PRIMARY_INSTANCE_UPGRADE.
-    #[serde(default, rename = "logsUrl")]
-    pub logs_url: ::core::option::Option<String>,
-    /// The stage. // TODO: enum values: ["STAGE_UNSPECIFIED", "ALLOYDB_PRECHECK", "PG_UPGRADE_CHECK", "PREPARE_FOR_UPGRADE", "PRIMARY_INSTANCE_UPGRADE", "READ_POOL_INSTANCES_UPGRADE", "ROLLBACK", "CLEANUP"]
-    #[serde(default)]
-    pub stage: ::core::option::Option<String>,
-    /// Status of the stage. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Status of an upgrade stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StageStatus {
-    /// Read pool instances upgrade metadata.
-    #[serde(default, rename = "readPoolInstancesUpgrade")]
-    pub read_pool_instances_upgrade: ::core::option::Option<ReadPoolInstancesUpgradeStageStatus>,
-    /// Upgrade stage. // TODO: enum values: ["STAGE_UNSPECIFIED", "ALLOYDB_PRECHECK", "PG_UPGRADE_CHECK", "PREPARE_FOR_UPGRADE", "PRIMARY_INSTANCE_UPGRADE", "READ_POOL_INSTANCES_UPGRADE", "ROLLBACK", "CLEANUP"]
-    #[serde(default)]
-    pub stage: ::core::option::Option<String>,
-    /// State of this stage. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Upgrade stats for read pool instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Stats {
-    /// Number of read pool instances which failed to upgrade.
-    #[serde(default)]
-    pub failed: ::core::option::Option<i32>,
-    /// Number of read pool instances for which upgrade has not started.
-    #[serde(default, rename = "notStarted")]
-    pub not_started: ::core::option::Option<i32>,
-    /// Number of read pool instances undergoing upgrade.
-    #[serde(default)]
-    pub ongoing: ::core::option::Option<i32>,
-    /// Number of read pool instances successfully upgraded.
-    #[serde(default)]
-    pub success: ::core::option::Option<i32>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Configuration for availability of database instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainAvailabilityConfiguration {
-    /// Checks for existence of (multi-cluster) routing configuration that allows automatic failover to a different zone/region in case of an outage. Applicable to Bigtable resources.
-    #[serde(default, rename = "automaticFailoverRoutingConfigured")]
-    pub automatic_failover_routing_configured: ::core::option::Option<bool>,
-    /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL", "AVAILABILITY_TYPE_OTHER"]
-    #[serde(default, rename = "availabilityType")]
-    pub availability_type: ::core::option::Option<String>,
-    /// Checks for resources that are configured to have redundancy, and ongoing replication across regions
-    #[serde(default, rename = "crossRegionReplicaConfigured")]
-    pub cross_region_replica_configured: ::core::option::Option<bool>,
-    #[serde(default, rename = "externalReplicaConfigured")]
-    pub external_replica_configured: ::core::option::Option<bool>,
-    #[serde(default, rename = "promotableReplicaConfigured")]
-    pub promotable_replica_configured: ::core::option::Option<bool>,
-}
-
-/// Configuration for automatic backups
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainBackupConfiguration {
-    /// Whether customer visible automated backups are enabled on the instance.
-    #[serde(default, rename = "automatedBackupEnabled")]
-    pub automated_backup_enabled: ::core::option::Option<bool>,
-    /// Backup retention settings.
-    #[serde(default, rename = "backupRetentionSettings")]
-    pub backup_retention_settings:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainRetentionSettings>,
-    /// Whether point-in-time recovery is enabled. This is optional field, if the database service does not have this feature or metadata is not available in control plane, this can be omitted.
-    #[serde(default, rename = "pointInTimeRecoveryEnabled")]
-    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
-}
-
-/// BackupDRConfiguration to capture the backup and disaster recovery details of database resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainBackupDRConfiguration {
-    /// Indicates if the resource is managed by BackupDR.
-    #[serde(default, rename = "backupdrManaged")]
-    pub backupdr_managed: ::core::option::Option<bool>,
-}
-
 /// BackupDRMetadata contains information about the backup and disaster recovery metadata of a database resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageDatabasecenterPartnerapiV1mainBackupDRMetadata {
@@ -1416,34 +926,6 @@ pub struct StorageDatabasecenterPartnerapiV1mainBackupDRMetadata {
         ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
 }
 
-/// A backup run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainBackupRun {
-    /// The time the backup operation completed. REQUIRED
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Information about why the backup operation failed. This is only present if the run has the FAILED status. OPTIONAL
-    #[serde(default)]
-    pub error: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainOperationError>,
-    /// The time the backup operation started. REQUIRED
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The status of this run. REQUIRED // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESSFUL", "FAILED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainCompliance {
-    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
-    #[serde(default)]
-    pub standard: ::core::option::Option<String>,
-    /// Version of the standard or benchmark, for example, 1.1
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
 /// Config based signal data. This is used to send signals to Condor which are based on the DB level configurations. These will be used to send signals for self managed databases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageDatabasecenterPartnerapiV1mainConfigBasedSignalData {
@@ -1465,58 +947,88 @@ pub struct StorageDatabasecenterPartnerapiV1mainConfigBasedSignalData {
     pub signal_type: ::core::option::Option<String>,
 }
 
-/// Any custom metadata associated with the resource. e.g. A spanner instance can have multiple databases with its own unique metadata. Information for these individual databases can be captured in custom metadata data
+/// Database resource signal data. This is used to send signals to Condor which are based on the DB/Instance/Fleet level configurations. These will be used to send signals for all inventory types. Next ID: 10
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainCustomMetadataData {
-    /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration.
-    #[serde(default, rename = "internalResourceMetadata")]
-    pub internal_resource_metadata: ::core::option::Option<
-        ::std::vec::Vec<StorageDatabasecenterPartnerapiV1mainInternalResourceMetadata>,
-    >,
-}
-
-/// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceFeed {
-    /// BackupDR metadata is used to ingest metadata from BackupDR.
-    #[serde(default, rename = "backupdrMetadata")]
-    pub backupdr_metadata:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupDRMetadata>,
-    /// Config based signal data is used to ingest signals that are generated based on the configuration of the database resource.
-    #[serde(default, rename = "configBasedSignalData")]
-    pub config_based_signal_data:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainConfigBasedSignalData>,
-    /// Database resource signal data is used to ingest signals from database resource signal feeds.
-    #[serde(default, rename = "databaseResourceSignalData")]
-    pub database_resource_signal_data:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData>,
-    /// Required. Timestamp when feed is generated.
-    #[serde(default, rename = "feedTimestamp")]
-    pub feed_timestamp: ::core::option::Option<String>,
-    /// Required. Type feed to be ingested into condor // TODO: enum values: ["FEEDTYPE_UNSPECIFIED", "RESOURCE_METADATA", "OBSERVABILITY_DATA", "SECURITY_FINDING_DATA", "RECOMMENDATION_SIGNAL_DATA", "CONFIG_BASED_SIGNAL_DATA", "BACKUPDR_METADATA", "DATABASE_RESOURCE_SIGNAL_DATA"]
-    #[serde(default, rename = "feedType")]
-    pub feed_type: ::core::option::Option<String>,
-    #[serde(default, rename = "observabilityMetricData")]
-    pub observability_metric_data:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainObservabilityMetricData>,
-    #[serde(default, rename = "recommendationSignalData")]
-    pub recommendation_signal_data: ::core::option::Option<
-        StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalData,
-    >,
-    #[serde(default, rename = "resourceHealthSignalData")]
-    pub resource_health_signal_data: ::core::option::Option<
-        StorageDatabasecenterPartnerapiV1mainDatabaseResourceHealthSignalData,
-    >,
-    /// Primary key associated with the Resource. resource_id is available in individual feed level as well.
+pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData {
+    /// Deprecated: Use signal_metadata_list instead.
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
+    /// Required. Full Resource name of the source resource.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// Required. Last time signal was refreshed
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Resource location.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Database resource id.
     #[serde(default, rename = "resourceId")]
     pub resource_id:
         ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
-    #[serde(default, rename = "resourceMetadata")]
-    pub resource_metadata:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceMetadata>,
-    /// Optional. If true, the feed won''t be ingested by DB Center. This indicates that the feed is intentionally skipped. For example, BackupDR feeds are only needed for resources integrated with DB Center (e.g., CloudSQL, AlloyDB). Feeds for non-integrated resources (e.g., Compute Engine, Persistent Disk) can be skipped.
-    #[serde(default, rename = "skipIngestion")]
-    pub skip_ingestion: ::core::option::Option<bool>,
+    /// Deprecated: Use signal_metadata_list instead.
+    #[serde(default, rename = "signalBoolValue")]
+    pub signal_bool_value: ::core::option::Option<bool>,
+    /// This will support array of OneOf signal metadata information for a given signal type.
+    #[serde(default, rename = "signalMetadataList")]
+    pub signal_metadata_list: ::core::option::Option<
+        ::std::vec::Vec<StorageDatabasecenterPartnerapiV1mainSignalMetadata>,
+    >,
+    /// Required. Output only. Signal state of the signal // TODO: enum values: ["SIGNAL_STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DISMISSED"]
+    #[serde(default, rename = "signalState")]
+    pub signal_state: ::core::option::Option<String>,
+    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
+}
+
+/// StorageDatabasecenterPartnerapiV1mainObservabilityMetricData resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainObservabilityMetricData {
+    /// Required. Type of aggregation performed on the metric. // TODO: enum values: ["AGGREGATION_TYPE_UNSPECIFIED", "PEAK", "P99", "P95", "CURRENT"]
+    #[serde(default, rename = "aggregationType")]
+    pub aggregation_type: ::core::option::Option<String>,
+    /// Required. Type of metric like CPU, Memory, etc. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "CPU_UTILIZATION", "MEMORY_UTILIZATION", "NETWORK_CONNECTIONS", "STORAGE_UTILIZATION", "STORAGE_USED_BYTES", "NODE_COUNT", "MEMORY_USED_BYTES", "PROCESSING_UNIT_COUNT"]
+    #[serde(default, rename = "metricType")]
+    pub metric_type: ::core::option::Option<String>,
+    /// Required. The time the metric value was observed.
+    #[serde(default, rename = "observationTime")]
+    pub observation_time: ::core::option::Option<String>,
+    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Required. Value of the metric type.
+    #[serde(default)]
+    pub value: ::core::option::Option<StorageDatabasecenterProtoCommonTypedValue>,
+}
+
+/// Common model for database resource recommendation signal data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalData {
+    /// Optional. Any other additional metadata specific to recommendation
+    #[serde(default, rename = "additionalMetadata")]
+    pub additional_metadata: ::core::option::Option<serde_json::Value>,
+    /// Required. last time recommendationw as refreshed
+    #[serde(default, rename = "lastRefreshTime")]
+    pub last_refresh_time: ::core::option::Option<String>,
+    /// Required. Recommendation state // TODO: enum values: ["UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
+    #[serde(default, rename = "recommendationState")]
+    pub recommendation_state: ::core::option::Option<String>,
+    /// Required. Name of recommendation. Examples: organizations/1234/locations/us-central1/recommenders/google.cloudsql.instance.PerformanceRecommender/recommendations/9876
+    #[serde(default)]
+    pub recommender: ::core::option::Option<String>,
+    /// Required. ID of recommender. Examples: "google.cloudsql.instance.PerformanceRecommender"
+    #[serde(default, rename = "recommenderId")]
+    pub recommender_id: ::core::option::Option<String>,
+    /// Required. Contains an identifier for a subtype of recommendations produced for the same recommender. Subtype is a function of content and impact, meaning a new subtype might be added when significant changes to content or primary_impact.category are introduced. See the Recommenders section to see a list of subtypes for a given Recommender. Examples: For recommender = "google.cloudsql.instance.PerformanceRecommender", recommender_subtype can be "MYSQL_HIGH_NUMBER_OF_OPEN_TABLES_BEST_PRACTICE"/"POSTGRES_HIGH_TRANSACTION_ID_UTILIZATION_BEST_PRACTICE"
+    #[serde(default, rename = "recommenderSubtype")]
+    pub recommender_subtype: ::core::option::Option<String>,
+    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Required. Type of signal, for example, SIGNAL_TYPE_IDLE, SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
+    #[serde(default, rename = "signalType")]
+    pub signal_type: ::core::option::Option<String>,
 }
 
 /// Common model for database resource health signal data.
@@ -1568,23 +1080,6 @@ pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceHealthSignalData
     /// TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "RESOLVED", "MUTED"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// DatabaseResourceId will serve as primary key for any resource ingestion event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceId {
-    /// Required. Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Optional. Needs to be used only when the provider is PROVIDER_OTHER.
-    #[serde(default, rename = "providerDescription")]
-    pub provider_description: ::core::option::Option<String>,
-    /// Required. The type of resource this ID is identifying. Ex go/keep-sorted start alloydb.googleapis.com/Cluster, alloydb.googleapis.com/Instance, bigtableadmin.googleapis.com/Cluster, bigtableadmin.googleapis.com/Instance compute.googleapis.com/Instance firestore.googleapis.com/Database, redis.googleapis.com/Instance, redis.googleapis.com/Cluster, oracledatabase.googleapis.com/CloudExadataInfrastructure oracledatabase.googleapis.com/CloudVmCluster oracledatabase.googleapis.com/AutonomousDatabase spanner.googleapis.com/Instance, spanner.googleapis.com/Database, sqladmin.googleapis.com/Instance, go/keep-sorted end REQUIRED Please refer go/condor-common-datamodel
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Required. A service-local token that distinguishes this resource from other resources within the same service.
-    #[serde(default, rename = "uniqueId")]
-    pub unique_id: ::core::option::Option<String>,
 }
 
 /// Common model for database resource instance metadata. Next ID: 32
@@ -1689,68 +1184,513 @@ pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceMetadata {
     pub zone: ::core::option::Option<String>,
 }
 
-/// Common model for database resource recommendation signal data.
+/// Upgrade details of a cluster. This cluster can be primary or secondary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalData {
-    /// Optional. Any other additional metadata specific to recommendation
-    #[serde(default, rename = "additionalMetadata")]
-    pub additional_metadata: ::core::option::Option<serde_json::Value>,
-    /// Required. last time recommendationw as refreshed
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Required. Recommendation state // TODO: enum values: ["UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
-    #[serde(default, rename = "recommendationState")]
-    pub recommendation_state: ::core::option::Option<String>,
-    /// Required. Name of recommendation. Examples: organizations/1234/locations/us-central1/recommenders/google.cloudsql.instance.PerformanceRecommender/recommendations/9876
+pub struct ClusterUpgradeDetails {
+    /// Cluster type which can either be primary or secondary. // TODO: enum values: ["CLUSTER_TYPE_UNSPECIFIED", "PRIMARY", "SECONDARY"]
+    #[serde(default, rename = "clusterType")]
+    pub cluster_type: ::core::option::Option<String>,
+    /// Database version of the cluster after the upgrade operation. This will be the target version if the upgrade was successful otherwise it remains the same as that before the upgrade operation. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
+    #[serde(default, rename = "databaseVersion")]
+    pub database_version: ::core::option::Option<String>,
+    /// Upgrade details of the instances directly associated with this cluster.
+    #[serde(default, rename = "instanceUpgradeDetails")]
+    pub instance_upgrade_details: ::core::option::Option<::std::vec::Vec<InstanceUpgradeDetails>>,
+    /// Normalized name of the cluster
     #[serde(default)]
-    pub recommender: ::core::option::Option<String>,
-    /// Required. ID of recommender. Examples: "google.cloudsql.instance.PerformanceRecommender"
-    #[serde(default, rename = "recommenderId")]
-    pub recommender_id: ::core::option::Option<String>,
-    /// Required. Contains an identifier for a subtype of recommendations produced for the same recommender. Subtype is a function of content and impact, meaning a new subtype might be added when significant changes to content or primary_impact.category are introduced. See the Recommenders section to see a list of subtypes for a given Recommender. Examples: For recommender = "google.cloudsql.instance.PerformanceRecommender", recommender_subtype can be "MYSQL_HIGH_NUMBER_OF_OPEN_TABLES_BEST_PRACTICE"/"POSTGRES_HIGH_TRANSACTION_ID_UTILIZATION_BEST_PRACTICE"
-    #[serde(default, rename = "recommenderSubtype")]
-    pub recommender_subtype: ::core::option::Option<String>,
-    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Required. Type of signal, for example, SIGNAL_TYPE_IDLE, SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// Array containing stage info associated with this cluster.
+    #[serde(default, rename = "stageInfo")]
+    pub stage_info: ::core::option::Option<::std::vec::Vec<StageInfo>>,
+    /// Upgrade status of the cluster. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default, rename = "upgradeStatus")]
+    pub upgrade_status: ::core::option::Option<String>,
 }
 
-/// Database resource signal data. This is used to send signals to Condor which are based on the DB/Instance/Fleet level configurations. These will be used to send signals for all inventory types. Next ID: 10
+/// A backup''s position in a quantity-based retention queue, of backups with the same source cluster and type, with length, retention, specified by the backup''s retention policy. Once the position is greater than the retention, the backup is eligible to be garbage collected. Example: 5 backups from the same source cluster and type with a quantity-based retention of 3 and denoted by backup_id (position, retention). Safe: backup_5 (1, 3), backup_4, (2, 3), backup_3 (3, 3). Awaiting garbage collection: backup_2 (4, 3), backup_1 (5, 3)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData {
-    /// Deprecated: Use signal_metadata_list instead.
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
-    /// Required. Full Resource name of the source resource.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// Required. Last time signal was refreshed
-    #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: ::core::option::Option<String>,
-    /// Resource location.
+pub struct QuantityBasedExpiry {
+    /// Output only. The backup''s position among its backups with the same source cluster and type, by descending chronological order create time(i.e. newest first).
+    #[serde(default, rename = "retentionCount")]
+    pub retention_count: ::core::option::Option<i32>,
+    /// Output only. The length of the quantity-based queue, specified by the backup''s retention policy.
+    #[serde(default, rename = "totalRetentionCount")]
+    pub total_retention_count: ::core::option::Option<i32>,
+}
+
+/// Client connection configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientConnectionConfig {
+    /// Optional. Configuration to enforce connectors only (ex: AuthProxy) connections to the database.
+    #[serde(default, rename = "requireConnectors")]
+    pub require_connectors: ::core::option::Option<bool>,
+    /// Optional. SSL configuration option for this instance.
+    #[serde(default, rename = "sslConfig")]
+    pub ssl_config: ::core::option::Option<SslConfig>,
+}
+
+/// Configuration for Managed Connection Pool (MCP).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionPoolConfig {
+    /// Optional. Whether to enable Managed Connection Pool (MCP).
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. Connection Pool flags, as a list of "key": "value" pairs.
+    #[serde(default)]
+    pub flags: ::core::option::Option<serde_json::Value>,
+    /// Output only. The number of running poolers per instance.
+    #[serde(default, rename = "poolerCount")]
+    pub pooler_count: ::core::option::Option<i32>,
+}
+
+/// MachineConfig describes the configuration of a machine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MachineConfig {
+    /// The number of CPU''s in the VM instance.
+    #[serde(default, rename = "cpuCount")]
+    pub cpu_count: ::core::option::Option<i32>,
+    /// Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+}
+
+/// Metadata related to instance-level network configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceNetworkConfig {
+    /// Optional. Name of the allocated IP range for the private IP AlloyDB instance, for example: "google-managed-services-default". If set, the instance IPs will be created from this allocated range and will override the IP range used by the parent cluster. The range name must comply with [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.
+    #[serde(default, rename = "allocatedIpRangeOverride")]
+    pub allocated_ip_range_override: ::core::option::Option<String>,
+    /// Optional. A list of external network authorized to access this instance.
+    #[serde(default, rename = "authorizedExternalNetworks")]
+    pub authorized_external_networks: ::core::option::Option<::std::vec::Vec<AuthorizedNetwork>>,
+    /// Optional. Enabling an outbound public IP address to support a database server sending requests out into the internet.
+    #[serde(default, rename = "enableOutboundPublicIp")]
+    pub enable_outbound_public_ip: ::core::option::Option<bool>,
+    /// Optional. Enabling public ip for the instance.
+    #[serde(default, rename = "enablePublicIp")]
+    pub enable_public_ip: ::core::option::Option<bool>,
+    /// Output only. The resource link for the VPC network in which instance resources are created and from which they are accessible via Private IP. This will be the same value as the parent cluster''s network. It is specified in the form: // projects/{project_number}/global/networks/{network_id}.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+}
+
+/// Details of a single node in the instance. Nodes in an AlloyDB instance are ephemeral, they can change during update, failover, autohealing and resize operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Node {
+    /// Output only. The identifier of the VM e.g. "test-read-0601-407e52be-ms3l".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The private IP address of the VM e.g. "10.57.0.34".
+    #[serde(default)]
+    pub ip: ::core::option::Option<String>,
+    /// Output only. Indicates whether the node set up to be configured as a hot standby.
+    #[serde(default, rename = "isHotStandby")]
+    pub is_hot_standby: ::core::option::Option<bool>,
+    /// Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The Compute Engine zone of the VM e.g. "us-central1-b".
+    #[serde(default, rename = "zoneId")]
+    pub zone_id: ::core::option::Option<String>,
+}
+
+/// Observability Instance specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObservabilityInstanceConfig {
+    /// Observability feature status for an instance. This flag is turned "off" by default.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Query string length. The default value is 10k.
+    #[serde(default, rename = "maxQueryStringLength")]
+    pub max_query_string_length: ::core::option::Option<i32>,
+    /// Preserve comments in query string for an instance. This flag is turned "off" by default.
+    #[serde(default, rename = "preserveComments")]
+    pub preserve_comments: ::core::option::Option<bool>,
+    /// Number of query execution plans captured by Insights per minute for all queries combined. The default value is 200. Any integer between 0 to 200 is considered valid.
+    #[serde(default, rename = "queryPlansPerMinute")]
+    pub query_plans_per_minute: ::core::option::Option<i32>,
+    /// Record application tags for an instance. This flag is turned "off" by default.
+    #[serde(default, rename = "recordApplicationTags")]
+    pub record_application_tags: ::core::option::Option<bool>,
+    /// Track actively running queries on the instance. If not set, this flag is "off" by default.
+    #[serde(default, rename = "trackActiveQueries")]
+    pub track_active_queries: ::core::option::Option<bool>,
+    /// Output only. Track wait event types during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on. This is read-only flag and only modifiable by internal API.
+    #[serde(default, rename = "trackWaitEventTypes")]
+    pub track_wait_event_types: ::core::option::Option<bool>,
+    /// Track wait events during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on.
+    #[serde(default, rename = "trackWaitEvents")]
+    pub track_wait_events: ::core::option::Option<bool>,
+}
+
+/// PscInstanceConfig contains PSC related configuration at an instance level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscInstanceConfig {
+    /// Optional. List of consumer projects that are allowed to create PSC endpoints to service-attachments to this instance.
+    #[serde(default, rename = "allowedConsumerProjects")]
+    pub allowed_consumer_projects: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Configurations for setting up PSC service automation.
+    #[serde(default, rename = "pscAutoConnections")]
+    pub psc_auto_connections: ::core::option::Option<::std::vec::Vec<PscAutoConnectionConfig>>,
+    /// Output only. The DNS name of the instance for PSC connectivity. Name convention: ...alloydb-psc.goog
+    #[serde(default, rename = "pscDnsName")]
+    pub psc_dns_name: ::core::option::Option<String>,
+    /// Optional. Configurations for setting up PSC interfaces attached to the instance which are used for outbound connectivity. Only primary instances can have PSC interface attached. Currently we only support 0 or 1 PSC interface.
+    #[serde(default, rename = "pscInterfaceConfigs")]
+    pub psc_interface_configs: ::core::option::Option<::std::vec::Vec<PscInterfaceConfig>>,
+    /// Output only. The service attachment created when Private Service Connect (PSC) is enabled for the instance. The name of the resource will be in the format of projects//regions//serviceAttachments/
+    #[serde(default, rename = "serviceAttachmentLink")]
+    pub service_attachment_link: ::core::option::Option<String>,
+}
+
+/// QueryInsights Instance specific configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryInsightsInstanceConfig {
+    /// Number of query execution plans captured by Insights per minute for all queries combined. The default value is 5. Any integer between 0 and 20 is considered valid.
+    #[serde(default, rename = "queryPlansPerMinute")]
+    pub query_plans_per_minute: ::core::option::Option<i64>,
+    /// Query string length. The default value is 1024. Any integer between 256 and 4500 is considered valid.
+    #[serde(default, rename = "queryStringLength")]
+    pub query_string_length: ::core::option::Option<i64>,
+    /// Record application tags for an instance. This flag is turned "on" by default.
+    #[serde(default, rename = "recordApplicationTags")]
+    pub record_application_tags: ::core::option::Option<bool>,
+    /// Record client address for an instance. Client address is PII information. This flag is turned "on" by default.
+    #[serde(default, rename = "recordClientAddress")]
+    pub record_client_address: ::core::option::Option<bool>,
+}
+
+/// Configuration for a read pool instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadPoolConfig {
+    /// Read capacity, i.e. number of nodes in a read pool instance.
+    #[serde(default, rename = "nodeCount")]
+    pub node_count: ::core::option::Option<i32>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Restrictions on INTEGER type values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntegerRestrictions {
+    /// The maximum value that can be specified, if applicable.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// The minimum value that can be specified, if applicable.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+}
+
+/// Status of an upgrade stage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageStatus {
+    /// Read pool instances upgrade metadata.
+    #[serde(default, rename = "readPoolInstancesUpgrade")]
+    pub read_pool_instances_upgrade: ::core::option::Option<ReadPoolInstancesUpgradeStageStatus>,
+    /// Upgrade stage. // TODO: enum values: ["STAGE_UNSPECIFIED", "ALLOYDB_PRECHECK", "PG_UPGRADE_CHECK", "PREPARE_FOR_UPGRADE", "PRIMARY_INSTANCE_UPGRADE", "READ_POOL_INSTANCES_UPGRADE", "ROLLBACK", "CLEANUP"]
+    #[serde(default)]
+    pub stage: ::core::option::Option<String>,
+    /// State of this stage. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Message describing the user-specified automated backup policy. All fields in the automated backup policy are optional. Defaults for each field are provided if they are not set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutomatedBackupPolicy {
+    /// The length of the time window during which a backup can be taken. If a backup does not succeed within this time window, it will be canceled and considered failed. The backup window must be at least 5 minutes long. There is no upper bound on the window. If not set, it defaults to 1 hour.
+    #[serde(default, rename = "backupWindow")]
+    pub backup_window: ::core::option::Option<String>,
+    /// Whether automated automated backups are enabled. If not set, defaults to true.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster''s encryption config.
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// Labels to apply to backups created using this configuration.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The location where the backup will be stored. Currently, the only supported option is to store the backup in the same region as the cluster. If empty, defaults to the region of the cluster.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// Database resource id.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
-    /// Deprecated: Use signal_metadata_list instead.
+    /// Quantity-based Backup retention policy to retain recent backups.
+    #[serde(default, rename = "quantityBasedRetention")]
+    pub quantity_based_retention: ::core::option::Option<QuantityBasedRetention>,
+    /// Time-based Backup retention policy.
+    #[serde(default, rename = "timeBasedRetention")]
+    pub time_based_retention: ::core::option::Option<TimeBasedRetention>,
+    /// Weekly schedule for the Backup.
+    #[serde(default, rename = "weeklySchedule")]
+    pub weekly_schedule: ::core::option::Option<WeeklySchedule>,
+}
+
+/// Message describing a BackupSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupSource {
+    /// Required. The name of the backup resource with the format: * projects/{project}/locations/{region}/backups/{backup_id}
+    #[serde(default, rename = "backupName")]
+    pub backup_name: ::core::option::Option<String>,
+    /// Output only. The system-generated UID of the backup which was used to create this resource. The UID is generated when the backup is created, and it is retained until the backup is deleted.
+    #[serde(default, rename = "backupUid")]
+    pub backup_uid: ::core::option::Option<String>,
+}
+
+/// Message describing a BackupDrBackupSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrBackupSource {
+    /// Required. The name of the backup resource with the format: * projects/{project}/locations/{location}/backupVaults/{backupvault_id}/dataSources/{datasource_id}/backups/{backup_id}
+    #[serde(default)]
+    pub backup: ::core::option::Option<String>,
+}
+
+/// Information about BackupDR protection for this cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrInfo {
+    /// The current BackupDR configuration for this cluster. If BackupDR protection is not enabled for this cluster, this field will be empty.
+    #[serde(default, rename = "currentWindow")]
+    pub current_window: ::core::option::Option<BackupDrEnabledWindow>,
+    /// Windows during which BackupDR was enabled for this cluster, along with associated configuration for that window. These are used to determine points-in-time for which restores can be performed. The windows are ordered with the most recent window last. Windows are mutally exclusive. Windows which closed more than 1 year ago will be removed from this list.
+    #[serde(default, rename = "previousWindows")]
+    pub previous_windows: ::core::option::Option<::std::vec::Vec<BackupDrEnabledWindow>>,
+}
+
+/// The source CloudSQL backup resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSQLBackupRunSource {
+    /// Required. The CloudSQL backup run ID.
+    #[serde(default, rename = "backupRunId")]
+    pub backup_run_id: ::core::option::Option<String>,
+    /// Required. The CloudSQL instance ID.
+    #[serde(default, rename = "instanceId")]
+    pub instance_id: ::core::option::Option<String>,
+    /// The project ID of the source CloudSQL instance. This should be the same as the AlloyDB cluster''s project.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+}
+
+/// ContinuousBackupConfig describes the continuous backups recovery configurations of a cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContinuousBackupConfig {
+    /// Whether ContinuousBackup is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster''s encryption config.
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// The number of days that are eligible to restore from using PITR. To support the entire recovery window, backups and logs are retained for one day more than the recovery window. If not set, defaults to 14 days.
+    #[serde(default, rename = "recoveryWindowDays")]
+    pub recovery_window_days: ::core::option::Option<i32>,
+}
+
+/// ContinuousBackupInfo describes the continuous backup properties of a cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContinuousBackupInfo {
+    /// Output only. The earliest restorable time that can be restored to. If continuous backups and recovery was recently enabled, the earliest restorable time is the creation time of the earliest eligible backup within this cluster''s continuous backup recovery window. After a cluster has had continuous backups enabled for the duration of its recovery window, the earliest restorable time becomes "now minus the recovery window". For example, assuming a point in time recovery is attempted at 04/16/2025 3:23:00PM with a 14d recovery window, the earliest restorable time would be 04/02/2025 3:23:00PM. This field is only visible if the CLUSTER_VIEW_CONTINUOUS_BACKUP cluster view is provided.
+    #[serde(default, rename = "earliestRestorableTime")]
+    pub earliest_restorable_time: ::core::option::Option<String>,
+    /// Output only. When ContinuousBackup was most recently enabled. Set to null if ContinuousBackup is not enabled.
+    #[serde(default, rename = "enabledTime")]
+    pub enabled_time: ::core::option::Option<String>,
+    /// Output only. The encryption information for the WALs and backups required for ContinuousBackup.
+    #[serde(default, rename = "encryptionInfo")]
+    pub encryption_info: ::core::option::Option<EncryptionInfo>,
+    /// Output only. Days of the week on which a continuous backup is taken.
+    #[serde(default)]
+    pub schedule: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Configuration for Dataplex integration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataplexConfig {
+    /// Dataplex is enabled by default for resources such as clusters and instances. This flag controls the integration of AlloyDB PG resources (like databases, schemas, and tables) with Dataplex."
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// The username/password for a database user. Used for specifying initial users at cluster creation time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPassword {
+    /// The initial password for the user.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// The database username.
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
+/// MaintenanceSchedule stores the maintenance schedule generated from the MaintenanceUpdatePolicy, once a maintenance rollout is triggered, if MaintenanceWindow is set, and if there is no conflicting DenyPeriod. The schedule is cleared once the update takes place. This field cannot be manually changed; modify the MaintenanceUpdatePolicy instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceSchedule {
+    /// Output only. The scheduled start time for the maintenance.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// MaintenanceUpdatePolicy defines the policy for system updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceUpdatePolicy {
+    /// Periods to deny maintenance. Currently limited to 1.
+    #[serde(default, rename = "denyMaintenancePeriods")]
+    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
+    /// Preferred windows to perform maintenance. Currently limited to 1.
+    #[serde(default, rename = "maintenanceWindows")]
+    pub maintenance_windows: ::core::option::Option<::std::vec::Vec<MaintenanceWindow>>,
+}
+
+/// Subset of the source instance configuration that is available when reading the cluster resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationSource {
+    /// Output only. The host and port of the on-premises instance in host:port format
+    #[serde(default, rename = "hostPort")]
+    pub host_port: ::core::option::Option<String>,
+    /// Output only. Place holder for the external source identifier(e.g DMS job name) that created the cluster.
+    #[serde(default, rename = "referenceId")]
+    pub reference_id: ::core::option::Option<String>,
+    /// Output only. Type of migration source. // TODO: enum values: ["MIGRATION_SOURCE_TYPE_UNSPECIFIED", "DMS"]
+    #[serde(default, rename = "sourceType")]
+    pub source_type: ::core::option::Option<String>,
+}
+
+/// Metadata related to network configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    /// Optional. Name of the allocated IP range for the private IP AlloyDB cluster, for example: "google-managed-services-default". If set, the instance IPs for this cluster will be created in the allocated range. The range name must comply with RFC 1035. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Field name is intended to be consistent with Cloud SQL.
+    #[serde(default, rename = "allocatedIpRange")]
+    pub allocated_ip_range: ::core::option::Option<String>,
+    /// Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: projects/{project_number}/global/networks/{network_id}. This is required to create a cluster.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+}
+
+/// Configuration for the primary cluster. It has the list of clusters that are replicating from this cluster. This should be set if and only if the cluster is of type PRIMARY.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrimaryConfig {
+    /// Output only. Names of the clusters that are replicating from this cluster.
+    #[serde(default, rename = "secondaryClusterNames")]
+    pub secondary_cluster_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// PscConfig contains PSC related configuration at a cluster level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscConfig {
+    /// Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.
+    #[serde(default, rename = "pscEnabled")]
+    pub psc_enabled: ::core::option::Option<bool>,
+    /// Output only. The project number that needs to be allowlisted on the network attachment to enable outbound connectivity.
+    #[serde(default, rename = "serviceOwnedProjectNumber")]
+    pub service_owned_project_number: ::core::option::Option<String>,
+}
+
+/// Configuration information for the secondary cluster. This should be set if and only if the cluster is of type SECONDARY.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecondaryConfig {
+    /// The name of the primary cluster name with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}
+    #[serde(default, rename = "primaryClusterName")]
+    pub primary_cluster_name: ::core::option::Option<String>,
+}
+
+/// Contains information and all metadata related to TRIAL clusters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrialMetadata {
+    /// End time of the trial cluster.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// grace end time of the cluster.
+    #[serde(default, rename = "graceEndTime")]
+    pub grace_end_time: ::core::option::Option<String>,
+    /// start time of the trial cluster.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Upgrade time of trial cluster to Standard cluster.
+    #[serde(default, rename = "upgradeTime")]
+    pub upgrade_time: ::core::option::Option<String>,
+}
+
+/// SignalMetadata contains one of the signal metadata proto messages associated with a SignalType. This proto will be mapped to SignalMetadata message in storage.proto. Next ID: 3
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainSignalMetadata {
+    /// Signal data for backup runs.
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
+    /// Signal data for boolean signals.
     #[serde(default, rename = "signalBoolValue")]
     pub signal_bool_value: ::core::option::Option<bool>,
-    /// This will support array of OneOf signal metadata information for a given signal type.
-    #[serde(default, rename = "signalMetadataList")]
-    pub signal_metadata_list: ::core::option::Option<
-        ::std::vec::Vec<StorageDatabasecenterPartnerapiV1mainSignalMetadata>,
+}
+
+/// TypedValue represents the value of a metric type. It can either be a double, an int64, a string or a bool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterProtoCommonTypedValue {
+    /// For boolean value
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// For double value
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// For integer value
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// For string value
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// Contains compliance information about a security standard indicating unmet recommendations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainCompliance {
+    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
+    #[serde(default)]
+    pub standard: ::core::option::Option<String>,
+    /// Version of the standard or benchmark, for example, 1.1
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Configuration for availability of database instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainAvailabilityConfiguration {
+    /// Checks for existence of (multi-cluster) routing configuration that allows automatic failover to a different zone/region in case of an outage. Applicable to Bigtable resources.
+    #[serde(default, rename = "automaticFailoverRoutingConfigured")]
+    pub automatic_failover_routing_configured: ::core::option::Option<bool>,
+    /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL", "AVAILABILITY_TYPE_OTHER"]
+    #[serde(default, rename = "availabilityType")]
+    pub availability_type: ::core::option::Option<String>,
+    /// Checks for resources that are configured to have redundancy, and ongoing replication across regions
+    #[serde(default, rename = "crossRegionReplicaConfigured")]
+    pub cross_region_replica_configured: ::core::option::Option<bool>,
+    #[serde(default, rename = "externalReplicaConfigured")]
+    pub external_replica_configured: ::core::option::Option<bool>,
+    #[serde(default, rename = "promotableReplicaConfigured")]
+    pub promotable_replica_configured: ::core::option::Option<bool>,
+}
+
+/// BackupDRConfiguration to capture the backup and disaster recovery details of database resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainBackupDRConfiguration {
+    /// Indicates if the resource is managed by BackupDR.
+    #[serde(default, rename = "backupdrManaged")]
+    pub backupdr_managed: ::core::option::Option<bool>,
+}
+
+/// Any custom metadata associated with the resource. e.g. A spanner instance can have multiple databases with its own unique metadata. Information for these individual databases can be captured in custom metadata data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainCustomMetadataData {
+    /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration.
+    #[serde(default, rename = "internalResourceMetadata")]
+    pub internal_resource_metadata: ::core::option::Option<
+        ::std::vec::Vec<StorageDatabasecenterPartnerapiV1mainInternalResourceMetadata>,
     >,
-    /// Required. Output only. Signal state of the signal // TODO: enum values: ["SIGNAL_STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DISMISSED"]
-    #[serde(default, rename = "signalState")]
-    pub signal_state: ::core::option::Option<String>,
-    /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
-    #[serde(default, rename = "signalType")]
-    pub signal_type: ::core::option::Option<String>,
 }
 
 /// Proto representing the access that a user has to a specific feature/service. NextId: 3.
@@ -1770,29 +1710,6 @@ pub struct StorageDatabasecenterPartnerapiV1mainGCBDRConfiguration {
     /// Whether the resource is managed by GCBDR.
     #[serde(default, rename = "gcbdrManaged")]
     pub gcbdr_managed: ::core::option::Option<bool>,
-}
-
-/// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration settings. Similarly bigtable can have multiple clusters within same bigtable instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainInternalResourceMetadata {
-    /// Backup configuration for this database
-    #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupConfiguration>,
-    /// Information about the last backup attempt for this database
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
-    /// Whether deletion protection is enabled for this internal resource.
-    #[serde(default, rename = "isDeletionProtectionEnabled")]
-    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
-    #[serde(default)]
-    pub product: ::core::option::Option<StorageDatabasecenterProtoCommonProduct>,
-    #[serde(default, rename = "resourceId")]
-    pub resource_id:
-        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
-    /// Required. internal resource name for spanner this will be database name e.g."spanner.googleapis.com/projects/123/abc/instances/inst1/databases/db1"
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
 }
 
 /// MachineConfiguration describes the configuration of a machine specific to Database Resource.
@@ -1816,65 +1733,6 @@ pub struct StorageDatabasecenterPartnerapiV1mainMachineConfiguration {
     /// Optional. The number of vCPUs. TODO(b/342344482) add proto validations again after bug fix.
     #[serde(default, rename = "vcpuCount")]
     pub vcpu_count: ::core::option::Option<f64>,
-}
-
-/// StorageDatabasecenterPartnerapiV1mainObservabilityMetricData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainObservabilityMetricData {
-    /// Required. Type of aggregation performed on the metric. // TODO: enum values: ["AGGREGATION_TYPE_UNSPECIFIED", "PEAK", "P99", "P95", "CURRENT"]
-    #[serde(default, rename = "aggregationType")]
-    pub aggregation_type: ::core::option::Option<String>,
-    /// Required. Type of metric like CPU, Memory, etc. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "CPU_UTILIZATION", "MEMORY_UTILIZATION", "NETWORK_CONNECTIONS", "STORAGE_UTILIZATION", "STORAGE_USED_BYTES", "NODE_COUNT", "MEMORY_USED_BYTES", "PROCESSING_UNIT_COUNT"]
-    #[serde(default, rename = "metricType")]
-    pub metric_type: ::core::option::Option<String>,
-    /// Required. The time the metric value was observed.
-    #[serde(default, rename = "observationTime")]
-    pub observation_time: ::core::option::Option<String>,
-    /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Required. Value of the metric type.
-    #[serde(default)]
-    pub value: ::core::option::Option<StorageDatabasecenterProtoCommonTypedValue>,
-}
-
-/// An error that occurred during a backup creation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainOperationError {
-    /// Identifies the specific error that occurred. REQUIRED
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// TODO: enum values: ["OPERATION_ERROR_TYPE_UNSPECIFIED", "KMS_KEY_ERROR", "DATABASE_ERROR", "STOCKOUT_ERROR", "CANCELLATION_ERROR", "SQLSERVER_ERROR", "INTERNAL_ERROR"]
-    #[serde(default, rename = "errorType")]
-    pub error_type: ::core::option::Option<String>,
-    /// Additional information about the error encountered. REQUIRED
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Message type for storing resource flags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainResourceFlags {
-    /// Optional. Key of the resource flag.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Value of the resource flag.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Deny maintenance period for the database resource. It specifies the time range during which the maintenance cannot start. This is configured by the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainResourceMaintenanceDenySchedule {
-    /// Optional. Deny period end date.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<GoogleTypeDate>,
-    /// Optional. The start date of the deny maintenance period.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<GoogleTypeDate>,
-    /// Optional. Time in UTC when the deny period starts on start_date and ends on end_date.
-    #[serde(default)]
-    pub time: ::core::option::Option<GoogleTypeTimeOfDay>,
 }
 
 /// MaintenanceInfo to capture the maintenance details of database resource.
@@ -1907,6 +1765,240 @@ pub struct StorageDatabasecenterPartnerapiV1mainResourceMaintenanceInfo {
         ::core::option::Option<StorageDatabasecenterPartnerapiV1mainUpcomingMaintenance>,
 }
 
+/// Message type for storing resource flags.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainResourceFlags {
+    /// Optional. Key of the resource flag.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Optional. Value of the resource flag.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Details regarding the upgrade of instances associated with a cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceUpgradeDetails {
+    /// Instance type. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "PRIMARY", "READ_POOL", "SECONDARY"]
+    #[serde(default, rename = "instanceType")]
+    pub instance_type: ::core::option::Option<String>,
+    /// Normalized name of the instance.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Upgrade status of the instance. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default, rename = "upgradeStatus")]
+    pub upgrade_status: ::core::option::Option<String>,
+}
+
+/// Stage information for different stages in the upgrade process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageInfo {
+    /// logs_url is the URL for the logs associated with a stage if that stage has logs. Right now, only three stages have logs: ALLOYDB_PRECHECK, PG_UPGRADE_CHECK, PRIMARY_INSTANCE_UPGRADE.
+    #[serde(default, rename = "logsUrl")]
+    pub logs_url: ::core::option::Option<String>,
+    /// The stage. // TODO: enum values: ["STAGE_UNSPECIFIED", "ALLOYDB_PRECHECK", "PG_UPGRADE_CHECK", "PREPARE_FOR_UPGRADE", "PRIMARY_INSTANCE_UPGRADE", "READ_POOL_INSTANCES_UPGRADE", "ROLLBACK", "CLEANUP"]
+    #[serde(default)]
+    pub stage: ::core::option::Option<String>,
+    /// Status of the stage. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// SSL configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SslConfig {
+    /// Optional. Certificate Authority (CA) source. Only CA_SOURCE_MANAGED is supported currently, and is the default value. // TODO: enum values: ["CA_SOURCE_UNSPECIFIED", "CA_SOURCE_MANAGED"]
+    #[serde(default, rename = "caSource")]
+    pub ca_source: ::core::option::Option<String>,
+    /// Optional. SSL mode. Specifies client-server SSL/TLS connection behavior. // TODO: enum values: ["SSL_MODE_UNSPECIFIED", "SSL_MODE_ALLOW", "SSL_MODE_REQUIRE", "SSL_MODE_VERIFY_CA", "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "ENCRYPTED_ONLY"]
+    #[serde(default, rename = "sslMode")]
+    pub ssl_mode: ::core::option::Option<String>,
+}
+
+/// AuthorizedNetwork contains metadata for an authorized network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizedNetwork {
+    /// CIDR range for one authorzied network of the instance.
+    #[serde(default, rename = "cidrRange")]
+    pub cidr_range: ::core::option::Option<String>,
+}
+
+/// Configuration for setting up PSC service automation. Consumer projects in the configs will be allowlisted automatically for the instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscAutoConnectionConfig {
+    /// The consumer network for the PSC service automation, example: "projects/vpc-host-project/global/networks/default". The consumer network might be hosted a different project than the consumer project.
+    #[serde(default, rename = "consumerNetwork")]
+    pub consumer_network: ::core::option::Option<String>,
+    /// Output only. The status of the service connection policy. Possible values: "STATE_UNSPECIFIED" - Default state, when Connection Map is created initially. "VALID" - Set when policy and map configuration is valid, and their matching can lead to allowing creation of PSC Connections subject to other constraints like connections limit. "CONNECTION_POLICY_MISSING" - No Service Connection Policy found for this network and Service Class "POLICY_LIMIT_REACHED" - Service Connection Policy limit reached for this network and Service Class "CONSUMER_INSTANCE_PROJECT_NOT_ALLOWLISTED" - The consumer instance project is not in AllowedGoogleProducersResourceHierarchyLevels of the matching ServiceConnectionPolicy.
+    #[serde(default, rename = "consumerNetworkStatus")]
+    pub consumer_network_status: ::core::option::Option<String>,
+    /// The consumer project to which the PSC service automation endpoint will be created.
+    #[serde(default, rename = "consumerProject")]
+    pub consumer_project: ::core::option::Option<String>,
+    /// Output only. The IP address of the PSC service automation endpoint.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Output only. The status of the PSC service automation connection. Possible values: "STATE_UNSPECIFIED" - An invalid state as the default case. "ACTIVE" - The connection has been created successfully. "FAILED" - The connection is not functional since some resources on the connection fail to be created. "CREATING" - The connection is being created. "DELETING" - The connection is being deleted. "CREATE_REPAIRING" - The connection is being repaired to complete creation. "DELETE_REPAIRING" - The connection is being repaired to complete deletion.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Configuration for setting up a PSC interface to enable outbound connectivity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscInterfaceConfig {
+    /// The network attachment resource created in the consumer network to which the PSC interface will be linked. This is of the format: "projects/${CONSUMER_PROJECT}/regions/${REGION}/networkAttachments/${NETWORK_ATTACHMENT_NAME}". The network attachment must be in the same region as the instance.
+    #[serde(default, rename = "networkAttachmentResource")]
+    pub network_attachment_resource: ::core::option::Option<String>,
+}
+
+/// Read pool instances upgrade specific status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadPoolInstancesUpgradeStageStatus {
+    /// Read pool instances upgrade statistics.
+    #[serde(default, rename = "upgradeStats")]
+    pub upgrade_stats: ::core::option::Option<Stats>,
+}
+
+/// A quantity based policy specifies that a certain number of the most recent successful backups should be retained.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuantityBasedRetention {
+    /// The number of backups to retain.
+    #[serde(default)]
+    pub count: ::core::option::Option<i32>,
+}
+
+/// A time based retention policy specifies that all backups within a certain time period should be retained.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeBasedRetention {
+    /// The retention period.
+    #[serde(default, rename = "retentionPeriod")]
+    pub retention_period: ::core::option::Option<String>,
+}
+
+/// A weekly schedule starts a backup at prescribed start times within a day, for the specified days of the week. The weekly schedule message is flexible and can be used to create many types of schedules. For example, to have a daily backup that starts at 22:00, configure the start_times field to have one element "22:00" and the days_of_week field to have all seven days of the week.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklySchedule {
+    /// The days of the week to perform a backup. If this field is left empty, the default of every day of the week is used.
+    #[serde(default, rename = "daysOfWeek")]
+    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The times during the day to start a backup. The start times are assumed to be in UTC and to be an exact hour (e.g., 04:00:00). If no start times are provided, a single fixed start time is chosen arbitrarily.
+    #[serde(default, rename = "startTimes")]
+    pub start_times: ::core::option::Option<::std::vec::Vec<GoogleTypeTimeOfDay>>,
+}
+
+/// Information about a single window when BackupDR was enabled for this cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrEnabledWindow {
+    /// Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.
+    #[serde(default, rename = "automatedBackupPreviouslyEnabled")]
+    pub automated_backup_previously_enabled: ::core::option::Option<bool>,
+    /// The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.
+    #[serde(default, rename = "backupPlanAssociation")]
+    pub backup_plan_association: ::core::option::Option<String>,
+    /// The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.
+    #[serde(default, rename = "continuousBackupPreviousRecoveryWindowDays")]
+    pub continuous_backup_previous_recovery_window_days: ::core::option::Option<i32>,
+    /// Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.
+    #[serde(default, rename = "continuousBackupPreviouslyEnabled")]
+    pub continuous_backup_previously_enabled: ::core::option::Option<bool>,
+    /// The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.
+    #[serde(default, rename = "continuousBackupPreviouslyEnabledTime")]
+    pub continuous_backup_previously_enabled_time: ::core::option::Option<String>,
+    /// The DataSource resource that represents the cluster in BackupDR.
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+    /// Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the current_window.
+    #[serde(default, rename = "disabledTime")]
+    pub disabled_time: ::core::option::Option<String>,
+    /// Time when the BackupDR protection for this cluster was enabled.
+    #[serde(default, rename = "enabledTime")]
+    pub enabled_time: ::core::option::Option<String>,
+    /// The retention period for logs generated by BackupDR for this cluster.
+    #[serde(default, rename = "logRetentionPeriod")]
+    pub log_retention_period: ::core::option::Option<String>,
+}
+
+/// EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
+/// EncryptionInfo describes the encryption information of a cluster or a backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionInfo {
+    /// Output only. Type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
+    #[serde(default, rename = "encryptionType")]
+    pub encryption_type: ::core::option::Option<String>,
+    /// Output only. Cloud KMS key versions that are being used to protect the database or the backup.
+    #[serde(default, rename = "kmsKeyVersions")]
+    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// DenyMaintenancePeriod definition. Excepting emergencies, maintenance will not be scheduled to start within this deny period. The start_date must be less than the end_date.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DenyMaintenancePeriod {
+    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<GoogleTypeDate>,
+    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<GoogleTypeDate>,
+    /// Time in UTC when the deny period starts on start_date and ends on end_date. This can be: * Full time OR * All zeros for 00:00:00 UTC
+    #[serde(default)]
+    pub time: ::core::option::Option<GoogleTypeTimeOfDay>,
+}
+
+/// MaintenanceWindow specifies a preferred day and time for maintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindow {
+    /// Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Preferred time to start the maintenance operation on the specified day. Maintenance will start within 1 hour of this time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<GoogleTypeTimeOfDay>,
+}
+
+/// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration settings. Similarly bigtable can have multiple clusters within same bigtable instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainInternalResourceMetadata {
+    /// Backup configuration for this database
+    #[serde(default, rename = "backupConfiguration")]
+    pub backup_configuration:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupConfiguration>,
+    /// Information about the last backup attempt for this database
+    #[serde(default, rename = "backupRun")]
+    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
+    /// Whether deletion protection is enabled for this internal resource.
+    #[serde(default, rename = "isDeletionProtectionEnabled")]
+    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
+    #[serde(default)]
+    pub product: ::core::option::Option<StorageDatabasecenterProtoCommonProduct>,
+    #[serde(default, rename = "resourceId")]
+    pub resource_id:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainDatabaseResourceId>,
+    /// Required. internal resource name for spanner this will be database name e.g."spanner.googleapis.com/projects/123/abc/instances/inst1/databases/db1"
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Deny maintenance period for the database resource. It specifies the time range during which the maintenance cannot start. This is configured by the customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainResourceMaintenanceDenySchedule {
+    /// Optional. Deny period end date.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<GoogleTypeDate>,
+    /// Optional. The start date of the deny maintenance period.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<GoogleTypeDate>,
+    /// Optional. Time in UTC when the deny period starts on start_date and ends on end_date.
+    #[serde(default)]
+    pub time: ::core::option::Option<GoogleTypeTimeOfDay>,
+}
+
 /// Maintenance window for the database resource. It specifies preferred time and day of the week and phase in some cases, when the maintenance can start. This is configured by the customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageDatabasecenterPartnerapiV1mainResourceMaintenanceSchedule {
@@ -1919,6 +2011,131 @@ pub struct StorageDatabasecenterPartnerapiV1mainResourceMaintenanceSchedule {
     /// Optional. Preferred time to start the maintenance operation on the specified day.
     #[serde(default)]
     pub time: ::core::option::Option<GoogleTypeTimeOfDay>,
+}
+
+/// Upcoming maintenance for the database resource. This is generated by SLM once the upcoming maintenance schedule is published.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainUpcomingMaintenance {
+    /// Optional. The end time of the upcoming maintenance.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. The start time of the upcoming maintenance.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Upgrade stats for read pool instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Stats {
+    /// Number of read pool instances which failed to upgrade.
+    #[serde(default)]
+    pub failed: ::core::option::Option<i32>,
+    /// Number of read pool instances for which upgrade has not started.
+    #[serde(default, rename = "notStarted")]
+    pub not_started: ::core::option::Option<i32>,
+    /// Number of read pool instances undergoing upgrade.
+    #[serde(default)]
+    pub ongoing: ::core::option::Option<i32>,
+    /// Number of read pool instances successfully upgraded.
+    #[serde(default)]
+    pub success: ::core::option::Option<i32>,
+}
+
+/// Configuration for automatic backups
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainBackupConfiguration {
+    /// Whether customer visible automated backups are enabled on the instance.
+    #[serde(default, rename = "automatedBackupEnabled")]
+    pub automated_backup_enabled: ::core::option::Option<bool>,
+    /// Backup retention settings.
+    #[serde(default, rename = "backupRetentionSettings")]
+    pub backup_retention_settings:
+        ::core::option::Option<StorageDatabasecenterPartnerapiV1mainRetentionSettings>,
+    /// Whether point-in-time recovery is enabled. This is optional field, if the database service does not have this feature or metadata is not available in control plane, this can be omitted.
+    #[serde(default, rename = "pointInTimeRecoveryEnabled")]
+    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
+}
+
+/// A backup run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainBackupRun {
+    /// The time the backup operation completed. REQUIRED
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Information about why the backup operation failed. This is only present if the run has the FAILED status. OPTIONAL
+    #[serde(default)]
+    pub error: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainOperationError>,
+    /// The time the backup operation started. REQUIRED
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The status of this run. REQUIRED // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESSFUL", "FAILED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Product specification for Condor resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterProtoCommonProduct {
+    /// The specific engine that the underlying database is running. // TODO: enum values: ["ENGINE_UNSPECIFIED", "ENGINE_MYSQL", "MYSQL", "ENGINE_POSTGRES", "POSTGRES", "ENGINE_SQL_SERVER", "SQL_SERVER", "ENGINE_NATIVE", "NATIVE", "ENGINE_CLOUD_SPANNER_WITH_POSTGRES_DIALECT", "ENGINE_CLOUD_SPANNER_WITH_GOOGLESQL_DIALECT", "ENGINE_MEMORYSTORE_FOR_REDIS", "ENGINE_MEMORYSTORE_FOR_REDIS_CLUSTER", "ENGINE_OTHER", "ENGINE_FIRESTORE_WITH_NATIVE_MODE", "ENGINE_FIRESTORE_WITH_DATASTORE_MODE", "ENGINE_FIRESTORE_WITH_MONGODB_COMPATIBILITY_MODE", "ENGINE_EXADATA_ORACLE", "ENGINE_ADB_SERVERLESS_ORACLE"]
+    #[serde(default)]
+    pub engine: ::core::option::Option<String>,
+    /// Minor version of the underlying database engine. Example values: For MySQL, it could be "8.0.32", "5.7.32" etc.. For Postgres, it could be "14.3", "15.3" etc..
+    #[serde(default, rename = "minorVersion")]
+    pub minor_version: ::core::option::Option<String>,
+    /// Type of specific database product. It could be CloudSQL, AlloyDB etc.. // TODO: enum values: ["PRODUCT_TYPE_UNSPECIFIED", "PRODUCT_TYPE_CLOUD_SQL", "CLOUD_SQL", "PRODUCT_TYPE_ALLOYDB", "ALLOYDB", "PRODUCT_TYPE_SPANNER", "PRODUCT_TYPE_ON_PREM", "ON_PREM", "PRODUCT_TYPE_MEMORYSTORE", "PRODUCT_TYPE_BIGTABLE", "PRODUCT_TYPE_FIRESTORE", "PRODUCT_TYPE_COMPUTE_ENGINE", "PRODUCT_TYPE_ORACLE_ON_GCP", "PRODUCT_TYPE_BIGQUERY", "PRODUCT_TYPE_OTHER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Version of the underlying database engine. Example values: For MySQL, it could be "8.0", "5.7" etc.. For Postgres, it could be "14", "15" etc..
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// DatabaseResourceId will serve as primary key for any resource ingestion event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceId {
+    /// Required. Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Optional. Needs to be used only when the provider is PROVIDER_OTHER.
+    #[serde(default, rename = "providerDescription")]
+    pub provider_description: ::core::option::Option<String>,
+    /// Required. The type of resource this ID is identifying. Ex go/keep-sorted start alloydb.googleapis.com/Cluster, alloydb.googleapis.com/Instance, bigtableadmin.googleapis.com/Cluster, bigtableadmin.googleapis.com/Instance compute.googleapis.com/Instance firestore.googleapis.com/Database, redis.googleapis.com/Instance, redis.googleapis.com/Cluster, oracledatabase.googleapis.com/CloudExadataInfrastructure oracledatabase.googleapis.com/CloudVmCluster oracledatabase.googleapis.com/AutonomousDatabase spanner.googleapis.com/Instance, spanner.googleapis.com/Database, sqladmin.googleapis.com/Instance, go/keep-sorted end REQUIRED Please refer go/condor-common-datamodel
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Required. A service-local token that distinguishes this resource from other resources within the same service.
+    #[serde(default, rename = "uniqueId")]
+    pub unique_id: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeTimeOfDay {
+    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// StorageDatabasecenterPartnerapiV1mainRetentionSettings resource type.
@@ -1939,233 +2156,16 @@ pub struct StorageDatabasecenterPartnerapiV1mainRetentionSettings {
     pub timestamp_based_retention_time: ::core::option::Option<String>,
 }
 
-/// SignalMetadata contains one of the signal metadata proto messages associated with a SignalType. This proto will be mapped to SignalMetadata message in storage.proto. Next ID: 3
+/// An error that occurred during a backup creation operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainSignalMetadata {
-    /// Signal data for backup runs.
-    #[serde(default, rename = "backupRun")]
-    pub backup_run: ::core::option::Option<StorageDatabasecenterPartnerapiV1mainBackupRun>,
-    /// Signal data for boolean signals.
-    #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: ::core::option::Option<bool>,
-}
-
-/// Upcoming maintenance for the database resource. This is generated by SLM once the upcoming maintenance schedule is published.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterPartnerapiV1mainUpcomingMaintenance {
-    /// Optional. The end time of the upcoming maintenance.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. The start time of the upcoming maintenance.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Product specification for Condor resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterProtoCommonProduct {
-    /// The specific engine that the underlying database is running. // TODO: enum values: ["ENGINE_UNSPECIFIED", "ENGINE_MYSQL", "MYSQL", "ENGINE_POSTGRES", "POSTGRES", "ENGINE_SQL_SERVER", "SQL_SERVER", "ENGINE_NATIVE", "NATIVE", "ENGINE_CLOUD_SPANNER_WITH_POSTGRES_DIALECT", "ENGINE_CLOUD_SPANNER_WITH_GOOGLESQL_DIALECT", "ENGINE_MEMORYSTORE_FOR_REDIS", "ENGINE_MEMORYSTORE_FOR_REDIS_CLUSTER", "ENGINE_OTHER", "ENGINE_FIRESTORE_WITH_NATIVE_MODE", "ENGINE_FIRESTORE_WITH_DATASTORE_MODE", "ENGINE_FIRESTORE_WITH_MONGODB_COMPATIBILITY_MODE", "ENGINE_EXADATA_ORACLE", "ENGINE_ADB_SERVERLESS_ORACLE"]
+pub struct StorageDatabasecenterPartnerapiV1mainOperationError {
+    /// Identifies the specific error that occurred. REQUIRED
     #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// Minor version of the underlying database engine. Example values: For MySQL, it could be "8.0.32", "5.7.32" etc.. For Postgres, it could be "14.3", "15.3" etc..
-    #[serde(default, rename = "minorVersion")]
-    pub minor_version: ::core::option::Option<String>,
-    /// Type of specific database product. It could be CloudSQL, AlloyDB etc.. // TODO: enum values: ["PRODUCT_TYPE_UNSPECIFIED", "PRODUCT_TYPE_CLOUD_SQL", "CLOUD_SQL", "PRODUCT_TYPE_ALLOYDB", "ALLOYDB", "PRODUCT_TYPE_SPANNER", "PRODUCT_TYPE_ON_PREM", "ON_PREM", "PRODUCT_TYPE_MEMORYSTORE", "PRODUCT_TYPE_BIGTABLE", "PRODUCT_TYPE_FIRESTORE", "PRODUCT_TYPE_COMPUTE_ENGINE", "PRODUCT_TYPE_ORACLE_ON_GCP", "PRODUCT_TYPE_BIGQUERY", "PRODUCT_TYPE_OTHER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Version of the underlying database engine. Example values: For MySQL, it could be "8.0", "5.7" etc.. For Postgres, it could be "14", "15" etc..
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// TypedValue represents the value of a metric type. It can either be a double, an int64, a string or a bool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StorageDatabasecenterProtoCommonTypedValue {
-    /// For boolean value
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// For double value
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// For integer value
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// For string value
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-}
-
-/// Restrictions on STRING type values
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringRestrictions {
-    /// The list of allowed values, if bounded. This field will be empty if there is a unbounded number of allowed values.
-    #[serde(default, rename = "allowedValues")]
-    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// SupportedDatabaseFlag gives general information about a database flag, like type and allowed values. This is a static value that is defined on the server side, and it cannot be modified by callers. To set the Database flags on a particular Instance, a caller should modify the Instance.database_flags field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SupportedDatabaseFlag {
-    /// Whether the database flag accepts multiple values. If true, a comma-separated list of stringified values may be specified.
-    #[serde(default, rename = "acceptsMultipleValues")]
-    pub accepts_multiple_values: ::core::option::Option<bool>,
-    /// The name of the database flag, e.g. "max_allowed_packets". The is a possibly key for the Instance.database_flags map field.
-    #[serde(default, rename = "flagName")]
-    pub flag_name: ::core::option::Option<String>,
-    /// Restriction on INTEGER type value.
-    #[serde(default, rename = "integerRestrictions")]
-    pub integer_restrictions: ::core::option::Option<IntegerRestrictions>,
-    /// The name of the flag resource, following Google Cloud conventions, e.g.: * projects/{project}/locations/{location}/flags/{flag} This field currently has no semantic meaning.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The recommended value for an INTEGER flag.
-    #[serde(default, rename = "recommendedIntegerValue")]
-    pub recommended_integer_value: ::core::option::Option<String>,
-    /// The recommended value for a STRING flag.
-    #[serde(default, rename = "recommendedStringValue")]
-    pub recommended_string_value: ::core::option::Option<String>,
-    /// Whether setting or updating this flag on an Instance requires a database restart. If a flag that requires database restart is set, the backend will automatically restart the database (making sure to satisfy any availability SLO''s).
-    #[serde(default, rename = "requiresDbRestart")]
-    pub requires_db_restart: ::core::option::Option<bool>,
-    /// The scope of the flag. // TODO: enum values: ["SCOPE_UNSPECIFIED", "DATABASE", "CONNECTION_POOL"]
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// Restriction on STRING type value.
-    #[serde(default, rename = "stringRestrictions")]
-    pub string_restrictions: ::core::option::Option<StringRestrictions>,
-    /// Major database engine versions for which this flag is supported.
-    #[serde(default, rename = "supportedDbVersions")]
-    pub supported_db_versions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "STRING", "INTEGER", "FLOAT", "NONE"]
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Message for switching over to a cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwitchoverClusterRequest {
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// A time based retention policy specifies that all backups within a certain time period should be retained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeBasedRetention {
-    /// The retention period.
-    #[serde(default, rename = "retentionPeriod")]
-    pub retention_period: ::core::option::Option<String>,
-}
-
-/// Contains information and all metadata related to TRIAL clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrialMetadata {
-    /// End time of the trial cluster.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// grace end time of the cluster.
-    #[serde(default, rename = "graceEndTime")]
-    pub grace_end_time: ::core::option::Option<String>,
-    /// start time of the trial cluster.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Upgrade time of trial cluster to Standard cluster.
-    #[serde(default, rename = "upgradeTime")]
-    pub upgrade_time: ::core::option::Option<String>,
-}
-
-/// Upgrades a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeClusterRequest {
-    /// Optional. The current etag of the Cluster. If an etag is provided and does not match the current etag of the Cluster, upgrade will be blocked and an ABORTED error will be returned.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server ignores the request if it has already been completed. The server guarantees that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set, performs request validation, for example, permission checks and any other type of validation, but does not actually execute the create request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-    /// Required. The version the cluster is going to be upgraded to. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// UpgradeClusterResponse contains the response for upgrade cluster operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeClusterResponse {
-    /// Array of upgrade details for the current cluster and all the secondary clusters associated with this cluster.
-    #[serde(default, rename = "clusterUpgradeDetails")]
-    pub cluster_upgrade_details: ::core::option::Option<::std::vec::Vec<ClusterUpgradeDetails>>,
-    /// A user friendly message summarising the upgrade operation details and the next steps for the user if there is any.
+    pub code: ::core::option::Option<String>,
+    /// TODO: enum values: ["OPERATION_ERROR_TYPE_UNSPECIFIED", "KMS_KEY_ERROR", "DATABASE_ERROR", "STOCKOUT_ERROR", "CANCELLATION_ERROR", "SQLSERVER_ERROR", "INTERNAL_ERROR"]
+    #[serde(default, rename = "errorType")]
+    pub error_type: ::core::option::Option<String>,
+    /// Additional information about the error encountered. REQUIRED
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-    /// Status of upgrade operation. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Message for current status of the Major Version Upgrade operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeClusterStatus {
-    /// Whether the operation is cancellable.
-    #[serde(default)]
-    pub cancellable: ::core::option::Option<bool>,
-    /// Source database major version. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
-    #[serde(default, rename = "sourceVersion")]
-    pub source_version: ::core::option::Option<String>,
-    /// Status of all upgrade stages.
-    #[serde(default)]
-    pub stages: ::core::option::Option<::std::vec::Vec<StageStatus>>,
-    /// Cluster Major Version Upgrade state. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "SUCCESS", "FAILED", "PARTIAL_SUCCESS", "CANCEL_IN_PROGRESS", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Target database major version. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
-    #[serde(default, rename = "targetVersion")]
-    pub target_version: ::core::option::Option<String>,
-}
-
-/// Message describing User object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    /// Optional. List of database roles this user has. The database role strings are subject to the PostgreSQL naming conventions.
-    #[serde(default, rename = "databaseRoles")]
-    pub database_roles: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Input only. If the user already exists and it has additional roles, keep them granted.
-    #[serde(default, rename = "keepExtraRoles")]
-    pub keep_extra_roles: ::core::option::Option<bool>,
-    /// Output only. Name of the resource in the form of projects/{project}/locations/{location}/cluster/{cluster}/users/{user}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Input only. Password for the user.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Optional. Type of this user. // TODO: enum values: ["USER_TYPE_UNSPECIFIED", "ALLOYDB_BUILT_IN", "ALLOYDB_IAM_USER"]
-    #[serde(default, rename = "userType")]
-    pub user_type: ::core::option::Option<String>,
-}
-
-/// The username/password for a database user. Used for specifying initial users at cluster creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserPassword {
-    /// The initial password for the user.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// The database username.
-    #[serde(default)]
-    pub user: ::core::option::Option<String>,
-}
-
-/// A weekly schedule starts a backup at prescribed start times within a day, for the specified days of the week. The weekly schedule message is flexible and can be used to create many types of schedules. For example, to have a daily backup that starts at 22:00, configure the start_times field to have one element "22:00" and the days_of_week field to have all seven days of the week.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WeeklySchedule {
-    /// The days of the week to perform a backup. If this field is left empty, the default of every day of the week is used.
-    #[serde(default, rename = "daysOfWeek")]
-    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The times during the day to start a backup. The start times are assumed to be in UTC and to be an exact hour (e.g., 04:00:00). If no start times are provided, a single fixed start time is chosen arbitrarily.
-    #[serde(default, rename = "startTimes")]
-    pub start_times: ::core::option::Option<::std::vec::Vec<GoogleTypeTimeOfDay>>,
 }

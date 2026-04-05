@@ -58,76 +58,6 @@ pub struct ClaimDevicesRequest {
     pub claims: ::core::option::Option<::std::vec::Vec<PartnerClaim>>,
 }
 
-/// A reseller, vendor, or customer in the zero-touch reseller and customer APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Company {
-    /// Optional. Email address of customer''s users in the admin role. Each email address must be associated with a Google Account.
-    #[serde(default, rename = "adminEmails")]
-    pub admin_emails: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The ID of the company. Assigned by the server.
-    #[serde(default, rename = "companyId")]
-    pub company_id: ::core::option::Option<String>,
-    /// Required. The name of the company. For example _XYZ Corp_. Displayed to the company''s employees in the zero-touch enrollment portal.
-    #[serde(default, rename = "companyName")]
-    pub company_name: ::core::option::Option<String>,
-    /// Output only. The Google Workspace account associated with this customer. Only used for customer Companies.
-    #[serde(default, rename = "googleWorkspaceAccount")]
-    pub google_workspace_account: ::core::option::Option<GoogleWorkspaceAccount>,
-    /// Input only. The preferred locale of the customer represented as a BCP47 language code. This field is validated on input and requests containing unsupported language codes will be rejected. Supported language codes: Arabic (ar) Chinese (Hong Kong) (zh-HK) Chinese (Simplified) (zh-CN) Chinese (Traditional) (zh-TW) Czech (cs) Danish (da) Dutch (nl) English (UK) (en-GB) English (US) (en-US) Filipino (fil) Finnish (fi) French (fr) German (de) Hebrew (iw) Hindi (hi) Hungarian (hu) Indonesian (id) Italian (it) Japanese (ja) Korean (ko) Norwegian (Bokmal) (no) Polish (pl) Portuguese (Brazil) (pt-BR) Portuguese (Portugal) (pt-PT) Russian (ru) Spanish (es) Spanish (Latin America) (es-419) Swedish (sv) Thai (th) Turkish (tr) Ukrainian (uk) Vietnamese (vi)
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Output only. The API resource name of the company. The resource name is one of the following formats: * partners/[PARTNER_ID]/customers/[CUSTOMER_ID] * partners/[PARTNER_ID]/vendors/[VENDOR_ID] * partners/[PARTNER_ID]/vendors/[VENDOR_ID]/customers/[CUSTOMER_ID] Assigned by the server.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Input only. Email address of customer''s users in the owner role. At least one owner_email is required. Owners share the same access as admins but can also add, delete, and edit your organization''s portal users.
-    #[serde(default, rename = "ownerEmails")]
-    pub owner_emails: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Input only. If set to true, welcome email will not be sent to the customer. It is recommended to skip the welcome email if devices will be claimed with additional DEVICE_PROTECTION service, as the customer will receive separate emails at device claim time. This field is ignored if this is not a Zero-touch customer.
-    #[serde(default, rename = "skipWelcomeEmail")]
-    pub skip_welcome_email: ::core::option::Option<bool>,
-    /// Output only. Whether any user from the company has accepted the latest Terms of Service (ToS). See TermsStatus. // TODO: enum values: ["TERMS_STATUS_UNSPECIFIED", "TERMS_STATUS_NOT_ACCEPTED", "TERMS_STATUS_ACCEPTED", "TERMS_STATUS_STALE"]
-    #[serde(default, rename = "termsStatus")]
-    pub terms_status: ::core::option::Option<String>,
-}
-
-/// A configuration collects the provisioning options for Android devices. Each configuration combines the following: * The EMM device policy controller (DPC) installed on the devices. * EMM policies enforced on the devices. * Metadata displayed on the device to help users during setup. Customers can add as many configurations as they need. However, zero-touch enrollment works best when a customer sets a default configuration that''s applied to any new devices the organization purchases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Configuration {
-    /// Required. The name of the organization. Zero-touch enrollment shows this organization name to device users during device provisioning.
-    #[serde(default, rename = "companyName")]
-    pub company_name: ::core::option::Option<String>,
-    /// Output only. The ID of the configuration. Assigned by the server.
-    #[serde(default, rename = "configurationId")]
-    pub configuration_id: ::core::option::Option<String>,
-    /// Required. A short name that describes the configuration''s purpose. For example, _Sales team_ or _Temporary employees_. The zero-touch enrollment portal displays this name to IT admins.
-    #[serde(default, rename = "configurationName")]
-    pub configuration_name: ::core::option::Option<String>,
-    /// Required. The email address that device users can contact to get help. Zero-touch enrollment shows this email address to device users before device provisioning. The value is validated on input.
-    #[serde(default, rename = "contactEmail")]
-    pub contact_email: ::core::option::Option<String>,
-    /// Required. The telephone number that device users can call, using another device, to get help. Zero-touch enrollment shows this number to device users before device provisioning. Accepts numerals, spaces, the plus sign, hyphens, and parentheses.
-    #[serde(default, rename = "contactPhone")]
-    pub contact_phone: ::core::option::Option<String>,
-    /// A message, containing one or two sentences, to help device users get help or give them more details about what’s happening to their device. Zero-touch enrollment shows this message before the device is provisioned.
-    #[serde(default, rename = "customMessage")]
-    pub custom_message: ::core::option::Option<String>,
-    /// The JSON-formatted EMM provisioning extras that are passed to the DPC.
-    #[serde(default, rename = "dpcExtras")]
-    pub dpc_extras: ::core::option::Option<String>,
-    /// Required. The resource name of the selected DPC (device policy controller) in the format customers/[CUSTOMER_ID]/dpcs/*. To list the supported DPCs, call customers.dpcs.list.
-    #[serde(default, rename = "dpcResourcePath")]
-    pub dpc_resource_path: ::core::option::Option<String>,
-    /// Optional. The timeout before forcing factory reset the device if the device doesn''t go through provisioning in the setup wizard, usually due to lack of network connectivity during setup wizard. Ranges from 0-6 hours, with 2 hours being the default if unset.
-    #[serde(default, rename = "forcedResetTime")]
-    pub forced_reset_time: ::core::option::Option<String>,
-    /// Required. Whether this is the default configuration that zero-touch enrollment applies to any new devices the organization purchases in the future. Only one customer configuration can be the default. Setting this value to true, changes the previous default configuration''s isDefault value to false.
-    #[serde(default, rename = "isDefault")]
-    pub is_default: ::core::option::Option<bool>,
-    /// Output only. The API resource name in the format customers/[CUSTOMER_ID]/configurations/[CONFIGURATION_ID]. Assigned by the server.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Request message to create a customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateCustomerRequest {
@@ -201,98 +131,6 @@ pub struct CustomerUnclaimDeviceRequest {
     pub device: ::core::option::Option<DeviceReference>,
 }
 
-/// An Android or Chrome OS device registered for zero-touch enrollment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Device {
-    /// Output only. The provisioning claims for a device. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. Call partners.devices.unclaim or partners.devices.unclaimAsync to remove the device from zero-touch enrollment.
-    #[serde(default)]
-    pub claims: ::core::option::Option<::std::vec::Vec<DeviceClaim>>,
-    /// Not available to resellers.
-    #[serde(default)]
-    pub configuration: ::core::option::Option<String>,
-    /// Output only. The ID of the device. Assigned by the server.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// The hardware IDs that identify a manufactured device. To learn more, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
-    #[serde(default, rename = "deviceIdentifier")]
-    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
-    /// The metadata attached to the device. Structured as key-value pairs. To learn more, read [Device metadata](https://developers.google.com/zero-touch/guides/metadata).
-    #[serde(default, rename = "deviceMetadata")]
-    pub device_metadata: ::core::option::Option<DeviceMetadata>,
-    /// Output only. The API resource name in the format partners/[PARTNER_ID]/devices/[DEVICE_ID]. Assigned by the server.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A record of a device claimed by a reseller for a customer. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. To learn more, read [Claim devices for customers](/zero-touch/guides/how-it-works#claim).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceClaim {
-    /// The Additional service registered for the device. // TODO: enum values: ["ADDITIONAL_SERVICE_UNSPECIFIED", "DEVICE_PROTECTION"]
-    #[serde(default, rename = "additionalService")]
-    pub additional_service: ::core::option::Option<String>,
-    /// The ID of the Google Workspace account that owns the Chrome OS device.
-    #[serde(default, rename = "googleWorkspaceCustomerId")]
-    pub google_workspace_customer_id: ::core::option::Option<String>,
-    /// The ID of the Customer that purchased the device.
-    #[serde(default, rename = "ownerCompanyId")]
-    pub owner_company_id: ::core::option::Option<String>,
-    /// The ID of the reseller that claimed the device.
-    #[serde(default, rename = "resellerId")]
-    pub reseller_id: ::core::option::Option<String>,
-    /// Output only. The type of claim made on the device. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
-    #[serde(default, rename = "sectionType")]
-    pub section_type: ::core::option::Option<String>,
-    /// The timestamp when the device will exit ‘vacation mode’. This value is present iff the device is in ''vacation mode''.
-    #[serde(default, rename = "vacationModeExpireTime")]
-    pub vacation_mode_expire_time: ::core::option::Option<String>,
-    /// The timestamp when the device was put into ‘vacation mode’. This value is present iff the device is in ''vacation mode''.
-    #[serde(default, rename = "vacationModeStartTime")]
-    pub vacation_mode_start_time: ::core::option::Option<String>,
-}
-
-/// Encapsulates hardware and product IDs to identify a manufactured device. To understand requirements on identifier sets, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceIdentifier {
-    /// An identifier provided by OEMs, carried through the production and sales process. Only applicable to Chrome OS devices.
-    #[serde(default, rename = "chromeOsAttestedDeviceId")]
-    pub chrome_os_attested_device_id: ::core::option::Option<String>,
-    /// The type of the device // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_ANDROID", "DEVICE_TYPE_CHROME_OS"]
-    #[serde(default, rename = "deviceType")]
-    pub device_type: ::core::option::Option<String>,
-    /// The device’s IMEI number. Validated on input.
-    #[serde(default)]
-    pub imei: ::core::option::Option<String>,
-    /// The device’s second IMEI number.
-    #[serde(default)]
-    pub imei2: ::core::option::Option<String>,
-    /// The device manufacturer’s name. Matches the device''s built-in value returned from android.os.Build.MANUFACTURER. Allowed values are listed in [Android manufacturers](/zero-touch/resources/manufacturer-names#manufacturers-names).
-    #[serde(default)]
-    pub manufacturer: ::core::option::Option<String>,
-    /// The device’s MEID number.
-    #[serde(default)]
-    pub meid: ::core::option::Option<String>,
-    /// The device’s second MEID number.
-    #[serde(default)]
-    pub meid2: ::core::option::Option<String>,
-    /// The device model''s name. Allowed values are listed in [Android models](/zero-touch/resources/manufacturer-names#model-names) and [Chrome OS models](https://support.google.com/chrome/a/answer/10130175#identify_compatible).
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// The manufacturer''s serial number for the device. This value might not be unique across different device models.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-}
-
-/// A DeviceReference is an API abstraction that lets you supply a _device_ argument to a method using one of the following identifier types: * A numeric API resource ID. * Real-world hardware IDs, such as IMEI number, belonging to the manufactured device. Methods that operate on devices take a DeviceReference as a parameter type because it''s more flexible for the caller. To learn more about device identifiers, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceReference {
-    /// The ID of the device.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// The hardware IDs of the device.
-    #[serde(default, rename = "deviceIdentifier")]
-    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
-}
-
 /// Tracks the status of a long-running operation to asynchronously update a batch of reseller metadata attached to devices. To learn more, read [Long‑running batch operations](/zero-touch/guides/how-it-works#operations).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DevicesLongRunningOperationMetadata {
@@ -316,20 +154,6 @@ pub struct DevicesLongRunningOperationResponse {
     /// A summary of how many items in the operation the server processed successfully. Updated as the operation progresses.
     #[serde(default, rename = "successCount")]
     pub success_count: ::core::option::Option<i32>,
-}
-
-/// An EMM''s DPC ([device policy controller](http://developer.android.com/work/dpc/build-dpc.html)). Zero-touch enrollment installs a DPC (listed in the Configuration) on a device to maintain the customer''s mobile policies. All the DPCs listed by the API support zero-touch enrollment and are available in Google Play.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dpc {
-    /// Output only. The title of the DPC app in Google Play. For example, _Google Apps Device Policy_. Useful in an application''s user interface.
-    #[serde(default, rename = "dpcName")]
-    pub dpc_name: ::core::option::Option<String>,
-    /// Output only. The API resource name in the format customers/[CUSTOMER_ID]/dpcs/[DPC_ID]. Assigned by the server. To maintain a reference to a DPC across customer accounts, persist and match the last path component (DPC_ID).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The DPC''s Android application ID that looks like a Java package name. Zero-touch enrollment installs the DPC app onto a device using this identifier.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
 }
 
 /// Request to find devices.
@@ -410,17 +234,6 @@ pub struct GetDeviceSimLockStateResponse {
     pub sim_lock_state: ::core::option::Option<String>,
 }
 
-/// A Google Workspace customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleWorkspaceAccount {
-    /// Required. The customer ID.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Output only. The pre-provisioning tokens previously used to claim devices.
-    #[serde(default, rename = "preProvisioningTokens")]
-    pub pre_provisioning_tokens: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Response message of all customers related to this partner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListCustomersResponse {
@@ -483,103 +296,6 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// A task for each device in the operation. Corresponds to each device change in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationPerDevice {
-    /// A copy of the original device-claim request received by the server.
-    #[serde(default)]
-    pub claim: ::core::option::Option<PartnerClaim>,
-    /// The processing result for each device.
-    #[serde(default)]
-    pub result: ::core::option::Option<PerDeviceStatusInBatch>,
-    /// A copy of the original device-unclaim request received by the server.
-    #[serde(default)]
-    pub unclaim: ::core::option::Option<PartnerUnclaim>,
-    /// A copy of the original metadata-update request received by the server.
-    #[serde(default, rename = "updateMetadata")]
-    pub update_metadata: ::core::option::Option<UpdateMetadataArguments>,
-}
-
-/// Identifies one claim request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartnerClaim {
-    /// Optional. The ID of the configuration applied to the device section.
-    #[serde(default, rename = "configurationId")]
-    pub configuration_id: ::core::option::Option<String>,
-    /// The ID of the customer for whom the device is being claimed.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Required. Required. Device identifier of the device.
-    #[serde(default, rename = "deviceIdentifier")]
-    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
-    /// Required. The metadata to attach to the device at claim.
-    #[serde(default, rename = "deviceMetadata")]
-    pub device_metadata: ::core::option::Option<DeviceMetadata>,
-    /// The Google Workspace customer ID.
-    #[serde(default, rename = "googleWorkspaceCustomerId")]
-    pub google_workspace_customer_id: ::core::option::Option<String>,
-    /// Optional. Must and can only be set for Chrome OS devices.
-    #[serde(default, rename = "preProvisioningToken")]
-    pub pre_provisioning_token: ::core::option::Option<String>,
-    /// Required. The section type of the device''s provisioning record. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
-    #[serde(default, rename = "sectionType")]
-    pub section_type: ::core::option::Option<String>,
-    /// Optional. Must and can only be set when DeviceProvisioningSectionType is SECTION_TYPE_SIM_LOCK. The unique identifier of the SimLock profile.
-    #[serde(default, rename = "simlockProfileId")]
-    pub simlock_profile_id: ::core::option::Option<String>,
-}
-
-/// Identifies one unclaim request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartnerUnclaim {
-    /// Required. Device ID of the device.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// Required. Device identifier of the device.
-    #[serde(default, rename = "deviceIdentifier")]
-    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
-    /// Required. The section type of the device''s provisioning record. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
-    #[serde(default, rename = "sectionType")]
-    pub section_type: ::core::option::Option<String>,
-    /// Optional. The duration of the vacation unlock starting from when the request is processed. (1 day is treated as 24 hours)
-    #[serde(default, rename = "vacationModeDays")]
-    pub vacation_mode_days: ::core::option::Option<i32>,
-    /// Optional. The expiration time of the vacation unlock.
-    #[serde(default, rename = "vacationModeExpireTime")]
-    pub vacation_mode_expire_time: ::core::option::Option<String>,
-}
-
-/// Captures the processing status for each device in the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerDeviceStatusInBatch {
-    /// If processing succeeds, the device ID of the device.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// If processing fails, the error type.
-    #[serde(default, rename = "errorIdentifier")]
-    pub error_identifier: ::core::option::Option<String>,
-    /// If processing fails, a developer message explaining what went wrong.
-    #[serde(default, rename = "errorMessage")]
-    pub error_message: ::core::option::Option<String>,
-    /// The result status of the device after processing. // TODO: enum values: ["SINGLE_DEVICE_STATUS_UNSPECIFIED", "SINGLE_DEVICE_STATUS_UNKNOWN_ERROR", "SINGLE_DEVICE_STATUS_OTHER_ERROR", "SINGLE_DEVICE_STATUS_SUCCESS", "SINGLE_DEVICE_STATUS_PERMISSION_DENIED", "SINGLE_DEVICE_STATUS_INVALID_DEVICE_IDENTIFIER", "SINGLE_DEVICE_STATUS_INVALID_SECTION_TYPE", "SINGLE_DEVICE_STATUS_SECTION_NOT_YOURS", "SINGLE_DEVICE_STATUS_INVALID_TOKEN", "SINGLE_DEVICE_STATUS_REVOKED_TOKEN", "SINGLE_DEVICE_STATUS_DEVICE_LIMIT_EXCEEDED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// Request message to unclaim a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnclaimDeviceRequest {
@@ -624,6 +340,221 @@ pub struct UpdateDeviceMetadataRequest {
     pub device_metadata: ::core::option::Option<DeviceMetadata>,
 }
 
+/// A configuration collects the provisioning options for Android devices. Each configuration combines the following: * The EMM device policy controller (DPC) installed on the devices. * EMM policies enforced on the devices. * Metadata displayed on the device to help users during setup. Customers can add as many configurations as they need. However, zero-touch enrollment works best when a customer sets a default configuration that''s applied to any new devices the organization purchases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Configuration {
+    /// Required. The name of the organization. Zero-touch enrollment shows this organization name to device users during device provisioning.
+    #[serde(default, rename = "companyName")]
+    pub company_name: ::core::option::Option<String>,
+    /// Output only. The ID of the configuration. Assigned by the server.
+    #[serde(default, rename = "configurationId")]
+    pub configuration_id: ::core::option::Option<String>,
+    /// Required. A short name that describes the configuration''s purpose. For example, _Sales team_ or _Temporary employees_. The zero-touch enrollment portal displays this name to IT admins.
+    #[serde(default, rename = "configurationName")]
+    pub configuration_name: ::core::option::Option<String>,
+    /// Required. The email address that device users can contact to get help. Zero-touch enrollment shows this email address to device users before device provisioning. The value is validated on input.
+    #[serde(default, rename = "contactEmail")]
+    pub contact_email: ::core::option::Option<String>,
+    /// Required. The telephone number that device users can call, using another device, to get help. Zero-touch enrollment shows this number to device users before device provisioning. Accepts numerals, spaces, the plus sign, hyphens, and parentheses.
+    #[serde(default, rename = "contactPhone")]
+    pub contact_phone: ::core::option::Option<String>,
+    /// A message, containing one or two sentences, to help device users get help or give them more details about what’s happening to their device. Zero-touch enrollment shows this message before the device is provisioned.
+    #[serde(default, rename = "customMessage")]
+    pub custom_message: ::core::option::Option<String>,
+    /// The JSON-formatted EMM provisioning extras that are passed to the DPC.
+    #[serde(default, rename = "dpcExtras")]
+    pub dpc_extras: ::core::option::Option<String>,
+    /// Required. The resource name of the selected DPC (device policy controller) in the format customers/[CUSTOMER_ID]/dpcs/*. To list the supported DPCs, call customers.dpcs.list.
+    #[serde(default, rename = "dpcResourcePath")]
+    pub dpc_resource_path: ::core::option::Option<String>,
+    /// Optional. The timeout before forcing factory reset the device if the device doesn''t go through provisioning in the setup wizard, usually due to lack of network connectivity during setup wizard. Ranges from 0-6 hours, with 2 hours being the default if unset.
+    #[serde(default, rename = "forcedResetTime")]
+    pub forced_reset_time: ::core::option::Option<String>,
+    /// Required. Whether this is the default configuration that zero-touch enrollment applies to any new devices the organization purchases in the future. Only one customer configuration can be the default. Setting this value to true, changes the previous default configuration''s isDefault value to false.
+    #[serde(default, rename = "isDefault")]
+    pub is_default: ::core::option::Option<bool>,
+    /// Output only. The API resource name in the format customers/[CUSTOMER_ID]/configurations/[CONFIGURATION_ID]. Assigned by the server.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// An EMM''s DPC ([device policy controller](http://developer.android.com/work/dpc/build-dpc.html)). Zero-touch enrollment installs a DPC (listed in the Configuration) on a device to maintain the customer''s mobile policies. All the DPCs listed by the API support zero-touch enrollment and are available in Google Play.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dpc {
+    /// Output only. The title of the DPC app in Google Play. For example, _Google Apps Device Policy_. Useful in an application''s user interface.
+    #[serde(default, rename = "dpcName")]
+    pub dpc_name: ::core::option::Option<String>,
+    /// Output only. The API resource name in the format customers/[CUSTOMER_ID]/dpcs/[DPC_ID]. Assigned by the server. To maintain a reference to a DPC across customer accounts, persist and match the last path component (DPC_ID).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The DPC''s Android application ID that looks like a Java package name. Zero-touch enrollment installs the DPC app onto a device using this identifier.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// A DeviceReference is an API abstraction that lets you supply a _device_ argument to a method using one of the following identifier types: * A numeric API resource ID. * Real-world hardware IDs, such as IMEI number, belonging to the manufactured device. Methods that operate on devices take a DeviceReference as a parameter type because it''s more flexible for the caller. To learn more about device identifiers, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceReference {
+    /// The ID of the device.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// The hardware IDs of the device.
+    #[serde(default, rename = "deviceIdentifier")]
+    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
+}
+
+/// A task for each device in the operation. Corresponds to each device change in the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationPerDevice {
+    /// A copy of the original device-claim request received by the server.
+    #[serde(default)]
+    pub claim: ::core::option::Option<PartnerClaim>,
+    /// The processing result for each device.
+    #[serde(default)]
+    pub result: ::core::option::Option<PerDeviceStatusInBatch>,
+    /// A copy of the original device-unclaim request received by the server.
+    #[serde(default)]
+    pub unclaim: ::core::option::Option<PartnerUnclaim>,
+    /// A copy of the original metadata-update request received by the server.
+    #[serde(default, rename = "updateMetadata")]
+    pub update_metadata: ::core::option::Option<UpdateMetadataArguments>,
+}
+
+/// An Android or Chrome OS device registered for zero-touch enrollment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Device {
+    /// Output only. The provisioning claims for a device. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. Call partners.devices.unclaim or partners.devices.unclaimAsync to remove the device from zero-touch enrollment.
+    #[serde(default)]
+    pub claims: ::core::option::Option<::std::vec::Vec<DeviceClaim>>,
+    /// Not available to resellers.
+    #[serde(default)]
+    pub configuration: ::core::option::Option<String>,
+    /// Output only. The ID of the device. Assigned by the server.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// The hardware IDs that identify a manufactured device. To learn more, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
+    #[serde(default, rename = "deviceIdentifier")]
+    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
+    /// The metadata attached to the device. Structured as key-value pairs. To learn more, read [Device metadata](https://developers.google.com/zero-touch/guides/metadata).
+    #[serde(default, rename = "deviceMetadata")]
+    pub device_metadata: ::core::option::Option<DeviceMetadata>,
+    /// Output only. The API resource name in the format partners/[PARTNER_ID]/devices/[DEVICE_ID]. Assigned by the server.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A reseller, vendor, or customer in the zero-touch reseller and customer APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Company {
+    /// Optional. Email address of customer''s users in the admin role. Each email address must be associated with a Google Account.
+    #[serde(default, rename = "adminEmails")]
+    pub admin_emails: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The ID of the company. Assigned by the server.
+    #[serde(default, rename = "companyId")]
+    pub company_id: ::core::option::Option<String>,
+    /// Required. The name of the company. For example _XYZ Corp_. Displayed to the company''s employees in the zero-touch enrollment portal.
+    #[serde(default, rename = "companyName")]
+    pub company_name: ::core::option::Option<String>,
+    /// Output only. The Google Workspace account associated with this customer. Only used for customer Companies.
+    #[serde(default, rename = "googleWorkspaceAccount")]
+    pub google_workspace_account: ::core::option::Option<GoogleWorkspaceAccount>,
+    /// Input only. The preferred locale of the customer represented as a BCP47 language code. This field is validated on input and requests containing unsupported language codes will be rejected. Supported language codes: Arabic (ar) Chinese (Hong Kong) (zh-HK) Chinese (Simplified) (zh-CN) Chinese (Traditional) (zh-TW) Czech (cs) Danish (da) Dutch (nl) English (UK) (en-GB) English (US) (en-US) Filipino (fil) Finnish (fi) French (fr) German (de) Hebrew (iw) Hindi (hi) Hungarian (hu) Indonesian (id) Italian (it) Japanese (ja) Korean (ko) Norwegian (Bokmal) (no) Polish (pl) Portuguese (Brazil) (pt-BR) Portuguese (Portugal) (pt-PT) Russian (ru) Spanish (es) Spanish (Latin America) (es-419) Swedish (sv) Thai (th) Turkish (tr) Ukrainian (uk) Vietnamese (vi)
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Output only. The API resource name of the company. The resource name is one of the following formats: * partners/[PARTNER_ID]/customers/[CUSTOMER_ID] * partners/[PARTNER_ID]/vendors/[VENDOR_ID] * partners/[PARTNER_ID]/vendors/[VENDOR_ID]/customers/[CUSTOMER_ID] Assigned by the server.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Input only. Email address of customer''s users in the owner role. At least one owner_email is required. Owners share the same access as admins but can also add, delete, and edit your organization''s portal users.
+    #[serde(default, rename = "ownerEmails")]
+    pub owner_emails: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Input only. If set to true, welcome email will not be sent to the customer. It is recommended to skip the welcome email if devices will be claimed with additional DEVICE_PROTECTION service, as the customer will receive separate emails at device claim time. This field is ignored if this is not a Zero-touch customer.
+    #[serde(default, rename = "skipWelcomeEmail")]
+    pub skip_welcome_email: ::core::option::Option<bool>,
+    /// Output only. Whether any user from the company has accepted the latest Terms of Service (ToS). See TermsStatus. // TODO: enum values: ["TERMS_STATUS_UNSPECIFIED", "TERMS_STATUS_NOT_ACCEPTED", "TERMS_STATUS_ACCEPTED", "TERMS_STATUS_STALE"]
+    #[serde(default, rename = "termsStatus")]
+    pub terms_status: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Identifies one claim request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartnerClaim {
+    /// Optional. The ID of the configuration applied to the device section.
+    #[serde(default, rename = "configurationId")]
+    pub configuration_id: ::core::option::Option<String>,
+    /// The ID of the customer for whom the device is being claimed.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Required. Required. Device identifier of the device.
+    #[serde(default, rename = "deviceIdentifier")]
+    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
+    /// Required. The metadata to attach to the device at claim.
+    #[serde(default, rename = "deviceMetadata")]
+    pub device_metadata: ::core::option::Option<DeviceMetadata>,
+    /// The Google Workspace customer ID.
+    #[serde(default, rename = "googleWorkspaceCustomerId")]
+    pub google_workspace_customer_id: ::core::option::Option<String>,
+    /// Optional. Must and can only be set for Chrome OS devices.
+    #[serde(default, rename = "preProvisioningToken")]
+    pub pre_provisioning_token: ::core::option::Option<String>,
+    /// Required. The section type of the device''s provisioning record. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
+    #[serde(default, rename = "sectionType")]
+    pub section_type: ::core::option::Option<String>,
+    /// Optional. Must and can only be set when DeviceProvisioningSectionType is SECTION_TYPE_SIM_LOCK. The unique identifier of the SimLock profile.
+    #[serde(default, rename = "simlockProfileId")]
+    pub simlock_profile_id: ::core::option::Option<String>,
+}
+
+/// Captures the processing status for each device in the operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerDeviceStatusInBatch {
+    /// If processing succeeds, the device ID of the device.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// If processing fails, the error type.
+    #[serde(default, rename = "errorIdentifier")]
+    pub error_identifier: ::core::option::Option<String>,
+    /// If processing fails, a developer message explaining what went wrong.
+    #[serde(default, rename = "errorMessage")]
+    pub error_message: ::core::option::Option<String>,
+    /// The result status of the device after processing. // TODO: enum values: ["SINGLE_DEVICE_STATUS_UNSPECIFIED", "SINGLE_DEVICE_STATUS_UNKNOWN_ERROR", "SINGLE_DEVICE_STATUS_OTHER_ERROR", "SINGLE_DEVICE_STATUS_SUCCESS", "SINGLE_DEVICE_STATUS_PERMISSION_DENIED", "SINGLE_DEVICE_STATUS_INVALID_DEVICE_IDENTIFIER", "SINGLE_DEVICE_STATUS_INVALID_SECTION_TYPE", "SINGLE_DEVICE_STATUS_SECTION_NOT_YOURS", "SINGLE_DEVICE_STATUS_INVALID_TOKEN", "SINGLE_DEVICE_STATUS_REVOKED_TOKEN", "SINGLE_DEVICE_STATUS_DEVICE_LIMIT_EXCEEDED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Identifies one unclaim request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartnerUnclaim {
+    /// Required. Device ID of the device.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// Required. Device identifier of the device.
+    #[serde(default, rename = "deviceIdentifier")]
+    pub device_identifier: ::core::option::Option<DeviceIdentifier>,
+    /// Required. The section type of the device''s provisioning record. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
+    #[serde(default, rename = "sectionType")]
+    pub section_type: ::core::option::Option<String>,
+    /// Optional. The duration of the vacation unlock starting from when the request is processed. (1 day is treated as 24 hours)
+    #[serde(default, rename = "vacationModeDays")]
+    pub vacation_mode_days: ::core::option::Option<i32>,
+    /// Optional. The expiration time of the vacation unlock.
+    #[serde(default, rename = "vacationModeExpireTime")]
+    pub vacation_mode_expire_time: ::core::option::Option<String>,
+}
+
 /// Identifies metadata updates to one device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateMetadataArguments {
@@ -636,4 +567,73 @@ pub struct UpdateMetadataArguments {
     /// Required. The metadata to update.
     #[serde(default, rename = "deviceMetadata")]
     pub device_metadata: ::core::option::Option<DeviceMetadata>,
+}
+
+/// A record of a device claimed by a reseller for a customer. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. To learn more, read [Claim devices for customers](/zero-touch/guides/how-it-works#claim).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceClaim {
+    /// The Additional service registered for the device. // TODO: enum values: ["ADDITIONAL_SERVICE_UNSPECIFIED", "DEVICE_PROTECTION"]
+    #[serde(default, rename = "additionalService")]
+    pub additional_service: ::core::option::Option<String>,
+    /// The ID of the Google Workspace account that owns the Chrome OS device.
+    #[serde(default, rename = "googleWorkspaceCustomerId")]
+    pub google_workspace_customer_id: ::core::option::Option<String>,
+    /// The ID of the Customer that purchased the device.
+    #[serde(default, rename = "ownerCompanyId")]
+    pub owner_company_id: ::core::option::Option<String>,
+    /// The ID of the reseller that claimed the device.
+    #[serde(default, rename = "resellerId")]
+    pub reseller_id: ::core::option::Option<String>,
+    /// Output only. The type of claim made on the device. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "SECTION_TYPE_SIM_LOCK", "SECTION_TYPE_ZERO_TOUCH"]
+    #[serde(default, rename = "sectionType")]
+    pub section_type: ::core::option::Option<String>,
+    /// The timestamp when the device will exit ‘vacation mode’. This value is present iff the device is in ''vacation mode''.
+    #[serde(default, rename = "vacationModeExpireTime")]
+    pub vacation_mode_expire_time: ::core::option::Option<String>,
+    /// The timestamp when the device was put into ‘vacation mode’. This value is present iff the device is in ''vacation mode''.
+    #[serde(default, rename = "vacationModeStartTime")]
+    pub vacation_mode_start_time: ::core::option::Option<String>,
+}
+
+/// A Google Workspace customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleWorkspaceAccount {
+    /// Required. The customer ID.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Output only. The pre-provisioning tokens previously used to claim devices.
+    #[serde(default, rename = "preProvisioningTokens")]
+    pub pre_provisioning_tokens: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Encapsulates hardware and product IDs to identify a manufactured device. To understand requirements on identifier sets, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceIdentifier {
+    /// An identifier provided by OEMs, carried through the production and sales process. Only applicable to Chrome OS devices.
+    #[serde(default, rename = "chromeOsAttestedDeviceId")]
+    pub chrome_os_attested_device_id: ::core::option::Option<String>,
+    /// The type of the device // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_ANDROID", "DEVICE_TYPE_CHROME_OS"]
+    #[serde(default, rename = "deviceType")]
+    pub device_type: ::core::option::Option<String>,
+    /// The device’s IMEI number. Validated on input.
+    #[serde(default)]
+    pub imei: ::core::option::Option<String>,
+    /// The device’s second IMEI number.
+    #[serde(default)]
+    pub imei2: ::core::option::Option<String>,
+    /// The device manufacturer’s name. Matches the device''s built-in value returned from android.os.Build.MANUFACTURER. Allowed values are listed in [Android manufacturers](/zero-touch/resources/manufacturer-names#manufacturers-names).
+    #[serde(default)]
+    pub manufacturer: ::core::option::Option<String>,
+    /// The device’s MEID number.
+    #[serde(default)]
+    pub meid: ::core::option::Option<String>,
+    /// The device’s second MEID number.
+    #[serde(default)]
+    pub meid2: ::core::option::Option<String>,
+    /// The device model''s name. Allowed values are listed in [Android models](/zero-touch/resources/manufacturer-names#model-names) and [Chrome OS models](https://support.google.com/chrome/a/answer/10130175#identify_compatible).
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// The manufacturer''s serial number for the device. This value might not be unique across different device models.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
 }

@@ -10,1176 +10,12 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Configuration of an Action for the tool to use. Note: This can be either an Action or an Operation. See https://cloud.google.com/integration-connectors/docs/entities-operation-action for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Action {
-    /// ID of a Connection action for the tool to use.
-    #[serde(default, rename = "connectionActionId")]
-    pub connection_action_id: ::core::option::Option<String>,
-    /// Entity operation configuration for the tool to use.
-    #[serde(default, rename = "entityOperation")]
-    pub entity_operation: ::core::option::Option<ActionEntityOperation>,
-    /// Optional. Entity fields to use as inputs for the operation. If no fields are specified, all fields of the Entity will be used.
-    #[serde(default, rename = "inputFields")]
-    pub input_fields: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Entity fields to return from the operation. If no fields are specified, all fields of the Entity will be returned.
-    #[serde(default, rename = "outputFields")]
-    pub output_fields: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Entity CRUD operation specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionEntityOperation {
-    /// Required. ID of the entity.
-    #[serde(default, rename = "entityId")]
-    pub entity_id: ::core::option::Option<String>,
-    /// Required. Operation to perform on the entity. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "LIST", "GET", "CREATE", "UPDATE", "DELETE"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-}
-
-/// An agent acts as the fundamental building block that provides instructions to the Large Language Model (LLM) for executing specific tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Agent {
-    /// Optional. The callbacks to execute after the agent is called. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "afterAgentCallbacks")]
-    pub after_agent_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. The callbacks to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "afterModelCallbacks")]
-    pub after_model_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. The callbacks to execute after the tool is invoked. If there are multiple tool invocations, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "afterToolCallbacks")]
-    pub after_tool_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. The callbacks to execute before the agent is called. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "beforeAgentCallbacks")]
-    pub before_agent_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. The callbacks to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "beforeModelCallbacks")]
-    pub before_model_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. The callbacks to execute before the tool is invoked. If there are multiple tool invocations, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
-    #[serde(default, rename = "beforeToolCallbacks")]
-    pub before_tool_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
-    /// Optional. List of child agents in the agent tree. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default, rename = "childAgents")]
-    pub child_agents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Timestamp when the agent was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Human-readable description of the agent.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name of the agent.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. If the agent is generated by the LLM assistant, this field contains a descriptive summary of the generation.
-    #[serde(default, rename = "generatedSummary")]
-    pub generated_summary: ::core::option::Option<String>,
-    /// Optional. List of guardrails for the agent. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
-    #[serde(default)]
-    pub guardrails: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Instructions for the LLM model to guide the agent''s behavior.
-    #[serde(default)]
-    pub instruction: ::core::option::Option<String>,
-    /// Optional. The default agent type.
-    #[serde(default, rename = "llmAgent")]
-    pub llm_agent: ::core::option::Option<serde_json::Value>,
-    /// Optional. Configurations for the LLM model.
-    #[serde(default, rename = "modelSettings")]
-    pub model_settings: ::core::option::Option<ModelSettings>,
-    /// Identifier. The unique identifier of the agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent to be used for the agent execution. If this field is set, all other agent level properties will be ignored. Note: If the Dialogflow agent is in a different project from the app, you should grant roles/dialogflow.client to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default, rename = "remoteDialogflowAgent")]
-    pub remote_dialogflow_agent: ::core::option::Option<AgentRemoteDialogflowAgent>,
-    /// Optional. List of available tools for the agent. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
-    #[serde(default)]
-    pub tools: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of toolsets for the agent.
-    #[serde(default)]
-    pub toolsets: ::core::option::Option<::std::vec::Vec<AgentAgentToolset>>,
-    /// Optional. Agent transfer rules. If multiple rules match, the first one in the list will be used.
-    #[serde(default, rename = "transferRules")]
-    pub transfer_rules: ::core::option::Option<::std::vec::Vec<TransferRule>>,
-    /// Output only. Timestamp when the agent was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A toolset with a selection of its tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentAgentToolset {
-    /// Optional. The tools IDs to filter the toolset.
-    #[serde(default, rename = "toolIds")]
-    pub tool_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The resource name of the toolset. Format: projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}
-    #[serde(default)]
-    pub toolset: ::core::option::Option<String>,
-}
-
-/// The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentRemoteDialogflowAgent {
-    /// Required. The [Dialogflow](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent resource name. Format: projects/{project}/locations/{location}/agents/{agent}
-    #[serde(default)]
-    pub agent: ::core::option::Option<String>,
-    /// Optional. The environment ID of the Dialogflow agent to be used for the agent execution. If not specified, the draft environment will be used.
-    #[serde(default, rename = "environmentId")]
-    pub environment_id: ::core::option::Option<String>,
-    /// Optional. The flow ID of the flow in the Dialogflow agent.
-    #[serde(default, rename = "flowId")]
-    pub flow_id: ::core::option::Option<String>,
-    /// Optional. The mapping of the app variables names to the Dialogflow session parameters names to be sent to the Dialogflow agent as input.
-    #[serde(default, rename = "inputVariableMapping")]
-    pub input_variable_mapping: ::core::option::Option<serde_json::Value>,
-    /// Optional. The mapping of the Dialogflow session parameters names to the app variables names to be sent back to the CES agent after the Dialogflow agent execution ends.
-    #[serde(default, rename = "outputVariableMapping")]
-    pub output_variable_mapping: ::core::option::Option<serde_json::Value>,
-    /// Optional. Indicates whether to respect the message-level interruption settings configured in the Dialogflow agent. * If false: all response messages from the Dialogflow agent follow the app-level barge-in settings. * If true: only response messages with [allow_playback_interruption](https://docs.cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#text) set to true will be interruptable, all other messages follow the app-level barge-in settings.
-    #[serde(default, rename = "respectResponseInterruptionSettings")]
-    pub respect_response_interruption_settings: ::core::option::Option<bool>,
-}
-
-/// Represents a tool that allows the agent to call another agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentTool {
-    /// Optional. Description of the tool''s purpose.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The name of the agent tool.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The resource name of the root agent that is the entry point of the tool. Format: projects/{project}/locations/{location}/agents/{agent}
-    #[serde(default, rename = "rootAgent")]
-    pub root_agent: ::core::option::Option<String>,
-}
-
-/// Represents an event indicating the transfer of a conversation to a different agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentTransfer {
-    /// Output only. Display name of the agent.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. The agent to which the conversation is being transferred. The agent will handle the conversation from this point forward. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default, rename = "targetAgent")]
-    pub target_agent: ::core::option::Option<String>,
-}
-
-/// Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AmbientSoundConfig {
-    /// Optional. Ambient noise as a mono-channel, 16kHz WAV file stored in [Cloud Storage](https://cloud.google.com/storage). Note: Please make sure the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com has storage.objects.get permission to the Cloud Storage object.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// Optional. Deprecated: prebuilt_ambient_noise is deprecated in favor of prebuilt_ambient_sound. // TODO: enum values: ["PREBUILT_AMBIENT_NOISE_UNSPECIFIED", "RETAIL_STORE", "CONVENTION_HALL", "OUTDOOR"]
-    #[serde(default, rename = "prebuiltAmbientNoise")]
-    pub prebuilt_ambient_noise: ::core::option::Option<String>,
-    /// Optional. Name of the prebuilt ambient sound. Valid values are: - "coffee_shop" - "keyboard" - "keypad" - "hum" - "office_1" - "office_2" - "office_3" - "room_1" - "room_2" - "room_3" - "room_4" - "room_5" - "air_conditioner"
-    #[serde(default, rename = "prebuiltAmbientSound")]
-    pub prebuilt_ambient_sound: ::core::option::Option<String>,
-    /// Optional. Volume gain (in dB) of the normal native volume supported by ambient noise, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. We strongly recommend not to exceed +10 (dB) as there''s usually no effective increase in loudness for any value greater than that.
-    #[serde(default, rename = "volumeGainDb")]
-    pub volume_gain_db: ::core::option::Option<f64>,
-}
-
-/// Authentication information required for API calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiAuthentication {
-    /// Optional. Config for API key auth.
-    #[serde(default, rename = "apiKeyConfig")]
-    pub api_key_config: ::core::option::Option<ApiKeyConfig>,
-    /// Optional. Config for bearer token auth.
-    #[serde(default, rename = "bearerTokenConfig")]
-    pub bearer_token_config: ::core::option::Option<BearerTokenConfig>,
-    /// Optional. Config for OAuth.
-    #[serde(default, rename = "oauthConfig")]
-    pub oauth_config: ::core::option::Option<OAuthConfig>,
-    /// Optional. Config for service account authentication.
-    #[serde(default, rename = "serviceAccountAuthConfig")]
-    pub service_account_auth_config: ::core::option::Option<ServiceAccountAuthConfig>,
-    /// Optional. Config for ID token auth generated from CES service agent.
-    #[serde(default, rename = "serviceAgentIdTokenAuthConfig")]
-    pub service_agent_id_token_auth_config: ::core::option::Option<serde_json::Value>,
-}
-
-/// Configurations for authentication with API key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiKeyConfig {
-    /// Required. The name of the SecretManager secret version resource storing the API key. Format: projects/{project}/secrets/{secret}/versions/{version} Note: You should grant roles/secretmanager.secretAccessor role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default, rename = "apiKeySecretVersion")]
-    pub api_key_secret_version: ::core::option::Option<String>,
-    /// Required. The parameter name or the header name of the API key. E.g., If the API request is "https://example.com/act?X-Api-Key=", "X-Api-Key" would be the parameter name.
-    #[serde(default, rename = "keyName")]
-    pub key_name: ::core::option::Option<String>,
-    /// Required. Key location in the request. // TODO: enum values: ["REQUEST_LOCATION_UNSPECIFIED", "HEADER", "QUERY_STRING"]
-    #[serde(default, rename = "requestLocation")]
-    pub request_location: ::core::option::Option<String>,
-}
-
-/// An app serves as a top-level container for a group of agents, including the root agent and its sub-agents, along with their associated configurations. These agents work together to achieve specific goals within the app''s context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct App {
-    /// Optional. Audio processing configuration of the app.
-    #[serde(default, rename = "audioProcessingConfig")]
-    pub audio_processing_config: ::core::option::Option<AudioProcessingConfig>,
-    /// Optional. The default client certificate settings for the app.
-    #[serde(default, rename = "clientCertificateSettings")]
-    pub client_certificate_settings: ::core::option::Option<ClientCertificateSettings>,
-    /// Output only. Timestamp when the app was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The data store settings for the app.
-    #[serde(default, rename = "dataStoreSettings")]
-    pub data_store_settings: ::core::option::Option<DataStoreSettings>,
-    /// Optional. The default channel profile used by the app.
-    #[serde(default, rename = "defaultChannelProfile")]
-    pub default_channel_profile: ::core::option::Option<ChannelProfile>,
-    /// Output only. Number of deployments in the app.
-    #[serde(default, rename = "deploymentCount")]
-    pub deployment_count: ::core::option::Option<i32>,
-    /// Optional. Human-readable description of the app.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name of the app.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Error handling settings of the app.
-    #[serde(default, rename = "errorHandlingSettings")]
-    pub error_handling_settings: ::core::option::Option<ErrorHandlingSettings>,
-    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. The evaluation thresholds for the app.
-    #[serde(default, rename = "evaluationMetricsThresholds")]
-    pub evaluation_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholds>,
-    /// Optional. Instructions for all the agents in the app. You can use this instruction to set up a stable identity or personality across all the agents.
-    #[serde(default, rename = "globalInstruction")]
-    pub global_instruction: ::core::option::Option<String>,
-    /// Optional. List of guardrails for the app. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
-    #[serde(default)]
-    pub guardrails: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Language settings of the app.
-    #[serde(default, rename = "languageSettings")]
-    pub language_settings: ::core::option::Option<LanguageSettings>,
-    /// Optional. Indicates whether the app is locked for changes. If the app is locked, modifications to the app resources will be rejected.
-    #[serde(default)]
-    pub locked: ::core::option::Option<bool>,
-    /// Optional. Logging settings of the app.
-    #[serde(default, rename = "loggingSettings")]
-    pub logging_settings: ::core::option::Option<LoggingSettings>,
-    /// Optional. Metadata about the app. This field can be used to store additional information relevant to the app''s details or intended usages.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Optional. The default LLM model settings for the app. Individual resources (e.g. agents, guardrails) can override these configurations as needed.
-    #[serde(default, rename = "modelSettings")]
-    pub model_settings: ::core::option::Option<ModelSettings>,
-    /// Identifier. The unique identifier of the app. Format: projects/{project}/locations/{location}/apps/{app}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Whether the app is pinned in the app list.
-    #[serde(default)]
-    pub pinned: ::core::option::Option<bool>,
-    /// Output only. The declarations of predefined variables for the app.
-    #[serde(default, rename = "predefinedVariableDeclarations")]
-    pub predefined_variable_declarations:
-        ::core::option::Option<::std::vec::Vec<AppVariableDeclaration>>,
-    /// Optional. The root agent is the entry point of the app. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default, rename = "rootAgent")]
-    pub root_agent: ::core::option::Option<String>,
-    /// Optional. TimeZone settings of the app.
-    #[serde(default, rename = "timeZoneSettings")]
-    pub time_zone_settings: ::core::option::Option<TimeZoneSettings>,
-    /// Optional. The tool execution mode for the app. If not provided, will default to PARALLEL. // TODO: enum values: ["TOOL_EXECUTION_MODE_UNSPECIFIED", "PARALLEL", "SEQUENTIAL"]
-    #[serde(default, rename = "toolExecutionMode")]
-    pub tool_execution_mode: ::core::option::Option<String>,
-    /// Output only. Timestamp when the app was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Optional. The declarations of the variables.
-    #[serde(default, rename = "variableDeclarations")]
-    pub variable_declarations: ::core::option::Option<::std::vec::Vec<AppVariableDeclaration>>,
-}
-
-/// A snapshot of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppSnapshot {
-    /// Optional. List of agents in the app.
-    #[serde(default)]
-    pub agents: ::core::option::Option<::std::vec::Vec<Agent>>,
-    /// Optional. The basic settings for the app.
-    #[serde(default)]
-    pub app: ::core::option::Option<App>,
-    /// Optional. List of examples in the app.
-    #[serde(default)]
-    pub examples: ::core::option::Option<::std::vec::Vec<Example>>,
-    /// Optional. List of guardrails in the app.
-    #[serde(default)]
-    pub guardrails: ::core::option::Option<::std::vec::Vec<Guardrail>>,
-    /// Optional. List of tools in the app.
-    #[serde(default)]
-    pub tools: ::core::option::Option<::std::vec::Vec<Tool>>,
-    /// Optional. List of toolsets in the app.
-    #[serde(default)]
-    pub toolsets: ::core::option::Option<::std::vec::Vec<Toolset>>,
-}
-
-/// Defines the structure and metadata for a variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppVariableDeclaration {
-    /// Required. The description of the variable.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The name of the variable. The name must start with a letter or underscore and contain only letters, numbers, or underscores.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The schema of the variable.
-    #[serde(default)]
-    pub schema: ::core::option::Option<Schema>,
-}
-
-/// In Customer Engagement Suite (CES), an app version is a snapshot of the app at a specific point in time. It is immutable and cannot be modified once created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppVersion {
-    /// Output only. Timestamp when the app version was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Email of the user who created the app version.
-    #[serde(default)]
-    pub creator: ::core::option::Option<String>,
-    /// Optional. The description of the app version.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The display name of the app version.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifier. The unique identifier of the app version. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The snapshot of the app when the version is created.
-    #[serde(default)]
-    pub snapshot: ::core::option::Option<AppSnapshot>,
-}
-
-/// Configuration for how the input and output audio should be processed and delivered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioProcessingConfig {
-    /// Optional. Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
-    #[serde(default, rename = "ambientSoundConfig")]
-    pub ambient_sound_config: ::core::option::Option<AmbientSoundConfig>,
-    /// Optional. Configures the agent behavior for the user barge-in activities.
-    #[serde(default, rename = "bargeInConfig")]
-    pub barge_in_config: ::core::option::Option<BargeInConfig>,
-    /// Optional. The duration of user inactivity (no speech or interaction) before the agent prompts the user for reengagement. If not set, the agent will not prompt the user for reengagement.
-    #[serde(default, rename = "inactivityTimeout")]
-    pub inactivity_timeout: ::core::option::Option<String>,
-    /// Optional. Configuration of how the agent response should be synthesized, mapping from the language code to SynthesizeSpeechConfig. If the configuration for the specified language code is not found, the configuration for the root language code will be used. For example, if the map contains "en-us" and "en", and the specified language code is "en-gb", then "en" configuration will be used. Note: Language code is case-insensitive.
-    #[serde(default, rename = "synthesizeSpeechConfigs")]
-    pub synthesize_speech_configs: ::core::option::Option<serde_json::Value>,
-}
-
-/// Configuration for how the audio interactions should be recorded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioRecordingConfig {
-    /// Optional. The [Cloud Storage](https://cloud.google.com/storage) bucket to store the session audio recordings. The URI must start with "gs://". Please choose a bucket location that meets your data residency requirements. Note: If the Cloud Storage bucket is in a different project from the app, you should grant storage.objects.create permission to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: ::core::option::Option<String>,
-    /// Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix $project/$location/$app/$date/$session/ will be used.
-    #[serde(default, rename = "gcsPathPrefix")]
-    pub gcs_path_prefix: ::core::option::Option<String>,
-}
-
-/// Configuration for how the user barge-in activities should be handled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BargeInConfig {
-    /// Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn''t heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.
-    #[serde(default, rename = "bargeInAwareness")]
-    pub barge_in_awareness: ::core::option::Option<bool>,
-    /// Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: disable_barge_in is deprecated in favor of disable_barge_in_control in ChannelProfile.
-    #[serde(default, rename = "disableBargeIn")]
-    pub disable_barge_in: ::core::option::Option<bool>,
-}
-
 /// Request message for AgentService.BatchDeleteConversations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchDeleteConversationsRequest {
     /// Required. The resource names of the conversations to delete.
     #[serde(default)]
     pub conversations: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Configurations for authentication with a bearer token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BearerTokenConfig {
-    /// Required. The bearer token. Must be in the format $context.variables..
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-}
-
-/// Settings to describe the BigQuery export behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryExportSettings {
-    /// Optional. The BigQuery **dataset ID** to export the data to.
-    #[serde(default)]
-    pub dataset: ::core::option::Option<String>,
-    /// Optional. Indicates whether the BigQuery export is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant roles/bigquery.admin role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-}
-
-/// Represents a blob input or output in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Blob {
-    /// Required. Raw bytes of the blob.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Required. The IANA standard MIME type of the source data.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// A callback defines the custom logic to be executed at various stages of agent interaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Callback {
-    /// Optional. Human-readable description of the callback.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Whether the callback is disabled. Disabled callbacks are ignored by the agent.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. If enabled, the callback will also be executed on intermediate model outputs. This setting only affects after model callback. **ENABLE WITH CAUTION**. Typically after model callback only needs to be executed after receiving all model responses. Enabling proactive execution may have negative implication on the execution cost and latency, and should only be enabled in rare situations.
-    #[serde(default, rename = "proactiveExecutionEnabled")]
-    pub proactive_execution_enabled: ::core::option::Option<bool>,
-    /// Required. The python code to execute for the callback.
-    #[serde(default, rename = "pythonCode")]
-    pub python_code: ::core::option::Option<String>,
-}
-
-/// Changelogs represent a change made to the app or to an resource within the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Changelog {
-    /// Output only. The action that was performed on the resource.
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Output only. Email address of the change author.
-    #[serde(default)]
-    pub author: ::core::option::Option<String>,
-    /// Output only. The time when the change was made.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The dependent resources that were changed.
-    #[serde(default, rename = "dependentResources")]
-    pub dependent_resources: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Output only. Description of the change. which typically captures the changed fields in the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Display name of the change. It typically should be the display name of the resource that was changed.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. The unique identifier of the changelog. Format: projects/{project}/locations/{location}/apps/{app}/changelogs/{changelog}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The new resource after the change.
-    #[serde(default, rename = "newResource")]
-    pub new_resource: ::core::option::Option<serde_json::Value>,
-    /// Output only. The original resource before the change.
-    #[serde(default, rename = "originalResource")]
-    pub original_resource: ::core::option::Option<serde_json::Value>,
-    /// Output only. The resource that was changed.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Output only. The type of the resource that was changed.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Output only. The monotonically increasing sequence number of the changelog.
-    #[serde(default, rename = "sequenceNumber")]
-    pub sequence_number: ::core::option::Option<String>,
-}
-
-/// A ChannelProfile configures the agent''s behavior for a specific communication channel, such as web UI or telephony.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelProfile {
-    /// Optional. The type of the channel profile. // TODO: enum values: ["UNKNOWN", "WEB_UI", "API", "TWILIO", "GOOGLE_TELEPHONY_PLATFORM", "CONTACT_CENTER_AS_A_SERVICE", "FIVE9", "CONTACT_CENTER_INTEGRATION"]
-    #[serde(default, rename = "channelType")]
-    pub channel_type: ::core::option::Option<String>,
-    /// Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.
-    #[serde(default, rename = "disableBargeInControl")]
-    pub disable_barge_in_control: ::core::option::Option<bool>,
-    /// Optional. Whether to disable DTMF (dual-tone multi-frequency).
-    #[serde(default, rename = "disableDtmf")]
-    pub disable_dtmf: ::core::option::Option<bool>,
-    /// Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".
-    #[serde(default, rename = "noiseSuppressionLevel")]
-    pub noise_suppression_level: ::core::option::Option<String>,
-    /// Optional. The persona property of the channel profile.
-    #[serde(default, rename = "personaProperty")]
-    pub persona_property: ::core::option::Option<ChannelProfilePersonaProperty>,
-    /// Optional. The unique identifier of the channel profile.
-    #[serde(default, rename = "profileId")]
-    pub profile_id: ::core::option::Option<String>,
-    /// Optional. The configuration for the web widget.
-    #[serde(default, rename = "webWidgetConfig")]
-    pub web_widget_config: ::core::option::Option<ChannelProfileWebWidgetConfig>,
-}
-
-/// Represents the persona property of a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelProfilePersonaProperty {
-    /// Optional. The persona of the channel. // TODO: enum values: ["UNKNOWN", "CONCISE", "CHATTY"]
-    #[serde(default)]
-    pub persona: ::core::option::Option<String>,
-}
-
-/// Message for configuration for the web widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelProfileWebWidgetConfig {
-    /// Optional. The modality of the web widget. // TODO: enum values: ["MODALITY_UNSPECIFIED", "CHAT_AND_VOICE", "VOICE_ONLY", "CHAT_ONLY", "CHAT_VOICE_AND_VIDEO"]
-    #[serde(default)]
-    pub modality: ::core::option::Option<String>,
-    /// Optional. The security settings of the web widget.
-    #[serde(default, rename = "securitySettings")]
-    pub security_settings: ::core::option::Option<ChannelProfileWebWidgetConfigSecuritySettings>,
-    /// Optional. The theme of the web widget. // TODO: enum values: ["THEME_UNSPECIFIED", "LIGHT", "DARK"]
-    #[serde(default)]
-    pub theme: ::core::option::Option<String>,
-    /// Optional. The title of the web widget.
-    #[serde(default, rename = "webWidgetTitle")]
-    pub web_widget_title: ::core::option::Option<String>,
-}
-
-/// Security settings for the web widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChannelProfileWebWidgetConfigSecuritySettings {
-    /// Optional. The origins that are allowed to host the web widget. An origin is defined by RFC 6454. If empty, all origins are allowed. A maximum of 100 origins is allowed. Example: "https://example.com"
-    #[serde(default, rename = "allowedOrigins")]
-    pub allowed_origins: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Indicates whether origin check for the web widget is enabled. If true, the web widget will check the origin of the website that loads the web widget and only allow it to be loaded in the same origin or any of the allowed origins.
-    #[serde(default, rename = "enableOriginCheck")]
-    pub enable_origin_check: ::core::option::Option<bool>,
-    /// Optional. Indicates whether public access to the web widget is enabled. If true, the web widget will be publicly accessible. If false, the web widget must be integrated with your own authentication and authorization system to return valid credentials for accessing the CES agent.
-    #[serde(default, rename = "enablePublicAccess")]
-    pub enable_public_access: ::core::option::Option<bool>,
-    /// Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.
-    #[serde(default, rename = "enableRecaptcha")]
-    pub enable_recaptcha: ::core::option::Option<bool>,
-}
-
-/// A chunk of content within a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chunk {
-    /// Optional. Agent transfer event.
-    #[serde(default, rename = "agentTransfer")]
-    pub agent_transfer: ::core::option::Option<AgentTransfer>,
-    /// Optional. Blob data.
-    #[serde(default)]
-    pub blob: ::core::option::Option<Blob>,
-    /// A struct represents default variables at the start of the conversation, keyed by variable names.
-    #[serde(default, rename = "defaultVariables")]
-    pub default_variables: ::core::option::Option<serde_json::Value>,
-    /// Optional. Image data.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// Optional. Custom payload data.
-    #[serde(default)]
-    pub payload: ::core::option::Option<serde_json::Value>,
-    /// Optional. Text data.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Optional. Tool execution request.
-    #[serde(default, rename = "toolCall")]
-    pub tool_call: ::core::option::Option<ToolCall>,
-    /// Optional. Tool execution response.
-    #[serde(default, rename = "toolResponse")]
-    pub tool_response: ::core::option::Option<ToolResponse>,
-    /// Optional. Transcript associated with the audio.
-    #[serde(default)]
-    pub transcript: ::core::option::Option<String>,
-    /// A struct represents variables that were updated in the conversation, keyed by variable names.
-    #[serde(default, rename = "updatedVariables")]
-    pub updated_variables: ::core::option::Option<serde_json::Value>,
-}
-
-/// Citations associated with the agent response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Citations {
-    /// List of cited pieces of information.
-    #[serde(default, rename = "citedChunks")]
-    pub cited_chunks: ::core::option::Option<::std::vec::Vec<CitationsCitedChunk>>,
-}
-
-/// Piece of cited information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CitationsCitedChunk {
-    /// Text used for citation.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Title of the cited document.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// URI used for citation.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Settings for custom client certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientCertificateSettings {
-    /// Optional. The name of the SecretManager secret version resource storing the passphrase to decrypt the private key. Should be left unset if the private key is not encrypted. Format: projects/{project}/secrets/{secret}/versions/{version}
-    #[serde(default)]
-    pub passphrase: ::core::option::Option<String>,
-    /// Required. The name of the SecretManager secret version resource storing the private key encoded in PEM format. Format: projects/{project}/secrets/{secret}/versions/{version}
-    #[serde(default, rename = "privateKey")]
-    pub private_key: ::core::option::Option<String>,
-    /// Required. The TLS certificate encoded in PEM format. This string must include the begin header and end footer lines.
-    #[serde(default, rename = "tlsCertificate")]
-    pub tls_certificate: ::core::option::Option<String>,
-}
-
-/// Represents a client-side function that the agent can invoke. When the tool is chosen by the agent, control is handed off to the client. The client is responsible for executing the function and returning the result as a ToolResponse to continue the interaction with the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientFunction {
-    /// Optional. The function description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The function name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The schema of the function parameters.
-    #[serde(default)]
-    pub parameters: ::core::option::Option<Schema>,
-    /// Optional. The schema of the function response.
-    #[serde(default)]
-    pub response: ::core::option::Option<Schema>,
-}
-
-/// Settings to describe the Cloud Logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudLoggingSettings {
-    /// Optional. Whether to enable Cloud Logging for the sessions.
-    #[serde(default, rename = "enableCloudLogging")]
-    pub enable_cloud_logging: ::core::option::Option<bool>,
-}
-
-/// A code block to be executed instead of a real tool call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CodeBlock {
-    /// Required. Python code which will be invoked in tool fake mode. Expected Python function signature - To catch all tool calls: def fake_tool_call(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: To catch a specific tool call: def fake_{tool_id}(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: If the function returns None, the real tool will be invoked instead.
-    #[serde(default, rename = "pythonCode")]
-    pub python_code: ::core::option::Option<String>,
-}
-
-/// A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectorTool {
-    /// Required. Action for the tool to use.
-    #[serde(default)]
-    pub action: ::core::option::Option<Action>,
-    /// Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the ConnectorTool creation will fail. See https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override for details.
-    #[serde(default, rename = "authConfig")]
-    pub auth_config: ::core::option::Option<EndUserAuthConfig>,
-    /// Required. The full resource name of the referenced Integration Connectors Connection. Format: projects/{project}/locations/{location}/connections/{connection}
-    #[serde(default)]
-    pub connection: ::core::option::Option<String>,
-    /// Optional. The description of the tool that can be used by the Agent to decide whether to call this ConnectorTool.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The name of the tool that can be used by the Agent to decide whether to call this ConnectorTool.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A toolset that generates tools from an Integration Connectors Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectorToolset {
-    /// Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the Toolset creation will fail. See: https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override
-    #[serde(default, rename = "authConfig")]
-    pub auth_config: ::core::option::Option<EndUserAuthConfig>,
-    /// Required. The full resource name of the referenced Integration Connectors Connection. Format: projects/{project}/locations/{location}/connections/{connection}
-    #[serde(default)]
-    pub connection: ::core::option::Option<String>,
-    /// Required. The list of connector actions/entity operations to generate tools for.
-    #[serde(default, rename = "connectorActions")]
-    pub connector_actions: ::core::option::Option<::std::vec::Vec<Action>>,
-}
-
-/// A conversation represents an interaction between an end user and the CES app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Conversation {
-    /// Output only. The version of the app used for processing the conversation. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}
-    #[serde(default, rename = "appVersion")]
-    pub app_version: ::core::option::Option<String>,
-    /// DEPRECATED. Please use input_types instead. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "TEXT", "AUDIO", "MULTIMODAL"]
-    #[serde(default, rename = "channelType")]
-    pub channel_type: ::core::option::Option<String>,
-    /// Output only. The deployment of the app used for processing the conversation. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
-    #[serde(default)]
-    pub deployment: ::core::option::Option<String>,
-    /// Output only. Timestamp when the conversation was completed.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The agent that initially handles the conversation. If not specified, the conversation is handled by the root agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default, rename = "entryAgent")]
-    pub entry_agent: ::core::option::Option<String>,
-    /// Output only. The input types of the conversation.
-    #[serde(default, rename = "inputTypes")]
-    pub input_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The language code of the conversation.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Deprecated. Use turns instead.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// Identifier. The unique identifier of the conversation. Format: projects/{project}/locations/{location}/apps/{app}/conversations/{conversation}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Indicate the source of the conversation. // TODO: enum values: ["SOURCE_UNSPECIFIED", "LIVE", "SIMULATOR", "EVAL"]
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Output only. Timestamp when the conversation was created.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The number of turns in the conversation.
-    #[serde(default, rename = "turnCount")]
-    pub turn_count: ::core::option::Option<i32>,
-    /// Required. The turns in the conversation.
-    #[serde(default)]
-    pub turns: ::core::option::Option<::std::vec::Vec<ConversationTurn>>,
-}
-
-/// Settings to describe the conversation logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConversationLoggingSettings {
-    /// Optional. Whether to disable conversation logging for the sessions.
-    #[serde(default, rename = "disableConversationLogging")]
-    pub disable_conversation_logging: ::core::option::Option<bool>,
-}
-
-/// All information about a single turn in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConversationTurn {
-    /// Optional. List of messages in the conversation turn, including user input, agent responses and intermediate events during the processing.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// Optional. The root span of the action processing.
-    #[serde(default, rename = "rootSpan")]
-    pub root_span: ::core::option::Option<Span>,
-}
-
-/// A DataStore resource in Vertex AI Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStore {
-    /// Output only. The connector config for the data store connection.
-    #[serde(default, rename = "connectorConfig")]
-    pub connector_config: ::core::option::Option<DataStoreConnectorConfig>,
-    /// Output only. Timestamp when the data store was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The display name of the data store.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The document processing mode for the data store connection. Only set for PUBLIC_WEB and UNSTRUCTURED data stores. // TODO: enum values: ["DOCUMENT_PROCESSING_MODE_UNSPECIFIED", "DOCUMENTS", "CHUNKS"]
-    #[serde(default, rename = "documentProcessingMode")]
-    pub document_processing_mode: ::core::option::Option<String>,
-    /// Required. Full resource name of the DataStore. Format: projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The type of the data store. This field is readonly and populated by the server. // TODO: enum values: ["DATA_STORE_TYPE_UNSPECIFIED", "PUBLIC_WEB", "UNSTRUCTURED", "FAQ", "CONNECTOR"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The connector config for the data store connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreConnectorConfig {
-    /// Resource name of the collection the data store belongs to.
-    #[serde(default)]
-    pub collection: ::core::option::Option<String>,
-    /// Display name of the collection the data store belongs to.
-    #[serde(default, rename = "collectionDisplayName")]
-    pub collection_display_name: ::core::option::Option<String>,
-    /// The name of the data source. Example: salesforce, jira, confluence, bigquery.
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-}
-
-/// Data store related settings for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreSettings {
-    /// Output only. The engines for the app.
-    #[serde(default)]
-    pub engines: ::core::option::Option<::std::vec::Vec<DataStoreSettingsEngine>>,
-}
-
-/// An engine to which the data stores are connected. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreSettingsEngine {
-    /// Output only. The resource name of the engine. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The type of the engine. // TODO: enum values: ["TYPE_UNSPECIFIED", "ENGINE_TYPE_SEARCH", "ENGINE_TYPE_CHAT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Tool to retrieve from Vertex AI Search datastore or engine for grounding. Accepts either a datastore or an engine, but not both. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreTool {
-    /// Optional. Boost specification to boost certain documents.
-    #[serde(default, rename = "boostSpecs")]
-    pub boost_specs: ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpecs>>,
-    /// Optional. Search within a single specific DataStore.
-    #[serde(default, rename = "dataStoreSource")]
-    pub data_store_source: ::core::option::Option<DataStoreToolDataStoreSource>,
-    /// Optional. The tool description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Search within an Engine (potentially across multiple DataStores).
-    #[serde(default, rename = "engineSource")]
-    pub engine_source: ::core::option::Option<DataStoreToolEngineSource>,
-    /// Optional. The filter parameter behavior. // TODO: enum values: ["FILTER_PARAMETER_BEHAVIOR_UNSPECIFIED", "ALWAYS_INCLUDE", "NEVER_INCLUDE"]
-    #[serde(default, rename = "filterParameterBehavior")]
-    pub filter_parameter_behavior: ::core::option::Option<String>,
-    /// Optional. The modality configs for the data store.
-    #[serde(default, rename = "modalityConfigs")]
-    pub modality_configs: ::core::option::Option<::std::vec::Vec<DataStoreToolModalityConfig>>,
-    /// Required. The data store tool name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Boost specification to boost certain documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolBoostSpec {
-    /// Required. A list of boosting specifications.
-    #[serde(default, rename = "conditionBoostSpecs")]
-    pub condition_boost_specs:
-        ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpecConditionBoostSpec>>,
-}
-
-/// Boost specification for a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolBoostSpecConditionBoostSpec {
-    /// Optional. Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the suggestions a big promotion. However, it does not necessarily mean that the top result will be a boosted suggestion. Setting to -1.0 gives the suggestions a big demotion. However, other suggestions that are relevant might still be shown. Setting to 0.0 means no boost applied. The boosting condition is ignored.
-    #[serde(default)]
-    pub boost: ::core::option::Option<f32>,
-    /// Optional. Complex specification for custom ranking based on customer defined attribute value.
-    #[serde(default, rename = "boostControlSpec")]
-    pub boost_control_spec:
-        ::core::option::Option<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec>,
-    /// Required. An expression which specifies a boost condition. The syntax is the same as filter expression syntax. Currently, the only supported condition is a list of BCP-47 lang codes. Example: To boost suggestions in languages en or fr: (lang_code: ANY("en", "fr"))
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-}
-
-/// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
-    /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
-    #[serde(default, rename = "attributeType")]
-    pub attribute_type: ::core::option::Option<String>,
-    /// Optional. The control points used to define the curve. The monotonic function (defined through the interpolation_type above) passes through the control points listed here.
-    #[serde(default, rename = "controlPoints")]
-    pub control_points: ::core::option::Option<
-        ::std::vec::Vec<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint>,
-    >,
-    /// Optional. The name of the field whose value will be used to determine the boost amount.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<String>,
-    /// Optional. The interpolation type to be applied to connect the control points listed below. // TODO: enum values: ["INTERPOLATION_TYPE_UNSPECIFIED", "LINEAR"]
-    #[serde(default, rename = "interpolationType")]
-    pub interpolation_type: ::core::option::Option<String>,
-}
-
-/// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint {
-    /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
-    #[serde(default, rename = "attributeValue")]
-    pub attribute_value: ::core::option::Option<String>,
-    /// Optional. The value between -1 to 1 by which to boost the score if the attribute_value evaluates to the value specified above.
-    #[serde(default, rename = "boostAmount")]
-    pub boost_amount: ::core::option::Option<f32>,
-}
-
-/// Boost specifications to boost certain documents. For more information, please refer to https://cloud.google.com/generative-ai-app-builder/docs/boosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolBoostSpecs {
-    /// Required. The Data Store where the boosting configuration is applied. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}.
-    #[serde(default, rename = "dataStores")]
-    pub data_stores: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. A list of boosting specifications.
-    #[serde(default)]
-    pub spec: ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpec>>,
-}
-
-/// Configuration for searching within a specific DataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolDataStoreSource {
-    /// Optional. The data store.
-    #[serde(default, rename = "dataStore")]
-    pub data_store: ::core::option::Option<DataStore>,
-    /// Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Configuration for searching within an Engine, potentially targeting specific DataStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolEngineSource {
-    /// Optional. Use to target specific DataStores within the Engine. If empty, the search applies to all DataStores associated with the Engine.
-    #[serde(default, rename = "dataStoreSources")]
-    pub data_store_sources: ::core::option::Option<::std::vec::Vec<DataStoreToolDataStoreSource>>,
-    /// Required. Full resource name of the Engine. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}
-    #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// Optional. A filter applied to the search across the Engine. Not relevant and not used if ''data_store_sources'' is provided. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Grounding configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolGroundingConfig {
-    /// Optional. Whether grounding is disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. The groundedness threshold of the answer based on the retrieved sources. The value has a configurable range of [1, 5]. The level is used to threshold the groundedness of the answer, meaning that all responses with a groundedness score below the threshold will fall back to returning relevant snippets only. For example, a level of 3 means that the groundedness score must be 3 or higher for the response to be returned.
-    #[serde(default, rename = "groundingLevel")]
-    pub grounding_level: ::core::option::Option<f32>,
-}
-
-/// If specified, will apply the given configuration for the specified modality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolModalityConfig {
-    /// Optional. The grounding configuration.
-    #[serde(default, rename = "groundingConfig")]
-    pub grounding_config: ::core::option::Option<DataStoreToolGroundingConfig>,
-    /// Required. The modality type. // TODO: enum values: ["MODALITY_TYPE_UNSPECIFIED", "TEXT", "AUDIO"]
-    #[serde(default, rename = "modalityType")]
-    pub modality_type: ::core::option::Option<String>,
-    /// Optional. The rewriter config.
-    #[serde(default, rename = "rewriterConfig")]
-    pub rewriter_config: ::core::option::Option<DataStoreToolRewriterConfig>,
-    /// Optional. The summarization config.
-    #[serde(default, rename = "summarizationConfig")]
-    pub summarization_config: ::core::option::Option<DataStoreToolSummarizationConfig>,
-}
-
-/// Rewriter configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolRewriterConfig {
-    /// Optional. Whether the rewriter is disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Required. Configurations for the LLM model.
-    #[serde(default, rename = "modelSettings")]
-    pub model_settings: ::core::option::Option<ModelSettings>,
-    /// Optional. The prompt definition. If not set, default prompt will be used.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// Summarization configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataStoreToolSummarizationConfig {
-    /// Optional. Whether summarization is disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. Configurations for the LLM model.
-    #[serde(default, rename = "modelSettings")]
-    pub model_settings: ::core::option::Option<ModelSettings>,
-    /// Optional. The prompt definition. If not set, default prompt will be used.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// A deployment represents an immutable, queryable version of the app. It is used to deploy an app version with a specific channel profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Deployment {
-    /// Optional. The resource name of the app version to deploy. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version} Use projects/{project}/locations/{location}/apps/{app}/versions/- to use the draft app.
-    #[serde(default, rename = "appVersion")]
-    pub app_version: ::core::option::Option<String>,
-    /// Required. The channel profile used in the deployment.
-    #[serde(default, rename = "channelProfile")]
-    pub channel_profile: ::core::option::Option<ChannelProfile>,
-    /// Output only. Timestamp when this deployment was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Display name of the deployment.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Identifier. The resource name of the deployment. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Timestamp when this deployment was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// End-user authentication configuration used for Connection calls. The field values must be the names of context variables in the format $context.variables..
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndUserAuthConfig {
-    /// Oauth 2.0 Authorization Code authentication.
-    #[serde(default, rename = "oauth2AuthCodeConfig")]
-    pub oauth2_auth_code_config: ::core::option::Option<EndUserAuthConfigOauth2AuthCodeConfig>,
-    /// JWT Profile Oauth 2.0 Authorization Grant authentication.
-    #[serde(default, rename = "oauth2JwtBearerConfig")]
-    pub oauth2_jwt_bearer_config: ::core::option::Option<EndUserAuthConfigOauth2JwtBearerConfig>,
-}
-
-/// Oauth 2.0 Authorization Code authentication configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndUserAuthConfigOauth2AuthCodeConfig {
-    /// Required. Oauth token parameter name to pass through. Must be in the format $context.variables..
-    #[serde(default, rename = "oauthToken")]
-    pub oauth_token: ::core::option::Option<String>,
-}
-
-/// JWT Profile Oauth 2.0 Authorization Grant authentication configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndUserAuthConfigOauth2JwtBearerConfig {
-    /// Required. Client parameter name to pass through. Must be in the format $context.variables..
-    #[serde(default, rename = "clientKey")]
-    pub client_key: ::core::option::Option<String>,
-    /// Required. Issuer parameter name to pass through. Must be in the format $context.variables..
-    #[serde(default)]
-    pub issuer: ::core::option::Option<String>,
-    /// Required. Subject parameter name to pass through. Must be in the format $context.variables..
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-}
-
-/// Defines project/location level endpoint control policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointControlPolicy {
-    /// Optional. The allowed HTTP(s) origins that tools in the App are able to directly call. The enforcement depends on the value of enforcement_scope and the VPC-SC status of the project. If a port number is not provided, all ports will be allowed. Otherwise, the port number must match exactly. For example, "https://example.com" will match "https://example.com:443" and any other port. "https://example.com:443" will only match "https://example.com:443".
-    #[serde(default, rename = "allowedOrigins")]
-    pub allowed_origins: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The scope in which this policy''s allowed_origins list is enforced. // TODO: enum values: ["ENFORCEMENT_SCOPE_UNSPECIFIED", "VPCSC_ONLY", "ALWAYS"]
-    #[serde(default, rename = "enforcementScope")]
-    pub enforcement_scope: ::core::option::Option<String>,
-}
-
-/// Settings to describe how errors should be handled in the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorHandlingSettings {
-    /// Optional. The strategy to use for error handling. // TODO: enum values: ["ERROR_HANDLING_STRATEGY_UNSPECIFIED", "NONE", "FALLBACK_RESPONSE", "END_SESSION"]
-    #[serde(default, rename = "errorHandlingStrategy")]
-    pub error_handling_strategy: ::core::option::Option<String>,
-}
-
-/// Threshold settings for metrics in an Evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationMetricsThresholds {
-    /// Optional. The golden evaluation metrics thresholds.
-    #[serde(default, rename = "goldenEvaluationMetricsThresholds")]
-    pub golden_evaluation_metrics_thresholds:
-        ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds>,
-    /// Optional. The hallucination metric behavior for golden evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
-    #[serde(default, rename = "goldenHallucinationMetricBehavior")]
-    pub golden_hallucination_metric_behavior: ::core::option::Option<String>,
-    /// Optional. Deprecated: Use golden_hallucination_metric_behavior instead. The hallucination metric behavior is currently used for golden evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
-    #[serde(default, rename = "hallucinationMetricBehavior")]
-    pub hallucination_metric_behavior: ::core::option::Option<String>,
-    /// Optional. The hallucination metric behavior for scenario evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
-    #[serde(default, rename = "scenarioHallucinationMetricBehavior")]
-    pub scenario_hallucination_metric_behavior: ::core::option::Option<String>,
-}
-
-/// Settings for golden evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
-    /// Optional. The expectation level metrics thresholds.
-    #[serde(default, rename = "expectationLevelMetricsThresholds")]
-    pub expectation_level_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds>,
-    /// Optional. The tool matching settings. An extra tool call is a tool call that is present in the execution but does not match any tool call in the golden expectation.
-    #[serde(default, rename = "toolMatchingSettings")]
-    pub tool_matching_settings: ::core::option::Option<EvaluationMetricsThresholdsToolMatchingSettings>,
-    /// Optional. The turn level metrics thresholds.
-    #[serde(default, rename = "turnLevelMetricsThresholds")]
-    pub turn_level_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds>,
-}
-
-/// Expectation level metrics thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds
-{
-    /// Optional. The success threshold for individual tool invocation parameter correctness. Must be a float between 0 and 1. Default is 1.0.
-    #[serde(default, rename = "toolInvocationParameterCorrectnessThreshold")]
-    pub tool_invocation_parameter_correctness_threshold: ::core::option::Option<f32>,
-}
-
-/// Turn level metrics thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds {
-    /// Optional. The success threshold for overall tool invocation correctness. Must be a float between 0 and 1. Default is 1.0.
-    #[serde(default, rename = "overallToolInvocationCorrectnessThreshold")]
-    pub overall_tool_invocation_correctness_threshold: ::core::option::Option<f32>,
-    /// Optional. The semantic similarity channel to use for evaluation. // TODO: enum values: ["SEMANTIC_SIMILARITY_CHANNEL_UNSPECIFIED", "TEXT", "AUDIO"]
-    #[serde(default, rename = "semanticSimilarityChannel")]
-    pub semantic_similarity_channel: ::core::option::Option<String>,
-    /// Optional. The success threshold for semantic similarity. Must be an integer between 0 and 4. Default is &gt;= 3.
-    #[serde(default, rename = "semanticSimilaritySuccessThreshold")]
-    pub semantic_similarity_success_threshold: ::core::option::Option<i32>,
-}
-
-/// Settings for matching tool calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EvaluationMetricsThresholdsToolMatchingSettings {
-    /// Optional. Behavior for extra tool calls. Defaults to FAIL. // TODO: enum values: ["EXTRA_TOOL_CALL_BEHAVIOR_UNSPECIFIED", "FAIL", "ALLOW"]
-    #[serde(default, rename = "extraToolCallBehavior")]
-    pub extra_tool_call_behavior: ::core::option::Option<String>,
-}
-
-/// Event input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Event {
-    /// Required. The name of the event.
-    #[serde(default)]
-    pub event: ::core::option::Option<String>,
-}
-
-/// An example represents a sample conversation between the user and the agent(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Example {
-    /// Output only. Timestamp when the example was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Human-readable description of the example.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name of the example.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The agent that initially handles the conversation. If not specified, the example represents a conversation that is handled by the root agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default, rename = "entryAgent")]
-    pub entry_agent: ::core::option::Option<String>,
-    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The example may become invalid if referencing resources are deleted. Invalid examples will not be used as few-shot examples.
-    #[serde(default)]
-    pub invalid: ::core::option::Option<bool>,
-    /// Optional. The collection of messages that make up the conversation.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// Identifier. The unique identifier of the example. Format: projects/{project}/locations/{location}/apps/{app}/examples/{example}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Timestamp when the example was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for ToolService.ExecuteTool.
@@ -1244,31 +80,6 @@ pub struct ExportAppResponse {
     pub app_uri: ::core::option::Option<String>,
 }
 
-/// Expression condition based on session state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExpressionCondition {
-    /// Required. The string representation of cloud.api.Expression condition.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-}
-
-/// The file search tool allows the agent to search across the files uploaded by the app/agent developer. It has presets to give relatively good quality search over the uploaded files and summarization of the retrieved results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileSearchTool {
-    /// Optional. The type of the corpus. Default is FULLY_MANAGED. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "USER_OWNED", "FULLY_MANAGED"]
-    #[serde(default, rename = "corpusType")]
-    pub corpus_type: ::core::option::Option<String>,
-    /// Optional. The tool description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The corpus where files are stored. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}
-    #[serde(default, rename = "fileCorpus")]
-    pub file_corpus: ::core::option::Option<String>,
-    /// Required. The tool name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Request message for WidgetService.GenerateChatToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateChatTokenRequest {
@@ -1294,207 +105,6 @@ pub struct GenerateChatTokenResponse {
     pub expire_time: ::core::option::Option<String>,
 }
 
-/// Search suggestions from Google Search Tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleSearchSuggestions {
-    /// Compliant HTML and CSS styling for search suggestions. The provided HTML and CSS automatically adapts to your device settings, displaying in either light or dark mode indicated by @media(prefers-color-scheme).
-    #[serde(default)]
-    pub htmls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of queries used to perform the google search along with the search result URIs forming the search suggestions.
-    #[serde(default, rename = "webSearchQueries")]
-    pub web_search_queries: ::core::option::Option<::std::vec::Vec<WebSearchQuery>>,
-}
-
-/// Represents a tool to perform Google web searches for grounding. See https://cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool#google-search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleSearchTool {
-    /// Optional. Content will be fetched directly from these URLs for context and grounding. Example: "https://example.com/path.html". A maximum of 20 URLs are allowed.
-    #[serde(default, rename = "contextUrls")]
-    pub context_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Description of the tool''s purpose.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. List of domains to be excluded from the search results. Example: "example.com". A maximum of 2000 domains can be excluded.
-    #[serde(default, rename = "excludeDomains")]
-    pub exclude_domains: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The name of the tool.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Specifies domains to restrict search results to. Example: "example.com", "another.site". A maximum of 20 domains can be specified.
-    #[serde(default, rename = "preferredDomains")]
-    pub preferred_domains: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Prompt instructions passed to planner on how the search results should be processed for text and voice.
-    #[serde(default, rename = "promptConfig")]
-    pub prompt_config: ::core::option::Option<GoogleSearchToolPromptConfig>,
-}
-
-/// Prompt settings used by the model when processing or summarizing the google search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleSearchToolPromptConfig {
-    /// Optional. Defines the prompt used for the system instructions when interacting with the agent in chat conversations. If not set, default prompt will be used.
-    #[serde(default, rename = "textPrompt")]
-    pub text_prompt: ::core::option::Option<String>,
-    /// Optional. Defines the prompt used for the system instructions when interacting with the agent in voice conversations. If not set, default prompt will be used.
-    #[serde(default, rename = "voicePrompt")]
-    pub voice_prompt: ::core::option::Option<String>,
-}
-
-/// Guardrail contains a list of checks and balances to keep the agents safe and secure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Guardrail {
-    /// Optional. Action to take when the guardrail is triggered.
-    #[serde(default)]
-    pub action: ::core::option::Option<TriggerAction>,
-    /// Optional. Guardrail that potentially blocks the conversation based on the result of the callback execution.
-    #[serde(default, rename = "codeCallback")]
-    pub code_callback: ::core::option::Option<GuardrailCodeCallback>,
-    /// Optional. Guardrail that bans certain content from being used in the conversation.
-    #[serde(default, rename = "contentFilter")]
-    pub content_filter: ::core::option::Option<GuardrailContentFilter>,
-    /// Output only. Timestamp when the guardrail was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the guardrail.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name of the guardrail.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Whether the guardrail is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.
-    #[serde(default, rename = "llmPolicy")]
-    pub llm_policy: ::core::option::Option<GuardrailLlmPolicy>,
-    /// Optional. Guardrail that blocks the conversation if the prompt is considered unsafe based on the LLM classification.
-    #[serde(default, rename = "llmPromptSecurity")]
-    pub llm_prompt_security: ::core::option::Option<GuardrailLlmPromptSecurity>,
-    /// Optional. Guardrail that blocks the conversation if the LLM response is considered unsafe based on the model safety settings.
-    #[serde(default, rename = "modelSafety")]
-    pub model_safety: ::core::option::Option<GuardrailModelSafety>,
-    /// Identifier. The unique identifier of the guardrail. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Timestamp when the guardrail was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Guardrail that blocks the conversation based on the code callbacks provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailCodeCallback {
-    /// Optional. The callback to execute after the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
-    #[serde(default, rename = "afterAgentCallback")]
-    pub after_agent_callback: ::core::option::Option<Callback>,
-    /// Optional. The callback to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
-    #[serde(default, rename = "afterModelCallback")]
-    pub after_model_callback: ::core::option::Option<Callback>,
-    /// Optional. The callback to execute before the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
-    #[serde(default, rename = "beforeAgentCallback")]
-    pub before_agent_callback: ::core::option::Option<Callback>,
-    /// Optional. The callback to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
-    #[serde(default, rename = "beforeModelCallback")]
-    pub before_model_callback: ::core::option::Option<Callback>,
-}
-
-/// Guardrail that bans certain content from being used in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailContentFilter {
-    /// Optional. List of banned phrases. Applies to both user inputs and agent responses.
-    #[serde(default, rename = "bannedContents")]
-    pub banned_contents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of banned phrases. Applies only to agent responses.
-    #[serde(default, rename = "bannedContentsInAgentResponse")]
-    pub banned_contents_in_agent_response: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of banned phrases. Applies only to user inputs.
-    #[serde(default, rename = "bannedContentsInUserInput")]
-    pub banned_contents_in_user_input: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. If true, diacritics are ignored during matching.
-    #[serde(default, rename = "disregardDiacritics")]
-    pub disregard_diacritics: ::core::option::Option<bool>,
-    /// Required. Match type for the content filter. // TODO: enum values: ["MATCH_TYPE_UNSPECIFIED", "SIMPLE_STRING_MATCH", "WORD_BOUNDARY_STRING_MATCH", "REGEXP_MATCH"]
-    #[serde(default, rename = "matchType")]
-    pub match_type: ::core::option::Option<String>,
-}
-
-/// Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailLlmPolicy {
-    /// Optional. By default, the LLM policy check is bypassed for short utterances. Enabling this setting applies the policy check to all utterances, including those that would normally be skipped.
-    #[serde(default, rename = "allowShortUtterance")]
-    pub allow_short_utterance: ::core::option::Option<bool>,
-    /// Optional. If an error occurs during the policy check, fail open and do not trigger the guardrail.
-    #[serde(default, rename = "failOpen")]
-    pub fail_open: ::core::option::Option<bool>,
-    /// Optional. When checking this policy, consider the last ''n'' messages in the conversation. When not set a default value of 10 will be used.
-    #[serde(default, rename = "maxConversationMessages")]
-    pub max_conversation_messages: ::core::option::Option<i32>,
-    /// Optional. Model settings.
-    #[serde(default, rename = "modelSettings")]
-    pub model_settings: ::core::option::Option<ModelSettings>,
-    /// Required. Defines when to apply the policy check during the conversation. If set to POLICY_SCOPE_UNSPECIFIED, the policy will be applied to the user input. When applying the policy to the agent response, additional latency will be introduced before the agent can respond. // TODO: enum values: ["POLICY_SCOPE_UNSPECIFIED", "USER_QUERY", "AGENT_RESPONSE", "USER_QUERY_AND_AGENT_RESPONSE"]
-    #[serde(default, rename = "policyScope")]
-    pub policy_scope: ::core::option::Option<String>,
-    /// Required. Policy prompt.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// Guardrail that blocks the conversation if the input is considered unsafe based on the LLM classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailLlmPromptSecurity {
-    /// Optional. Use a user-defined LlmPolicy to configure the security guardrail.
-    #[serde(default, rename = "customPolicy")]
-    pub custom_policy: ::core::option::Option<GuardrailLlmPolicy>,
-    /// Optional. Use the system''s predefined default security settings. To select this mode, include an empty ''default_settings'' message in the request. The ''default_prompt_template'' field within will be populated by the server in the response.
-    #[serde(default, rename = "defaultSettings")]
-    pub default_settings: ::core::option::Option<GuardrailLlmPromptSecurityDefaultSecuritySettings>,
-    /// Optional. Determines the behavior when the guardrail encounters an LLM error. - If true: the guardrail is bypassed. - If false (default): the guardrail triggers/blocks. Note: If a custom policy is provided, this field is ignored in favor of the policy''s ''fail_open'' configuration.
-    #[serde(default, rename = "failOpen")]
-    pub fail_open: ::core::option::Option<bool>,
-}
-
-/// Configuration for default system security settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
-    /// Output only. The default prompt template used by the system. This field is for display purposes to show the user what prompt the system uses by default. It is OUTPUT_ONLY.
-    #[serde(default, rename = "defaultPromptTemplate")]
-    pub default_prompt_template: ::core::option::Option<String>,
-}
-
-/// Model safety settings overrides. When this is set, it will override the default settings and trigger the guardrail if the response is considered unsafe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailModelSafety {
-    /// Required. List of safety settings.
-    #[serde(default, rename = "safetySettings")]
-    pub safety_settings: ::core::option::Option<::std::vec::Vec<GuardrailModelSafetySafetySetting>>,
-}
-
-/// Safety setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardrailModelSafetySafetySetting {
-    /// Required. The harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Required. The harm block threshold. // TODO: enum values: ["HARM_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_ONLY_HIGH", "BLOCK_NONE", "OFF"]
-    #[serde(default)]
-    pub threshold: ::core::option::Option<String>,
-}
-
-/// Represents an image input or output in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// Required. Raw bytes of the image.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Required. The IANA standard MIME type of the source data. Supported image types includes: * image/png * image/jpeg * image/webp
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
 /// Request message for AgentService.ImportApp.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportAppRequest {
@@ -1518,14 +128,6 @@ pub struct ImportAppRequest {
     pub import_options: ::core::option::Option<ImportAppRequestImportOptions>,
 }
 
-/// Configuration options for the app import process. These options control how the import behaves, particularly when conflicts arise with existing app data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportAppRequestImportOptions {
-    /// Optional. The strategy to use when resolving conflicts during import. // TODO: enum values: ["CONFLICT_RESOLUTION_STRATEGY_UNSPECIFIED", "REPLACE", "OVERWRITE"]
-    #[serde(default, rename = "conflictResolutionStrategy")]
-    pub conflict_resolution_strategy: ::core::option::Option<String>,
-}
-
 /// Response message for AgentService.ImportApp.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportAppResponse {
@@ -1535,37 +137,6 @@ pub struct ImportAppResponse {
     /// Warning messages generated during the import process. If errors occur for specific resources, they will not be included in the imported app and the error will be mentioned here.
     #[serde(default)]
     pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// InputAudioConfig configures how the CES agent should interpret the incoming audio data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputAudioConfig {
-    /// Required. The encoding of the input audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
-    #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: ::core::option::Option<String>,
-    /// Optional. Whether to enable noise suppression on the input audio. Available values are "low", "moderate", "high", "very_high".
-    #[serde(default, rename = "noiseSuppressionLevel")]
-    pub noise_suppression_level: ::core::option::Option<String>,
-    /// Required. The sample rate (in Hertz) of the input audio data.
-    #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: ::core::option::Option<i32>,
-}
-
-/// Language settings of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LanguageSettings {
-    /// Optional. The default language code of the app.
-    #[serde(default, rename = "defaultLanguageCode")]
-    pub default_language_code: ::core::option::Option<String>,
-    /// Optional. Enables multilingual support. If true, agents in the app will use pre-built instructions to improve handling of multilingual input.
-    #[serde(default, rename = "enableMultilingualSupport")]
-    pub enable_multilingual_support: ::core::option::Option<bool>,
-    /// Optional. Deprecated: This feature is no longer supported. Use enable_multilingual_support instead to improve handling of multilingual input. The action to perform when an agent receives input in an unsupported language. This can be a predefined action or a custom tool call. Valid values are: - A tool''s full resource name, which triggers a specific tool execution. - A predefined system action, such as "escalate" or "exit", which triggers an EndSession signal with corresponding metadata to terminate the conversation.
-    #[serde(default, rename = "fallbackAction")]
-    pub fallback_action: ::core::option::Option<String>,
-    /// Optional. List of languages codes supported by the app, in addition to the default_language_code.
-    #[serde(default, rename = "supportedLanguageCodes")]
-    pub supported_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for AgentService.ListAgents.
@@ -1706,157 +277,6 @@ pub struct ListToolsetsResponse {
     pub toolsets: ::core::option::Option<::std::vec::Vec<Toolset>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Settings to describe the logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoggingSettings {
-    /// Optional. Configuration for how audio interactions should be recorded.
-    #[serde(default, rename = "audioRecordingConfig")]
-    pub audio_recording_config: ::core::option::Option<AudioRecordingConfig>,
-    /// Optional. Settings to describe the BigQuery export behaviors for the app. The conversation data will be exported to BigQuery tables if it is enabled.
-    #[serde(default, rename = "bigqueryExportSettings")]
-    pub bigquery_export_settings: ::core::option::Option<BigQueryExportSettings>,
-    /// Optional. Settings to describe the Cloud Logging behaviors for the app.
-    #[serde(default, rename = "cloudLoggingSettings")]
-    pub cloud_logging_settings: ::core::option::Option<CloudLoggingSettings>,
-    /// Optional. Settings to describe the conversation logging behaviors for the app.
-    #[serde(default, rename = "conversationLoggingSettings")]
-    pub conversation_logging_settings: ::core::option::Option<ConversationLoggingSettings>,
-    /// Optional. Configuration for how audio interactions should be recorded for the evaluation. By default, audio recording is not enabled for evaluation sessions.
-    #[serde(default, rename = "evaluationAudioRecordingConfig")]
-    pub evaluation_audio_recording_config: ::core::option::Option<AudioRecordingConfig>,
-    /// Optional. Settings to describe the conversation data collection behaviors for the LLM analysis pipeline for the app.
-    #[serde(default, rename = "metricAnalysisSettings")]
-    pub metric_analysis_settings: ::core::option::Option<MetricAnalysisSettings>,
-    /// Optional. Configuration for how sensitive data should be redacted.
-    #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: ::core::option::Option<RedactionConfig>,
-}
-
-/// An MCP tool. See https://modelcontextprotocol.io/specification/2025-06-18/server/tools for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct McpTool {
-    /// Optional. Authentication information required to execute the tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
-    #[serde(default, rename = "apiAuthentication")]
-    pub api_authentication: ::core::option::Option<ApiAuthentication>,
-    /// Optional. The custom headers to send in the request to the MCP server. The values must be in the format $context.variables. and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.
-    #[serde(default, rename = "customHeaders")]
-    pub custom_headers: ::core::option::Option<serde_json::Value>,
-    /// Optional. The description of the MCP tool.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The schema of the input arguments of the MCP tool.
-    #[serde(default, rename = "inputSchema")]
-    pub input_schema: ::core::option::Option<Schema>,
-    /// Required. The name of the MCP tool.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The schema of the output arguments of the MCP tool.
-    #[serde(default, rename = "outputSchema")]
-    pub output_schema: ::core::option::Option<Schema>,
-    /// Required. The server address of the MCP server, e.g., "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. This is the same as the server_address in the McpToolset. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.
-    #[serde(default, rename = "serverAddress")]
-    pub server_address: ::core::option::Option<String>,
-    /// Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. The TLS configuration. Includes the custom server certificates that the client should trust.
-    #[serde(default, rename = "tlsConfig")]
-    pub tls_config: ::core::option::Option<TlsConfig>,
-}
-
-/// A toolset that contains a list of tools that are offered by the MCP server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct McpToolset {
-    /// Optional. Authentication information required to access tools and execute a tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
-    #[serde(default, rename = "apiAuthentication")]
-    pub api_authentication: ::core::option::Option<ApiAuthentication>,
-    /// Optional. The custom headers to send in the request to the MCP server. The values must be in the format $context.variables. and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.
-    #[serde(default, rename = "customHeaders")]
-    pub custom_headers: ::core::option::Option<serde_json::Value>,
-    /// Required. The address of the MCP server, for example, "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.
-    #[serde(default, rename = "serverAddress")]
-    pub server_address: ::core::option::Option<String>,
-    /// Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. The TLS configuration. Includes the custom server certificates that the client should trust.
-    #[serde(default, rename = "tlsConfig")]
-    pub tls_config: ::core::option::Option<TlsConfig>,
-}
-
-/// A message within a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    /// Optional. Content of the message as a series of chunks.
-    #[serde(default)]
-    pub chunks: ::core::option::Option<::std::vec::Vec<Chunk>>,
-    /// Optional. Timestamp when the message was sent or received. Should not be used if the message is part of an example.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Optional. The role within the conversation, e.g., user, agent.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Settings to describe the conversation data collection behaviors for LLM analysis metrics pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricAnalysisSettings {
-    /// Optional. Whether to collect conversation data for llm analysis metrics. If true, conversation data will not be collected for llm analysis metrics; otherwise, conversation data will be collected.
-    #[serde(default, rename = "llmMetricsOptedOut")]
-    pub llm_metrics_opted_out: ::core::option::Option<bool>,
-}
-
-/// Model settings contains various configurations for the LLM model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModelSettings {
-    /// Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model''s responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.
-    #[serde(default)]
-    pub temperature: ::core::option::Option<f64>,
-}
-
-/// Configurations for authentication with OAuth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthConfig {
-    /// Required. The client ID from the OAuth provider.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Required. The name of the SecretManager secret version resource storing the client secret. Format: projects/{project}/secrets/{secret}/versions/{version} Note: You should grant roles/secretmanager.secretAccessor role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default, rename = "clientSecretVersion")]
-    pub client_secret_version: ::core::option::Option<String>,
-    /// Required. OAuth grant types. // TODO: enum values: ["OAUTH_GRANT_TYPE_UNSPECIFIED", "CLIENT_CREDENTIAL"]
-    #[serde(default, rename = "oauthGrantType")]
-    pub oauth_grant_type: ::core::option::Option<String>,
-    /// Optional. The OAuth scopes to grant.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The token endpoint in the OAuth provider to exchange for an access token.
-    #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: ::core::option::Option<String>,
-}
-
 /// Represents an Omnichannel resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Omnichannel {
@@ -1883,28 +303,6 @@ pub struct Omnichannel {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// OmnichannelIntegrationConfig contains all App integration configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OmnichannelIntegrationConfig {
-    /// Optional. Various of configuration for handling App events.
-    #[serde(default, rename = "channelConfigs")]
-    pub channel_configs: ::core::option::Option<serde_json::Value>,
-    /// Optional. The key of routing_configs is a key of app_configs, value is a RoutingConfig, which contains subscriber''s key.
-    #[serde(default, rename = "routingConfigs")]
-    pub routing_configs: ::core::option::Option<serde_json::Value>,
-    /// Optional. Various of subscribers configs.
-    #[serde(default, rename = "subscriberConfigs")]
-    pub subscriber_configs: ::core::option::Option<serde_json::Value>,
-}
-
-/// Configs for CES app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OmnichannelIntegrationConfigCesAppConfig {
-    /// The unique identifier of the CES app. Format: projects/{project}/locations/{location}/apps/{app}
-    #[serde(default)]
-    pub app: ::core::option::Option<String>,
-}
-
 /// ChannelConfig contains config for various of app integration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OmnichannelIntegrationConfigChannelConfig {
@@ -1929,29 +327,6 @@ pub struct OmnichannelIntegrationConfigSubscriberConfig {
     pub ces_app_config: ::core::option::Option<OmnichannelIntegrationConfigCesAppConfig>,
 }
 
-/// How Omnichannel should receive/reply events from WhatsApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OmnichannelIntegrationConfigWhatsappConfig {
-    /// The Meta Business Portfolio (MBP) ID. https://www.facebook.com/business/help/1710077379203657
-    #[serde(default, rename = "metaBusinessPortfolioId")]
-    pub meta_business_portfolio_id: ::core::option::Option<String>,
-    /// The phone number used for sending/receiving messages.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// The Phone Number ID associated with the WhatsApp Business Account.
-    #[serde(default, rename = "phoneNumberId")]
-    pub phone_number_id: ::core::option::Option<String>,
-    /// The verify token configured in the Meta App Dashboard for webhook verification.
-    #[serde(default, rename = "webhookVerifyToken")]
-    pub webhook_verify_token: ::core::option::Option<String>,
-    /// The customer''s WhatsApp Business Account (WABA) ID.
-    #[serde(default, rename = "whatsappBusinessAccountId")]
-    pub whatsapp_business_account_id: ::core::option::Option<String>,
-    /// The access token for authenticating API calls to the WhatsApp Cloud API. https://developers.facebook.com/docs/whatsapp/business-management-api/get-started/#business-integration-system-user-access-tokens
-    #[serde(default, rename = "whatsappBusinessToken")]
-    pub whatsapp_business_token: ::core::option::Option<String>,
-}
-
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OmnichannelOperationMetadata {
@@ -1969,78 +344,6 @@ pub struct OmnichannelOperationMetadata {
     pub status_message: ::core::option::Option<String>,
 }
 
-/// A remote API tool defined by an OpenAPI schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpenApiTool {
-    /// Optional. Authentication information required by the API.
-    #[serde(default, rename = "apiAuthentication")]
-    pub api_authentication: ::core::option::Option<ApiAuthentication>,
-    /// Optional. The description of the tool. If not provided, the description of the tool will be derived from the OpenAPI schema, from operation.description or operation.summary.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. If true, the agent will ignore unknown fields in the API response.
-    #[serde(default, rename = "ignoreUnknownFields")]
-    pub ignore_unknown_fields: ::core::option::Option<bool>,
-    /// Optional. The name of the tool. If not provided, the name of the tool will be derived from the OpenAPI schema, from operation.operationId.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The OpenAPI schema in JSON or YAML format.
-    #[serde(default, rename = "openApiSchema")]
-    pub open_api_schema: ::core::option::Option<String>,
-    /// Optional. Service Directory configuration.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. The TLS configuration. Includes the custom server certificates that the client will trust.
-    #[serde(default, rename = "tlsConfig")]
-    pub tls_config: ::core::option::Option<TlsConfig>,
-    /// Optional. The server URL of the Open API schema. This field is only set in tools in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// A toolset that contains a list of tools that are defined by an OpenAPI schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpenApiToolset {
-    /// Optional. Authentication information required by the API.
-    #[serde(default, rename = "apiAuthentication")]
-    pub api_authentication: ::core::option::Option<ApiAuthentication>,
-    /// Optional. If true, the agent will ignore unknown fields in the API response for all operations defined in the OpenAPI schema.
-    #[serde(default, rename = "ignoreUnknownFields")]
-    pub ignore_unknown_fields: ::core::option::Option<bool>,
-    /// Required. The OpenAPI schema of the toolset.
-    #[serde(default, rename = "openApiSchema")]
-    pub open_api_schema: ::core::option::Option<String>,
-    /// Optional. Service Directory configuration.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. The TLS configuration. Includes the custom server certificates
-    #[serde(default, rename = "tlsConfig")]
-    pub tls_config: ::core::option::Option<TlsConfig>,
-    /// Optional. The server URL of the Open API schema. This field is only set in toolsets in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadata {
@@ -2056,53 +359,6 @@ pub struct OperationMetadata {
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
     pub status_message: ::core::option::Option<String>,
-}
-
-/// OutputAudioConfig configures how the CES agent should synthesize outgoing audio responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OutputAudioConfig {
-    /// Required. The encoding of the output audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
-    #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: ::core::option::Option<String>,
-    /// Required. The sample rate (in Hertz) of the output audio data.
-    #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: ::core::option::Option<i32>,
-}
-
-/// Python code block to evaluate the condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PythonCodeCondition {
-    /// Required. The python code to execute.
-    #[serde(default, rename = "pythonCode")]
-    pub python_code: ::core::option::Option<String>,
-}
-
-/// A Python function tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PythonFunction {
-    /// Output only. The description of the Python function, parsed from the python code''s docstring.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The name of the Python function to execute. Must match a Python function name defined in the python code. Case sensitive. If the name is not provided, the first function defined in the python code will be used.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The Python code to execute for the tool.
-    #[serde(default, rename = "pythonCode")]
-    pub python_code: ::core::option::Option<String>,
-}
-
-/// Configuration to instruct how sensitive data should be handled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RedactionConfig {
-    /// Optional. [DLP](https://cloud.google.com/dlp/docs) deidentify template name to instruct on how to de-identify content. Format: projects/{project}/locations/{location}/deidentifyTemplates/{deidentify_template}
-    #[serde(default, rename = "deidentifyTemplate")]
-    pub deidentify_template: ::core::option::Option<String>,
-    /// Optional. If true, redaction will be applied in various logging scenarios, including conversation history, Cloud Logging and audio recording.
-    #[serde(default, rename = "enableRedaction")]
-    pub enable_redaction: ::core::option::Option<bool>,
-    /// Optional. [DLP](https://cloud.google.com/dlp/docs) inspect template name to configure detection of sensitive data types. Format: projects/{project}/locations/{location}/inspectTemplates/{inspect_template}
-    #[serde(default, rename = "inspectTemplate")]
-    pub inspect_template: ::core::option::Option<String>,
 }
 
 /// Request message for ToolService.RetrieveToolSchema.
@@ -2168,68 +424,6 @@ pub struct RunSessionResponse {
     pub outputs: ::core::option::Option<::std::vec::Vec<SessionOutput>>,
 }
 
-/// Represents a select subset of an OpenAPI 3.0 schema object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schema {
-    /// Optional. Can either be a boolean or an object, controls the presence of additional properties.
-    #[serde(default, rename = "additionalProperties")]
-    pub additional_properties: ::core::option::Option<Schema>,
-    /// Optional. The value should be validated against any (one or more) of the subschemas in the list.
-    #[serde(default, rename = "anyOf")]
-    pub any_of: ::core::option::Option<::std::vec::Vec<Schema>>,
-    /// Optional. Default value of the data.
-    #[serde(default)]
-    pub default: ::core::option::Option<serde_json::Value>,
-    /// Optional. A map of definitions for use by ref. Only allowed at the root of the schema.
-    #[serde(default)]
-    pub defs: ::core::option::Option<serde_json::Value>,
-    /// Optional. The description of the data.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Possible values of the element of primitive type with enum format. Examples: 1. We can define direction as : {type:STRING, format:enum, enum:["EAST", NORTH", "SOUTH", "WEST"]} 2. We can define apartment number as : {type:INTEGER, format:enum, enum:["101", "201", "301"]}
-    #[serde(default, rename = "enum")]
-    pub enum_: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Schema of the elements of Type.ARRAY.
-    #[serde(default)]
-    pub items: ::core::option::Option<Schema>,
-    /// Optional. Maximum number of the elements for Type.ARRAY.
-    #[serde(default, rename = "maxItems")]
-    pub max_items: ::core::option::Option<String>,
-    /// Optional. Maximum value for Type.INTEGER and Type.NUMBER.
-    #[serde(default)]
-    pub maximum: ::core::option::Option<f64>,
-    /// Optional. Minimum number of the elements for Type.ARRAY.
-    #[serde(default, rename = "minItems")]
-    pub min_items: ::core::option::Option<String>,
-    /// Optional. Minimum value for Type.INTEGER and Type.NUMBER.
-    #[serde(default)]
-    pub minimum: ::core::option::Option<f64>,
-    /// Optional. Indicates if the value may be null.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// Optional. Schemas of initial elements of Type.ARRAY.
-    #[serde(default, rename = "prefixItems")]
-    pub prefix_items: ::core::option::Option<::std::vec::Vec<Schema>>,
-    /// Optional. Properties of Type.OBJECT.
-    #[serde(default)]
-    pub properties: ::core::option::Option<serde_json::Value>,
-    /// Optional. Allows indirect references between schema nodes. The value should be a valid reference to a child of the root defs. For example, the following schema defines a reference to a schema node named "Pet":  type: object properties: pet: ref: #/defs/Pet defs: Pet: type: object properties: name: type: string  The value of the "pet" property is a reference to the schema node named "Pet". See details in https://json-schema.org/understanding-json-schema/structuring.
-    #[serde(default, rename = "ref")]
-    pub ref_: ::core::option::Option<String>,
-    /// Optional. Required properties of Type.OBJECT.
-    #[serde(default)]
-    pub required: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The title of the schema.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Required. The type of the data. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INTEGER", "NUMBER", "BOOLEAN", "OBJECT", "ARRAY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.
-    #[serde(default, rename = "uniqueItems")]
-    pub unique_items: ::core::option::Option<bool>,
-}
-
 /// Project/Location level security settings for CES.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecuritySettings {
@@ -2250,23 +444,245 @@ pub struct SecuritySettings {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Configurations for authentication using a custom service account.
+/// Configuration for how the agent response should be synthesized.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceAccountAuthConfig {
-    /// Optional. The OAuth scopes to grant. If not specified, the default scope https://www.googleapis.com/auth/cloud-platform is used.
+pub struct SynthesizeSpeechConfig {
+    /// Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.
+    #[serde(default, rename = "speakingRate")]
+    pub speaking_rate: ::core::option::Option<f64>,
+    /// Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.
     #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the Authorization header of the request. The service account must have the roles/iam.serviceAccountTokenCreator role granted to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
+    pub voice: ::core::option::Option<String>,
 }
 
-/// Configuration for tools using Service Directory.
+/// Configuration options for the app import process. These options control how the import behaves, particularly when conflicts arise with existing app data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceDirectoryConfig {
-    /// Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}. Location of the service directory must be the same as the location of the app.
+pub struct ImportAppRequestImportOptions {
+    /// Optional. The strategy to use when resolving conflicts during import. // TODO: enum values: ["CONFLICT_RESOLUTION_STRATEGY_UNSPECIFIED", "REPLACE", "OVERWRITE"]
+    #[serde(default, rename = "conflictResolutionStrategy")]
+    pub conflict_resolution_strategy: ::core::option::Option<String>,
+}
+
+/// In Customer Engagement Suite (CES), an app version is a snapshot of the app at a specific point in time. It is immutable and cannot be modified once created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppVersion {
+    /// Output only. Timestamp when the app version was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Email of the user who created the app version.
     #[serde(default)]
-    pub service: ::core::option::Option<String>,
+    pub creator: ::core::option::Option<String>,
+    /// Optional. The description of the app version.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The display name of the app version.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifier. The unique identifier of the app version. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The snapshot of the app when the version is created.
+    #[serde(default)]
+    pub snapshot: ::core::option::Option<AppSnapshot>,
+}
+
+/// Changelogs represent a change made to the app or to an resource within the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Changelog {
+    /// Output only. The action that was performed on the resource.
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Output only. Email address of the change author.
+    #[serde(default)]
+    pub author: ::core::option::Option<String>,
+    /// Output only. The time when the change was made.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The dependent resources that were changed.
+    #[serde(default, rename = "dependentResources")]
+    pub dependent_resources: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Output only. Description of the change. which typically captures the changed fields in the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Display name of the change. It typically should be the display name of the resource that was changed.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. The unique identifier of the changelog. Format: projects/{project}/locations/{location}/apps/{app}/changelogs/{changelog}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The new resource after the change.
+    #[serde(default, rename = "newResource")]
+    pub new_resource: ::core::option::Option<serde_json::Value>,
+    /// Output only. The original resource before the change.
+    #[serde(default, rename = "originalResource")]
+    pub original_resource: ::core::option::Option<serde_json::Value>,
+    /// Output only. The resource that was changed.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Output only. The type of the resource that was changed.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Output only. The monotonically increasing sequence number of the changelog.
+    #[serde(default, rename = "sequenceNumber")]
+    pub sequence_number: ::core::option::Option<String>,
+}
+
+/// A conversation represents an interaction between an end user and the CES app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Conversation {
+    /// Output only. The version of the app used for processing the conversation. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}
+    #[serde(default, rename = "appVersion")]
+    pub app_version: ::core::option::Option<String>,
+    /// DEPRECATED. Please use input_types instead. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "TEXT", "AUDIO", "MULTIMODAL"]
+    #[serde(default, rename = "channelType")]
+    pub channel_type: ::core::option::Option<String>,
+    /// Output only. The deployment of the app used for processing the conversation. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
+    #[serde(default)]
+    pub deployment: ::core::option::Option<String>,
+    /// Output only. Timestamp when the conversation was completed.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The agent that initially handles the conversation. If not specified, the conversation is handled by the root agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default, rename = "entryAgent")]
+    pub entry_agent: ::core::option::Option<String>,
+    /// Output only. The input types of the conversation.
+    #[serde(default, rename = "inputTypes")]
+    pub input_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The language code of the conversation.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Deprecated. Use turns instead.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// Identifier. The unique identifier of the conversation. Format: projects/{project}/locations/{location}/apps/{app}/conversations/{conversation}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Indicate the source of the conversation. // TODO: enum values: ["SOURCE_UNSPECIFIED", "LIVE", "SIMULATOR", "EVAL"]
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Output only. Timestamp when the conversation was created.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The number of turns in the conversation.
+    #[serde(default, rename = "turnCount")]
+    pub turn_count: ::core::option::Option<i32>,
+    /// Required. The turns in the conversation.
+    #[serde(default)]
+    pub turns: ::core::option::Option<::std::vec::Vec<ConversationTurn>>,
+}
+
+/// A deployment represents an immutable, queryable version of the app. It is used to deploy an app version with a specific channel profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Deployment {
+    /// Optional. The resource name of the app version to deploy. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version} Use projects/{project}/locations/{location}/apps/{app}/versions/- to use the draft app.
+    #[serde(default, rename = "appVersion")]
+    pub app_version: ::core::option::Option<String>,
+    /// Required. The channel profile used in the deployment.
+    #[serde(default, rename = "channelProfile")]
+    pub channel_profile: ::core::option::Option<ChannelProfile>,
+    /// Output only. Timestamp when this deployment was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Display name of the deployment.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Identifier. The resource name of the deployment. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Timestamp when this deployment was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// OmnichannelIntegrationConfig contains all App integration configs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OmnichannelIntegrationConfig {
+    /// Optional. Various of configuration for handling App events.
+    #[serde(default, rename = "channelConfigs")]
+    pub channel_configs: ::core::option::Option<serde_json::Value>,
+    /// Optional. The key of routing_configs is a key of app_configs, value is a RoutingConfig, which contains subscriber''s key.
+    #[serde(default, rename = "routingConfigs")]
+    pub routing_configs: ::core::option::Option<serde_json::Value>,
+    /// Optional. Various of subscribers configs.
+    #[serde(default, rename = "subscriberConfigs")]
+    pub subscriber_configs: ::core::option::Option<serde_json::Value>,
+}
+
+/// How Omnichannel should receive/reply events from WhatsApp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OmnichannelIntegrationConfigWhatsappConfig {
+    /// The Meta Business Portfolio (MBP) ID. https://www.facebook.com/business/help/1710077379203657
+    #[serde(default, rename = "metaBusinessPortfolioId")]
+    pub meta_business_portfolio_id: ::core::option::Option<String>,
+    /// The phone number used for sending/receiving messages.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// The Phone Number ID associated with the WhatsApp Business Account.
+    #[serde(default, rename = "phoneNumberId")]
+    pub phone_number_id: ::core::option::Option<String>,
+    /// The verify token configured in the Meta App Dashboard for webhook verification.
+    #[serde(default, rename = "webhookVerifyToken")]
+    pub webhook_verify_token: ::core::option::Option<String>,
+    /// The customer''s WhatsApp Business Account (WABA) ID.
+    #[serde(default, rename = "whatsappBusinessAccountId")]
+    pub whatsapp_business_account_id: ::core::option::Option<String>,
+    /// The access token for authenticating API calls to the WhatsApp Cloud API. https://developers.facebook.com/docs/whatsapp/business-management-api/get-started/#business-integration-system-user-access-tokens
+    #[serde(default, rename = "whatsappBusinessToken")]
+    pub whatsapp_business_token: ::core::option::Option<String>,
+}
+
+/// Configs for CES app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OmnichannelIntegrationConfigCesAppConfig {
+    /// The unique identifier of the CES app. Format: projects/{project}/locations/{location}/apps/{app}
+    #[serde(default)]
+    pub app: ::core::option::Option<String>,
 }
 
 /// The configuration for the session.
@@ -2300,20 +716,6 @@ pub struct SessionConfig {
     /// Optional. Whether to use tool fakes for the session. If this field is set, the agent will attempt use tool fakes instead of calling the real tools.
     #[serde(default, rename = "useToolFakes")]
     pub use_tool_fakes: ::core::option::Option<bool>,
-}
-
-/// [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters) to send to the remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent when the session control is transferred to the remote agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionConfigRemoteDialogflowQueryParameters {
-    /// Optional. The end user metadata to be sent in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
-    #[serde(default, rename = "endUserMetadata")]
-    pub end_user_metadata: ::core::option::Option<serde_json::Value>,
-    /// Optional. The payload to be sent in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
-    #[serde(default)]
-    pub payload: ::core::option::Option<serde_json::Value>,
-    /// Optional. The HTTP headers to be sent as webhook_headers in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
-    #[serde(default, rename = "webhookHeaders")]
-    pub webhook_headers: ::core::option::Option<serde_json::Value>,
 }
 
 /// Input for the session.
@@ -2383,38 +785,49 @@ pub struct SessionOutput {
     pub turn_index: ::core::option::Option<i32>,
 }
 
-/// Contains execution details during the processing.
+/// Defines project/location level endpoint control policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionOutputDiagnosticInfo {
-    /// List of the messages that happened during the processing.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// A trace of the entire request processing, represented as a root span. This span can contain nested child spans for specific operations.
-    #[serde(default, rename = "rootSpan")]
-    pub root_span: ::core::option::Option<Span>,
+pub struct EndpointControlPolicy {
+    /// Optional. The allowed HTTP(s) origins that tools in the App are able to directly call. The enforcement depends on the value of enforcement_scope and the VPC-SC status of the project. If a port number is not provided, all ports will be allowed. Otherwise, the port number must match exactly. For example, "https://example.com" will match "https://example.com:443" and any other port. "https://example.com:443" will only match "https://example.com:443".
+    #[serde(default, rename = "allowedOrigins")]
+    pub allowed_origins: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The scope in which this policy''s allowed_origins list is enforced. // TODO: enum values: ["ENFORCEMENT_SCOPE_UNSPECIFIED", "VPCSC_ONLY", "ALWAYS"]
+    #[serde(default, rename = "enforcementScope")]
+    pub enforcement_scope: ::core::option::Option<String>,
 }
 
-/// A span is a unit of work or a single operation during the request processing.
+/// A snapshot of the app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Span {
-    /// Output only. Key-value attributes associated with the span.
+pub struct AppSnapshot {
+    /// Optional. List of agents in the app.
     #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Output only. The child spans that are nested under this span.
-    #[serde(default, rename = "childSpans")]
-    pub child_spans: ::core::option::Option<::std::vec::Vec<Span>>,
-    /// Output only. The duration of the span.
+    pub agents: ::core::option::Option<::std::vec::Vec<Agent>>,
+    /// Optional. The basic settings for the app.
     #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Output only. The end time of the span.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The name of the span.
+    pub app: ::core::option::Option<App>,
+    /// Optional. List of examples in the app.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The start time of the span.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
+    pub examples: ::core::option::Option<::std::vec::Vec<Example>>,
+    /// Optional. List of guardrails in the app.
+    #[serde(default)]
+    pub guardrails: ::core::option::Option<::std::vec::Vec<Guardrail>>,
+    /// Optional. List of tools in the app.
+    #[serde(default)]
+    pub tools: ::core::option::Option<::std::vec::Vec<Tool>>,
+    /// Optional. List of toolsets in the app.
+    #[serde(default)]
+    pub toolsets: ::core::option::Option<::std::vec::Vec<Toolset>>,
+}
+
+/// All information about a single turn in the conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversationTurn {
+    /// Optional. List of messages in the conversation turn, including user input, agent responses and intermediate events during the processing.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// Optional. The root span of the action processing.
+    #[serde(default, rename = "rootSpan")]
+    pub root_span: ::core::option::Option<Span>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2431,53 +844,328 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Configuration for how the agent response should be synthesized.
+/// InputAudioConfig configures how the CES agent should interpret the incoming audio data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SynthesizeSpeechConfig {
-    /// Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.
-    #[serde(default, rename = "speakingRate")]
-    pub speaking_rate: ::core::option::Option<f64>,
-    /// Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.
-    #[serde(default)]
-    pub voice: ::core::option::Option<String>,
+pub struct InputAudioConfig {
+    /// Required. The encoding of the input audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
+    #[serde(default, rename = "audioEncoding")]
+    pub audio_encoding: ::core::option::Option<String>,
+    /// Optional. Whether to enable noise suppression on the input audio. Available values are "low", "moderate", "high", "very_high".
+    #[serde(default, rename = "noiseSuppressionLevel")]
+    pub noise_suppression_level: ::core::option::Option<String>,
+    /// Required. The sample rate (in Hertz) of the input audio data.
+    #[serde(default, rename = "sampleRateHertz")]
+    pub sample_rate_hertz: ::core::option::Option<i32>,
 }
 
-/// Pre-defined system tool.
+/// OutputAudioConfig configures how the CES agent should synthesize outgoing audio responses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemTool {
-    /// Output only. The description of the system tool.
+pub struct OutputAudioConfig {
+    /// Required. The encoding of the output audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
+    #[serde(default, rename = "audioEncoding")]
+    pub audio_encoding: ::core::option::Option<String>,
+    /// Required. The sample rate (in Hertz) of the output audio data.
+    #[serde(default, rename = "sampleRateHertz")]
+    pub sample_rate_hertz: ::core::option::Option<i32>,
+}
+
+/// [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters) to send to the remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent when the session control is transferred to the remote agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionConfigRemoteDialogflowQueryParameters {
+    /// Optional. The end user metadata to be sent in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
+    #[serde(default, rename = "endUserMetadata")]
+    pub end_user_metadata: ::core::option::Option<serde_json::Value>,
+    /// Optional. The payload to be sent in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
+    #[serde(default)]
+    pub payload: ::core::option::Option<serde_json::Value>,
+    /// Optional. The HTTP headers to be sent as webhook_headers in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
+    #[serde(default, rename = "webhookHeaders")]
+    pub webhook_headers: ::core::option::Option<serde_json::Value>,
+}
+
+/// Event input.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
+    /// Required. The name of the event.
+    #[serde(default)]
+    pub event: ::core::option::Option<String>,
+}
+
+/// Execution results for the requested tool calls from the client.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolResponses {
+    /// Optional. The list of tool execution results.
+    #[serde(default, rename = "toolResponses")]
+    pub tool_responses: ::core::option::Option<::std::vec::Vec<ToolResponse>>,
+}
+
+/// Citations associated with the agent response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Citations {
+    /// List of cited pieces of information.
+    #[serde(default, rename = "citedChunks")]
+    pub cited_chunks: ::core::option::Option<::std::vec::Vec<CitationsCitedChunk>>,
+}
+
+/// Contains execution details during the processing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionOutputDiagnosticInfo {
+    /// List of the messages that happened during the processing.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// A trace of the entire request processing, represented as a root span. This span can contain nested child spans for specific operations.
+    #[serde(default, rename = "rootSpan")]
+    pub root_span: ::core::option::Option<Span>,
+}
+
+/// Search suggestions from Google Search Tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleSearchSuggestions {
+    /// Compliant HTML and CSS styling for search suggestions. The provided HTML and CSS automatically adapts to your device settings, displaying in either light or dark mode indicated by @media(prefers-color-scheme).
+    #[serde(default)]
+    pub htmls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of queries used to perform the google search along with the search result URIs forming the search suggestions.
+    #[serde(default, rename = "webSearchQueries")]
+    pub web_search_queries: ::core::option::Option<::std::vec::Vec<WebSearchQuery>>,
+}
+
+/// Request for the client to execute the tools and return the execution results before continuing the session.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolCalls {
+    /// Optional. The list of tool calls to execute.
+    #[serde(default, rename = "toolCalls")]
+    pub tool_calls: ::core::option::Option<::std::vec::Vec<ToolCall>>,
+}
+
+/// An agent acts as the fundamental building block that provides instructions to the Large Language Model (LLM) for executing specific tasks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Agent {
+    /// Optional. The callbacks to execute after the agent is called. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "afterAgentCallbacks")]
+    pub after_agent_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. The callbacks to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "afterModelCallbacks")]
+    pub after_model_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. The callbacks to execute after the tool is invoked. If there are multiple tool invocations, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "afterToolCallbacks")]
+    pub after_tool_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. The callbacks to execute before the agent is called. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "beforeAgentCallbacks")]
+    pub before_agent_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. The callbacks to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "beforeModelCallbacks")]
+    pub before_model_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. The callbacks to execute before the tool is invoked. If there are multiple tool invocations, the callback will be executed multiple times. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
+    #[serde(default, rename = "beforeToolCallbacks")]
+    pub before_tool_callbacks: ::core::option::Option<::std::vec::Vec<Callback>>,
+    /// Optional. List of child agents in the agent tree. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default, rename = "childAgents")]
+    pub child_agents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Timestamp when the agent was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Human-readable description of the agent.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Required. The name of the system tool.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// TimeZone settings of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeZoneSettings {
-    /// Optional. The time zone of the app from the [time zone database](https://www.iana.org/time-zones), e.g., America/Los_Angeles, Europe/Paris.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-}
-
-/// The TLS configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsConfig {
-    /// Required. Specifies a list of allowed custom CA certificates for HTTPS verification.
-    #[serde(default, rename = "caCerts")]
-    pub ca_certs: ::core::option::Option<::std::vec::Vec<TlsConfigCaCert>>,
-}
-
-/// The CA certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsConfigCaCert {
-    /// Required. The allowed custom CA certificates (in DER format) for HTTPS verification. This overrides the default SSL trust store. If this is empty or unspecified, CES will use Google''s default trust store to verify certificates. N.B. Make sure the HTTPS server certificates are signed with "subject alt name". For instance a certificate can be self-signed using the following command:  openssl x509 -req -days 200 -in example.com.csr \ -signkey example.com.key \ -out example.com.crt \ -extfile &lt;(printf "\nsubjectAltName=''DNS:www.example.com''")
-    #[serde(default)]
-    pub cert: ::core::option::Option<String>,
-    /// Required. The name of the allowed custom CA certificates. This can be used to disambiguate the custom CA certificates.
+    /// Required. Display name of the agent.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
+    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. If the agent is generated by the LLM assistant, this field contains a descriptive summary of the generation.
+    #[serde(default, rename = "generatedSummary")]
+    pub generated_summary: ::core::option::Option<String>,
+    /// Optional. List of guardrails for the agent. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
+    #[serde(default)]
+    pub guardrails: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Instructions for the LLM model to guide the agent''s behavior.
+    #[serde(default)]
+    pub instruction: ::core::option::Option<String>,
+    /// Optional. The default agent type.
+    #[serde(default, rename = "llmAgent")]
+    pub llm_agent: ::core::option::Option<serde_json::Value>,
+    /// Optional. Configurations for the LLM model.
+    #[serde(default, rename = "modelSettings")]
+    pub model_settings: ::core::option::Option<ModelSettings>,
+    /// Identifier. The unique identifier of the agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent to be used for the agent execution. If this field is set, all other agent level properties will be ignored. Note: If the Dialogflow agent is in a different project from the app, you should grant roles/dialogflow.client to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default, rename = "remoteDialogflowAgent")]
+    pub remote_dialogflow_agent: ::core::option::Option<AgentRemoteDialogflowAgent>,
+    /// Optional. List of available tools for the agent. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
+    #[serde(default)]
+    pub tools: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of toolsets for the agent.
+    #[serde(default)]
+    pub toolsets: ::core::option::Option<::std::vec::Vec<AgentAgentToolset>>,
+    /// Optional. Agent transfer rules. If multiple rules match, the first one in the list will be used.
+    #[serde(default, rename = "transferRules")]
+    pub transfer_rules: ::core::option::Option<::std::vec::Vec<TransferRule>>,
+    /// Output only. Timestamp when the agent was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An app serves as a top-level container for a group of agents, including the root agent and its sub-agents, along with their associated configurations. These agents work together to achieve specific goals within the app''s context.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct App {
+    /// Optional. Audio processing configuration of the app.
+    #[serde(default, rename = "audioProcessingConfig")]
+    pub audio_processing_config: ::core::option::Option<AudioProcessingConfig>,
+    /// Optional. The default client certificate settings for the app.
+    #[serde(default, rename = "clientCertificateSettings")]
+    pub client_certificate_settings: ::core::option::Option<ClientCertificateSettings>,
+    /// Output only. Timestamp when the app was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The data store settings for the app.
+    #[serde(default, rename = "dataStoreSettings")]
+    pub data_store_settings: ::core::option::Option<DataStoreSettings>,
+    /// Optional. The default channel profile used by the app.
+    #[serde(default, rename = "defaultChannelProfile")]
+    pub default_channel_profile: ::core::option::Option<ChannelProfile>,
+    /// Output only. Number of deployments in the app.
+    #[serde(default, rename = "deploymentCount")]
+    pub deployment_count: ::core::option::Option<i32>,
+    /// Optional. Human-readable description of the app.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Display name of the app.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Error handling settings of the app.
+    #[serde(default, rename = "errorHandlingSettings")]
+    pub error_handling_settings: ::core::option::Option<ErrorHandlingSettings>,
+    /// Output only. Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. The evaluation thresholds for the app.
+    #[serde(default, rename = "evaluationMetricsThresholds")]
+    pub evaluation_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholds>,
+    /// Optional. Instructions for all the agents in the app. You can use this instruction to set up a stable identity or personality across all the agents.
+    #[serde(default, rename = "globalInstruction")]
+    pub global_instruction: ::core::option::Option<String>,
+    /// Optional. List of guardrails for the app. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
+    #[serde(default)]
+    pub guardrails: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Language settings of the app.
+    #[serde(default, rename = "languageSettings")]
+    pub language_settings: ::core::option::Option<LanguageSettings>,
+    /// Optional. Indicates whether the app is locked for changes. If the app is locked, modifications to the app resources will be rejected.
+    #[serde(default)]
+    pub locked: ::core::option::Option<bool>,
+    /// Optional. Logging settings of the app.
+    #[serde(default, rename = "loggingSettings")]
+    pub logging_settings: ::core::option::Option<LoggingSettings>,
+    /// Optional. Metadata about the app. This field can be used to store additional information relevant to the app''s details or intended usages.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Optional. The default LLM model settings for the app. Individual resources (e.g. agents, guardrails) can override these configurations as needed.
+    #[serde(default, rename = "modelSettings")]
+    pub model_settings: ::core::option::Option<ModelSettings>,
+    /// Identifier. The unique identifier of the app. Format: projects/{project}/locations/{location}/apps/{app}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Whether the app is pinned in the app list.
+    #[serde(default)]
+    pub pinned: ::core::option::Option<bool>,
+    /// Output only. The declarations of predefined variables for the app.
+    #[serde(default, rename = "predefinedVariableDeclarations")]
+    pub predefined_variable_declarations:
+        ::core::option::Option<::std::vec::Vec<AppVariableDeclaration>>,
+    /// Optional. The root agent is the entry point of the app. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default, rename = "rootAgent")]
+    pub root_agent: ::core::option::Option<String>,
+    /// Optional. TimeZone settings of the app.
+    #[serde(default, rename = "timeZoneSettings")]
+    pub time_zone_settings: ::core::option::Option<TimeZoneSettings>,
+    /// Optional. The tool execution mode for the app. If not provided, will default to PARALLEL. // TODO: enum values: ["TOOL_EXECUTION_MODE_UNSPECIFIED", "PARALLEL", "SEQUENTIAL"]
+    #[serde(default, rename = "toolExecutionMode")]
+    pub tool_execution_mode: ::core::option::Option<String>,
+    /// Output only. Timestamp when the app was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Optional. The declarations of the variables.
+    #[serde(default, rename = "variableDeclarations")]
+    pub variable_declarations: ::core::option::Option<::std::vec::Vec<AppVariableDeclaration>>,
+}
+
+/// An example represents a sample conversation between the user and the agent(s).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Example {
+    /// Output only. Timestamp when the example was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Human-readable description of the example.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Display name of the example.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The agent that initially handles the conversation. If not specified, the example represents a conversation that is handled by the root agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default, rename = "entryAgent")]
+    pub entry_agent: ::core::option::Option<String>,
+    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The example may become invalid if referencing resources are deleted. Invalid examples will not be used as few-shot examples.
+    #[serde(default)]
+    pub invalid: ::core::option::Option<bool>,
+    /// Optional. The collection of messages that make up the conversation.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// Identifier. The unique identifier of the example. Format: projects/{project}/locations/{location}/apps/{app}/examples/{example}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Timestamp when the example was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Guardrail contains a list of checks and balances to keep the agents safe and secure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Guardrail {
+    /// Optional. Action to take when the guardrail is triggered.
+    #[serde(default)]
+    pub action: ::core::option::Option<TriggerAction>,
+    /// Optional. Guardrail that potentially blocks the conversation based on the result of the callback execution.
+    #[serde(default, rename = "codeCallback")]
+    pub code_callback: ::core::option::Option<GuardrailCodeCallback>,
+    /// Optional. Guardrail that bans certain content from being used in the conversation.
+    #[serde(default, rename = "contentFilter")]
+    pub content_filter: ::core::option::Option<GuardrailContentFilter>,
+    /// Output only. Timestamp when the guardrail was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the guardrail.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Display name of the guardrail.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Whether the guardrail is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Etag used to ensure the object hasn''t changed during a read-modify-write operation. If the etag is empty, the update will overwrite any concurrent changes.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.
+    #[serde(default, rename = "llmPolicy")]
+    pub llm_policy: ::core::option::Option<GuardrailLlmPolicy>,
+    /// Optional. Guardrail that blocks the conversation if the prompt is considered unsafe based on the LLM classification.
+    #[serde(default, rename = "llmPromptSecurity")]
+    pub llm_prompt_security: ::core::option::Option<GuardrailLlmPromptSecurity>,
+    /// Optional. Guardrail that blocks the conversation if the LLM response is considered unsafe based on the model safety settings.
+    #[serde(default, rename = "modelSafety")]
+    pub model_safety: ::core::option::Option<GuardrailModelSafety>,
+    /// Identifier. The unique identifier of the guardrail. Format: projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Timestamp when the guardrail was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A tool represents an action that the CES agent can take to achieve certain goals.
@@ -2542,73 +1230,6 @@ pub struct Tool {
     pub widget_tool: ::core::option::Option<WidgetTool>,
 }
 
-/// Request for the client or the agent to execute the specified tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolCall {
-    /// Optional. The input parameters and values for the tool in JSON object format.
-    #[serde(default)]
-    pub args: ::core::option::Option<serde_json::Value>,
-    /// Output only. Display name of the tool.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The unique identifier of the tool call. If populated, the client should return the execution result with the matching ID in ToolResponse.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. The name of the tool to execute. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
-    #[serde(default)]
-    pub tool: ::core::option::Option<String>,
-    /// Optional. The toolset tool to execute.
-    #[serde(default, rename = "toolsetTool")]
-    pub toolset_tool: ::core::option::Option<ToolsetTool>,
-}
-
-/// Request for the client to execute the tools and return the execution results before continuing the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolCalls {
-    /// Optional. The list of tool calls to execute.
-    #[serde(default, rename = "toolCalls")]
-    pub tool_calls: ::core::option::Option<::std::vec::Vec<ToolCall>>,
-}
-
-/// Configuration for tool behavior in fake mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolFakeConfig {
-    /// Optional. Code block which will be executed instead of a real tool call.
-    #[serde(default, rename = "codeBlock")]
-    pub code_block: ::core::option::Option<CodeBlock>,
-    /// Optional. Whether the tool is using fake mode.
-    #[serde(default, rename = "enableFakeMode")]
-    pub enable_fake_mode: ::core::option::Option<bool>,
-}
-
-/// The execution result of a specific tool from the client or the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolResponse {
-    /// Output only. Display name of the tool.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The matching ID of the tool call the response is for.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Required. The tool execution result in JSON object format. Use "output" key to specify tool response and "error" key to specify error details (if any). If "output" and "error" keys are not specified, then whole "response" is treated as tool execution result.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-    /// Optional. The name of the tool to execute. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
-    #[serde(default)]
-    pub tool: ::core::option::Option<String>,
-    /// Optional. The toolset tool that got executed.
-    #[serde(default, rename = "toolsetTool")]
-    pub toolset_tool: ::core::option::Option<ToolsetTool>,
-}
-
-/// Execution results for the requested tool calls from the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolResponses {
-    /// Optional. The list of tool execution results.
-    #[serde(default, rename = "toolResponses")]
-    pub tool_responses: ::core::option::Option<::std::vec::Vec<ToolResponse>>,
-}
-
 /// A toolset represents a group of dynamically managed tools that can be used by the agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Toolset {
@@ -2647,13 +1268,84 @@ pub struct Toolset {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// A tool that is created from a toolset.
+/// Piece of cited information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolsetTool {
-    /// Optional. The tool ID to filter the tools to retrieve the schema for.
-    #[serde(default, rename = "toolId")]
-    pub tool_id: ::core::option::Option<String>,
-    /// Required. The resource name of the Toolset from which this tool is derived. Format: projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}
+pub struct CitationsCitedChunk {
+    /// Text used for citation.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Title of the cited document.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// URI used for citation.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A span is a unit of work or a single operation during the request processing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Span {
+    /// Output only. Key-value attributes associated with the span.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Output only. The child spans that are nested under this span.
+    #[serde(default, rename = "childSpans")]
+    pub child_spans: ::core::option::Option<::std::vec::Vec<Span>>,
+    /// Output only. The duration of the span.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Output only. The end time of the span.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The name of the span.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The start time of the span.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Represents a single web search query and its associated search uri.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebSearchQuery {
+    /// The search query text.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// The URI to the Google Search results page for the query.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentRemoteDialogflowAgent {
+    /// Required. The [Dialogflow](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent resource name. Format: projects/{project}/locations/{location}/agents/{agent}
+    #[serde(default)]
+    pub agent: ::core::option::Option<String>,
+    /// Optional. The environment ID of the Dialogflow agent to be used for the agent execution. If not specified, the draft environment will be used.
+    #[serde(default, rename = "environmentId")]
+    pub environment_id: ::core::option::Option<String>,
+    /// Optional. The flow ID of the flow in the Dialogflow agent.
+    #[serde(default, rename = "flowId")]
+    pub flow_id: ::core::option::Option<String>,
+    /// Optional. The mapping of the app variables names to the Dialogflow session parameters names to be sent to the Dialogflow agent as input.
+    #[serde(default, rename = "inputVariableMapping")]
+    pub input_variable_mapping: ::core::option::Option<serde_json::Value>,
+    /// Optional. The mapping of the Dialogflow session parameters names to the app variables names to be sent back to the CES agent after the Dialogflow agent execution ends.
+    #[serde(default, rename = "outputVariableMapping")]
+    pub output_variable_mapping: ::core::option::Option<serde_json::Value>,
+    /// Optional. Indicates whether to respect the message-level interruption settings configured in the Dialogflow agent. * If false: all response messages from the Dialogflow agent follow the app-level barge-in settings. * If true: only response messages with [allow_playback_interruption](https://docs.cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#text) set to true will be interruptable, all other messages follow the app-level barge-in settings.
+    #[serde(default, rename = "respectResponseInterruptionSettings")]
+    pub respect_response_interruption_settings: ::core::option::Option<bool>,
+}
+
+/// A toolset with a selection of its tools.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentAgentToolset {
+    /// Optional. The tools IDs to filter the toolset.
+    #[serde(default, rename = "toolIds")]
+    pub tool_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The resource name of the toolset. Format: projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}
     #[serde(default)]
     pub toolset: ::core::option::Option<String>,
 }
@@ -2675,23 +1367,174 @@ pub struct TransferRule {
     pub disable_planner_transfer: ::core::option::Option<TransferRuleDisablePlannerTransfer>,
 }
 
-/// Deterministic transfer rule. When the condition evaluates to true, the transfer occurs.
+/// Configuration for how the input and output audio should be processed and delivered.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferRuleDeterministicTransfer {
-    /// Optional. A rule that evaluates a session state condition. If the condition evaluates to true, the transfer occurs.
-    #[serde(default, rename = "expressionCondition")]
-    pub expression_condition: ::core::option::Option<ExpressionCondition>,
-    /// Optional. A rule that uses Python code block to evaluate the conditions. If the condition evaluates to true, the transfer occurs.
-    #[serde(default, rename = "pythonCodeCondition")]
-    pub python_code_condition: ::core::option::Option<PythonCodeCondition>,
+pub struct AudioProcessingConfig {
+    /// Optional. Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
+    #[serde(default, rename = "ambientSoundConfig")]
+    pub ambient_sound_config: ::core::option::Option<AmbientSoundConfig>,
+    /// Optional. Configures the agent behavior for the user barge-in activities.
+    #[serde(default, rename = "bargeInConfig")]
+    pub barge_in_config: ::core::option::Option<BargeInConfig>,
+    /// Optional. The duration of user inactivity (no speech or interaction) before the agent prompts the user for reengagement. If not set, the agent will not prompt the user for reengagement.
+    #[serde(default, rename = "inactivityTimeout")]
+    pub inactivity_timeout: ::core::option::Option<String>,
+    /// Optional. Configuration of how the agent response should be synthesized, mapping from the language code to SynthesizeSpeechConfig. If the configuration for the specified language code is not found, the configuration for the root language code will be used. For example, if the map contains "en-us" and "en", and the specified language code is "en-gb", then "en" configuration will be used. Note: Language code is case-insensitive.
+    #[serde(default, rename = "synthesizeSpeechConfigs")]
+    pub synthesize_speech_configs: ::core::option::Option<serde_json::Value>,
 }
 
-/// A rule that prevents the planner from transferring to the target agent.
+/// Settings for custom client certificates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferRuleDisablePlannerTransfer {
-    /// Required. If the condition evaluates to true, planner will not be allowed to transfer to the target agent.
-    #[serde(default, rename = "expressionCondition")]
-    pub expression_condition: ::core::option::Option<ExpressionCondition>,
+pub struct ClientCertificateSettings {
+    /// Optional. The name of the SecretManager secret version resource storing the passphrase to decrypt the private key. Should be left unset if the private key is not encrypted. Format: projects/{project}/secrets/{secret}/versions/{version}
+    #[serde(default)]
+    pub passphrase: ::core::option::Option<String>,
+    /// Required. The name of the SecretManager secret version resource storing the private key encoded in PEM format. Format: projects/{project}/secrets/{secret}/versions/{version}
+    #[serde(default, rename = "privateKey")]
+    pub private_key: ::core::option::Option<String>,
+    /// Required. The TLS certificate encoded in PEM format. This string must include the begin header and end footer lines.
+    #[serde(default, rename = "tlsCertificate")]
+    pub tls_certificate: ::core::option::Option<String>,
+}
+
+/// Data store related settings for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreSettings {
+    /// Output only. The engines for the app.
+    #[serde(default)]
+    pub engines: ::core::option::Option<::std::vec::Vec<DataStoreSettingsEngine>>,
+}
+
+/// A ChannelProfile configures the agent''s behavior for a specific communication channel, such as web UI or telephony.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelProfile {
+    /// Optional. The type of the channel profile. // TODO: enum values: ["UNKNOWN", "WEB_UI", "API", "TWILIO", "GOOGLE_TELEPHONY_PLATFORM", "CONTACT_CENTER_AS_A_SERVICE", "FIVE9", "CONTACT_CENTER_INTEGRATION"]
+    #[serde(default, rename = "channelType")]
+    pub channel_type: ::core::option::Option<String>,
+    /// Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.
+    #[serde(default, rename = "disableBargeInControl")]
+    pub disable_barge_in_control: ::core::option::Option<bool>,
+    /// Optional. Whether to disable DTMF (dual-tone multi-frequency).
+    #[serde(default, rename = "disableDtmf")]
+    pub disable_dtmf: ::core::option::Option<bool>,
+    /// Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".
+    #[serde(default, rename = "noiseSuppressionLevel")]
+    pub noise_suppression_level: ::core::option::Option<String>,
+    /// Optional. The persona property of the channel profile.
+    #[serde(default, rename = "personaProperty")]
+    pub persona_property: ::core::option::Option<ChannelProfilePersonaProperty>,
+    /// Optional. The unique identifier of the channel profile.
+    #[serde(default, rename = "profileId")]
+    pub profile_id: ::core::option::Option<String>,
+    /// Optional. The configuration for the web widget.
+    #[serde(default, rename = "webWidgetConfig")]
+    pub web_widget_config: ::core::option::Option<ChannelProfileWebWidgetConfig>,
+}
+
+/// Settings to describe how errors should be handled in the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorHandlingSettings {
+    /// Optional. The strategy to use for error handling. // TODO: enum values: ["ERROR_HANDLING_STRATEGY_UNSPECIFIED", "NONE", "FALLBACK_RESPONSE", "END_SESSION"]
+    #[serde(default, rename = "errorHandlingStrategy")]
+    pub error_handling_strategy: ::core::option::Option<String>,
+}
+
+/// Threshold settings for metrics in an Evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationMetricsThresholds {
+    /// Optional. The golden evaluation metrics thresholds.
+    #[serde(default, rename = "goldenEvaluationMetricsThresholds")]
+    pub golden_evaluation_metrics_thresholds:
+        ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds>,
+    /// Optional. The hallucination metric behavior for golden evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
+    #[serde(default, rename = "goldenHallucinationMetricBehavior")]
+    pub golden_hallucination_metric_behavior: ::core::option::Option<String>,
+    /// Optional. Deprecated: Use golden_hallucination_metric_behavior instead. The hallucination metric behavior is currently used for golden evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
+    #[serde(default, rename = "hallucinationMetricBehavior")]
+    pub hallucination_metric_behavior: ::core::option::Option<String>,
+    /// Optional. The hallucination metric behavior for scenario evaluations. // TODO: enum values: ["HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED", "DISABLED", "ENABLED"]
+    #[serde(default, rename = "scenarioHallucinationMetricBehavior")]
+    pub scenario_hallucination_metric_behavior: ::core::option::Option<String>,
+}
+
+/// Language settings of the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanguageSettings {
+    /// Optional. The default language code of the app.
+    #[serde(default, rename = "defaultLanguageCode")]
+    pub default_language_code: ::core::option::Option<String>,
+    /// Optional. Enables multilingual support. If true, agents in the app will use pre-built instructions to improve handling of multilingual input.
+    #[serde(default, rename = "enableMultilingualSupport")]
+    pub enable_multilingual_support: ::core::option::Option<bool>,
+    /// Optional. Deprecated: This feature is no longer supported. Use enable_multilingual_support instead to improve handling of multilingual input. The action to perform when an agent receives input in an unsupported language. This can be a predefined action or a custom tool call. Valid values are: - A tool''s full resource name, which triggers a specific tool execution. - A predefined system action, such as "escalate" or "exit", which triggers an EndSession signal with corresponding metadata to terminate the conversation.
+    #[serde(default, rename = "fallbackAction")]
+    pub fallback_action: ::core::option::Option<String>,
+    /// Optional. List of languages codes supported by the app, in addition to the default_language_code.
+    #[serde(default, rename = "supportedLanguageCodes")]
+    pub supported_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Settings to describe the logging behaviors for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingSettings {
+    /// Optional. Configuration for how audio interactions should be recorded.
+    #[serde(default, rename = "audioRecordingConfig")]
+    pub audio_recording_config: ::core::option::Option<AudioRecordingConfig>,
+    /// Optional. Settings to describe the BigQuery export behaviors for the app. The conversation data will be exported to BigQuery tables if it is enabled.
+    #[serde(default, rename = "bigqueryExportSettings")]
+    pub bigquery_export_settings: ::core::option::Option<BigQueryExportSettings>,
+    /// Optional. Settings to describe the Cloud Logging behaviors for the app.
+    #[serde(default, rename = "cloudLoggingSettings")]
+    pub cloud_logging_settings: ::core::option::Option<CloudLoggingSettings>,
+    /// Optional. Settings to describe the conversation logging behaviors for the app.
+    #[serde(default, rename = "conversationLoggingSettings")]
+    pub conversation_logging_settings: ::core::option::Option<ConversationLoggingSettings>,
+    /// Optional. Configuration for how audio interactions should be recorded for the evaluation. By default, audio recording is not enabled for evaluation sessions.
+    #[serde(default, rename = "evaluationAudioRecordingConfig")]
+    pub evaluation_audio_recording_config: ::core::option::Option<AudioRecordingConfig>,
+    /// Optional. Settings to describe the conversation data collection behaviors for the LLM analysis pipeline for the app.
+    #[serde(default, rename = "metricAnalysisSettings")]
+    pub metric_analysis_settings: ::core::option::Option<MetricAnalysisSettings>,
+    /// Optional. Configuration for how sensitive data should be redacted.
+    #[serde(default, rename = "redactionConfig")]
+    pub redaction_config: ::core::option::Option<RedactionConfig>,
+}
+
+/// Defines the structure and metadata for a variable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppVariableDeclaration {
+    /// Required. The description of the variable.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The name of the variable. The name must start with a letter or underscore and contain only letters, numbers, or underscores.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The schema of the variable.
+    #[serde(default)]
+    pub schema: ::core::option::Option<Schema>,
+}
+
+/// TimeZone settings of the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeZoneSettings {
+    /// Optional. The time zone of the app from the [time zone database](https://www.iana.org/time-zones), e.g., America/Los_Angeles, Europe/Paris.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+}
+
+/// A message within a conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    /// Optional. Content of the message as a series of chunks.
+    #[serde(default)]
+    pub chunks: ::core::option::Option<::std::vec::Vec<Chunk>>,
+    /// Optional. Timestamp when the message was sent or received. Should not be used if the message is part of an example.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Optional. The role within the conversation, e.g., user, agent.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
 }
 
 /// Action that is taken when a certain precondition is met.
@@ -2708,50 +1551,252 @@ pub struct TriggerAction {
     pub transfer_agent: ::core::option::Option<TriggerActionTransferAgent>,
 }
 
-/// The agent will immediately respond with a generative answer.
+/// Guardrail that blocks the conversation based on the code callbacks provided.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionGenerativeAnswer {
-    /// Required. The prompt to use for the generative answer.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
+pub struct GuardrailCodeCallback {
+    /// Optional. The callback to execute after the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
+    #[serde(default, rename = "afterAgentCallback")]
+    pub after_agent_callback: ::core::option::Option<Callback>,
+    /// Optional. The callback to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
+    #[serde(default, rename = "afterModelCallback")]
+    pub after_model_callback: ::core::option::Option<Callback>,
+    /// Optional. The callback to execute before the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
+    #[serde(default, rename = "beforeAgentCallback")]
+    pub before_agent_callback: ::core::option::Option<Callback>,
+    /// Optional. The callback to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
+    #[serde(default, rename = "beforeModelCallback")]
+    pub before_model_callback: ::core::option::Option<Callback>,
 }
 
-/// The agent will immediately respond with a preconfigured response.
+/// Guardrail that bans certain content from being used in the conversation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionRespondImmediately {
-    /// Required. The canned responses for the agent to choose from. The response is chosen randomly.
-    #[serde(default)]
-    pub responses: ::core::option::Option<::std::vec::Vec<TriggerActionResponse>>,
+pub struct GuardrailContentFilter {
+    /// Optional. List of banned phrases. Applies to both user inputs and agent responses.
+    #[serde(default, rename = "bannedContents")]
+    pub banned_contents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of banned phrases. Applies only to agent responses.
+    #[serde(default, rename = "bannedContentsInAgentResponse")]
+    pub banned_contents_in_agent_response: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of banned phrases. Applies only to user inputs.
+    #[serde(default, rename = "bannedContentsInUserInput")]
+    pub banned_contents_in_user_input: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. If true, diacritics are ignored during matching.
+    #[serde(default, rename = "disregardDiacritics")]
+    pub disregard_diacritics: ::core::option::Option<bool>,
+    /// Required. Match type for the content filter. // TODO: enum values: ["MATCH_TYPE_UNSPECIFIED", "SIMPLE_STRING_MATCH", "WORD_BOUNDARY_STRING_MATCH", "REGEXP_MATCH"]
+    #[serde(default, rename = "matchType")]
+    pub match_type: ::core::option::Option<String>,
 }
 
-/// Represents a response from the agent.
+/// Guardrail that blocks the conversation if the input is considered unsafe based on the LLM classification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionResponse {
-    /// Optional. Whether the response is disabled. Disabled responses are not used by the agent.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Required. Text for the agent to respond with.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
+pub struct GuardrailLlmPromptSecurity {
+    /// Optional. Use a user-defined LlmPolicy to configure the security guardrail.
+    #[serde(default, rename = "customPolicy")]
+    pub custom_policy: ::core::option::Option<GuardrailLlmPolicy>,
+    /// Optional. Use the system''s predefined default security settings. To select this mode, include an empty ''default_settings'' message in the request. The ''default_prompt_template'' field within will be populated by the server in the response.
+    #[serde(default, rename = "defaultSettings")]
+    pub default_settings: ::core::option::Option<GuardrailLlmPromptSecurityDefaultSecuritySettings>,
+    /// Optional. Determines the behavior when the guardrail encounters an LLM error. - If true: the guardrail is bypassed. - If false (default): the guardrail triggers/blocks. Note: If a custom policy is provided, this field is ignored in favor of the policy''s ''fail_open'' configuration.
+    #[serde(default, rename = "failOpen")]
+    pub fail_open: ::core::option::Option<bool>,
 }
 
-/// The agent will transfer the conversation to a different agent.
+/// Model safety settings overrides. When this is set, it will override the default settings and trigger the guardrail if the response is considered unsafe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerActionTransferAgent {
-    /// Required. The name of the agent to transfer the conversation to. The agent must be in the same app as the current agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
-    #[serde(default)]
-    pub agent: ::core::option::Option<String>,
+pub struct GuardrailModelSafety {
+    /// Required. List of safety settings.
+    #[serde(default, rename = "safetySettings")]
+    pub safety_settings: ::core::option::Option<::std::vec::Vec<GuardrailModelSafetySafetySetting>>,
 }
 
-/// Represents a single web search query and its associated search uri.
+/// Represents a tool that allows the agent to call another agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebSearchQuery {
-    /// The search query text.
+pub struct AgentTool {
+    /// Optional. Description of the tool''s purpose.
     #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// The URI to the Google Search results page for the query.
+    pub description: ::core::option::Option<String>,
+    /// Required. The name of the agent tool.
     #[serde(default)]
-    pub uri: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// Optional. The resource name of the root agent that is the entry point of the tool. Format: projects/{project}/locations/{location}/agents/{agent}
+    #[serde(default, rename = "rootAgent")]
+    pub root_agent: ::core::option::Option<String>,
+}
+
+/// Represents a client-side function that the agent can invoke. When the tool is chosen by the agent, control is handed off to the client. The client is responsible for executing the function and returning the result as a ToolResponse to continue the interaction with the agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientFunction {
+    /// Optional. The function description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The function name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The schema of the function parameters.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<Schema>,
+    /// Optional. The schema of the function response.
+    #[serde(default)]
+    pub response: ::core::option::Option<Schema>,
+}
+
+/// A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectorTool {
+    /// Required. Action for the tool to use.
+    #[serde(default)]
+    pub action: ::core::option::Option<Action>,
+    /// Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the ConnectorTool creation will fail. See https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override for details.
+    #[serde(default, rename = "authConfig")]
+    pub auth_config: ::core::option::Option<EndUserAuthConfig>,
+    /// Required. The full resource name of the referenced Integration Connectors Connection. Format: projects/{project}/locations/{location}/connections/{connection}
+    #[serde(default)]
+    pub connection: ::core::option::Option<String>,
+    /// Optional. The description of the tool that can be used by the Agent to decide whether to call this ConnectorTool.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The name of the tool that can be used by the Agent to decide whether to call this ConnectorTool.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Tool to retrieve from Vertex AI Search datastore or engine for grounding. Accepts either a datastore or an engine, but not both. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreTool {
+    /// Optional. Boost specification to boost certain documents.
+    #[serde(default, rename = "boostSpecs")]
+    pub boost_specs: ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpecs>>,
+    /// Optional. Search within a single specific DataStore.
+    #[serde(default, rename = "dataStoreSource")]
+    pub data_store_source: ::core::option::Option<DataStoreToolDataStoreSource>,
+    /// Optional. The tool description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Search within an Engine (potentially across multiple DataStores).
+    #[serde(default, rename = "engineSource")]
+    pub engine_source: ::core::option::Option<DataStoreToolEngineSource>,
+    /// Optional. The filter parameter behavior. // TODO: enum values: ["FILTER_PARAMETER_BEHAVIOR_UNSPECIFIED", "ALWAYS_INCLUDE", "NEVER_INCLUDE"]
+    #[serde(default, rename = "filterParameterBehavior")]
+    pub filter_parameter_behavior: ::core::option::Option<String>,
+    /// Optional. The modality configs for the data store.
+    #[serde(default, rename = "modalityConfigs")]
+    pub modality_configs: ::core::option::Option<::std::vec::Vec<DataStoreToolModalityConfig>>,
+    /// Required. The data store tool name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The file search tool allows the agent to search across the files uploaded by the app/agent developer. It has presets to give relatively good quality search over the uploaded files and summarization of the retrieved results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileSearchTool {
+    /// Optional. The type of the corpus. Default is FULLY_MANAGED. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "USER_OWNED", "FULLY_MANAGED"]
+    #[serde(default, rename = "corpusType")]
+    pub corpus_type: ::core::option::Option<String>,
+    /// Optional. The tool description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The corpus where files are stored. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}
+    #[serde(default, rename = "fileCorpus")]
+    pub file_corpus: ::core::option::Option<String>,
+    /// Required. The tool name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents a tool to perform Google web searches for grounding. See https://cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool#google-search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleSearchTool {
+    /// Optional. Content will be fetched directly from these URLs for context and grounding. Example: "https://example.com/path.html". A maximum of 20 URLs are allowed.
+    #[serde(default, rename = "contextUrls")]
+    pub context_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Description of the tool''s purpose.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. List of domains to be excluded from the search results. Example: "example.com". A maximum of 2000 domains can be excluded.
+    #[serde(default, rename = "excludeDomains")]
+    pub exclude_domains: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The name of the tool.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Specifies domains to restrict search results to. Example: "example.com", "another.site". A maximum of 20 domains can be specified.
+    #[serde(default, rename = "preferredDomains")]
+    pub preferred_domains: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Prompt instructions passed to planner on how the search results should be processed for text and voice.
+    #[serde(default, rename = "promptConfig")]
+    pub prompt_config: ::core::option::Option<GoogleSearchToolPromptConfig>,
+}
+
+/// An MCP tool. See https://modelcontextprotocol.io/specification/2025-06-18/server/tools for more details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpTool {
+    /// Optional. Authentication information required to execute the tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
+    #[serde(default, rename = "apiAuthentication")]
+    pub api_authentication: ::core::option::Option<ApiAuthentication>,
+    /// Optional. The custom headers to send in the request to the MCP server. The values must be in the format $context.variables. and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.
+    #[serde(default, rename = "customHeaders")]
+    pub custom_headers: ::core::option::Option<serde_json::Value>,
+    /// Optional. The description of the MCP tool.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The schema of the input arguments of the MCP tool.
+    #[serde(default, rename = "inputSchema")]
+    pub input_schema: ::core::option::Option<Schema>,
+    /// Required. The name of the MCP tool.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The schema of the output arguments of the MCP tool.
+    #[serde(default, rename = "outputSchema")]
+    pub output_schema: ::core::option::Option<Schema>,
+    /// Required. The server address of the MCP server, e.g., "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. This is the same as the server_address in the McpToolset. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.
+    #[serde(default, rename = "serverAddress")]
+    pub server_address: ::core::option::Option<String>,
+    /// Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. The TLS configuration. Includes the custom server certificates that the client should trust.
+    #[serde(default, rename = "tlsConfig")]
+    pub tls_config: ::core::option::Option<TlsConfig>,
+}
+
+/// A remote API tool defined by an OpenAPI schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenApiTool {
+    /// Optional. Authentication information required by the API.
+    #[serde(default, rename = "apiAuthentication")]
+    pub api_authentication: ::core::option::Option<ApiAuthentication>,
+    /// Optional. The description of the tool. If not provided, the description of the tool will be derived from the OpenAPI schema, from operation.description or operation.summary.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. If true, the agent will ignore unknown fields in the API response.
+    #[serde(default, rename = "ignoreUnknownFields")]
+    pub ignore_unknown_fields: ::core::option::Option<bool>,
+    /// Optional. The name of the tool. If not provided, the name of the tool will be derived from the OpenAPI schema, from operation.operationId.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The OpenAPI schema in JSON or YAML format.
+    #[serde(default, rename = "openApiSchema")]
+    pub open_api_schema: ::core::option::Option<String>,
+    /// Optional. Service Directory configuration.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. The TLS configuration. Includes the custom server certificates that the client will trust.
+    #[serde(default, rename = "tlsConfig")]
+    pub tls_config: ::core::option::Option<TlsConfig>,
+    /// Optional. The server URL of the Open API schema. This field is only set in tools in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Pre-defined system tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemTool {
+    /// Output only. The description of the system tool.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The name of the system tool.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a widget tool that the agent can invoke. When the tool is chosen by the agent, agent will return the widget to the client. The client is responsible for processing the widget and generating the next user query to continue the interaction with the agent.
@@ -2777,6 +1822,405 @@ pub struct WidgetTool {
     pub widget_type: ::core::option::Option<String>,
 }
 
+/// A toolset that generates tools from an Integration Connectors Connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectorToolset {
+    /// Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the Toolset creation will fail. See: https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override
+    #[serde(default, rename = "authConfig")]
+    pub auth_config: ::core::option::Option<EndUserAuthConfig>,
+    /// Required. The full resource name of the referenced Integration Connectors Connection. Format: projects/{project}/locations/{location}/connections/{connection}
+    #[serde(default)]
+    pub connection: ::core::option::Option<String>,
+    /// Required. The list of connector actions/entity operations to generate tools for.
+    #[serde(default, rename = "connectorActions")]
+    pub connector_actions: ::core::option::Option<::std::vec::Vec<Action>>,
+}
+
+/// A toolset that contains a list of tools that are offered by the MCP server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpToolset {
+    /// Optional. Authentication information required to access tools and execute a tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
+    #[serde(default, rename = "apiAuthentication")]
+    pub api_authentication: ::core::option::Option<ApiAuthentication>,
+    /// Optional. The custom headers to send in the request to the MCP server. The values must be in the format $context.variables. and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.
+    #[serde(default, rename = "customHeaders")]
+    pub custom_headers: ::core::option::Option<serde_json::Value>,
+    /// Required. The address of the MCP server, for example, "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.
+    #[serde(default, rename = "serverAddress")]
+    pub server_address: ::core::option::Option<String>,
+    /// Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. The TLS configuration. Includes the custom server certificates that the client should trust.
+    #[serde(default, rename = "tlsConfig")]
+    pub tls_config: ::core::option::Option<TlsConfig>,
+}
+
+/// A toolset that contains a list of tools that are defined by an OpenAPI schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenApiToolset {
+    /// Optional. Authentication information required by the API.
+    #[serde(default, rename = "apiAuthentication")]
+    pub api_authentication: ::core::option::Option<ApiAuthentication>,
+    /// Optional. If true, the agent will ignore unknown fields in the API response for all operations defined in the OpenAPI schema.
+    #[serde(default, rename = "ignoreUnknownFields")]
+    pub ignore_unknown_fields: ::core::option::Option<bool>,
+    /// Required. The OpenAPI schema of the toolset.
+    #[serde(default, rename = "openApiSchema")]
+    pub open_api_schema: ::core::option::Option<String>,
+    /// Optional. Service Directory configuration.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. The TLS configuration. Includes the custom server certificates
+    #[serde(default, rename = "tlsConfig")]
+    pub tls_config: ::core::option::Option<TlsConfig>,
+    /// Optional. The server URL of the Open API schema. This field is only set in toolsets in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Configuration for tool behavior in fake mode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolFakeConfig {
+    /// Optional. Code block which will be executed instead of a real tool call.
+    #[serde(default, rename = "codeBlock")]
+    pub code_block: ::core::option::Option<CodeBlock>,
+    /// Optional. Whether the tool is using fake mode.
+    #[serde(default, rename = "enableFakeMode")]
+    pub enable_fake_mode: ::core::option::Option<bool>,
+}
+
+/// Deterministic transfer rule. When the condition evaluates to true, the transfer occurs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferRuleDeterministicTransfer {
+    /// Optional. A rule that evaluates a session state condition. If the condition evaluates to true, the transfer occurs.
+    #[serde(default, rename = "expressionCondition")]
+    pub expression_condition: ::core::option::Option<ExpressionCondition>,
+    /// Optional. A rule that uses Python code block to evaluate the conditions. If the condition evaluates to true, the transfer occurs.
+    #[serde(default, rename = "pythonCodeCondition")]
+    pub python_code_condition: ::core::option::Option<PythonCodeCondition>,
+}
+
+/// A rule that prevents the planner from transferring to the target agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferRuleDisablePlannerTransfer {
+    /// Required. If the condition evaluates to true, planner will not be allowed to transfer to the target agent.
+    #[serde(default, rename = "expressionCondition")]
+    pub expression_condition: ::core::option::Option<ExpressionCondition>,
+}
+
+/// Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmbientSoundConfig {
+    /// Optional. Ambient noise as a mono-channel, 16kHz WAV file stored in [Cloud Storage](https://cloud.google.com/storage). Note: Please make sure the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com has storage.objects.get permission to the Cloud Storage object.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// Optional. Deprecated: prebuilt_ambient_noise is deprecated in favor of prebuilt_ambient_sound. // TODO: enum values: ["PREBUILT_AMBIENT_NOISE_UNSPECIFIED", "RETAIL_STORE", "CONVENTION_HALL", "OUTDOOR"]
+    #[serde(default, rename = "prebuiltAmbientNoise")]
+    pub prebuilt_ambient_noise: ::core::option::Option<String>,
+    /// Optional. Name of the prebuilt ambient sound. Valid values are: - "coffee_shop" - "keyboard" - "keypad" - "hum" - "office_1" - "office_2" - "office_3" - "room_1" - "room_2" - "room_3" - "room_4" - "room_5" - "air_conditioner"
+    #[serde(default, rename = "prebuiltAmbientSound")]
+    pub prebuilt_ambient_sound: ::core::option::Option<String>,
+    /// Optional. Volume gain (in dB) of the normal native volume supported by ambient noise, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. We strongly recommend not to exceed +10 (dB) as there''s usually no effective increase in loudness for any value greater than that.
+    #[serde(default, rename = "volumeGainDb")]
+    pub volume_gain_db: ::core::option::Option<f64>,
+}
+
+/// Configuration for how the user barge-in activities should be handled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BargeInConfig {
+    /// Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn''t heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.
+    #[serde(default, rename = "bargeInAwareness")]
+    pub barge_in_awareness: ::core::option::Option<bool>,
+    /// Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: disable_barge_in is deprecated in favor of disable_barge_in_control in ChannelProfile.
+    #[serde(default, rename = "disableBargeIn")]
+    pub disable_barge_in: ::core::option::Option<bool>,
+}
+
+/// An engine to which the data stores are connected. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreSettingsEngine {
+    /// Output only. The resource name of the engine. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The type of the engine. // TODO: enum values: ["TYPE_UNSPECIFIED", "ENGINE_TYPE_SEARCH", "ENGINE_TYPE_CHAT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the persona property of a channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelProfilePersonaProperty {
+    /// Optional. The persona of the channel. // TODO: enum values: ["UNKNOWN", "CONCISE", "CHATTY"]
+    #[serde(default)]
+    pub persona: ::core::option::Option<String>,
+}
+
+/// Message for configuration for the web widget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelProfileWebWidgetConfig {
+    /// Optional. The modality of the web widget. // TODO: enum values: ["MODALITY_UNSPECIFIED", "CHAT_AND_VOICE", "VOICE_ONLY", "CHAT_ONLY", "CHAT_VOICE_AND_VIDEO"]
+    #[serde(default)]
+    pub modality: ::core::option::Option<String>,
+    /// Optional. The security settings of the web widget.
+    #[serde(default, rename = "securitySettings")]
+    pub security_settings: ::core::option::Option<ChannelProfileWebWidgetConfigSecuritySettings>,
+    /// Optional. The theme of the web widget. // TODO: enum values: ["THEME_UNSPECIFIED", "LIGHT", "DARK"]
+    #[serde(default)]
+    pub theme: ::core::option::Option<String>,
+    /// Optional. The title of the web widget.
+    #[serde(default, rename = "webWidgetTitle")]
+    pub web_widget_title: ::core::option::Option<String>,
+}
+
+/// Settings for golden evaluations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
+    /// Optional. The expectation level metrics thresholds.
+    #[serde(default, rename = "expectationLevelMetricsThresholds")]
+    pub expectation_level_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds>,
+    /// Optional. The tool matching settings. An extra tool call is a tool call that is present in the execution but does not match any tool call in the golden expectation.
+    #[serde(default, rename = "toolMatchingSettings")]
+    pub tool_matching_settings: ::core::option::Option<EvaluationMetricsThresholdsToolMatchingSettings>,
+    /// Optional. The turn level metrics thresholds.
+    #[serde(default, rename = "turnLevelMetricsThresholds")]
+    pub turn_level_metrics_thresholds: ::core::option::Option<EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds>,
+}
+
+/// Configuration for how the audio interactions should be recorded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioRecordingConfig {
+    /// Optional. The [Cloud Storage](https://cloud.google.com/storage) bucket to store the session audio recordings. The URI must start with "gs://". Please choose a bucket location that meets your data residency requirements. Note: If the Cloud Storage bucket is in a different project from the app, you should grant storage.objects.create permission to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default, rename = "gcsBucket")]
+    pub gcs_bucket: ::core::option::Option<String>,
+    /// Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix $project/$location/$app/$date/$session/ will be used.
+    #[serde(default, rename = "gcsPathPrefix")]
+    pub gcs_path_prefix: ::core::option::Option<String>,
+}
+
+/// Settings to describe the BigQuery export behaviors for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryExportSettings {
+    /// Optional. The BigQuery **dataset ID** to export the data to.
+    #[serde(default)]
+    pub dataset: ::core::option::Option<String>,
+    /// Optional. Indicates whether the BigQuery export is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant roles/bigquery.admin role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+}
+
+/// Settings to describe the Cloud Logging behaviors for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudLoggingSettings {
+    /// Optional. Whether to enable Cloud Logging for the sessions.
+    #[serde(default, rename = "enableCloudLogging")]
+    pub enable_cloud_logging: ::core::option::Option<bool>,
+}
+
+/// Settings to describe the conversation logging behaviors for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversationLoggingSettings {
+    /// Optional. Whether to disable conversation logging for the sessions.
+    #[serde(default, rename = "disableConversationLogging")]
+    pub disable_conversation_logging: ::core::option::Option<bool>,
+}
+
+/// Settings to describe the conversation data collection behaviors for LLM analysis metrics pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricAnalysisSettings {
+    /// Optional. Whether to collect conversation data for llm analysis metrics. If true, conversation data will not be collected for llm analysis metrics; otherwise, conversation data will be collected.
+    #[serde(default, rename = "llmMetricsOptedOut")]
+    pub llm_metrics_opted_out: ::core::option::Option<bool>,
+}
+
+/// Configuration to instruct how sensitive data should be handled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedactionConfig {
+    /// Optional. [DLP](https://cloud.google.com/dlp/docs) deidentify template name to instruct on how to de-identify content. Format: projects/{project}/locations/{location}/deidentifyTemplates/{deidentify_template}
+    #[serde(default, rename = "deidentifyTemplate")]
+    pub deidentify_template: ::core::option::Option<String>,
+    /// Optional. If true, redaction will be applied in various logging scenarios, including conversation history, Cloud Logging and audio recording.
+    #[serde(default, rename = "enableRedaction")]
+    pub enable_redaction: ::core::option::Option<bool>,
+    /// Optional. [DLP](https://cloud.google.com/dlp/docs) inspect template name to configure detection of sensitive data types. Format: projects/{project}/locations/{location}/inspectTemplates/{inspect_template}
+    #[serde(default, rename = "inspectTemplate")]
+    pub inspect_template: ::core::option::Option<String>,
+}
+
+/// A chunk of content within a message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Chunk {
+    /// Optional. Agent transfer event.
+    #[serde(default, rename = "agentTransfer")]
+    pub agent_transfer: ::core::option::Option<AgentTransfer>,
+    /// Optional. Blob data.
+    #[serde(default)]
+    pub blob: ::core::option::Option<Blob>,
+    /// A struct represents default variables at the start of the conversation, keyed by variable names.
+    #[serde(default, rename = "defaultVariables")]
+    pub default_variables: ::core::option::Option<serde_json::Value>,
+    /// Optional. Image data.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+    /// Optional. Custom payload data.
+    #[serde(default)]
+    pub payload: ::core::option::Option<serde_json::Value>,
+    /// Optional. Text data.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Optional. Tool execution request.
+    #[serde(default, rename = "toolCall")]
+    pub tool_call: ::core::option::Option<ToolCall>,
+    /// Optional. Tool execution response.
+    #[serde(default, rename = "toolResponse")]
+    pub tool_response: ::core::option::Option<ToolResponse>,
+    /// Optional. Transcript associated with the audio.
+    #[serde(default)]
+    pub transcript: ::core::option::Option<String>,
+    /// A struct represents variables that were updated in the conversation, keyed by variable names.
+    #[serde(default, rename = "updatedVariables")]
+    pub updated_variables: ::core::option::Option<serde_json::Value>,
+}
+
+/// The agent will immediately respond with a generative answer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionGenerativeAnswer {
+    /// Required. The prompt to use for the generative answer.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// The agent will immediately respond with a preconfigured response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionRespondImmediately {
+    /// Required. The canned responses for the agent to choose from. The response is chosen randomly.
+    #[serde(default)]
+    pub responses: ::core::option::Option<::std::vec::Vec<TriggerActionResponse>>,
+}
+
+/// The agent will transfer the conversation to a different agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionTransferAgent {
+    /// Required. The name of the agent to transfer the conversation to. The agent must be in the same app as the current agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default)]
+    pub agent: ::core::option::Option<String>,
+}
+
+/// A callback defines the custom logic to be executed at various stages of agent interaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Callback {
+    /// Optional. Human-readable description of the callback.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Whether the callback is disabled. Disabled callbacks are ignored by the agent.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. If enabled, the callback will also be executed on intermediate model outputs. This setting only affects after model callback. **ENABLE WITH CAUTION**. Typically after model callback only needs to be executed after receiving all model responses. Enabling proactive execution may have negative implication on the execution cost and latency, and should only be enabled in rare situations.
+    #[serde(default, rename = "proactiveExecutionEnabled")]
+    pub proactive_execution_enabled: ::core::option::Option<bool>,
+    /// Required. The python code to execute for the callback.
+    #[serde(default, rename = "pythonCode")]
+    pub python_code: ::core::option::Option<String>,
+}
+
+/// Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuardrailLlmPolicy {
+    /// Optional. By default, the LLM policy check is bypassed for short utterances. Enabling this setting applies the policy check to all utterances, including those that would normally be skipped.
+    #[serde(default, rename = "allowShortUtterance")]
+    pub allow_short_utterance: ::core::option::Option<bool>,
+    /// Optional. If an error occurs during the policy check, fail open and do not trigger the guardrail.
+    #[serde(default, rename = "failOpen")]
+    pub fail_open: ::core::option::Option<bool>,
+    /// Optional. When checking this policy, consider the last ''n'' messages in the conversation. When not set a default value of 10 will be used.
+    #[serde(default, rename = "maxConversationMessages")]
+    pub max_conversation_messages: ::core::option::Option<i32>,
+    /// Optional. Model settings.
+    #[serde(default, rename = "modelSettings")]
+    pub model_settings: ::core::option::Option<ModelSettings>,
+    /// Required. Defines when to apply the policy check during the conversation. If set to POLICY_SCOPE_UNSPECIFIED, the policy will be applied to the user input. When applying the policy to the agent response, additional latency will be introduced before the agent can respond. // TODO: enum values: ["POLICY_SCOPE_UNSPECIFIED", "USER_QUERY", "AGENT_RESPONSE", "USER_QUERY_AND_AGENT_RESPONSE"]
+    #[serde(default, rename = "policyScope")]
+    pub policy_scope: ::core::option::Option<String>,
+    /// Required. Policy prompt.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// Configuration for default system security settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
+    /// Output only. The default prompt template used by the system. This field is for display purposes to show the user what prompt the system uses by default. It is OUTPUT_ONLY.
+    #[serde(default, rename = "defaultPromptTemplate")]
+    pub default_prompt_template: ::core::option::Option<String>,
+}
+
+/// Safety setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuardrailModelSafetySafetySetting {
+    /// Required. The harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Required. The harm block threshold. // TODO: enum values: ["HARM_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_ONLY_HIGH", "BLOCK_NONE", "OFF"]
+    #[serde(default)]
+    pub threshold: ::core::option::Option<String>,
+}
+
+/// Boost specifications to boost certain documents. For more information, please refer to https://cloud.google.com/generative-ai-app-builder/docs/boosting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolBoostSpecs {
+    /// Required. The Data Store where the boosting configuration is applied. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}.
+    #[serde(default, rename = "dataStores")]
+    pub data_stores: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. A list of boosting specifications.
+    #[serde(default)]
+    pub spec: ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpec>>,
+}
+
+/// Configuration for searching within an Engine, potentially targeting specific DataStores.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolEngineSource {
+    /// Optional. Use to target specific DataStores within the Engine. If empty, the search applies to all DataStores associated with the Engine.
+    #[serde(default, rename = "dataStoreSources")]
+    pub data_store_sources: ::core::option::Option<::std::vec::Vec<DataStoreToolDataStoreSource>>,
+    /// Required. Full resource name of the Engine. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}
+    #[serde(default)]
+    pub engine: ::core::option::Option<String>,
+    /// Optional. A filter applied to the search across the Engine. Not relevant and not used if ''data_store_sources'' is provided. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+}
+
+/// If specified, will apply the given configuration for the specified modality.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolModalityConfig {
+    /// Optional. The grounding configuration.
+    #[serde(default, rename = "groundingConfig")]
+    pub grounding_config: ::core::option::Option<DataStoreToolGroundingConfig>,
+    /// Required. The modality type. // TODO: enum values: ["MODALITY_TYPE_UNSPECIFIED", "TEXT", "AUDIO"]
+    #[serde(default, rename = "modalityType")]
+    pub modality_type: ::core::option::Option<String>,
+    /// Optional. The rewriter config.
+    #[serde(default, rename = "rewriterConfig")]
+    pub rewriter_config: ::core::option::Option<DataStoreToolRewriterConfig>,
+    /// Optional. The summarization config.
+    #[serde(default, rename = "summarizationConfig")]
+    pub summarization_config: ::core::option::Option<DataStoreToolSummarizationConfig>,
+}
+
+/// Prompt settings used by the model when processing or summarizing the google search results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleSearchToolPromptConfig {
+    /// Optional. Defines the prompt used for the system instructions when interacting with the agent in chat conversations. If not set, default prompt will be used.
+    #[serde(default, rename = "textPrompt")]
+    pub text_prompt: ::core::option::Option<String>,
+    /// Optional. Defines the prompt used for the system instructions when interacting with the agent in voice conversations. If not set, default prompt will be used.
+    #[serde(default, rename = "voicePrompt")]
+    pub voice_prompt: ::core::option::Option<String>,
+}
+
 /// Configuration for mapping data from a source tool to the widget''s input parameters.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WidgetToolDataMapping {
@@ -2795,4 +2239,560 @@ pub struct WidgetToolDataMapping {
     /// Optional. The resource name of the tool that provides the data for the widget (e.g., a search tool or a custom function). Format: projects/{project}/locations/{location}/agents/{agent}/tools/{tool}
     #[serde(default, rename = "sourceToolName")]
     pub source_tool_name: ::core::option::Option<String>,
+}
+
+/// Represents a select subset of an OpenAPI 3.0 schema object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Schema {
+    /// Optional. Can either be a boolean or an object, controls the presence of additional properties.
+    #[serde(default, rename = "additionalProperties")]
+    pub additional_properties: ::core::option::Option<Schema>,
+    /// Optional. The value should be validated against any (one or more) of the subschemas in the list.
+    #[serde(default, rename = "anyOf")]
+    pub any_of: ::core::option::Option<::std::vec::Vec<Schema>>,
+    /// Optional. Default value of the data.
+    #[serde(default)]
+    pub default: ::core::option::Option<serde_json::Value>,
+    /// Optional. A map of definitions for use by ref. Only allowed at the root of the schema.
+    #[serde(default)]
+    pub defs: ::core::option::Option<serde_json::Value>,
+    /// Optional. The description of the data.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Possible values of the element of primitive type with enum format. Examples: 1. We can define direction as : {type:STRING, format:enum, enum:["EAST", NORTH", "SOUTH", "WEST"]} 2. We can define apartment number as : {type:INTEGER, format:enum, enum:["101", "201", "301"]}
+    #[serde(default, rename = "enum")]
+    pub enum_: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Schema of the elements of Type.ARRAY.
+    #[serde(default)]
+    pub items: ::core::option::Option<Schema>,
+    /// Optional. Maximum number of the elements for Type.ARRAY.
+    #[serde(default, rename = "maxItems")]
+    pub max_items: ::core::option::Option<String>,
+    /// Optional. Maximum value for Type.INTEGER and Type.NUMBER.
+    #[serde(default)]
+    pub maximum: ::core::option::Option<f64>,
+    /// Optional. Minimum number of the elements for Type.ARRAY.
+    #[serde(default, rename = "minItems")]
+    pub min_items: ::core::option::Option<String>,
+    /// Optional. Minimum value for Type.INTEGER and Type.NUMBER.
+    #[serde(default)]
+    pub minimum: ::core::option::Option<f64>,
+    /// Optional. Indicates if the value may be null.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// Optional. Schemas of initial elements of Type.ARRAY.
+    #[serde(default, rename = "prefixItems")]
+    pub prefix_items: ::core::option::Option<::std::vec::Vec<Schema>>,
+    /// Optional. Properties of Type.OBJECT.
+    #[serde(default)]
+    pub properties: ::core::option::Option<serde_json::Value>,
+    /// Optional. Allows indirect references between schema nodes. The value should be a valid reference to a child of the root defs. For example, the following schema defines a reference to a schema node named "Pet":  type: object properties: pet: ref: #/defs/Pet defs: Pet: type: object properties: name: type: string  The value of the "pet" property is a reference to the schema node named "Pet". See details in https://json-schema.org/understanding-json-schema/structuring.
+    #[serde(default, rename = "ref")]
+    pub ref_: ::core::option::Option<String>,
+    /// Optional. Required properties of Type.OBJECT.
+    #[serde(default)]
+    pub required: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The title of the schema.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Required. The type of the data. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INTEGER", "NUMBER", "BOOLEAN", "OBJECT", "ARRAY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.
+    #[serde(default, rename = "uniqueItems")]
+    pub unique_items: ::core::option::Option<bool>,
+}
+
+/// End-user authentication configuration used for Connection calls. The field values must be the names of context variables in the format $context.variables..
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndUserAuthConfig {
+    /// Oauth 2.0 Authorization Code authentication.
+    #[serde(default, rename = "oauth2AuthCodeConfig")]
+    pub oauth2_auth_code_config: ::core::option::Option<EndUserAuthConfigOauth2AuthCodeConfig>,
+    /// JWT Profile Oauth 2.0 Authorization Grant authentication.
+    #[serde(default, rename = "oauth2JwtBearerConfig")]
+    pub oauth2_jwt_bearer_config: ::core::option::Option<EndUserAuthConfigOauth2JwtBearerConfig>,
+}
+
+/// Configuration of an Action for the tool to use. Note: This can be either an Action or an Operation. See https://cloud.google.com/integration-connectors/docs/entities-operation-action for details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Action {
+    /// ID of a Connection action for the tool to use.
+    #[serde(default, rename = "connectionActionId")]
+    pub connection_action_id: ::core::option::Option<String>,
+    /// Entity operation configuration for the tool to use.
+    #[serde(default, rename = "entityOperation")]
+    pub entity_operation: ::core::option::Option<ActionEntityOperation>,
+    /// Optional. Entity fields to use as inputs for the operation. If no fields are specified, all fields of the Entity will be used.
+    #[serde(default, rename = "inputFields")]
+    pub input_fields: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Entity fields to return from the operation. If no fields are specified, all fields of the Entity will be returned.
+    #[serde(default, rename = "outputFields")]
+    pub output_fields: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Authentication information required for API calls.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiAuthentication {
+    /// Optional. Config for API key auth.
+    #[serde(default, rename = "apiKeyConfig")]
+    pub api_key_config: ::core::option::Option<ApiKeyConfig>,
+    /// Optional. Config for bearer token auth.
+    #[serde(default, rename = "bearerTokenConfig")]
+    pub bearer_token_config: ::core::option::Option<BearerTokenConfig>,
+    /// Optional. Config for OAuth.
+    #[serde(default, rename = "oauthConfig")]
+    pub oauth_config: ::core::option::Option<OAuthConfig>,
+    /// Optional. Config for service account authentication.
+    #[serde(default, rename = "serviceAccountAuthConfig")]
+    pub service_account_auth_config: ::core::option::Option<ServiceAccountAuthConfig>,
+    /// Optional. Config for ID token auth generated from CES service agent.
+    #[serde(default, rename = "serviceAgentIdTokenAuthConfig")]
+    pub service_agent_id_token_auth_config: ::core::option::Option<serde_json::Value>,
+}
+
+/// Configuration for tools using Service Directory.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceDirectoryConfig {
+    /// Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}. Location of the service directory must be the same as the location of the app.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// The TLS configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsConfig {
+    /// Required. Specifies a list of allowed custom CA certificates for HTTPS verification.
+    #[serde(default, rename = "caCerts")]
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<TlsConfigCaCert>>,
+}
+
+/// A code block to be executed instead of a real tool call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeBlock {
+    /// Required. Python code which will be invoked in tool fake mode. Expected Python function signature - To catch all tool calls: def fake_tool_call(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: To catch a specific tool call: def fake_{tool_id}(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: If the function returns None, the real tool will be invoked instead.
+    #[serde(default, rename = "pythonCode")]
+    pub python_code: ::core::option::Option<String>,
+}
+
+/// Python code block to evaluate the condition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PythonCodeCondition {
+    /// Required. The python code to execute.
+    #[serde(default, rename = "pythonCode")]
+    pub python_code: ::core::option::Option<String>,
+}
+
+/// Expression condition based on session state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpressionCondition {
+    /// Required. The string representation of cloud.api.Expression condition.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+}
+
+/// Security settings for the web widget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelProfileWebWidgetConfigSecuritySettings {
+    /// Optional. The origins that are allowed to host the web widget. An origin is defined by RFC 6454. If empty, all origins are allowed. A maximum of 100 origins is allowed. Example: "https://example.com"
+    #[serde(default, rename = "allowedOrigins")]
+    pub allowed_origins: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Indicates whether origin check for the web widget is enabled. If true, the web widget will check the origin of the website that loads the web widget and only allow it to be loaded in the same origin or any of the allowed origins.
+    #[serde(default, rename = "enableOriginCheck")]
+    pub enable_origin_check: ::core::option::Option<bool>,
+    /// Optional. Indicates whether public access to the web widget is enabled. If true, the web widget will be publicly accessible. If false, the web widget must be integrated with your own authentication and authorization system to return valid credentials for accessing the CES agent.
+    #[serde(default, rename = "enablePublicAccess")]
+    pub enable_public_access: ::core::option::Option<bool>,
+    /// Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.
+    #[serde(default, rename = "enableRecaptcha")]
+    pub enable_recaptcha: ::core::option::Option<bool>,
+}
+
+/// Expectation level metrics thresholds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds
+{
+    /// Optional. The success threshold for individual tool invocation parameter correctness. Must be a float between 0 and 1. Default is 1.0.
+    #[serde(default, rename = "toolInvocationParameterCorrectnessThreshold")]
+    pub tool_invocation_parameter_correctness_threshold: ::core::option::Option<f32>,
+}
+
+/// Settings for matching tool calls.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationMetricsThresholdsToolMatchingSettings {
+    /// Optional. Behavior for extra tool calls. Defaults to FAIL. // TODO: enum values: ["EXTRA_TOOL_CALL_BEHAVIOR_UNSPECIFIED", "FAIL", "ALLOW"]
+    #[serde(default, rename = "extraToolCallBehavior")]
+    pub extra_tool_call_behavior: ::core::option::Option<String>,
+}
+
+/// Turn level metrics thresholds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds {
+    /// Optional. The success threshold for overall tool invocation correctness. Must be a float between 0 and 1. Default is 1.0.
+    #[serde(default, rename = "overallToolInvocationCorrectnessThreshold")]
+    pub overall_tool_invocation_correctness_threshold: ::core::option::Option<f32>,
+    /// Optional. The semantic similarity channel to use for evaluation. // TODO: enum values: ["SEMANTIC_SIMILARITY_CHANNEL_UNSPECIFIED", "TEXT", "AUDIO"]
+    #[serde(default, rename = "semanticSimilarityChannel")]
+    pub semantic_similarity_channel: ::core::option::Option<String>,
+    /// Optional. The success threshold for semantic similarity. Must be an integer between 0 and 4. Default is &gt;= 3.
+    #[serde(default, rename = "semanticSimilaritySuccessThreshold")]
+    pub semantic_similarity_success_threshold: ::core::option::Option<i32>,
+}
+
+/// Represents an event indicating the transfer of a conversation to a different agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentTransfer {
+    /// Output only. Display name of the agent.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. The agent to which the conversation is being transferred. The agent will handle the conversation from this point forward. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
+    #[serde(default, rename = "targetAgent")]
+    pub target_agent: ::core::option::Option<String>,
+}
+
+/// Represents a blob input or output in the conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Blob {
+    /// Required. Raw bytes of the blob.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Required. The IANA standard MIME type of the source data.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Represents an image input or output in the conversation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// Required. Raw bytes of the image.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Required. The IANA standard MIME type of the source data. Supported image types includes: * image/png * image/jpeg * image/webp
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Request for the client or the agent to execute the specified tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolCall {
+    /// Optional. The input parameters and values for the tool in JSON object format.
+    #[serde(default)]
+    pub args: ::core::option::Option<serde_json::Value>,
+    /// Output only. Display name of the tool.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The unique identifier of the tool call. If populated, the client should return the execution result with the matching ID in ToolResponse.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. The name of the tool to execute. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
+    #[serde(default)]
+    pub tool: ::core::option::Option<String>,
+    /// Optional. The toolset tool to execute.
+    #[serde(default, rename = "toolsetTool")]
+    pub toolset_tool: ::core::option::Option<ToolsetTool>,
+}
+
+/// The execution result of a specific tool from the client or the agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolResponse {
+    /// Output only. Display name of the tool.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The matching ID of the tool call the response is for.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Required. The tool execution result in JSON object format. Use "output" key to specify tool response and "error" key to specify error details (if any). If "output" and "error" keys are not specified, then whole "response" is treated as tool execution result.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+    /// Optional. The name of the tool to execute. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
+    #[serde(default)]
+    pub tool: ::core::option::Option<String>,
+    /// Optional. The toolset tool that got executed.
+    #[serde(default, rename = "toolsetTool")]
+    pub toolset_tool: ::core::option::Option<ToolsetTool>,
+}
+
+/// Represents a response from the agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerActionResponse {
+    /// Optional. Whether the response is disabled. Disabled responses are not used by the agent.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Required. Text for the agent to respond with.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Boost specification to boost certain documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolBoostSpec {
+    /// Required. A list of boosting specifications.
+    #[serde(default, rename = "conditionBoostSpecs")]
+    pub condition_boost_specs:
+        ::core::option::Option<::std::vec::Vec<DataStoreToolBoostSpecConditionBoostSpec>>,
+}
+
+/// Configuration for searching within a specific DataStore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolDataStoreSource {
+    /// Optional. The data store.
+    #[serde(default, rename = "dataStore")]
+    pub data_store: ::core::option::Option<DataStore>,
+    /// Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+}
+
+/// Grounding configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolGroundingConfig {
+    /// Optional. Whether grounding is disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. The groundedness threshold of the answer based on the retrieved sources. The value has a configurable range of [1, 5]. The level is used to threshold the groundedness of the answer, meaning that all responses with a groundedness score below the threshold will fall back to returning relevant snippets only. For example, a level of 3 means that the groundedness score must be 3 or higher for the response to be returned.
+    #[serde(default, rename = "groundingLevel")]
+    pub grounding_level: ::core::option::Option<f32>,
+}
+
+/// Rewriter configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolRewriterConfig {
+    /// Optional. Whether the rewriter is disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Required. Configurations for the LLM model.
+    #[serde(default, rename = "modelSettings")]
+    pub model_settings: ::core::option::Option<ModelSettings>,
+    /// Optional. The prompt definition. If not set, default prompt will be used.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// Summarization configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolSummarizationConfig {
+    /// Optional. Whether summarization is disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. Configurations for the LLM model.
+    #[serde(default, rename = "modelSettings")]
+    pub model_settings: ::core::option::Option<ModelSettings>,
+    /// Optional. The prompt definition. If not set, default prompt will be used.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// A Python function tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PythonFunction {
+    /// Output only. The description of the Python function, parsed from the python code''s docstring.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The name of the Python function to execute. Must match a Python function name defined in the python code. Case sensitive. If the name is not provided, the first function defined in the python code will be used.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The Python code to execute for the tool.
+    #[serde(default, rename = "pythonCode")]
+    pub python_code: ::core::option::Option<String>,
+}
+
+/// Oauth 2.0 Authorization Code authentication configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndUserAuthConfigOauth2AuthCodeConfig {
+    /// Required. Oauth token parameter name to pass through. Must be in the format $context.variables..
+    #[serde(default, rename = "oauthToken")]
+    pub oauth_token: ::core::option::Option<String>,
+}
+
+/// JWT Profile Oauth 2.0 Authorization Grant authentication configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndUserAuthConfigOauth2JwtBearerConfig {
+    /// Required. Client parameter name to pass through. Must be in the format $context.variables..
+    #[serde(default, rename = "clientKey")]
+    pub client_key: ::core::option::Option<String>,
+    /// Required. Issuer parameter name to pass through. Must be in the format $context.variables..
+    #[serde(default)]
+    pub issuer: ::core::option::Option<String>,
+    /// Required. Subject parameter name to pass through. Must be in the format $context.variables..
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+}
+
+/// Entity CRUD operation specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionEntityOperation {
+    /// Required. ID of the entity.
+    #[serde(default, rename = "entityId")]
+    pub entity_id: ::core::option::Option<String>,
+    /// Required. Operation to perform on the entity. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "LIST", "GET", "CREATE", "UPDATE", "DELETE"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// Configurations for authentication with API key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKeyConfig {
+    /// Required. The name of the SecretManager secret version resource storing the API key. Format: projects/{project}/secrets/{secret}/versions/{version} Note: You should grant roles/secretmanager.secretAccessor role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default, rename = "apiKeySecretVersion")]
+    pub api_key_secret_version: ::core::option::Option<String>,
+    /// Required. The parameter name or the header name of the API key. E.g., If the API request is "https://example.com/act?X-Api-Key=", "X-Api-Key" would be the parameter name.
+    #[serde(default, rename = "keyName")]
+    pub key_name: ::core::option::Option<String>,
+    /// Required. Key location in the request. // TODO: enum values: ["REQUEST_LOCATION_UNSPECIFIED", "HEADER", "QUERY_STRING"]
+    #[serde(default, rename = "requestLocation")]
+    pub request_location: ::core::option::Option<String>,
+}
+
+/// Configurations for authentication with a bearer token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BearerTokenConfig {
+    /// Required. The bearer token. Must be in the format $context.variables..
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+}
+
+/// Configurations for authentication with OAuth.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuthConfig {
+    /// Required. The client ID from the OAuth provider.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Required. The name of the SecretManager secret version resource storing the client secret. Format: projects/{project}/secrets/{secret}/versions/{version} Note: You should grant roles/secretmanager.secretAccessor role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default, rename = "clientSecretVersion")]
+    pub client_secret_version: ::core::option::Option<String>,
+    /// Required. OAuth grant types. // TODO: enum values: ["OAUTH_GRANT_TYPE_UNSPECIFIED", "CLIENT_CREDENTIAL"]
+    #[serde(default, rename = "oauthGrantType")]
+    pub oauth_grant_type: ::core::option::Option<String>,
+    /// Optional. The OAuth scopes to grant.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The token endpoint in the OAuth provider to exchange for an access token.
+    #[serde(default, rename = "tokenEndpoint")]
+    pub token_endpoint: ::core::option::Option<String>,
+}
+
+/// Configurations for authentication using a custom service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceAccountAuthConfig {
+    /// Optional. The OAuth scopes to grant. If not specified, the default scope https://www.googleapis.com/auth/cloud-platform is used.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the Authorization header of the request. The service account must have the roles/iam.serviceAccountTokenCreator role granted to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+}
+
+/// The CA certificate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsConfigCaCert {
+    /// Required. The allowed custom CA certificates (in DER format) for HTTPS verification. This overrides the default SSL trust store. If this is empty or unspecified, CES will use Google''s default trust store to verify certificates. N.B. Make sure the HTTPS server certificates are signed with "subject alt name". For instance a certificate can be self-signed using the following command:  openssl x509 -req -days 200 -in example.com.csr \ -signkey example.com.key \ -out example.com.crt \ -extfile &lt;(printf "\nsubjectAltName=''DNS:www.example.com''")
+    #[serde(default)]
+    pub cert: ::core::option::Option<String>,
+    /// Required. The name of the allowed custom CA certificates. This can be used to disambiguate the custom CA certificates.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// A tool that is created from a toolset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolsetTool {
+    /// Optional. The tool ID to filter the tools to retrieve the schema for.
+    #[serde(default, rename = "toolId")]
+    pub tool_id: ::core::option::Option<String>,
+    /// Required. The resource name of the Toolset from which this tool is derived. Format: projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}
+    #[serde(default)]
+    pub toolset: ::core::option::Option<String>,
+}
+
+/// Boost specification for a condition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolBoostSpecConditionBoostSpec {
+    /// Optional. Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the suggestions a big promotion. However, it does not necessarily mean that the top result will be a boosted suggestion. Setting to -1.0 gives the suggestions a big demotion. However, other suggestions that are relevant might still be shown. Setting to 0.0 means no boost applied. The boosting condition is ignored.
+    #[serde(default)]
+    pub boost: ::core::option::Option<f32>,
+    /// Optional. Complex specification for custom ranking based on customer defined attribute value.
+    #[serde(default, rename = "boostControlSpec")]
+    pub boost_control_spec:
+        ::core::option::Option<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec>,
+    /// Required. An expression which specifies a boost condition. The syntax is the same as filter expression syntax. Currently, the only supported condition is a list of BCP-47 lang codes. Example: To boost suggestions in languages en or fr: (lang_code: ANY("en", "fr"))
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+}
+
+/// A DataStore resource in Vertex AI Search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStore {
+    /// Output only. The connector config for the data store connection.
+    #[serde(default, rename = "connectorConfig")]
+    pub connector_config: ::core::option::Option<DataStoreConnectorConfig>,
+    /// Output only. Timestamp when the data store was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The display name of the data store.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The document processing mode for the data store connection. Only set for PUBLIC_WEB and UNSTRUCTURED data stores. // TODO: enum values: ["DOCUMENT_PROCESSING_MODE_UNSPECIFIED", "DOCUMENTS", "CHUNKS"]
+    #[serde(default, rename = "documentProcessingMode")]
+    pub document_processing_mode: ::core::option::Option<String>,
+    /// Required. Full resource name of the DataStore. Format: projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The type of the data store. This field is readonly and populated by the server. // TODO: enum values: ["DATA_STORE_TYPE_UNSPECIFIED", "PUBLIC_WEB", "UNSTRUCTURED", "FAQ", "CONNECTOR"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Model settings contains various configurations for the LLM model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelSettings {
+    /// Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model''s responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.
+    #[serde(default)]
+    pub temperature: ::core::option::Option<f64>,
+}
+
+/// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
+    /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
+    #[serde(default, rename = "attributeType")]
+    pub attribute_type: ::core::option::Option<String>,
+    /// Optional. The control points used to define the curve. The monotonic function (defined through the interpolation_type above) passes through the control points listed here.
+    #[serde(default, rename = "controlPoints")]
+    pub control_points: ::core::option::Option<
+        ::std::vec::Vec<DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint>,
+    >,
+    /// Optional. The name of the field whose value will be used to determine the boost amount.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<String>,
+    /// Optional. The interpolation type to be applied to connect the control points listed below. // TODO: enum values: ["INTERPOLATION_TYPE_UNSPECIFIED", "LINEAR"]
+    #[serde(default, rename = "interpolationType")]
+    pub interpolation_type: ::core::option::Option<String>,
+}
+
+/// The connector config for the data store connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreConnectorConfig {
+    /// Resource name of the collection the data store belongs to.
+    #[serde(default)]
+    pub collection: ::core::option::Option<String>,
+    /// Display name of the collection the data store belongs to.
+    #[serde(default, rename = "collectionDisplayName")]
+    pub collection_display_name: ::core::option::Option<String>,
+    /// The name of the data source. Example: salesforce, jira, confluence, bigquery.
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+}
+
+/// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint {
+    /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
+    #[serde(default, rename = "attributeValue")]
+    pub attribute_value: ::core::option::Option<String>,
+    /// Optional. The value between -1 to 1 by which to boost the score if the attribute_value evaluates to the value specified above.
+    #[serde(default, rename = "boostAmount")]
+    pub boost_amount: ::core::option::Option<f32>,
 }

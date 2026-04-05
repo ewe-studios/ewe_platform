@@ -10,45 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The date range to be reported on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataRange {
-    /// If CUSTOM_DATES is assigned to range, this field specifies the end date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
-    #[serde(default, rename = "customEndDate")]
-    pub custom_end_date: ::core::option::Option<Date>,
-    /// If CUSTOM_DATES is assigned to range, this field specifies the starting date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
-    #[serde(default, rename = "customStartDate")]
-    pub custom_start_date: ::core::option::Option<Date>,
-    /// The preset date range to be reported on. If CUSTOM_DATES is assigned to this field, fields custom_start_date and custom_end_date must be set to specify the custom date range. // TODO: enum values: ["RANGE_UNSPECIFIED", "CUSTOM_DATES", "CURRENT_DAY", "PREVIOUS_DAY", "WEEK_TO_DATE", "MONTH_TO_DATE", "QUARTER_TO_DATE", "YEAR_TO_DATE", "PREVIOUS_WEEK", "PREVIOUS_MONTH", "PREVIOUS_QUARTER", "PREVIOUS_YEAR", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS", "LAST_365_DAYS", "ALL_TIME", "LAST_14_DAYS", "LAST_60_DAYS"]
-    #[serde(default)]
-    pub range: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents a single filter rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterPair {
-    /// The type of value to filter by. Defined by a [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) value.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The identifying value to filter by, such as a relevant resource ID.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// ListQueriesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListQueriesResponse {
@@ -71,32 +32,12 @@ pub struct ListReportsResponse {
     pub reports: ::core::option::Option<::std::vec::Vec<Report>>,
 }
 
-/// Report parameter options.
+/// Details specifying how to run a query.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Options {
-    /// Whether to include data for audience lists specifically targeted by filtered line items or insertion orders. Requires the use of FILTER_INSERTION_ORDER or FILTER_LINE_ITEM filters.
-    #[serde(default, rename = "includeOnlyTargetedUserLists")]
-    pub include_only_targeted_user_lists: ::core::option::Option<bool>,
-}
-
-/// Parameters of a generated report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Parameters {
-    /// Filters to limit the scope of reported data.
-    #[serde(default)]
-    pub filters: ::core::option::Option<::std::vec::Vec<FilterPair>>,
-    /// Dimensions by which to segment and group the data. Defined by [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) values.
-    #[serde(default, rename = "groupBys")]
-    pub group_bys: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Metrics to define the data populating the report. Defined by [Metric](/bid-manager/reference/rest/v2/filters-metrics#metrics) values.
-    #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Additional report parameter options.
-    #[serde(default)]
-    pub options: ::core::option::Option<Options>,
-    /// The type of the report. The type of the report determines the dimesions, filters, and metrics that can be used. // TODO: enum values: ["REPORT_TYPE_UNSPECIFIED", "STANDARD", "INVENTORY_AVAILABILITY", "AUDIENCE_COMPOSITION", "FLOODLIGHT", "YOUTUBE", "GRP", "YOUTUBE_PROGRAMMATIC_GUARANTEED", "REACH", "UNIQUE_REACH_AUDIENCE", "FULL_PATH", "PATH_ATTRIBUTION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+pub struct RunQueryRequest {
+    /// The date range used by the query to generate the report. If unspecified, the query''s original data_range is used.
+    #[serde(default, rename = "dataRange")]
+    pub data_range: ::core::option::Option<DataRange>,
 }
 
 /// A single query used to generate a report.
@@ -114,6 +55,20 @@ pub struct Query {
     /// When and how often the query is scheduled to run. If the frequency field is set to ONE_TIME, the query will only run when queries.run is called.
     #[serde(default)]
     pub schedule: ::core::option::Option<QuerySchedule>,
+}
+
+/// A single report generated by its parent report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Report {
+    /// The key information identifying the report.
+    #[serde(default)]
+    pub key: ::core::option::Option<ReportKey>,
+    /// The metadata of the report.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<ReportMetadata>,
+    /// The parameters of the report.
+    #[serde(default)]
+    pub params: ::core::option::Option<Parameters>,
 }
 
 /// The metadata of the query.
@@ -153,20 +108,6 @@ pub struct QuerySchedule {
     pub start_date: ::core::option::Option<Date>,
 }
 
-/// A single report generated by its parent report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Report {
-    /// The key information identifying the report.
-    #[serde(default)]
-    pub key: ::core::option::Option<ReportKey>,
-    /// The metadata of the report.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<ReportMetadata>,
-    /// The parameters of the report.
-    #[serde(default)]
-    pub params: ::core::option::Option<Parameters>,
-}
-
 /// Identifying information of a report.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReportKey {
@@ -195,6 +136,40 @@ pub struct ReportMetadata {
     pub status: ::core::option::Option<ReportStatus>,
 }
 
+/// Parameters of a generated report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Parameters {
+    /// Filters to limit the scope of reported data.
+    #[serde(default)]
+    pub filters: ::core::option::Option<::std::vec::Vec<FilterPair>>,
+    /// Dimensions by which to segment and group the data. Defined by [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) values.
+    #[serde(default, rename = "groupBys")]
+    pub group_bys: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Metrics to define the data populating the report. Defined by [Metric](/bid-manager/reference/rest/v2/filters-metrics#metrics) values.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Additional report parameter options.
+    #[serde(default)]
+    pub options: ::core::option::Option<Options>,
+    /// The type of the report. The type of the report determines the dimesions, filters, and metrics that can be used. // TODO: enum values: ["REPORT_TYPE_UNSPECIFIED", "STANDARD", "INVENTORY_AVAILABILITY", "AUDIENCE_COMPOSITION", "FLOODLIGHT", "YOUTUBE", "GRP", "YOUTUBE_PROGRAMMATIC_GUARANTEED", "REACH", "UNIQUE_REACH_AUDIENCE", "FULL_PATH", "PATH_ATTRIBUTION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The date range to be reported on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataRange {
+    /// If CUSTOM_DATES is assigned to range, this field specifies the end date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
+    #[serde(default, rename = "customEndDate")]
+    pub custom_end_date: ::core::option::Option<Date>,
+    /// If CUSTOM_DATES is assigned to range, this field specifies the starting date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
+    #[serde(default, rename = "customStartDate")]
+    pub custom_start_date: ::core::option::Option<Date>,
+    /// The preset date range to be reported on. If CUSTOM_DATES is assigned to this field, fields custom_start_date and custom_end_date must be set to specify the custom date range. // TODO: enum values: ["RANGE_UNSPECIFIED", "CUSTOM_DATES", "CURRENT_DAY", "PREVIOUS_DAY", "WEEK_TO_DATE", "MONTH_TO_DATE", "QUARTER_TO_DATE", "YEAR_TO_DATE", "PREVIOUS_WEEK", "PREVIOUS_MONTH", "PREVIOUS_QUARTER", "PREVIOUS_YEAR", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS", "LAST_365_DAYS", "ALL_TIME", "LAST_14_DAYS", "LAST_60_DAYS"]
+    #[serde(default)]
+    pub range: ::core::option::Option<String>,
+}
+
 /// The status of a report.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReportStatus {
@@ -209,10 +184,35 @@ pub struct ReportStatus {
     pub state: ::core::option::Option<String>,
 }
 
-/// Details specifying how to run a query.
+/// Represents a single filter rule.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunQueryRequest {
-    /// The date range used by the query to generate the report. If unspecified, the query''s original data_range is used.
-    #[serde(default, rename = "dataRange")]
-    pub data_range: ::core::option::Option<DataRange>,
+pub struct FilterPair {
+    /// The type of value to filter by. Defined by a [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) value.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The identifying value to filter by, such as a relevant resource ID.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Report parameter options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Options {
+    /// Whether to include data for audience lists specifically targeted by filtered line items or insertion orders. Requires the use of FILTER_INSERTION_ORDER or FILTER_LINE_ITEM filters.
+    #[serde(default, rename = "includeOnlyTargetedUserLists")]
+    pub include_only_targeted_user_lists: ::core::option::Option<bool>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

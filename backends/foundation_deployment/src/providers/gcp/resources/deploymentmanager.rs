@@ -10,42 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
 /// BulkInsertOperationStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BulkInsertOperationStatus {
@@ -66,14 +30,6 @@ pub struct BulkInsertOperationStatus {
     pub target_vm_count: ::core::option::Option<i32>,
 }
 
-/// ConfigFile resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigFile {
-    /// The contents of the file.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-}
-
 /// Describes additional debugging info.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DebugInfo {
@@ -83,82 +39,6 @@ pub struct DebugInfo {
     /// The stack trace entries indicating where the error occurred.
     #[serde(default, rename = "stackEntries")]
     pub stack_entries: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Deployment resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Deployment {
-    /// An optional user-provided description of the deployment.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Provides a fingerprint to use in requests to modify a deployment, such as update(), stop(), and cancelPreview() requests. A fingerprint is a randomly generated value that must be provided with update(), stop(), and cancelPreview() requests to perform optimistic locking. This ensures optimistic concurrency so that only one request happens at a time. The fingerprint is initially generated by Deployment Manager and changes after every request to modify data. To get the latest fingerprint value, perform a get() request to a deployment.
-    #[serde(default)]
-    pub fingerprint: ::core::option::Option<String>,
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Creation timestamp in RFC3339 text format.
-    #[serde(default, rename = "insertTime")]
-    pub insert_time: ::core::option::Option<String>,
-    /// Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: [a-z]([-a-z0-9]*[a-z0-9])? Label values must be between 0 and 63 characters long and must conform to the regular expression ([a-z]([-a-z0-9]*[a-z0-9])?)?.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<DeploymentLabelEntry>>,
-    /// Output only. URL of the manifest representing the last manifest that was successfully deployed. If no manifest has been successfully deployed, this field will be absent.
-    #[serde(default)]
-    pub manifest: ::core::option::Option<String>,
-    /// Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])? which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The Operation that most recently ran, or is currently running, on this deployment.
-    #[serde(default)]
-    pub operation: ::core::option::Option<Operation>,
-    /// Output only. Server defined URL for the resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// [Input Only] The parameters that define your deployment, including the deployment configuration and relevant templates.
-    #[serde(default)]
-    pub target: ::core::option::Option<TargetConfiguration>,
-    /// Output only. If Deployment Manager is currently updating or previewing an update to this deployment, the updated configuration appears here.
-    #[serde(default)]
-    pub update: ::core::option::Option<DeploymentUpdate>,
-    /// Output only. Update timestamp in RFC3339 text format.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Label object for Deployments
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeploymentLabelEntry {
-    /// Key of the label
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Value of the label
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// DeploymentUpdate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeploymentUpdate {
-    /// Output only. An optional user-provided description of the deployment after the current update has been applied.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: [a-z]([-a-z0-9]*[a-z0-9])? Label values must be between 0 and 63 characters long and must conform to the regular expression ([a-z]([-a-z0-9]*[a-z0-9])?)?.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<DeploymentUpdateLabelEntry>>,
-    /// Output only. URL of the manifest representing the update configuration of this deployment.
-    #[serde(default)]
-    pub manifest: ::core::option::Option<String>,
-}
-
-/// Label object for DeploymentUpdate
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeploymentUpdateLabelEntry {
-    /// Key of the label
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Value of the label
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// DeploymentsCancelPreviewRequest resource type.
@@ -202,49 +82,6 @@ pub struct ErrorInfo {
     pub reason: ::core::option::Option<String>,
 }
 
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// FirewallPolicyRuleOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FirewallPolicyRuleOperationMetadata {
-    /// The priority allocated for the firewall policy rule if query parameters specified minPriority/maxPriority.
-    #[serde(default, rename = "allocatedPriority")]
-    pub allocated_priority: ::core::option::Option<i32>,
-}
-
-/// GetVersionOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetVersionOperationMetadata {
-    #[serde(default, rename = "inlineSbomInfo")]
-    pub inline_sbom_info: ::core::option::Option<GetVersionOperationMetadataSbomInfo>,
-}
-
-/// GetVersionOperationMetadataSbomInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetVersionOperationMetadataSbomInfo {
-    /// SBOM versions currently applied to the resource. The key is the component name and the value is the version.
-    #[serde(default, rename = "currentComponentVersions")]
-    pub current_component_versions: ::core::option::Option<serde_json::Value>,
-    /// SBOM versions scheduled for the next maintenance. The key is the component name and the value is the version.
-    #[serde(default, rename = "targetComponentVersions")]
-    pub target_component_versions: ::core::option::Option<serde_json::Value>,
-}
-
 /// GlobalSetPolicyRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalSetPolicyRequest {
@@ -270,39 +107,6 @@ pub struct Help {
     pub links: ::core::option::Option<::std::vec::Vec<HelpLink>>,
 }
 
-/// Describes a URL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HelpLink {
-    /// Describes what the link offers.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The URL of the link.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// ImportFile resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportFile {
-    /// The contents of the file.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// The name of the file.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// InstancesBulkInsertOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstancesBulkInsertOperationMetadata {
-    /// [Output Only] The machine type of the VMs that were created used internally only by KCP flex bulk insert.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Status information per location (location name is key). Example key: zones/us-central1-a
-    #[serde(default, rename = "perLocationStatus")]
-    pub per_location_status: ::core::option::Option<serde_json::Value>,
-}
-
 /// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalizedMessage {
@@ -312,6 +116,168 @@ pub struct LocalizedMessage {
     /// The localized error message in the above locale.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// A response containing a partial list of manifests and a page token used to build the next request if the request has been truncated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManifestsListResponse {
+    /// Output only. Manifests contained in this list response.
+    #[serde(default)]
+    pub manifests: ::core::option::Option<::std::vec::Vec<Manifest>>,
+    /// Output only. A token used to continue a truncated list request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A response containing a partial list of operations and a page token used to build the next request if the request has been truncated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationsListResponse {
+    /// Output only. A token used to continue a truncated list request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. Operations contained in this list response.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+}
+
+/// Additional details for quota exceeded error for resource quota.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotaExceededInfo {
+    /// The map holding related quota dimensions.
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<serde_json::Value>,
+    /// Future quota limit being rolled out. The limit''s unit depends on the quota type or metric.
+    #[serde(default, rename = "futureLimit")]
+    pub future_limit: ::core::option::Option<f64>,
+    /// Current effective quota limit. The limit''s unit depends on the quota type or metric.
+    #[serde(default)]
+    pub limit: ::core::option::Option<f64>,
+    /// The name of the quota limit.
+    #[serde(default, rename = "limitName")]
+    pub limit_name: ::core::option::Option<String>,
+    /// The Compute Engine quota metric name.
+    #[serde(default, rename = "metricName")]
+    pub metric_name: ::core::option::Option<String>,
+    /// Rollout status of the future quota limit. // TODO: enum values: ["ROLLOUT_STATUS_UNSPECIFIED", "IN_PROGRESS"]
+    #[serde(default, rename = "rolloutStatus")]
+    pub rollout_status: ::core::option::Option<String>,
+}
+
+/// A response containing a partial list of resources and a page token used to build the next request if the request has been truncated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcesListResponse {
+    /// A token used to continue a truncated list request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Resources contained in this list response.
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<Resource>>,
+}
+
+/// SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo {
+    /// [Output Only] If state is ABANDONED or FAILED, this field is populated.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// [Output Only] Status of the action, which can be one of the following: PROPAGATING, PROPAGATED, ABANDONED, FAILED, or DONE. // TODO: enum values: ["UNSPECIFIED", "PROPAGATING", "PROPAGATED", "ABANDONED", "FAILED", "DONE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// TestPermissionsRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestPermissionsRequest {
+    /// The set of permissions to check for the ''resource''. Permissions with wildcards (such as ''*'' or ''storage.*'') are not allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// TestPermissionsResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A response that returns all Types supported by Deployment Manager
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypesListResponse {
+    /// A token used to continue a truncated list request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. A list of resource types supported by Deployment Manager.
+    #[serde(default)]
+    pub types: ::core::option::Option<::std::vec::Vec<Type>>,
+}
+
+/// Deployment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Deployment {
+    /// An optional user-provided description of the deployment.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Provides a fingerprint to use in requests to modify a deployment, such as update(), stop(), and cancelPreview() requests. A fingerprint is a randomly generated value that must be provided with update(), stop(), and cancelPreview() requests to perform optimistic locking. This ensures optimistic concurrency so that only one request happens at a time. The fingerprint is initially generated by Deployment Manager and changes after every request to modify data. To get the latest fingerprint value, perform a get() request to a deployment.
+    #[serde(default)]
+    pub fingerprint: ::core::option::Option<String>,
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. Creation timestamp in RFC3339 text format.
+    #[serde(default, rename = "insertTime")]
+    pub insert_time: ::core::option::Option<String>,
+    /// Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: [a-z]([-a-z0-9]*[a-z0-9])? Label values must be between 0 and 63 characters long and must conform to the regular expression ([a-z]([-a-z0-9]*[a-z0-9])?)?.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<DeploymentLabelEntry>>,
+    /// Output only. URL of the manifest representing the last manifest that was successfully deployed. If no manifest has been successfully deployed, this field will be absent.
+    #[serde(default)]
+    pub manifest: ::core::option::Option<String>,
+    /// Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])? which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The Operation that most recently ran, or is currently running, on this deployment.
+    #[serde(default)]
+    pub operation: ::core::option::Option<Operation>,
+    /// Output only. Server defined URL for the resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// [Input Only] The parameters that define your deployment, including the deployment configuration and relevant templates.
+    #[serde(default)]
+    pub target: ::core::option::Option<TargetConfiguration>,
+    /// Output only. If Deployment Manager is currently updating or previewing an update to this deployment, the updated configuration appears here.
+    #[serde(default)]
+    pub update: ::core::option::Option<DeploymentUpdate>,
+    /// Output only. Update timestamp in RFC3339 text format.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Describes a URL link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HelpLink {
+    /// Describes what the link offers.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The URL of the link.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
 }
 
 /// Manifest resource type.
@@ -348,15 +314,167 @@ pub struct Manifest {
     pub self_link: ::core::option::Option<String>,
 }
 
-/// A response containing a partial list of manifests and a page token used to build the next request if the request has been truncated.
+/// Resource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManifestsListResponse {
-    /// Output only. Manifests contained in this list response.
+pub struct Resource {
+    /// The Access Control Policy set on this resource.
+    #[serde(default, rename = "accessControl")]
+    pub access_control: ::core::option::Option<ResourceAccessControl>,
+    /// Output only. The evaluated properties of the resource with references expanded. Returned as serialized YAML.
+    #[serde(default, rename = "finalProperties")]
+    pub final_properties: ::core::option::Option<String>,
     #[serde(default)]
-    pub manifests: ::core::option::Option<::std::vec::Vec<Manifest>>,
-    /// Output only. A token used to continue a truncated list request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    pub id: ::core::option::Option<String>,
+    /// Output only. Creation timestamp in RFC3339 text format.
+    #[serde(default, rename = "insertTime")]
+    pub insert_time: ::core::option::Option<String>,
+    /// Output only. URL of the manifest representing the current configuration of this resource.
+    #[serde(default)]
+    pub manifest: ::core::option::Option<String>,
+    /// Output only. The name of the resource as it appears in the YAML config.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current properties of the resource before any references have been filled in. Returned as serialized YAML.
+    #[serde(default)]
+    pub properties: ::core::option::Option<String>,
+    /// Output only. The type of the resource, for example compute.v1.instance, or cloudfunctions.v1beta1.function.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. If Deployment Manager is currently updating or previewing an update to this resource, the updated configuration appears here.
+    #[serde(default)]
+    pub update: ::core::option::Option<ResourceUpdate>,
+    /// Output only. Update timestamp in RFC3339 text format.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. The URL of the actual resource.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// Output only. If warning messages are generated during processing of this resource, this field will be populated.
+    #[serde(default)]
+    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A resource type supported by Deployment Manager.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Type {
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. Creation timestamp in RFC3339 text format.
+    #[serde(default, rename = "insertTime")]
+    pub insert_time: ::core::option::Option<String>,
+    /// Name of the type.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The Operation that most recently ran, or is currently running, on this type.
+    #[serde(default)]
+    pub operation: ::core::option::Option<Operation>,
+    /// Output only. Server defined URL for the resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+}
+
+/// Label object for Deployments
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentLabelEntry {
+    /// Key of the label
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Value of the label
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// TargetConfiguration resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetConfiguration {
+    /// The configuration to use for this deployment.
+    #[serde(default)]
+    pub config: ::core::option::Option<ConfigFile>,
+    /// Specifies any files to import for this configuration. This can be used to import templates or other files. For example, you might import a text file in order to use the file in a template.
+    #[serde(default)]
+    pub imports: ::core::option::Option<::std::vec::Vec<ImportFile>>,
+}
+
+/// DeploymentUpdate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentUpdate {
+    /// Output only. An optional user-provided description of the deployment after the current update has been applied.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: [a-z]([-a-z0-9]*[a-z0-9])? Label values must be between 0 and 63 characters long and must conform to the regular expression ([a-z]([-a-z0-9]*[a-z0-9])?)?.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<DeploymentUpdateLabelEntry>>,
+    /// Output only. URL of the manifest representing the update configuration of this deployment.
+    #[serde(default)]
+    pub manifest: ::core::option::Option<String>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// ResourceUpdate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceUpdate {
+    /// The Access Control Policy to set on this resource after updating the resource itself.
+    #[serde(default, rename = "accessControl")]
+    pub access_control: ::core::option::Option<ResourceAccessControl>,
+    /// Output only. If errors are generated during update of the resource, this field will be populated.
+    #[serde(default)]
+    pub error: ::core::option::Option<serde_json::Value>,
+    /// Output only. The expanded properties of the resource with reference values expanded. Returned as serialized YAML.
+    #[serde(default, rename = "finalProperties")]
+    pub final_properties: ::core::option::Option<String>,
+    /// Output only. The intent of the resource: PREVIEW, UPDATE, or CANCEL. // TODO: enum values: ["CREATE_OR_ACQUIRE", "DELETE", "ACQUIRE", "UPDATE", "ABANDON", "CREATE"]
+    #[serde(default)]
+    pub intent: ::core::option::Option<String>,
+    /// Output only. URL of the manifest representing the update configuration of this resource.
+    #[serde(default)]
+    pub manifest: ::core::option::Option<String>,
+    /// Output only. The set of updated properties for this resource, before references are expanded. Returned as serialized YAML.
+    #[serde(default)]
+    pub properties: ::core::option::Option<String>,
+    /// Output only. The state of the resource. // TODO: enum values: ["PENDING", "IN_PROGRESS", "IN_PREVIEW", "FAILED", "ABORTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. If warning messages are generated during processing of this resource, this field will be populated.
+    #[serde(default)]
+    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Represents an Operation resource. Google Compute Engine has three Operation resources: * [Global](/compute/docs/reference/rest/{$api_version}/globalOperations) * [Regional](/compute/docs/reference/rest/{$api_version}/regionOperations) * [Zonal](/compute/docs/reference/rest/{$api_version}/zoneOperations) You can use an operation resource to manage asynchronous API requests. For more information, read Handling API responses. Operations can be global, regional or zonal. - For global operations, use the globalOperations resource. - For regional operations, use the regionOperations resource. - For zonal operations, use the zoneOperations resource. For more information, read Global, Regional, and Zonal Resources. Note that completed Operation resources have a limited retention period.
@@ -455,95 +573,62 @@ pub struct Operation {
     pub zone: ::core::option::Option<String>,
 }
 
-/// A response containing a partial list of operations and a page token used to build the next request if the request has been truncated.
+/// ConfigFile resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationsListResponse {
-    /// Output only. A token used to continue a truncated list request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Output only. Operations contained in this list response.
+pub struct ConfigFile {
+    /// The contents of the file.
     #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    pub content: ::core::option::Option<String>,
 }
 
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+/// ImportFile resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+pub struct ImportFile {
+    /// The contents of the file.
     #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Additional details for quota exceeded error for resource quota.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaExceededInfo {
-    /// The map holding related quota dimensions.
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<serde_json::Value>,
-    /// Future quota limit being rolled out. The limit''s unit depends on the quota type or metric.
-    #[serde(default, rename = "futureLimit")]
-    pub future_limit: ::core::option::Option<f64>,
-    /// Current effective quota limit. The limit''s unit depends on the quota type or metric.
-    #[serde(default)]
-    pub limit: ::core::option::Option<f64>,
-    /// The name of the quota limit.
-    #[serde(default, rename = "limitName")]
-    pub limit_name: ::core::option::Option<String>,
-    /// The Compute Engine quota metric name.
-    #[serde(default, rename = "metricName")]
-    pub metric_name: ::core::option::Option<String>,
-    /// Rollout status of the future quota limit. // TODO: enum values: ["ROLLOUT_STATUS_UNSPECIFIED", "IN_PROGRESS"]
-    #[serde(default, rename = "rolloutStatus")]
-    pub rollout_status: ::core::option::Option<String>,
-}
-
-/// Resource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Resource {
-    /// The Access Control Policy set on this resource.
-    #[serde(default, rename = "accessControl")]
-    pub access_control: ::core::option::Option<ResourceAccessControl>,
-    /// Output only. The evaluated properties of the resource with references expanded. Returned as serialized YAML.
-    #[serde(default, rename = "finalProperties")]
-    pub final_properties: ::core::option::Option<String>,
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Creation timestamp in RFC3339 text format.
-    #[serde(default, rename = "insertTime")]
-    pub insert_time: ::core::option::Option<String>,
-    /// Output only. URL of the manifest representing the current configuration of this resource.
-    #[serde(default)]
-    pub manifest: ::core::option::Option<String>,
-    /// Output only. The name of the resource as it appears in the YAML config.
+    pub content: ::core::option::Option<String>,
+    /// The name of the file.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Output only. The current properties of the resource before any references have been filled in. Returned as serialized YAML.
+}
+
+/// Label object for DeploymentUpdate
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentUpdateLabelEntry {
+    /// Key of the label
     #[serde(default)]
-    pub properties: ::core::option::Option<String>,
-    /// Output only. The type of the resource, for example compute.v1.instance, or cloudfunctions.v1beta1.function.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. If Deployment Manager is currently updating or previewing an update to this resource, the updated configuration appears here.
+    pub key: ::core::option::Option<String>,
+    /// Value of the label
     #[serde(default)]
-    pub update: ::core::option::Option<ResourceUpdate>,
-    /// Output only. Update timestamp in RFC3339 text format.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. The URL of the actual resource.
+    pub value: ::core::option::Option<String>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// Output only. If warning messages are generated during processing of this resource, this field will be populated.
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// The access controls set on the resource.
@@ -554,44 +639,30 @@ pub struct ResourceAccessControl {
     pub gcp_iam_policy: ::core::option::Option<String>,
 }
 
-/// ResourceUpdate resource type.
+/// FirewallPolicyRuleOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceUpdate {
-    /// The Access Control Policy to set on this resource after updating the resource itself.
-    #[serde(default, rename = "accessControl")]
-    pub access_control: ::core::option::Option<ResourceAccessControl>,
-    /// Output only. If errors are generated during update of the resource, this field will be populated.
-    #[serde(default)]
-    pub error: ::core::option::Option<serde_json::Value>,
-    /// Output only. The expanded properties of the resource with reference values expanded. Returned as serialized YAML.
-    #[serde(default, rename = "finalProperties")]
-    pub final_properties: ::core::option::Option<String>,
-    /// Output only. The intent of the resource: PREVIEW, UPDATE, or CANCEL. // TODO: enum values: ["CREATE_OR_ACQUIRE", "DELETE", "ACQUIRE", "UPDATE", "ABANDON", "CREATE"]
-    #[serde(default)]
-    pub intent: ::core::option::Option<String>,
-    /// Output only. URL of the manifest representing the update configuration of this resource.
-    #[serde(default)]
-    pub manifest: ::core::option::Option<String>,
-    /// Output only. The set of updated properties for this resource, before references are expanded. Returned as serialized YAML.
-    #[serde(default)]
-    pub properties: ::core::option::Option<String>,
-    /// Output only. The state of the resource. // TODO: enum values: ["PENDING", "IN_PROGRESS", "IN_PREVIEW", "FAILED", "ABORTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. If warning messages are generated during processing of this resource, this field will be populated.
-    #[serde(default)]
-    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+pub struct FirewallPolicyRuleOperationMetadata {
+    /// The priority allocated for the firewall policy rule if query parameters specified minPriority/maxPriority.
+    #[serde(default, rename = "allocatedPriority")]
+    pub allocated_priority: ::core::option::Option<i32>,
 }
 
-/// A response containing a partial list of resources and a page token used to build the next request if the request has been truncated.
+/// GetVersionOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourcesListResponse {
-    /// A token used to continue a truncated list request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Resources contained in this list response.
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<Resource>>,
+pub struct GetVersionOperationMetadata {
+    #[serde(default, rename = "inlineSbomInfo")]
+    pub inline_sbom_info: ::core::option::Option<GetVersionOperationMetadataSbomInfo>,
+}
+
+/// InstancesBulkInsertOperationMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// [Output Only] The machine type of the VMs that were created used internally only by KCP flex bulk insert.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Status information per location (location name is key). Example key: zones/us-central1-a
+    #[serde(default, rename = "perLocationStatus")]
+    pub per_location_status: ::core::option::Option<serde_json::Value>,
 }
 
 /// SetAutoscalerLinkOperationMetadata resource type.
@@ -616,84 +687,13 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
     pub per_location_operations: ::core::option::Option<serde_json::Value>,
 }
 
-/// SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo resource type.
+/// GetVersionOperationMetadataSbomInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo {
-    /// [Output Only] If state is ABANDONED or FAILED, this field is populated.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// [Output Only] Status of the action, which can be one of the following: PROPAGATING, PROPAGATED, ABANDONED, FAILED, or DONE. // TODO: enum values: ["UNSPECIFIED", "PROPAGATING", "PROPAGATED", "ABANDONED", "FAILED", "DONE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// TargetConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetConfiguration {
-    /// The configuration to use for this deployment.
-    #[serde(default)]
-    pub config: ::core::option::Option<ConfigFile>,
-    /// Specifies any files to import for this configuration. This can be used to import templates or other files. For example, you might import a text file in order to use the file in a template.
-    #[serde(default)]
-    pub imports: ::core::option::Option<::std::vec::Vec<ImportFile>>,
-}
-
-/// TestPermissionsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestPermissionsRequest {
-    /// The set of permissions to check for the ''resource''. Permissions with wildcards (such as ''*'' or ''storage.*'') are not allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// TestPermissionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A resource type supported by Deployment Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Type {
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Creation timestamp in RFC3339 text format.
-    #[serde(default, rename = "insertTime")]
-    pub insert_time: ::core::option::Option<String>,
-    /// Name of the type.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The Operation that most recently ran, or is currently running, on this type.
-    #[serde(default)]
-    pub operation: ::core::option::Option<Operation>,
-    /// Output only. Server defined URL for the resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-}
-
-/// A response that returns all Types supported by Deployment Manager
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TypesListResponse {
-    /// A token used to continue a truncated list request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Output only. A list of resource types supported by Deployment Manager.
-    #[serde(default)]
-    pub types: ::core::option::Option<::std::vec::Vec<Type>>,
+pub struct GetVersionOperationMetadataSbomInfo {
+    /// SBOM versions currently applied to the resource. The key is the component name and the value is the version.
+    #[serde(default, rename = "currentComponentVersions")]
+    pub current_component_versions: ::core::option::Option<serde_json::Value>,
+    /// SBOM versions scheduled for the next maintenance. The key is the component name and the value is the version.
+    #[serde(default, rename = "targetComponentVersions")]
+    pub target_component_versions: ::core::option::Option<serde_json::Value>,
 }

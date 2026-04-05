@@ -10,51 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Color {
-    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
-    #[serde(default)]
-    pub alpha: ::core::option::Option<f32>,
-    /// The amount of blue in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub blue: ::core::option::Option<f32>,
-    /// The amount of green in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub green: ::core::option::Option<f32>,
-    /// The amount of red in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub red: ::core::option::Option<f32>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// This object contains the daily forecast information for each day requested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DayInfo {
-    /// The date in UTC at which the pollen forecast data is represented.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// This list will include up to 15 pollen species affecting the location specified in the request.
-    #[serde(default, rename = "plantInfo")]
-    pub plant_info: ::core::option::Option<::std::vec::Vec<PlantInfo>>,
-    /// This list will include up to three pollen types (GRASS, WEED, TREE) affecting the location specified in the request.
-    #[serde(default, rename = "pollenTypeInfo")]
-    pub pollen_type_info: ::core::option::Option<::std::vec::Vec<PollenTypeInfo>>,
-}
-
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpBody {
@@ -67,29 +22,6 @@ pub struct HttpBody {
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
     pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// This object contains data representing specific pollen index value, category and description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndexInfo {
-    /// Text classification of index numerical score interpretation. The index consists of six categories: * 0: "None" * 1: "Very low" * 2: "Low" * 3: "Moderate" * 4: "High" * 5: "Very high
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// The index''s code. This field represents the index for programming purposes by using snake cases instead of spaces. Example: "UPI". // TODO: enum values: ["INDEX_UNSPECIFIED", "UPI"]
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The color used to represent the Pollen Index numeric score.
-    #[serde(default)]
-    pub color: ::core::option::Option<Color>,
-    /// A human readable representation of the index name. Example: "Universal Pollen Index".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Textual explanation of current index level.
-    #[serde(default, rename = "indexDescription")]
-    pub index_description: ::core::option::Option<String>,
-    /// The index''s numeric score. Numeric range is between 0 and 5.
-    #[serde(default)]
-    pub value: ::core::option::Option<i32>,
 }
 
 /// LookupForecastResponse resource type.
@@ -106,33 +38,32 @@ pub struct LookupForecastResponse {
     pub region_code: ::core::option::Option<String>,
 }
 
-/// Contains general information about plants, including details on their seasonality, special shapes and colors, information about allergic cross-reactions, and plant photos.
+/// This object contains the daily forecast information for each day requested.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlantDescription {
-    /// Textual description of pollen cross reaction plants. Example: Alder, Hazel, Hornbeam, Beech, Willow, and Oak pollen.
-    #[serde(default, rename = "crossReaction")]
-    pub cross_reaction: ::core::option::Option<String>,
-    /// A human readable representation of the plant family name. Example: "Betulaceae (the Birch family)".
+pub struct DayInfo {
+    /// The date in UTC at which the pollen forecast data is represented.
     #[serde(default)]
-    pub family: ::core::option::Option<String>,
-    /// Link to the picture of the plant.
+    pub date: ::core::option::Option<Date>,
+    /// This list will include up to 15 pollen species affecting the location specified in the request.
+    #[serde(default, rename = "plantInfo")]
+    pub plant_info: ::core::option::Option<::std::vec::Vec<PlantInfo>>,
+    /// This list will include up to three pollen types (GRASS, WEED, TREE) affecting the location specified in the request.
+    #[serde(default, rename = "pollenTypeInfo")]
+    pub pollen_type_info: ::core::option::Option<::std::vec::Vec<PollenTypeInfo>>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub picture: ::core::option::Option<String>,
-    /// Link to a closeup picture of the plant.
-    #[serde(default, rename = "pictureCloseup")]
-    pub picture_closeup: ::core::option::Option<String>,
-    /// Textual list of explanations of seasons where the pollen is active. Example: "Late winter, spring".
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub season: ::core::option::Option<String>,
-    /// Textual description of the plants'' colors of leaves, bark, flowers or seeds that helps identify the plant.
-    #[serde(default, rename = "specialColors")]
-    pub special_colors: ::core::option::Option<String>,
-    /// Textual description of the plants'' shapes of leaves, bark, flowers or seeds that helps identify the plant.
-    #[serde(default, rename = "specialShapes")]
-    pub special_shapes: ::core::option::Option<String>,
-    /// The plant''s pollen type. For example: "GRASS". A list of all available codes could be found here. // TODO: enum values: ["POLLEN_TYPE_UNSPECIFIED", "GRASS", "TREE", "WEED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// This object contains the daily information on specific plant.
@@ -173,4 +104,73 @@ pub struct PollenTypeInfo {
     /// Contains the Universal Pollen Index (UPI) data for the pollen type.
     #[serde(default, rename = "indexInfo")]
     pub index_info: ::core::option::Option<IndexInfo>,
+}
+
+/// Contains general information about plants, including details on their seasonality, special shapes and colors, information about allergic cross-reactions, and plant photos.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlantDescription {
+    /// Textual description of pollen cross reaction plants. Example: Alder, Hazel, Hornbeam, Beech, Willow, and Oak pollen.
+    #[serde(default, rename = "crossReaction")]
+    pub cross_reaction: ::core::option::Option<String>,
+    /// A human readable representation of the plant family name. Example: "Betulaceae (the Birch family)".
+    #[serde(default)]
+    pub family: ::core::option::Option<String>,
+    /// Link to the picture of the plant.
+    #[serde(default)]
+    pub picture: ::core::option::Option<String>,
+    /// Link to a closeup picture of the plant.
+    #[serde(default, rename = "pictureCloseup")]
+    pub picture_closeup: ::core::option::Option<String>,
+    /// Textual list of explanations of seasons where the pollen is active. Example: "Late winter, spring".
+    #[serde(default)]
+    pub season: ::core::option::Option<String>,
+    /// Textual description of the plants'' colors of leaves, bark, flowers or seeds that helps identify the plant.
+    #[serde(default, rename = "specialColors")]
+    pub special_colors: ::core::option::Option<String>,
+    /// Textual description of the plants'' shapes of leaves, bark, flowers or seeds that helps identify the plant.
+    #[serde(default, rename = "specialShapes")]
+    pub special_shapes: ::core::option::Option<String>,
+    /// The plant''s pollen type. For example: "GRASS". A list of all available codes could be found here. // TODO: enum values: ["POLLEN_TYPE_UNSPECIFIED", "GRASS", "TREE", "WEED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// This object contains data representing specific pollen index value, category and description.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexInfo {
+    /// Text classification of index numerical score interpretation. The index consists of six categories: * 0: "None" * 1: "Very low" * 2: "Low" * 3: "Moderate" * 4: "High" * 5: "Very high
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// The index''s code. This field represents the index for programming purposes by using snake cases instead of spaces. Example: "UPI". // TODO: enum values: ["INDEX_UNSPECIFIED", "UPI"]
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The color used to represent the Pollen Index numeric score.
+    #[serde(default)]
+    pub color: ::core::option::Option<Color>,
+    /// A human readable representation of the index name. Example: "Universal Pollen Index".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Textual explanation of current index level.
+    #[serde(default, rename = "indexDescription")]
+    pub index_description: ::core::option::Option<String>,
+    /// The index''s numeric score. Numeric range is between 0 and 5.
+    #[serde(default)]
+    pub value: ::core::option::Option<i32>,
+}
+
+/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Color {
+    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
+    #[serde(default)]
+    pub alpha: ::core::option::Option<f32>,
+    /// The amount of blue in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub blue: ::core::option::Option<f32>,
+    /// The amount of green in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub green: ::core::option::Option<f32>,
+    /// The amount of red in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub red: ::core::option::Option<f32>,
 }

@@ -55,66 +55,6 @@ pub struct BatchUpdateFormResponse {
     pub write_control: ::core::option::Option<WriteControl>,
 }
 
-/// A radio/checkbox/dropdown question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChoiceQuestion {
-    /// Required. List of options that a respondent must choose from.
-    #[serde(default)]
-    pub options: ::core::option::Option<::std::vec::Vec<ApiOption>>,
-    /// Whether the options should be displayed in random order for different instances of the quiz. This is often used to prevent cheating by respondents who might be looking at another respondent''s screen, or to address bias in a survey that might be introduced by always putting the same options first or last.
-    #[serde(default)]
-    pub shuffle: ::core::option::Option<bool>,
-    /// Required. The type of choice question. // TODO: enum values: ["CHOICE_TYPE_UNSPECIFIED", "RADIO", "CHECKBOX", "DROP_DOWN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudPubsubTopic {
-    /// Required. A fully qualified Pub/Sub topic name to publish the events to. This topic must be owned by the calling project and already exist in Pub/Sub.
-    #[serde(default, rename = "topicName")]
-    pub topic_name: ::core::option::Option<String>,
-}
-
-/// A single correct answer for a question. For multiple-valued (CHECKBOX) questions, several CorrectAnswers may be needed to represent a single correct response option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CorrectAnswer {
-    /// Required. The correct answer value. See the documentation for TextAnswer.value for details on how various value types are formatted.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The answer key for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CorrectAnswers {
-    /// A list of correct answers. A quiz response can be automatically graded based on these answers. For single-valued questions, a response is marked correct if it matches any value in this list (in other words, multiple correct answers are possible). For multiple-valued (CHECKBOX) questions, a response is marked correct if it contains exactly the values in this list.
-    #[serde(default)]
-    pub answers: ::core::option::Option<::std::vec::Vec<CorrectAnswer>>,
-}
-
-/// Create an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateItemRequest {
-    /// Required. The item to create.
-    #[serde(default)]
-    pub item: ::core::option::Option<Item>,
-    /// Required. Where to place the new item.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-}
-
-/// The result of creating an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateItemResponse {
-    /// The ID of the created item.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// The ID of the question created as part of this item, for a question group it lists IDs of all the questions created for this item.
-    #[serde(default, rename = "questionId")]
-    pub question_id: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Create a new watch.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateWatchRequest {
@@ -126,59 +66,45 @@ pub struct CreateWatchRequest {
     pub watch_id: ::core::option::Option<String>,
 }
 
-/// A date question. Date questions default to just month + day.
+/// Response to a ListFormResponsesRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateQuestion {
-    /// Whether to include the time as part of the question.
-    #[serde(default, rename = "includeTime")]
-    pub include_time: ::core::option::Option<bool>,
-    /// Whether to include the year as part of the question.
-    #[serde(default, rename = "includeYear")]
-    pub include_year: ::core::option::Option<bool>,
+pub struct ListFormResponsesResponse {
+    /// If set, there are more responses. To get the next page of responses, provide this as page_token in a future request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The returned form responses. Note: The formId field is not returned in the FormResponse object for list requests.
+    #[serde(default)]
+    pub responses: ::core::option::Option<::std::vec::Vec<FormResponse>>,
 }
 
-/// Delete an item in a form.
+/// The response of a ListWatchesRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeleteItemRequest {
-    /// Required. The location of the item to delete.
+pub struct ListWatchesResponse {
+    /// The returned watches.
     #[serde(default)]
-    pub location: ::core::option::Option<Location>,
+    pub watches: ::core::option::Option<::std::vec::Vec<Watch>>,
 }
 
-/// Supplementary material to the feedback.
+/// Updates the publish settings of a Form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtraMaterial {
-    /// Text feedback.
-    #[serde(default)]
-    pub link: ::core::option::Option<TextLink>,
-    /// Video feedback.
-    #[serde(default)]
-    pub video: ::core::option::Option<VideoLink>,
+pub struct SetPublishSettingsRequest {
+    /// Required. The desired publish settings to apply to the form.
+    #[serde(default, rename = "publishSettings")]
+    pub publish_settings: ::core::option::Option<PublishSettings>,
+    /// Optional. The publish_settings fields to update. This field mask accepts the following values: * publish_state: Updates or replaces all publish_state settings. * "*": Updates or replaces all publish_settings fields.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
-/// Feedback for a respondent about their response to a question.
+/// The response of a SetPublishSettings request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Feedback {
-    /// Additional information provided as part of the feedback, often used to point the respondent to more reading and resources.
-    #[serde(default)]
-    pub material: ::core::option::Option<::std::vec::Vec<ExtraMaterial>>,
-    /// Required. The main text of the feedback.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Info for a single file submitted to a file upload question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileUploadAnswer {
-    /// Output only. The ID of the Google Drive file.
-    #[serde(default, rename = "fileId")]
-    pub file_id: ::core::option::Option<String>,
-    /// Output only. The file name, as stored in Google Drive on upload.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Output only. The MIME type of the file, as stored in Google Drive on upload.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
+pub struct SetPublishSettingsResponse {
+    /// Required. The ID of the Form. This is same as the Form.form_id field.
+    #[serde(default, rename = "formId")]
+    pub form_id: ::core::option::Option<String>,
+    /// The publish settings of the form.
+    #[serde(default, rename = "publishSettings")]
+    pub publish_settings: ::core::option::Option<PublishSettings>,
 }
 
 /// All submitted files for a FileUpload question.
@@ -189,21 +115,49 @@ pub struct FileUploadAnswers {
     pub answers: ::core::option::Option<::std::vec::Vec<FileUploadAnswer>>,
 }
 
-/// A file upload question. The API currently does not support creating file upload questions.
+/// Grade information associated with a respondent''s answer to a question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileUploadQuestion {
-    /// Required. The ID of the Drive folder where uploaded files are stored.
-    #[serde(default, rename = "folderId")]
-    pub folder_id: ::core::option::Option<String>,
-    /// Maximum number of bytes allowed for any single file uploaded to this question.
-    #[serde(default, rename = "maxFileSize")]
-    pub max_file_size: ::core::option::Option<String>,
-    /// Maximum number of files that can be uploaded for this question in a single response.
-    #[serde(default, rename = "maxFiles")]
-    pub max_files: ::core::option::Option<i32>,
-    /// File types accepted by this question.
+pub struct Grade {
+    /// Output only. Whether the question was answered correctly or not. A zero-point score is not enough to infer incorrectness, since a correctly answered question could be worth zero points.
     #[serde(default)]
-    pub types: ::core::option::Option<::std::vec::Vec<String>>,
+    pub correct: ::core::option::Option<bool>,
+    /// Output only. Additional feedback given for an answer.
+    #[serde(default)]
+    pub feedback: ::core::option::Option<Feedback>,
+    /// Output only. The numeric score awarded for the answer.
+    #[serde(default)]
+    pub score: ::core::option::Option<f64>,
+}
+
+/// A question''s answers as text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextAnswers {
+    /// Output only. Answers to a question. For multiple-value ChoiceQuestions, each answer is a separate value.
+    #[serde(default)]
+    pub answers: ::core::option::Option<::std::vec::Vec<TextAnswer>>,
+}
+
+/// The kinds of update requests that can be made.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Request {
+    /// Create a new item.
+    #[serde(default, rename = "createItem")]
+    pub create_item: ::core::option::Option<CreateItemRequest>,
+    /// Delete an item.
+    #[serde(default, rename = "deleteItem")]
+    pub delete_item: ::core::option::Option<DeleteItemRequest>,
+    /// Move an item to a specified location.
+    #[serde(default, rename = "moveItem")]
+    pub move_item: ::core::option::Option<MoveItemRequest>,
+    /// Update Form''s Info.
+    #[serde(default, rename = "updateFormInfo")]
+    pub update_form_info: ::core::option::Option<UpdateFormInfoRequest>,
+    /// Update an item.
+    #[serde(default, rename = "updateItem")]
+    pub update_item: ::core::option::Option<UpdateItemRequest>,
+    /// Updates the Form''s settings.
+    #[serde(default, rename = "updateSettings")]
+    pub update_settings: ::core::option::Option<UpdateSettingsRequest>,
 }
 
 /// A Google Forms document. A form is created in Drive, and deleting a form or changing its access protections is done via the [Drive API](https://developers.google.com/drive/api/v3/about-sdk).
@@ -235,6 +189,25 @@ pub struct Form {
     pub settings: ::core::option::Option<FormSettings>,
 }
 
+/// A single response from an update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Response {
+    /// The result of creating an item.
+    #[serde(default, rename = "createItem")]
+    pub create_item: ::core::option::Option<CreateItemResponse>,
+}
+
+/// Provides control over how write requests are executed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteControl {
+    /// The revision ID of the form that the write request is applied to. If this is not the latest revision of the form, the request is not processed and returns a 400 bad request error.
+    #[serde(default, rename = "requiredRevisionId")]
+    pub required_revision_id: ::core::option::Option<String>,
+    /// The target revision ID of the form that the write request is applied to. If changes have occurred after this revision, the changes in this update request are transformed against those changes. This results in a new revision of the form that incorporates both the changes in the request and the intervening changes, with the server resolving conflicting changes. The target revision ID may only be used to write to recent versions of a form. If the target revision is too far behind the latest revision, the request is not processed and returns a 400 (Bad Request Error). The request may be retried after reading the latest version of the form. In most cases a target revision ID remains valid for several minutes after it is read, but for frequently-edited forms this window may be shorter.
+    #[serde(default, rename = "targetRevisionId")]
+    pub target_revision_id: ::core::option::Option<String>,
+}
+
 /// A form response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FormResponse {
@@ -261,85 +234,145 @@ pub struct FormResponse {
     pub total_score: ::core::option::Option<f64>,
 }
 
-/// A form''s settings.
+/// A watch for events for a form. When the designated event happens, a notification will be published to the specified target. The notification''s attributes will include a formId key that has the ID of the watched form and an eventType key that has the string of the type. Messages are sent with at-least-once delivery and are only dropped in extraordinary circumstances. Typically all notifications should be reliably delivered within a few seconds; however, in some situations notifications may be delayed. A watch expires seven days after it is created unless it is renewed with watches.renew
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FormSettings {
-    /// Optional. The setting that determines whether the form collects email addresses from respondents. // TODO: enum values: ["EMAIL_COLLECTION_TYPE_UNSPECIFIED", "DO_NOT_COLLECT", "VERIFIED", "RESPONDER_INPUT"]
-    #[serde(default, rename = "emailCollectionType")]
-    pub email_collection_type: ::core::option::Option<String>,
-    /// Settings related to quiz forms and grading.
-    #[serde(default, rename = "quizSettings")]
-    pub quiz_settings: ::core::option::Option<QuizSettings>,
+pub struct Watch {
+    /// Output only. Timestamp of when this was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The most recent error type for an attempted delivery. To begin watching the form again a call can be made to watches.renew which also clears this error information. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "PROJECT_NOT_AUTHORIZED", "NO_USER_ACCESS", "OTHER_ERRORS"]
+    #[serde(default, rename = "errorType")]
+    pub error_type: ::core::option::Option<String>,
+    /// Required. Which event type to watch for. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "SCHEMA", "RESPONSES"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// Output only. Timestamp for when this will expire. Each watches.renew call resets this to seven days in the future.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Output only. The ID of this watch. See notes on CreateWatchRequest.watch_id.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The current state of the watch. Additional details about suspended watches can be found by checking the error_type. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Where to send the notification.
+    #[serde(default)]
+    pub target: ::core::option::Option<WatchTarget>,
 }
 
-/// Grade information associated with a respondent''s answer to a question.
+/// Info for a single file submitted to a file upload question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Grade {
-    /// Output only. Whether the question was answered correctly or not. A zero-point score is not enough to infer incorrectness, since a correctly answered question could be worth zero points.
-    #[serde(default)]
-    pub correct: ::core::option::Option<bool>,
-    /// Output only. Additional feedback given for an answer.
-    #[serde(default)]
-    pub feedback: ::core::option::Option<Feedback>,
-    /// Output only. The numeric score awarded for the answer.
-    #[serde(default)]
-    pub score: ::core::option::Option<f64>,
+pub struct FileUploadAnswer {
+    /// Output only. The ID of the Google Drive file.
+    #[serde(default, rename = "fileId")]
+    pub file_id: ::core::option::Option<String>,
+    /// Output only. The file name, as stored in Google Drive on upload.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Output only. The MIME type of the file, as stored in Google Drive on upload.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
 }
 
-/// Grading for a single question
+/// An answer to a question represented as text.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Grading {
-    /// Required. The answer key for the question. Responses are automatically graded based on this field.
-    #[serde(default, rename = "correctAnswers")]
-    pub correct_answers: ::core::option::Option<CorrectAnswers>,
-    /// The feedback displayed for all answers. This is commonly used for short answer questions when a quiz owner wants to quickly give respondents some sense of whether they answered the question correctly before they''ve had a chance to officially grade the response. General feedback cannot be set for automatically graded multiple choice questions.
-    #[serde(default, rename = "generalFeedback")]
-    pub general_feedback: ::core::option::Option<Feedback>,
-    /// Required. The maximum number of points a respondent can automatically get for a correct answer. This must not be negative.
-    #[serde(default, rename = "pointValue")]
-    pub point_value: ::core::option::Option<i32>,
-    /// The feedback displayed for correct responses. This feedback can only be set for multiple choice questions that have correct answers provided.
-    #[serde(default, rename = "whenRight")]
-    pub when_right: ::core::option::Option<Feedback>,
-    /// The feedback displayed for incorrect responses. This feedback can only be set for multiple choice questions that have correct answers provided.
-    #[serde(default, rename = "whenWrong")]
-    pub when_wrong: ::core::option::Option<Feedback>,
+pub struct TextAnswer {
+    /// Output only. The answer value. Formatting used for different kinds of question: * ChoiceQuestion * RADIO or DROP_DOWN: A single string corresponding to the option that was selected. * CHECKBOX: Multiple strings corresponding to each option that was selected. * TextQuestion: The text that the user entered. * ScaleQuestion: A string containing the number that was selected. * DateQuestion * Without time or year: MM-DD e.g. "05-19" * With year: YYYY-MM-DD e.g. "1986-05-19" * With time: MM-DD HH:MM e.g. "05-19 14:51" * With year and time: YYYY-MM-DD HH:MM e.g. "1986-05-19 14:51" * TimeQuestion: String with time or duration in HH:MM format e.g. "14:51" * RowQuestion within QuestionGroupItem: The answer for each row of a QuestionGroupItem is represented as a separate Answer. Each will contain one string for RADIO-type choices or multiple strings for CHECKBOX choices.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
-/// A grid of choices (radio or check boxes) with each row constituting a separate question. Each row has the same choices, which are shown as the columns.
+/// Create an item in a form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Grid {
-    /// Required. The choices shared by each question in the grid. In other words, the values of the columns. Only CHECK_BOX and RADIO choices are allowed.
+pub struct CreateItemRequest {
+    /// Required. The item to create.
     #[serde(default)]
-    pub columns: ::core::option::Option<ChoiceQuestion>,
-    /// If true, the questions are randomly ordered. In other words, the rows appear in a different order for every respondent.
-    #[serde(default, rename = "shuffleQuestions")]
-    pub shuffle_questions: ::core::option::Option<bool>,
+    pub item: ::core::option::Option<Item>,
+    /// Required. Where to place the new item.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
 }
 
-/// Data representing an image.
+/// Delete an item in a form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// A description of the image that is shown on hover and read by screenreaders.
-    #[serde(default, rename = "altText")]
-    pub alt_text: ::core::option::Option<String>,
-    /// Output only. A URI from which you can download the image; this is valid only for a limited time.
-    #[serde(default, rename = "contentUri")]
-    pub content_uri: ::core::option::Option<String>,
-    /// Properties of an image.
+pub struct DeleteItemRequest {
+    /// Required. The location of the item to delete.
     #[serde(default)]
-    pub properties: ::core::option::Option<MediaProperties>,
-    /// Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.
-    #[serde(default, rename = "sourceUri")]
-    pub source_uri: ::core::option::Option<String>,
+    pub location: ::core::option::Option<Location>,
 }
 
-/// An item containing an image.
+/// Move an item in a form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageItem {
-    /// Required. The image displayed in the item.
+pub struct MoveItemRequest {
+    /// Required. The new location for the item.
+    #[serde(default, rename = "newLocation")]
+    pub new_location: ::core::option::Option<Location>,
+    /// Required. The location of the item to move.
+    #[serde(default, rename = "originalLocation")]
+    pub original_location: ::core::option::Option<Location>,
+}
+
+/// Update Form''s Info.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateFormInfoRequest {
+    /// The info to update.
     #[serde(default)]
-    pub image: ::core::option::Option<Image>,
+    pub info: ::core::option::Option<Info>,
+    /// Required. Only values named in this mask are changed. At least one field must be specified. The root info is implied and should not be specified. A single "*" can be used as short-hand for updating every field.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Update an item in a form.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateItemRequest {
+    /// Required. New values for the item. Note that item and question IDs are used if they are provided (and are in the field mask). If an ID is blank (and in the field mask) a new ID is generated. This means you can modify an item by getting the form via forms.get, modifying your local copy of that item to be how you want it, and using UpdateItemRequest to write it back, with the IDs being the same (or not in the field mask).
+    #[serde(default)]
+    pub item: ::core::option::Option<Item>,
+    /// Required. The location identifying the item to update.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// Required. Only values named in this mask are changed.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Update Form''s FormSettings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSettingsRequest {
+    /// Required. The settings to update with.
+    #[serde(default)]
+    pub settings: ::core::option::Option<FormSettings>,
+    /// Required. Only values named in this mask are changed. At least one field must be specified. The root settings is implied and should not be specified. A single "*" can be used as short-hand for updating every field.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// The publishing settings of a form.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublishSettings {
+    /// Optional. The publishing state of a form. When updating publish_state, both is_published and is_accepting_responses must be set. However, setting is_accepting_responses to true and is_published to false isn''t supported and returns an error.
+    #[serde(default, rename = "publishState")]
+    pub publish_state: ::core::option::Option<PublishState>,
+}
+
+/// The result of creating an item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateItemResponse {
+    /// The ID of the created item.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// The ID of the question created as part of this item, for a question group it lists IDs of all the questions created for this item.
+    #[serde(default, rename = "questionId")]
+    pub question_id: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The target for notification delivery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchTarget {
+    /// A Pub/Sub topic. To receive notifications, the topic must grant publish privileges to the Forms service account serviceAccount:forms-notifications@system.gserviceaccount.com. Only the project that owns a topic may create a watch with it. Pub/Sub delivery guarantees should be considered.
+    #[serde(default)]
+    pub topic: ::core::option::Option<CloudPubsubTopic>,
 }
 
 /// The general information for a form.
@@ -388,25 +421,6 @@ pub struct Item {
     pub video_item: ::core::option::Option<VideoItem>,
 }
 
-/// Response to a ListFormResponsesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFormResponsesResponse {
-    /// If set, there are more responses. To get the next page of responses, provide this as page_token in a future request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The returned form responses. Note: The formId field is not returned in the FormResponse object for list requests.
-    #[serde(default)]
-    pub responses: ::core::option::Option<::std::vec::Vec<FormResponse>>,
-}
-
-/// The response of a ListWatchesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListWatchesResponse {
-    /// The returned watches.
-    #[serde(default)]
-    pub watches: ::core::option::Option<::std::vec::Vec<Watch>>,
-}
-
 /// A specific location in a form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -415,54 +429,15 @@ pub struct Location {
     pub index: ::core::option::Option<i32>,
 }
 
-/// Properties of the media.
+/// A form''s settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MediaProperties {
-    /// Position of the media. // TODO: enum values: ["ALIGNMENT_UNSPECIFIED", "LEFT", "RIGHT", "CENTER"]
-    #[serde(default)]
-    pub alignment: ::core::option::Option<String>,
-    /// The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// Move an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MoveItemRequest {
-    /// Required. The new location for the item.
-    #[serde(default, rename = "newLocation")]
-    pub new_location: ::core::option::Option<Location>,
-    /// Required. The location of the item to move.
-    #[serde(default, rename = "originalLocation")]
-    pub original_location: ::core::option::Option<Location>,
-}
-
-/// An option for a Choice question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiOption {
-    /// Section navigation type. // TODO: enum values: ["GO_TO_ACTION_UNSPECIFIED", "NEXT_SECTION", "RESTART_FORM", "SUBMIT_FORM"]
-    #[serde(default, rename = "goToAction")]
-    pub go_to_action: ::core::option::Option<String>,
-    /// Item ID of section header to go to.
-    #[serde(default, rename = "goToSectionId")]
-    pub go_to_section_id: ::core::option::Option<String>,
-    /// Display image as an option.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// Whether the option is "other". Currently only applies to RADIO and CHECKBOX choice types, but is not allowed in a QuestionGroupItem.
-    #[serde(default, rename = "isOther")]
-    pub is_other: ::core::option::Option<bool>,
-    /// Required. The choice as presented to the user.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The publishing settings of a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PublishSettings {
-    /// Optional. The publishing state of a form. When updating publish_state, both is_published and is_accepting_responses must be set. However, setting is_accepting_responses to true and is_published to false isn''t supported and returns an error.
-    #[serde(default, rename = "publishState")]
-    pub publish_state: ::core::option::Option<PublishState>,
+pub struct FormSettings {
+    /// Optional. The setting that determines whether the form collects email addresses from respondents. // TODO: enum values: ["EMAIL_COLLECTION_TYPE_UNSPECIFIED", "DO_NOT_COLLECT", "VERIFIED", "RESPONDER_INPUT"]
+    #[serde(default, rename = "emailCollectionType")]
+    pub email_collection_type: ::core::option::Option<String>,
+    /// Settings related to quiz forms and grading.
+    #[serde(default, rename = "quizSettings")]
+    pub quiz_settings: ::core::option::Option<QuizSettings>,
 }
 
 /// The publishing state of a form.
@@ -474,6 +449,77 @@ pub struct PublishState {
     /// Required. Whether the form is published and visible to others.
     #[serde(default, rename = "isPublished")]
     pub is_published: ::core::option::Option<bool>,
+}
+
+/// A Pub/Sub topic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudPubsubTopic {
+    /// Required. A fully qualified Pub/Sub topic name to publish the events to. This topic must be owned by the calling project and already exist in Pub/Sub.
+    #[serde(default, rename = "topicName")]
+    pub topic_name: ::core::option::Option<String>,
+}
+
+/// An item containing an image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageItem {
+    /// Required. The image displayed in the item.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+}
+
+/// Defines a question that comprises multiple questions grouped together.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionGroupItem {
+    /// The question group is a grid with rows of multiple choice questions that share the same options. When grid is set, all questions in the group must be of kind row.
+    #[serde(default)]
+    pub grid: ::core::option::Option<Grid>,
+    /// The image displayed within the question group above the specific questions.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+    /// Required. A list of questions that belong in this question group. A question must only belong to one group. The kind of the group may affect what types of questions are allowed.
+    #[serde(default)]
+    pub questions: ::core::option::Option<::std::vec::Vec<Question>>,
+}
+
+/// A form item containing a single question.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionItem {
+    /// The image displayed within the question.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+    /// Required. The displayed question.
+    #[serde(default)]
+    pub question: ::core::option::Option<Question>,
+}
+
+/// An item containing a video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoItem {
+    /// The text displayed below the video.
+    #[serde(default)]
+    pub caption: ::core::option::Option<String>,
+    /// Required. The video displayed in the item.
+    #[serde(default)]
+    pub video: ::core::option::Option<Video>,
+}
+
+/// Settings related to quiz forms and grading. These must be updated with the UpdateSettingsRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuizSettings {
+    /// Whether this form is a quiz or not. When true, responses are graded based on question Grading. Upon setting to false, all question Grading is deleted.
+    #[serde(default, rename = "isQuiz")]
+    pub is_quiz: ::core::option::Option<bool>,
+}
+
+/// A grid of choices (radio or check boxes) with each row constituting a separate question. Each row has the same choices, which are shown as the columns.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Grid {
+    /// Required. The choices shared by each question in the grid. In other words, the values of the columns. Only CHECK_BOX and RADIO choices are allowed.
+    #[serde(default)]
+    pub columns: ::core::option::Option<ChoiceQuestion>,
+    /// If true, the questions are randomly ordered. In other words, the rows appear in a different order for every respondent.
+    #[serde(default, rename = "shuffleQuestions")]
+    pub shuffle_questions: ::core::option::Option<bool>,
 }
 
 /// Any question. The specific type of question is known by its kind.
@@ -514,37 +560,77 @@ pub struct Question {
     pub time_question: ::core::option::Option<TimeQuestion>,
 }
 
-/// Defines a question that comprises multiple questions grouped together.
+/// Data representing a video.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuestionGroupItem {
-    /// The question group is a grid with rows of multiple choice questions that share the same options. When grid is set, all questions in the group must be of kind row.
+pub struct Video {
+    /// Properties of a video.
     #[serde(default)]
-    pub grid: ::core::option::Option<Grid>,
-    /// The image displayed within the question group above the specific questions.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// Required. A list of questions that belong in this question group. A question must only belong to one group. The kind of the group may affect what types of questions are allowed.
-    #[serde(default)]
-    pub questions: ::core::option::Option<::std::vec::Vec<Question>>,
+    pub properties: ::core::option::Option<MediaProperties>,
+    /// Required. A YouTube URI.
+    #[serde(default, rename = "youtubeUri")]
+    pub youtube_uri: ::core::option::Option<String>,
 }
 
-/// A form item containing a single question.
+/// A radio/checkbox/dropdown question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuestionItem {
-    /// The image displayed within the question.
+pub struct ChoiceQuestion {
+    /// Required. List of options that a respondent must choose from.
     #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// Required. The displayed question.
+    pub options: ::core::option::Option<::std::vec::Vec<ApiOption>>,
+    /// Whether the options should be displayed in random order for different instances of the quiz. This is often used to prevent cheating by respondents who might be looking at another respondent''s screen, or to address bias in a survey that might be introduced by always putting the same options first or last.
     #[serde(default)]
-    pub question: ::core::option::Option<Question>,
+    pub shuffle: ::core::option::Option<bool>,
+    /// Required. The type of choice question. // TODO: enum values: ["CHOICE_TYPE_UNSPECIFIED", "RADIO", "CHECKBOX", "DROP_DOWN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// Settings related to quiz forms and grading. These must be updated with the UpdateSettingsRequest.
+/// A date question. Date questions default to just month + day.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuizSettings {
-    /// Whether this form is a quiz or not. When true, responses are graded based on question Grading. Upon setting to false, all question Grading is deleted.
-    #[serde(default, rename = "isQuiz")]
-    pub is_quiz: ::core::option::Option<bool>,
+pub struct DateQuestion {
+    /// Whether to include the time as part of the question.
+    #[serde(default, rename = "includeTime")]
+    pub include_time: ::core::option::Option<bool>,
+    /// Whether to include the year as part of the question.
+    #[serde(default, rename = "includeYear")]
+    pub include_year: ::core::option::Option<bool>,
+}
+
+/// A file upload question. The API currently does not support creating file upload questions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileUploadQuestion {
+    /// Required. The ID of the Drive folder where uploaded files are stored.
+    #[serde(default, rename = "folderId")]
+    pub folder_id: ::core::option::Option<String>,
+    /// Maximum number of bytes allowed for any single file uploaded to this question.
+    #[serde(default, rename = "maxFileSize")]
+    pub max_file_size: ::core::option::Option<String>,
+    /// Maximum number of files that can be uploaded for this question in a single response.
+    #[serde(default, rename = "maxFiles")]
+    pub max_files: ::core::option::Option<i32>,
+    /// File types accepted by this question.
+    #[serde(default)]
+    pub types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Grading for a single question
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Grading {
+    /// Required. The answer key for the question. Responses are automatically graded based on this field.
+    #[serde(default, rename = "correctAnswers")]
+    pub correct_answers: ::core::option::Option<CorrectAnswers>,
+    /// The feedback displayed for all answers. This is commonly used for short answer questions when a quiz owner wants to quickly give respondents some sense of whether they answered the question correctly before they''ve had a chance to officially grade the response. General feedback cannot be set for automatically graded multiple choice questions.
+    #[serde(default, rename = "generalFeedback")]
+    pub general_feedback: ::core::option::Option<Feedback>,
+    /// Required. The maximum number of points a respondent can automatically get for a correct answer. This must not be negative.
+    #[serde(default, rename = "pointValue")]
+    pub point_value: ::core::option::Option<i32>,
+    /// The feedback displayed for correct responses. This feedback can only be set for multiple choice questions that have correct answers provided.
+    #[serde(default, rename = "whenRight")]
+    pub when_right: ::core::option::Option<Feedback>,
+    /// The feedback displayed for incorrect responses. This feedback can only be set for multiple choice questions that have correct answers provided.
+    #[serde(default, rename = "whenWrong")]
+    pub when_wrong: ::core::option::Option<Feedback>,
 }
 
 /// A rating question. The user has a range of icons to choose from.
@@ -556,37 +642,6 @@ pub struct RatingQuestion {
     /// Required. The rating scale level of the rating question.
     #[serde(default, rename = "ratingScaleLevel")]
     pub rating_scale_level: ::core::option::Option<i32>,
-}
-
-/// The kinds of update requests that can be made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Request {
-    /// Create a new item.
-    #[serde(default, rename = "createItem")]
-    pub create_item: ::core::option::Option<CreateItemRequest>,
-    /// Delete an item.
-    #[serde(default, rename = "deleteItem")]
-    pub delete_item: ::core::option::Option<DeleteItemRequest>,
-    /// Move an item to a specified location.
-    #[serde(default, rename = "moveItem")]
-    pub move_item: ::core::option::Option<MoveItemRequest>,
-    /// Update Form''s Info.
-    #[serde(default, rename = "updateFormInfo")]
-    pub update_form_info: ::core::option::Option<UpdateFormInfoRequest>,
-    /// Update an item.
-    #[serde(default, rename = "updateItem")]
-    pub update_item: ::core::option::Option<UpdateItemRequest>,
-    /// Updates the Form''s settings.
-    #[serde(default, rename = "updateSettings")]
-    pub update_settings: ::core::option::Option<UpdateSettingsRequest>,
-}
-
-/// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Response {
-    /// The result of creating an item.
-    #[serde(default, rename = "createItem")]
-    pub create_item: ::core::option::Option<CreateItemResponse>,
 }
 
 /// Configuration for a question that is part of a question group.
@@ -614,55 +669,6 @@ pub struct ScaleQuestion {
     pub low_label: ::core::option::Option<String>,
 }
 
-/// Updates the publish settings of a Form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetPublishSettingsRequest {
-    /// Required. The desired publish settings to apply to the form.
-    #[serde(default, rename = "publishSettings")]
-    pub publish_settings: ::core::option::Option<PublishSettings>,
-    /// Optional. The publish_settings fields to update. This field mask accepts the following values: * publish_state: Updates or replaces all publish_state settings. * "*": Updates or replaces all publish_settings fields.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// The response of a SetPublishSettings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetPublishSettingsResponse {
-    /// Required. The ID of the Form. This is same as the Form.form_id field.
-    #[serde(default, rename = "formId")]
-    pub form_id: ::core::option::Option<String>,
-    /// The publish settings of the form.
-    #[serde(default, rename = "publishSettings")]
-    pub publish_settings: ::core::option::Option<PublishSettings>,
-}
-
-/// An answer to a question represented as text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextAnswer {
-    /// Output only. The answer value. Formatting used for different kinds of question: * ChoiceQuestion * RADIO or DROP_DOWN: A single string corresponding to the option that was selected. * CHECKBOX: Multiple strings corresponding to each option that was selected. * TextQuestion: The text that the user entered. * ScaleQuestion: A string containing the number that was selected. * DateQuestion * Without time or year: MM-DD e.g. "05-19" * With year: YYYY-MM-DD e.g. "1986-05-19" * With time: MM-DD HH:MM e.g. "05-19 14:51" * With year and time: YYYY-MM-DD HH:MM e.g. "1986-05-19 14:51" * TimeQuestion: String with time or duration in HH:MM format e.g. "14:51" * RowQuestion within QuestionGroupItem: The answer for each row of a QuestionGroupItem is represented as a separate Answer. Each will contain one string for RADIO-type choices or multiple strings for CHECKBOX choices.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A question''s answers as text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextAnswers {
-    /// Output only. Answers to a question. For multiple-value ChoiceQuestions, each answer is a separate value.
-    #[serde(default)]
-    pub answers: ::core::option::Option<::std::vec::Vec<TextAnswer>>,
-}
-
-/// Link for text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextLink {
-    /// Required. Display text for the URI.
-    #[serde(default, rename = "displayText")]
-    pub display_text: ::core::option::Option<String>,
-    /// Required. The URI.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// A text-based question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TextQuestion {
@@ -679,62 +685,101 @@ pub struct TimeQuestion {
     pub duration: ::core::option::Option<bool>,
 }
 
-/// Update Form''s Info.
+/// An option for a Choice question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateFormInfoRequest {
-    /// The info to update.
+pub struct ApiOption {
+    /// Section navigation type. // TODO: enum values: ["GO_TO_ACTION_UNSPECIFIED", "NEXT_SECTION", "RESTART_FORM", "SUBMIT_FORM"]
+    #[serde(default, rename = "goToAction")]
+    pub go_to_action: ::core::option::Option<String>,
+    /// Item ID of section header to go to.
+    #[serde(default, rename = "goToSectionId")]
+    pub go_to_section_id: ::core::option::Option<String>,
+    /// Display image as an option.
     #[serde(default)]
-    pub info: ::core::option::Option<Info>,
-    /// Required. Only values named in this mask are changed. At least one field must be specified. The root info is implied and should not be specified. A single "*" can be used as short-hand for updating every field.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub image: ::core::option::Option<Image>,
+    /// Whether the option is "other". Currently only applies to RADIO and CHECKBOX choice types, but is not allowed in a QuestionGroupItem.
+    #[serde(default, rename = "isOther")]
+    pub is_other: ::core::option::Option<bool>,
+    /// Required. The choice as presented to the user.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
-/// Update an item in a form.
+/// The answer key for a question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateItemRequest {
-    /// Required. New values for the item. Note that item and question IDs are used if they are provided (and are in the field mask). If an ID is blank (and in the field mask) a new ID is generated. This means you can modify an item by getting the form via forms.get, modifying your local copy of that item to be how you want it, and using UpdateItemRequest to write it back, with the IDs being the same (or not in the field mask).
+pub struct CorrectAnswers {
+    /// A list of correct answers. A quiz response can be automatically graded based on these answers. For single-valued questions, a response is marked correct if it matches any value in this list (in other words, multiple correct answers are possible). For multiple-valued (CHECKBOX) questions, a response is marked correct if it contains exactly the values in this list.
     #[serde(default)]
-    pub item: ::core::option::Option<Item>,
-    /// Required. The location identifying the item to update.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// Required. Only values named in this mask are changed.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub answers: ::core::option::Option<::std::vec::Vec<CorrectAnswer>>,
 }
 
-/// Update Form''s FormSettings.
+/// Feedback for a respondent about their response to a question.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSettingsRequest {
-    /// Required. The settings to update with.
+pub struct Feedback {
+    /// Additional information provided as part of the feedback, often used to point the respondent to more reading and resources.
     #[serde(default)]
-    pub settings: ::core::option::Option<FormSettings>,
-    /// Required. Only values named in this mask are changed. At least one field must be specified. The root settings is implied and should not be specified. A single "*" can be used as short-hand for updating every field.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub material: ::core::option::Option<::std::vec::Vec<ExtraMaterial>>,
+    /// Required. The main text of the feedback.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
 }
 
-/// Data representing a video.
+/// Data representing an image.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Video {
-    /// Properties of a video.
+pub struct Image {
+    /// A description of the image that is shown on hover and read by screenreaders.
+    #[serde(default, rename = "altText")]
+    pub alt_text: ::core::option::Option<String>,
+    /// Output only. A URI from which you can download the image; this is valid only for a limited time.
+    #[serde(default, rename = "contentUri")]
+    pub content_uri: ::core::option::Option<String>,
+    /// Properties of an image.
     #[serde(default)]
     pub properties: ::core::option::Option<MediaProperties>,
-    /// Required. A YouTube URI.
-    #[serde(default, rename = "youtubeUri")]
-    pub youtube_uri: ::core::option::Option<String>,
+    /// Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.
+    #[serde(default, rename = "sourceUri")]
+    pub source_uri: ::core::option::Option<String>,
 }
 
-/// An item containing a video.
+/// A single correct answer for a question. For multiple-valued (CHECKBOX) questions, several CorrectAnswers may be needed to represent a single correct response option.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoItem {
-    /// The text displayed below the video.
+pub struct CorrectAnswer {
+    /// Required. The correct answer value. See the documentation for TextAnswer.value for details on how various value types are formatted.
     #[serde(default)]
-    pub caption: ::core::option::Option<String>,
-    /// Required. The video displayed in the item.
+    pub value: ::core::option::Option<String>,
+}
+
+/// Supplementary material to the feedback.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtraMaterial {
+    /// Text feedback.
     #[serde(default)]
-    pub video: ::core::option::Option<Video>,
+    pub link: ::core::option::Option<TextLink>,
+    /// Video feedback.
+    #[serde(default)]
+    pub video: ::core::option::Option<VideoLink>,
+}
+
+/// Properties of the media.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaProperties {
+    /// Position of the media. // TODO: enum values: ["ALIGNMENT_UNSPECIFIED", "LEFT", "RIGHT", "CENTER"]
+    #[serde(default)]
+    pub alignment: ::core::option::Option<String>,
+    /// The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// Link for text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextLink {
+    /// Required. Display text for the URI.
+    #[serde(default, rename = "displayText")]
+    pub display_text: ::core::option::Option<String>,
+    /// Required. The URI.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Link to a video.
@@ -746,49 +791,4 @@ pub struct VideoLink {
     /// The URI of a YouTube video.
     #[serde(default, rename = "youtubeUri")]
     pub youtube_uri: ::core::option::Option<String>,
-}
-
-/// A watch for events for a form. When the designated event happens, a notification will be published to the specified target. The notification''s attributes will include a formId key that has the ID of the watched form and an eventType key that has the string of the type. Messages are sent with at-least-once delivery and are only dropped in extraordinary circumstances. Typically all notifications should be reliably delivered within a few seconds; however, in some situations notifications may be delayed. A watch expires seven days after it is created unless it is renewed with watches.renew
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Watch {
-    /// Output only. Timestamp of when this was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The most recent error type for an attempted delivery. To begin watching the form again a call can be made to watches.renew which also clears this error information. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "PROJECT_NOT_AUTHORIZED", "NO_USER_ACCESS", "OTHER_ERRORS"]
-    #[serde(default, rename = "errorType")]
-    pub error_type: ::core::option::Option<String>,
-    /// Required. Which event type to watch for. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "SCHEMA", "RESPONSES"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// Output only. Timestamp for when this will expire. Each watches.renew call resets this to seven days in the future.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Output only. The ID of this watch. See notes on CreateWatchRequest.watch_id.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. The current state of the watch. Additional details about suspended watches can be found by checking the error_type. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Where to send the notification.
-    #[serde(default)]
-    pub target: ::core::option::Option<WatchTarget>,
-}
-
-/// The target for notification delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WatchTarget {
-    /// A Pub/Sub topic. To receive notifications, the topic must grant publish privileges to the Forms service account serviceAccount:forms-notifications@system.gserviceaccount.com. Only the project that owns a topic may create a watch with it. Pub/Sub delivery guarantees should be considered.
-    #[serde(default)]
-    pub topic: ::core::option::Option<CloudPubsubTopic>,
-}
-
-/// Provides control over how write requests are executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WriteControl {
-    /// The revision ID of the form that the write request is applied to. If this is not the latest revision of the form, the request is not processed and returns a 400 bad request error.
-    #[serde(default, rename = "requiredRevisionId")]
-    pub required_revision_id: ::core::option::Option<String>,
-    /// The target revision ID of the form that the write request is applied to. If changes have occurred after this revision, the changes in this update request are transformed against those changes. This results in a new revision of the form that incorporates both the changes in the request and the intervening changes, with the server resolving conflicting changes. The target revision ID may only be used to write to recent versions of a form. If the target revision is too far behind the latest revision, the request is not processed and returns a 400 (Bad Request Error). The request may be retried after reading the latest version of the form. In most cases a target revision ID remains valid for several minutes after it is read, but for frequently-edited forms this window may be shorter.
-    #[serde(default, rename = "targetRevisionId")]
-    pub target_revision_id: ::core::option::Option<String>,
 }

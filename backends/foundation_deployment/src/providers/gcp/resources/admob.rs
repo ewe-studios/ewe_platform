@@ -10,96 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Describes an AdMob ad unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdUnit {
-    /// AdFormat of the ad unit. Possible values are as follows: "APP_OPEN" - App Open ad format. "BANNER" - Banner ad format. "BANNER_INTERSTITIAL" - Legacy format that can be used as either banner or interstitial. This format can no longer be created but can be targeted by mediation groups. "INTERSTITIAL" - A full screen ad. Supported ad types are "RICH_MEDIA" and "VIDEO". "NATIVE" - Native ad format. "REWARDED" - An ad that, once viewed, gets a callback verifying the view so that a reward can be given to the user. Supported ad types are "RICH_MEDIA" (interactive) and video where video can not be excluded. "REWARDED_INTERSTITIAL" - Rewarded Interstitial ad format. Only supports video ad type. See https://support.google.com/admob/answer/9884467.
-    #[serde(default, rename = "adFormat")]
-    pub ad_format: ::core::option::Option<String>,
-    /// Ad media type supported by this ad unit. Possible values as follows: "RICH_MEDIA" - Text, image, and other non-video media. "VIDEO" - Video media.
-    #[serde(default, rename = "adTypes")]
-    pub ad_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The externally visible ID of the ad unit which can be used to integrate with the AdMob SDK. This is a read only property. Example: ca-app-pub-9876543210987654/0123456789
-    #[serde(default, rename = "adUnitId")]
-    pub ad_unit_id: ::core::option::Option<String>,
-    /// The externally visible ID of the app this ad unit is associated with. Example: ca-app-pub-9876543210987654~0123456789
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// The display name of the ad unit as shown in the AdMob UI, which is provided by the user. The maximum length allowed is 80 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name for this ad unit. Format is accounts/{publisher_id}/adUnits/{ad_unit_id_fragment} Example: accounts/pub-9876543210987654/adUnits/0123456789
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Describes an AdMob app for a specific platform (For example: Android or iOS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct App {
-    /// Output only. The approval state for the app. The field is read-only. // TODO: enum values: ["APP_APPROVAL_STATE_UNSPECIFIED", "ACTION_REQUIRED", "IN_REVIEW", "APPROVED"]
-    #[serde(default, rename = "appApprovalState")]
-    pub app_approval_state: ::core::option::Option<String>,
-    /// The externally visible ID of the app which can be used to integrate with the AdMob SDK. This is a read only property. Example: ca-app-pub-9876543210987654~0123456789
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// Immutable. The information for an app that is linked to an app store. This field is present if and only if the app is linked to an app store.
-    #[serde(default, rename = "linkedAppInfo")]
-    pub linked_app_info: ::core::option::Option<AppLinkedAppInfo>,
-    /// The information for an app that is not linked to any app store. After an app is linked, this information is still retrivable. If no name is provided for the app upon creation, a placeholder name will be used.
-    #[serde(default, rename = "manualAppInfo")]
-    pub manual_app_info: ::core::option::Option<AppManualAppInfo>,
-    /// Resource name for this app. Format is accounts/{publisher_id}/apps/{app_id_fragment} Example: accounts/pub-9876543210987654/apps/0123456789
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Describes the platform of the app. Limited to "IOS" and "ANDROID".
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-}
-
-/// Information from the app store if the app is linked to an app store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppLinkedAppInfo {
-    /// The app store ID of the app; present if and only if the app is linked to an app store. If the app is added to the Google Play store, it will be the application ID of the app. For example: "com.example.myapp". See https://developer.android.com/studio/build/application-id. If the app is added to the Apple App Store, it will be app store ID. For example "105169111". Note that setting the app store id is considered an irreversible action. Once an app is linked, it cannot be unlinked.
-    #[serde(default, rename = "appStoreId")]
-    pub app_store_id: ::core::option::Option<String>,
-    /// Output only. Display name of the app as it appears in the app store. This is an output-only field, and may be empty if the app cannot be found in the store.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Information provided for manual apps which are not linked to an application store (Example: Google Play, App Store).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppManualAppInfo {
-    /// The display name of the app as shown in the AdMob UI, which is provided by the user. The maximum length allowed is 80 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Specification of a single date range. Both dates are inclusive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateRange {
-    /// End date of the date range, inclusive. Must be greater than or equal to the start date.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Start date of the date range, inclusive. Must be less than or equal to the end date.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-}
-
 /// Request to generate an AdMob Mediation report.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateMediationReportRequest {
@@ -177,15 +87,37 @@ pub struct ListPublisherAccountsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Localization settings for reports, such as currency and language. It affects how metrics are calculated.
+/// Representation of a dimension value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizationSettings {
-    /// Currency code of the earning related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion. Defaults to the account currency code if unspecified.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Language used for any localized text, such as some dimension value display labels. The language tag defined in the IETF BCP47. Defaults to ''en-US'' if unspecified.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
+pub struct ReportRowDimensionValue {
+    /// The localized string representation of the value. If unspecified, the display label should be derived from the value.
+    #[serde(default, rename = "displayLabel")]
+    pub display_label: ::core::option::Option<String>,
+    /// Dimension value in the format specified in the report''s spec Dimension enum.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Representation of a metric value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportRowMetricValue {
+    /// Double precision (approximate) decimal values. Rates are from 0 to 1.
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// Metric integer value.
+    #[serde(default, rename = "integerValue")]
+    pub integer_value: ::core::option::Option<String>,
+    /// Amount in micros. One million is equivalent to one unit. Currency value is in the unit (USD, EUR or other) specified by the request. For example, $6.50 whould be represented as 6500000 micros.
+    #[serde(default, rename = "microsValue")]
+    pub micros_value: ::core::option::Option<String>,
+}
+
+/// List of string values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StringList {
+    /// The string values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The specification for generating an AdMob Mediation report. For example, the specification to get observed ECPM sliced by ad source and app for the ''US'' and ''CN'' countries can look like the following example: { "date_range": { "start_date": {"year": 2021, "month": 9, "day": 1}, "end_date": {"year": 2021, "month": 9, "day": 30} }, "dimensions": ["AD_SOURCE", "APP", "COUNTRY"], "metrics": ["OBSERVED_ECPM"], "dimension_filters": [ { "dimension": "COUNTRY", "matches_any": {"values": [{"value": "US", "value": "CN"}]} } ], "sort_conditions": [ {"dimension":"APP", order: "ASCENDING"} ], "localization_settings": { "currency_code": "USD", "language_code": "en-US" } } For a better understanding, you can treat the preceding specification like the following pseudo SQL: SELECT AD_SOURCE, APP, COUNTRY, OBSERVED_ECPM FROM MEDIATION_REPORT WHERE DATE &gt;= ''2021-09-01'' AND DATE &lt;= ''2021-09-30'' AND COUNTRY IN (''US'', ''CN'') GROUP BY AD_SOURCE, APP, COUNTRY ORDER BY APP ASC;
@@ -218,31 +150,6 @@ pub struct MediationReportSpec {
     pub time_zone: ::core::option::Option<String>,
 }
 
-/// Describes which report rows to match based on their dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MediationReportSpecDimensionFilter {
-    /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Matches a row if its value for the specified dimension is in one of the values specified in this condition.
-    #[serde(default, rename = "matchesAny")]
-    pub matches_any: ::core::option::Option<StringList>,
-}
-
-/// Sorting direction to be applied on a dimension or a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MediationReportSpecSortCondition {
-    /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Sort by the specified metric. // TODO: enum values: ["METRIC_UNSPECIFIED", "AD_REQUESTS", "CLICKS", "ESTIMATED_EARNINGS", "IMPRESSIONS", "IMPRESSION_CTR", "MATCHED_REQUESTS", "MATCH_RATE", "OBSERVED_ECPM"]
-    #[serde(default)]
-    pub metric: ::core::option::Option<String>,
-    /// Sorting order of the dimension or metric. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
-    #[serde(default)]
-    pub order: ::core::option::Option<String>,
-}
-
 /// The specification for generating an AdMob Network report. For example, the specification to get clicks and estimated earnings for only the ''US'' and ''CN'' countries can look like the following example: { ''date_range'': { ''start_date'': {''year'': 2021, ''month'': 9, ''day'': 1}, ''end_date'': {''year'': 2021, ''month'': 9, ''day'': 30} }, ''dimensions'': [''DATE'', ''APP'', ''COUNTRY''], ''metrics'': [''CLICKS'', ''ESTIMATED_EARNINGS''], ''dimension_filters'': [ { ''dimension'': ''COUNTRY'', ''matches_any'': {''values'': [{''value'': ''US'', ''value'': ''CN''}]} } ], ''sort_conditions'': [ {''dimension'':''APP'', order: ''ASCENDING''}, {''metric'':''CLICKS'', order: ''DESCENDING''} ], ''localization_settings'': { ''currency_code'': ''USD'', ''language_code'': ''en-US'' } } For a better understanding, you can treat the preceding specification like the following pseudo SQL: SELECT DATE, APP, COUNTRY, CLICKS, ESTIMATED_EARNINGS FROM NETWORK_REPORT WHERE DATE &gt;= ''2021-09-01'' AND DATE &lt;= ''2021-09-30'' AND COUNTRY IN (''US'', ''CN'') GROUP BY DATE, APP, COUNTRY ORDER BY APP ASC, CLICKS DESC;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkReportSpec {
@@ -271,48 +178,6 @@ pub struct NetworkReportSpec {
     /// A report time zone. Accepts an IANA TZ name values, such as "America/Los_Angeles." If no time zone is defined, the account default takes effect. Check default value by the get account action. **Warning:** The "America/Los_Angeles" is the only supported value at the moment.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
-}
-
-/// Describes which report rows to match based on their dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkReportSpecDimensionFilter {
-    /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Matches a row if its value for the specified dimension is in one of the values specified in this condition.
-    #[serde(default, rename = "matchesAny")]
-    pub matches_any: ::core::option::Option<StringList>,
-}
-
-/// Sorting direction to be applied on a dimension or a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkReportSpecSortCondition {
-    /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Sort by the specified metric. // TODO: enum values: ["METRIC_UNSPECIFIED", "AD_REQUESTS", "CLICKS", "ESTIMATED_EARNINGS", "IMPRESSIONS", "IMPRESSION_CTR", "IMPRESSION_RPM", "MATCHED_REQUESTS", "MATCH_RATE", "SHOW_RATE"]
-    #[serde(default)]
-    pub metric: ::core::option::Option<String>,
-    /// Sorting order of the dimension or metric. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
-    #[serde(default)]
-    pub order: ::core::option::Option<String>,
-}
-
-/// A publisher account contains information relevant to the use of this API, such as the time zone used for the reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PublisherAccount {
-    /// Currency code of the earning-related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Resource name of this account. Format is accounts/{publisher_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The unique ID by which this publisher account can be identified in the API requests (for example, pub-1234567890).
-    #[serde(default, rename = "publisherId")]
-    pub publisher_id: ::core::option::Option<String>,
-    /// The time zone that is used in reports that are generated for this account. The value is a time-zone ID as specified by the CLDR project, for example, "America/Los_Angeles".
-    #[serde(default, rename = "reportingTimeZone")]
-    pub reporting_time_zone: ::core::option::Option<String>,
 }
 
 /// Groups data available after report generation, for example, warnings and row counts. Always sent as the last message in the stream response.
@@ -351,29 +216,117 @@ pub struct ReportRow {
     pub metric_values: ::core::option::Option<serde_json::Value>,
 }
 
-/// Representation of a dimension value.
+/// Describes an AdMob ad unit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReportRowDimensionValue {
-    /// The localized string representation of the value. If unspecified, the display label should be derived from the value.
-    #[serde(default, rename = "displayLabel")]
-    pub display_label: ::core::option::Option<String>,
-    /// Dimension value in the format specified in the report''s spec Dimension enum.
+pub struct AdUnit {
+    /// AdFormat of the ad unit. Possible values are as follows: "APP_OPEN" - App Open ad format. "BANNER" - Banner ad format. "BANNER_INTERSTITIAL" - Legacy format that can be used as either banner or interstitial. This format can no longer be created but can be targeted by mediation groups. "INTERSTITIAL" - A full screen ad. Supported ad types are "RICH_MEDIA" and "VIDEO". "NATIVE" - Native ad format. "REWARDED" - An ad that, once viewed, gets a callback verifying the view so that a reward can be given to the user. Supported ad types are "RICH_MEDIA" (interactive) and video where video can not be excluded. "REWARDED_INTERSTITIAL" - Rewarded Interstitial ad format. Only supports video ad type. See https://support.google.com/admob/answer/9884467.
+    #[serde(default, rename = "adFormat")]
+    pub ad_format: ::core::option::Option<String>,
+    /// Ad media type supported by this ad unit. Possible values as follows: "RICH_MEDIA" - Text, image, and other non-video media. "VIDEO" - Video media.
+    #[serde(default, rename = "adTypes")]
+    pub ad_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The externally visible ID of the ad unit which can be used to integrate with the AdMob SDK. This is a read only property. Example: ca-app-pub-9876543210987654/0123456789
+    #[serde(default, rename = "adUnitId")]
+    pub ad_unit_id: ::core::option::Option<String>,
+    /// The externally visible ID of the app this ad unit is associated with. Example: ca-app-pub-9876543210987654~0123456789
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// The display name of the ad unit as shown in the AdMob UI, which is provided by the user. The maximum length allowed is 80 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name for this ad unit. Format is accounts/{publisher_id}/adUnits/{ad_unit_id_fragment} Example: accounts/pub-9876543210987654/adUnits/0123456789
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
-/// Representation of a metric value.
+/// Describes an AdMob app for a specific platform (For example: Android or iOS).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReportRowMetricValue {
-    /// Double precision (approximate) decimal values. Rates are from 0 to 1.
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// Metric integer value.
-    #[serde(default, rename = "integerValue")]
-    pub integer_value: ::core::option::Option<String>,
-    /// Amount in micros. One million is equivalent to one unit. Currency value is in the unit (USD, EUR or other) specified by the request. For example, $6.50 whould be represented as 6500000 micros.
-    #[serde(default, rename = "microsValue")]
-    pub micros_value: ::core::option::Option<String>,
+pub struct App {
+    /// Output only. The approval state for the app. The field is read-only. // TODO: enum values: ["APP_APPROVAL_STATE_UNSPECIFIED", "ACTION_REQUIRED", "IN_REVIEW", "APPROVED"]
+    #[serde(default, rename = "appApprovalState")]
+    pub app_approval_state: ::core::option::Option<String>,
+    /// The externally visible ID of the app which can be used to integrate with the AdMob SDK. This is a read only property. Example: ca-app-pub-9876543210987654~0123456789
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// Immutable. The information for an app that is linked to an app store. This field is present if and only if the app is linked to an app store.
+    #[serde(default, rename = "linkedAppInfo")]
+    pub linked_app_info: ::core::option::Option<AppLinkedAppInfo>,
+    /// The information for an app that is not linked to any app store. After an app is linked, this information is still retrivable. If no name is provided for the app upon creation, a placeholder name will be used.
+    #[serde(default, rename = "manualAppInfo")]
+    pub manual_app_info: ::core::option::Option<AppManualAppInfo>,
+    /// Resource name for this app. Format is accounts/{publisher_id}/apps/{app_id_fragment} Example: accounts/pub-9876543210987654/apps/0123456789
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Describes the platform of the app. Limited to "IOS" and "ANDROID".
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+}
+
+/// A publisher account contains information relevant to the use of this API, such as the time zone used for the reports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublisherAccount {
+    /// Currency code of the earning-related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Resource name of this account. Format is accounts/{publisher_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The unique ID by which this publisher account can be identified in the API requests (for example, pub-1234567890).
+    #[serde(default, rename = "publisherId")]
+    pub publisher_id: ::core::option::Option<String>,
+    /// The time zone that is used in reports that are generated for this account. The value is a time-zone ID as specified by the CLDR project, for example, "America/Los_Angeles".
+    #[serde(default, rename = "reportingTimeZone")]
+    pub reporting_time_zone: ::core::option::Option<String>,
+}
+
+/// Describes which report rows to match based on their dimension values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediationReportSpecDimensionFilter {
+    /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Matches a row if its value for the specified dimension is in one of the values specified in this condition.
+    #[serde(default, rename = "matchesAny")]
+    pub matches_any: ::core::option::Option<StringList>,
+}
+
+/// Sorting direction to be applied on a dimension or a metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediationReportSpecSortCondition {
+    /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Sort by the specified metric. // TODO: enum values: ["METRIC_UNSPECIFIED", "AD_REQUESTS", "CLICKS", "ESTIMATED_EARNINGS", "IMPRESSIONS", "IMPRESSION_CTR", "MATCHED_REQUESTS", "MATCH_RATE", "OBSERVED_ECPM"]
+    #[serde(default)]
+    pub metric: ::core::option::Option<String>,
+    /// Sorting order of the dimension or metric. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
+    #[serde(default)]
+    pub order: ::core::option::Option<String>,
+}
+
+/// Describes which report rows to match based on their dimension values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkReportSpecDimensionFilter {
+    /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Matches a row if its value for the specified dimension is in one of the values specified in this condition.
+    #[serde(default, rename = "matchesAny")]
+    pub matches_any: ::core::option::Option<StringList>,
+}
+
+/// Sorting direction to be applied on a dimension or a metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkReportSpecSortCondition {
+    /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Sort by the specified metric. // TODO: enum values: ["METRIC_UNSPECIFIED", "AD_REQUESTS", "CLICKS", "ESTIMATED_EARNINGS", "IMPRESSIONS", "IMPRESSION_CTR", "IMPRESSION_RPM", "MATCHED_REQUESTS", "MATCH_RATE", "SHOW_RATE"]
+    #[serde(default)]
+    pub metric: ::core::option::Option<String>,
+    /// Sorting order of the dimension or metric. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
+    #[serde(default)]
+    pub order: ::core::option::Option<String>,
 }
 
 /// Warnings associated with generation of the report.
@@ -387,10 +340,57 @@ pub struct ReportWarning {
     pub type_: ::core::option::Option<String>,
 }
 
-/// List of string values.
+/// Specification of a single date range. Both dates are inclusive.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringList {
-    /// The string values.
+pub struct DateRange {
+    /// End date of the date range, inclusive. Must be greater than or equal to the start date.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Start date of the date range, inclusive. Must be less than or equal to the end date.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+}
+
+/// Localization settings for reports, such as currency and language. It affects how metrics are calculated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalizationSettings {
+    /// Currency code of the earning related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion. Defaults to the account currency code if unspecified.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Language used for any localized text, such as some dimension value display labels. The language tag defined in the IETF BCP47. Defaults to ''en-US'' if unspecified.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+}
+
+/// Information from the app store if the app is linked to an app store.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppLinkedAppInfo {
+    /// The app store ID of the app; present if and only if the app is linked to an app store. If the app is added to the Google Play store, it will be the application ID of the app. For example: "com.example.myapp". See https://developer.android.com/studio/build/application-id. If the app is added to the Apple App Store, it will be app store ID. For example "105169111". Note that setting the app store id is considered an irreversible action. Once an app is linked, it cannot be unlinked.
+    #[serde(default, rename = "appStoreId")]
+    pub app_store_id: ::core::option::Option<String>,
+    /// Output only. Display name of the app as it appears in the app store. This is an output-only field, and may be empty if the app cannot be found in the store.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Information provided for manual apps which are not linked to an application store (Example: Google Play, App Store).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppManualAppInfo {
+    /// The display name of the app as shown in the AdMob UI, which is provided by the user. The maximum length allowed is 80 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

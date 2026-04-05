@@ -10,231 +10,159 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for TranscoderService.ListJobTemplates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListJobTemplatesResponse {
+    /// List of job templates in the specified region.
+    #[serde(default, rename = "jobTemplates")]
+    pub job_templates: ::core::option::Option<::std::vec::Vec<JobTemplate>>,
+    /// The pagination token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of regions that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TranscoderService.ListJobs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListJobsResponse {
+    /// List of jobs in the specified region.
+    #[serde(default)]
+    pub jobs: ::core::option::Option<::std::vec::Vec<Job>>,
+    /// The pagination token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of regions that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Transcoding job template resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JobTemplate {
+    /// The configuration for this template.
+    #[serde(default)]
+    pub config: ::core::option::Option<JobConfig>,
+    /// The labels associated with this job template. You can use these to organize and group your job templates.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The resource name of the job template. Format: projects/{project_number}/locations/{location}/jobTemplates/{job_template}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Transcoding job resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Job {
+    /// The processing priority of a batch job. This field can only be set for batch mode jobs. The default value is 0. This value cannot be negative. Higher values correspond to higher priorities for the job.
+    #[serde(default, rename = "batchModePriority")]
+    pub batch_mode_priority: ::core::option::Option<i32>,
+    /// The configuration for this job.
+    #[serde(default)]
+    pub config: ::core::option::Option<JobConfig>,
+    /// Output only. The time the job was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the transcoding finished.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. An error object that describes the reason for the failure. This property is always present when ProcessingState is FAILED.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Optional. Insert silence and duplicate frames when timestamp gaps are detected in a given stream.
+    #[serde(default, rename = "fillContentGaps")]
+    pub fill_content_gaps: ::core::option::Option<bool>,
+    /// Input only. Specify the input_uri to populate empty uri fields in each element of Job.config.inputs or JobTemplate.config.inputs when using template. URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, gs://bucket/inputs/file.mp4). See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
+    #[serde(default, rename = "inputUri")]
+    pub input_uri: ::core::option::Option<String>,
+    /// The labels associated with this job. You can use these to organize and group your jobs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The processing mode of the job. The default is PROCESSING_MODE_INTERACTIVE. // TODO: enum values: ["PROCESSING_MODE_UNSPECIFIED", "PROCESSING_MODE_INTERACTIVE", "PROCESSING_MODE_BATCH"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// The resource name of the job. Format: projects/{project_number}/locations/{location}/jobs/{job}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The optimization strategy of the job. The default is AUTODETECT. // TODO: enum values: ["OPTIMIZATION_STRATEGY_UNSPECIFIED", "AUTODETECT", "DISABLED"]
+    #[serde(default)]
+    pub optimization: ::core::option::Option<String>,
+    /// Input only. Specify the output_uri to populate an empty Job.config.output.uri or JobTemplate.config.output.uri when using template. URI for the output file(s). For example, gs://my-bucket/outputs/. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
+    #[serde(default, rename = "outputUri")]
+    pub output_uri: ::core::option::Option<String>,
+    /// Output only. The time the transcoding started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The current state of the job. // TODO: enum values: ["PROCESSING_STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Input only. Specify the template_id to use for populating Job.config. The default is preset/web-hd, which is the only supported preset. User defined JobTemplate: {job_template_id}
+    #[serde(default, rename = "templateId")]
+    pub template_id: ::core::option::Option<String>,
+    /// Job time to live value in days, which will be effective after job completion. Job should be deleted automatically after the given TTL. Enter a value between 1 and 90. The default is 30.
+    #[serde(default, rename = "ttlAfterCompletionDays")]
+    pub ttl_after_completion_days: ::core::option::Option<i32>,
+}
+
+/// Job configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JobConfig {
+    /// List of ad breaks. Specifies where to insert ad break tags in the output manifests.
+    #[serde(default, rename = "adBreaks")]
+    pub ad_breaks: ::core::option::Option<::std::vec::Vec<AdBreak>>,
+    /// List of edit atoms. Defines the ultimate timeline of the resulting file or manifest.
+    #[serde(default, rename = "editList")]
+    pub edit_list: ::core::option::Option<::std::vec::Vec<EditAtom>>,
+    /// List of elementary streams.
+    #[serde(default, rename = "elementaryStreams")]
+    pub elementary_streams: ::core::option::Option<::std::vec::Vec<ElementaryStream>>,
+    /// List of encryption configurations for the content. Each configuration has an ID. Specify this ID in the MuxStream.encryption_id field to indicate the configuration to use for that MuxStream output.
+    #[serde(default)]
+    pub encryptions: ::core::option::Option<::std::vec::Vec<Encryption>>,
+    /// List of input assets stored in Cloud Storage.
+    #[serde(default)]
+    pub inputs: ::core::option::Option<::std::vec::Vec<Input>>,
+    /// List of output manifests.
+    #[serde(default)]
+    pub manifests: ::core::option::Option<::std::vec::Vec<Manifest>>,
+    /// List of multiplexing settings for output streams.
+    #[serde(default, rename = "muxStreams")]
+    pub mux_streams: ::core::option::Option<::std::vec::Vec<MuxStream>>,
+    /// Output configuration.
+    #[serde(default)]
+    pub output: ::core::option::Option<Output>,
+    /// List of overlays on the output video, in descending Z-order.
+    #[serde(default)]
+    pub overlays: ::core::option::Option<::std::vec::Vec<Overlay>>,
+    /// Destination on Pub/Sub.
+    #[serde(default, rename = "pubsubDestination")]
+    pub pubsub_destination: ::core::option::Option<PubsubDestination>,
+    /// List of output sprite sheets. Spritesheets require at least one VideoStream in the Jobconfig.
+    #[serde(default, rename = "spriteSheets")]
+    pub sprite_sheets: ::core::option::Option<::std::vec::Vec<SpriteSheet>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
 /// Ad break.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdBreak {
     /// Start time in seconds for the ad break, relative to the output file timeline. The default is 0s.
     #[serde(default, rename = "startTimeOffset")]
     pub start_time_offset: ::core::option::Option<String>,
-}
-
-/// Animation types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Animation {
-    /// End previous animation.
-    #[serde(default, rename = "animationEnd")]
-    pub animation_end: ::core::option::Option<AnimationEnd>,
-    /// Display overlay object with fade animation.
-    #[serde(default, rename = "animationFade")]
-    pub animation_fade: ::core::option::Option<AnimationFade>,
-    /// Display static overlay object.
-    #[serde(default, rename = "animationStatic")]
-    pub animation_static: ::core::option::Option<AnimationStatic>,
-}
-
-/// End previous overlay animation from the video. Without AnimationEnd, the overlay object will keep the state of previous animation until the end of the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnimationEnd {
-    /// The time to end overlay object, in seconds. Default: 0
-    #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: ::core::option::Option<String>,
-}
-
-/// Display overlay object with fade animation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnimationFade {
-    /// The time to end the fade animation, in seconds. Default: start_time_offset + 1s
-    #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: ::core::option::Option<String>,
-    /// Required. Type of fade animation: FADE_IN or FADE_OUT. // TODO: enum values: ["FADE_TYPE_UNSPECIFIED", "FADE_IN", "FADE_OUT"]
-    #[serde(default, rename = "fadeType")]
-    pub fade_type: ::core::option::Option<String>,
-    /// The time to start the fade animation, in seconds. Default: 0
-    #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: ::core::option::Option<String>,
-    /// Normalized coordinates based on output video resolution. Valid values: 0.0–1.0. xy is the upper-left coordinate of the overlay object. For example, use the x and y coordinates {0,0} to position the top-left corner of the overlay animation in the top-left corner of the output video.
-    #[serde(default)]
-    pub xy: ::core::option::Option<NormalizedCoordinate>,
-}
-
-/// Display static overlay object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnimationStatic {
-    /// The time to start displaying the overlay object, in seconds. Default: 0
-    #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: ::core::option::Option<String>,
-    /// Normalized coordinates based on output video resolution. Valid values: 0.0–1.0. xy is the upper-left coordinate of the overlay object. For example, use the x and y coordinates {0,0} to position the top-left corner of the overlay animation in the top-left corner of the output video.
-    #[serde(default)]
-    pub xy: ::core::option::Option<NormalizedCoordinate>,
-}
-
-/// Audio preprocessing configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Audio {
-    /// Enable boosting high frequency components. The default is false. **Note:** This field is not supported.
-    #[serde(default, rename = "highBoost")]
-    pub high_boost: ::core::option::Option<bool>,
-    /// Enable boosting low frequency components. The default is false. **Note:** This field is not supported.
-    #[serde(default, rename = "lowBoost")]
-    pub low_boost: ::core::option::Option<bool>,
-    /// Specify audio loudness normalization in loudness units relative to full scale (LUFS). Enter a value between -24 and 0 (the default), where: * -24 is the Advanced Television Systems Committee (ATSC A/85) standard * -23 is the EU R128 broadcast standard * -19 is the prior standard for online mono audio * -18 is the ReplayGain standard * -16 is the prior standard for stereo audio * -14 is the new online audio standard recommended by Spotify, as well as Amazon Echo * 0 disables normalization
-    #[serde(default)]
-    pub lufs: ::core::option::Option<f64>,
-}
-
-/// The mapping for the JobConfig.edit_list atoms with audio EditAtom.inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioMapping {
-    /// Required. The EditAtom.key that references the atom with audio inputs in the JobConfig.edit_list.
-    #[serde(default, rename = "atomKey")]
-    pub atom_key: ::core::option::Option<String>,
-    /// Audio volume control in dB. Negative values decrease volume, positive values increase. The default is 0.
-    #[serde(default, rename = "gainDb")]
-    pub gain_db: ::core::option::Option<f64>,
-    /// Required. The zero-based index of the channel in the input audio stream.
-    #[serde(default, rename = "inputChannel")]
-    pub input_channel: ::core::option::Option<i32>,
-    /// Required. The Input.key that identifies the input file.
-    #[serde(default, rename = "inputKey")]
-    pub input_key: ::core::option::Option<String>,
-    /// Required. The zero-based index of the track in the input file.
-    #[serde(default, rename = "inputTrack")]
-    pub input_track: ::core::option::Option<i32>,
-    /// Required. The zero-based index of the channel in the output audio stream.
-    #[serde(default, rename = "outputChannel")]
-    pub output_channel: ::core::option::Option<i32>,
-}
-
-/// Audio stream resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioStream {
-    /// Required. Audio bitrate in bits per second. Must be between 1 and 10,000,000.
-    #[serde(default, rename = "bitrateBps")]
-    pub bitrate_bps: ::core::option::Option<i32>,
-    /// Number of audio channels. Must be between 1 and 6. The default is 2.
-    #[serde(default, rename = "channelCount")]
-    pub channel_count: ::core::option::Option<i32>,
-    /// A list of channel names specifying layout of the audio channels. This only affects the metadata embedded in the container headers, if supported by the specified format. The default is ["fl", "fr"]. Supported channel names: - fl - Front left channel - fr - Front right channel - sl - Side left channel - sr - Side right channel - fc - Front center channel - lfe - Low frequency
-    #[serde(default, rename = "channelLayout")]
-    pub channel_layout: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The codec for this audio stream. The default is aac. Supported audio codecs: - aac - aac-he - aac-he-v2 - mp3 - ac3 - eac3 - vorbis
-    #[serde(default)]
-    pub codec: ::core::option::Option<String>,
-    /// The name for this particular audio stream that will be added to the HLS/DASH manifest. Not supported in MP4 files.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The BCP-47 language code, such as en-US or sr-Latn. For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. Not supported in MP4 files.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// The mapping for the JobConfig.edit_list atoms with audio EditAtom.inputs.
-    #[serde(default)]
-    pub mapping: ::core::option::Option<::std::vec::Vec<AudioMapping>>,
-    /// The audio sample rate in Hertz. The default is 48000 Hertz.
-    #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: ::core::option::Option<i32>,
-}
-
-/// Bob Weaver Deinterlacing Filter Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BwdifConfig {
-    /// Deinterlace all frames rather than just the frames identified as interlaced. The default is false.
-    #[serde(default, rename = "deinterlaceAllFrames")]
-    pub deinterlace_all_frames: ::core::option::Option<bool>,
-    /// Specifies the deinterlacing mode to adopt. The default is send_frame. Supported values: - send_frame: Output one frame for each frame - send_field: Output one frame for each field
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// The picture field parity assumed for the input interlaced video. The default is auto. Supported values: - tff: Assume the top field is first - bff: Assume the bottom field is first - auto: Enable automatic detection of field parity
-    #[serde(default)]
-    pub parity: ::core::option::Option<String>,
-}
-
-/// Color preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Color {
-    /// Control brightness of the video. Enter a value between -1 and 1, where -1 is minimum brightness and 1 is maximum brightness. 0 is no change. The default is 0.
-    #[serde(default)]
-    pub brightness: ::core::option::Option<f64>,
-    /// Control black and white contrast of the video. Enter a value between -1 and 1, where -1 is minimum contrast and 1 is maximum contrast. 0 is no change. The default is 0.
-    #[serde(default)]
-    pub contrast: ::core::option::Option<f64>,
-    /// Control color saturation of the video. Enter a value between -1 and 1, where -1 is fully desaturated and 1 is maximum saturation. 0 is no change. The default is 0.
-    #[serde(default)]
-    pub saturation: ::core::option::Option<f64>,
-}
-
-/// Video cropping configuration for the input video. The cropped input video is scaled to match the output resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Crop {
-    /// The number of pixels to crop from the bottom. The default is 0.
-    #[serde(default, rename = "bottomPixels")]
-    pub bottom_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to crop from the left. The default is 0.
-    #[serde(default, rename = "leftPixels")]
-    pub left_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to crop from the right. The default is 0.
-    #[serde(default, rename = "rightPixels")]
-    pub right_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to crop from the top. The default is 0.
-    #[serde(default, rename = "topPixels")]
-    pub top_pixels: ::core::option::Option<i32>,
-}
-
-/// DASH manifest configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DashConfig {
-    /// The segment reference scheme for a DASH manifest. The default is SEGMENT_LIST. // TODO: enum values: ["SEGMENT_REFERENCE_SCHEME_UNSPECIFIED", "SEGMENT_LIST", "SEGMENT_TEMPLATE_NUMBER"]
-    #[serde(default, rename = "segmentReferenceScheme")]
-    pub segment_reference_scheme: ::core::option::Option<String>,
-}
-
-/// Deblock preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Deblock {
-    /// Enable deblocker. The default is false.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Set strength of the deblocker. Enter a value between 0 and 1. The higher the value, the stronger the block removal. 0 is no deblocking. The default is 0.
-    #[serde(default)]
-    pub strength: ::core::option::Option<f64>,
-}
-
-/// Deinterlace configuration for input video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Deinterlace {
-    /// Specifies the Bob Weaver Deinterlacing Filter Configuration.
-    #[serde(default)]
-    pub bwdif: ::core::option::Option<BwdifConfig>,
-    /// Specifies the Yet Another Deinterlacing Filter Configuration.
-    #[serde(default)]
-    pub yadif: ::core::option::Option<YadifConfig>,
-}
-
-/// Denoise preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Denoise {
-    /// Set strength of the denoise. Enter a value between 0 and 1. The higher the value, the smoother the image. 0 is no denoising. The default is 0.
-    #[serde(default)]
-    pub strength: ::core::option::Option<f64>,
-    /// Set the denoiser mode. The default is standard. Supported denoiser modes: - standard - grain
-    #[serde(default)]
-    pub tune: ::core::option::Option<String>,
-}
-
-/// Defines configuration for DRM systems in use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DrmSystems {
-    /// Clearkey configuration.
-    #[serde(default)]
-    pub clearkey: ::core::option::Option<serde_json::Value>,
-    /// Fairplay configuration.
-    #[serde(default)]
-    pub fairplay: ::core::option::Option<serde_json::Value>,
-    /// Playready configuration.
-    #[serde(default)]
-    pub playready: ::core::option::Option<serde_json::Value>,
-    /// Widevine configuration.
-    #[serde(default)]
-    pub widevine: ::core::option::Option<serde_json::Value>,
 }
 
 /// Edit atom.
@@ -294,12 +222,348 @@ pub struct Encryption {
     pub secret_manager_key_source: ::core::option::Option<SecretManagerSource>,
 }
 
+/// Input asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Input {
+    /// Optional. Input Attributes.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<InputAttributes>,
+    /// A unique key for this input. Must be specified when using advanced mapping and edit lists.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Preprocessing configurations.
+    #[serde(default, rename = "preprocessingConfig")]
+    pub preprocessing_config: ::core::option::Option<PreprocessingConfig>,
+    /// URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, gs://bucket/inputs/file.mp4). If empty, the value is populated from Job.input_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Manifest configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Manifest {
+    /// DASH manifest configuration.
+    #[serde(default)]
+    pub dash: ::core::option::Option<DashConfig>,
+    /// The name of the generated file. The default is manifest with the extension suffix corresponding to the Manifest.type.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Required. List of user supplied MuxStream.key values that should appear in this manifest. When Manifest.type is HLS, a media manifest with name MuxStream.key and .m3u8 extension is generated for each element in this list.
+    #[serde(default, rename = "muxStreams")]
+    pub mux_streams: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Type of the manifest. // TODO: enum values: ["MANIFEST_TYPE_UNSPECIFIED", "HLS", "DASH"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Multiplexing settings for output stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MuxStream {
+    /// The container format. The default is mp4 Supported streaming formats: - ts - fmp4- the corresponding file extension is .m4s Supported standalone file formats: - mp4 - mp3 - ogg - vtt See also: [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats)
+    #[serde(default)]
+    pub container: ::core::option::Option<String>,
+    /// List of ElementaryStream.key values multiplexed in this stream.
+    #[serde(default, rename = "elementaryStreams")]
+    pub elementary_streams: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifier of the encryption configuration to use. If omitted, output will be unencrypted.
+    #[serde(default, rename = "encryptionId")]
+    pub encryption_id: ::core::option::Option<String>,
+    /// The name of the generated file. The default is MuxStream.key with the extension suffix corresponding to the MuxStream.container. Individual segments also have an incremental 10-digit zero-padded suffix starting from 0 before the extension, such as mux_stream0000000123.ts.
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<String>,
+    /// Optional. fmp4 container configuration.
+    #[serde(default)]
+    pub fmp4: ::core::option::Option<Fmp4Config>,
+    /// A unique key for this multiplexed stream.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Segment settings for ts, fmp4 and vtt.
+    #[serde(default, rename = "segmentSettings")]
+    pub segment_settings: ::core::option::Option<SegmentSettings>,
+}
+
+/// Location of output file(s) in a Cloud Storage bucket.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Output {
+    /// URI for the output file(s). For example, gs://my-bucket/outputs/. Must be a directory and not a top-level bucket. If empty, the value is populated from Job.output_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Overlay configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Overlay {
+    /// List of animations. The list should be chronological, without any time overlap.
+    #[serde(default)]
+    pub animations: ::core::option::Option<::std::vec::Vec<Animation>>,
+    /// Image overlay.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+}
+
+/// A Pub/Sub destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubDestination {
+    /// The name of the Pub/Sub topic to publish job completion notification to. For example: projects/{project}/topics/{topic}.
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// Sprite sheet configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpriteSheet {
+    /// The maximum number of sprites per row in a sprite sheet. The default is 0, which indicates no maximum limit.
+    #[serde(default, rename = "columnCount")]
+    pub column_count: ::core::option::Option<i32>,
+    /// End time in seconds, relative to the output file timeline. When end_time_offset is not specified, the sprites are generated until the end of the output file.
+    #[serde(default, rename = "endTimeOffset")]
+    pub end_time_offset: ::core::option::Option<String>,
+    /// Required. File name prefix for the generated sprite sheets. Each sprite sheet has an incremental 10-digit zero-padded suffix starting from 0 before the extension, such as sprite_sheet0000000123.jpeg.
+    #[serde(default, rename = "filePrefix")]
+    pub file_prefix: ::core::option::Option<String>,
+    /// Format type. The default is jpeg. Supported formats: - jpeg
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Starting from 0s, create sprites at regular intervals. Specify the interval value in seconds.
+    #[serde(default)]
+    pub interval: ::core::option::Option<String>,
+    /// The quality of the generated sprite sheet. Enter a value between 1 and 100, where 1 is the lowest quality and 100 is the highest quality. The default is 100. A high quality value corresponds to a low image data compression ratio.
+    #[serde(default)]
+    pub quality: ::core::option::Option<i32>,
+    /// The maximum number of rows per sprite sheet. When the sprite sheet is full, a new sprite sheet is created. The default is 0, which indicates no maximum limit.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<i32>,
+    /// Required. The height of sprite in pixels. Must be an even integer. To preserve the source aspect ratio, set the SpriteSheet.sprite_height_pixels field or the SpriteSheet.sprite_width_pixels field, but not both (the API will automatically calculate the missing field). For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
+    #[serde(default, rename = "spriteHeightPixels")]
+    pub sprite_height_pixels: ::core::option::Option<i32>,
+    /// Required. The width of sprite in pixels. Must be an even integer. To preserve the source aspect ratio, set the SpriteSheet.sprite_width_pixels field or the SpriteSheet.sprite_height_pixels field, but not both (the API will automatically calculate the missing field). For portrait videos that contain horizontal ASR and rotation metadata, provide the width, in pixels, per the horizontal ASR. The API calculates the height per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
+    #[serde(default, rename = "spriteWidthPixels")]
+    pub sprite_width_pixels: ::core::option::Option<i32>,
+    /// Start time in seconds, relative to the output file timeline. Determines the first sprite to pick. The default is 0s.
+    #[serde(default, rename = "startTimeOffset")]
+    pub start_time_offset: ::core::option::Option<String>,
+    /// Total number of sprites. Create the specified number of sprites distributed evenly across the timeline of the output media. The default is 100.
+    #[serde(default, rename = "totalCount")]
+    pub total_count: ::core::option::Option<i32>,
+}
+
+/// Audio stream resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioStream {
+    /// Required. Audio bitrate in bits per second. Must be between 1 and 10,000,000.
+    #[serde(default, rename = "bitrateBps")]
+    pub bitrate_bps: ::core::option::Option<i32>,
+    /// Number of audio channels. Must be between 1 and 6. The default is 2.
+    #[serde(default, rename = "channelCount")]
+    pub channel_count: ::core::option::Option<i32>,
+    /// A list of channel names specifying layout of the audio channels. This only affects the metadata embedded in the container headers, if supported by the specified format. The default is ["fl", "fr"]. Supported channel names: - fl - Front left channel - fr - Front right channel - sl - Side left channel - sr - Side right channel - fc - Front center channel - lfe - Low frequency
+    #[serde(default, rename = "channelLayout")]
+    pub channel_layout: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The codec for this audio stream. The default is aac. Supported audio codecs: - aac - aac-he - aac-he-v2 - mp3 - ac3 - eac3 - vorbis
+    #[serde(default)]
+    pub codec: ::core::option::Option<String>,
+    /// The name for this particular audio stream that will be added to the HLS/DASH manifest. Not supported in MP4 files.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The BCP-47 language code, such as en-US or sr-Latn. For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. Not supported in MP4 files.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// The mapping for the JobConfig.edit_list atoms with audio EditAtom.inputs.
+    #[serde(default)]
+    pub mapping: ::core::option::Option<::std::vec::Vec<AudioMapping>>,
+    /// The audio sample rate in Hertz. The default is 48000 Hertz.
+    #[serde(default, rename = "sampleRateHertz")]
+    pub sample_rate_hertz: ::core::option::Option<i32>,
+}
+
+/// Encoding of a text stream. For example, closed captions or subtitles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextStream {
+    /// The codec for this text stream. The default is webvtt. Supported text codecs: - srt - ttml - cea608 - cea708 - webvtt
+    #[serde(default)]
+    pub codec: ::core::option::Option<String>,
+    /// The name for this particular text stream that will be added to the HLS/DASH manifest. Not supported in MP4 files.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The BCP-47 language code, such as en-US or sr-Latn. For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. Not supported in MP4 files.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// The mapping for the JobConfig.edit_list atoms with text EditAtom.inputs.
+    #[serde(default)]
+    pub mapping: ::core::option::Option<::std::vec::Vec<TextMapping>>,
+}
+
+/// Video stream resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoStream {
+    /// H264 codec settings.
+    #[serde(default)]
+    pub h264: ::core::option::Option<H264CodecSettings>,
+    /// H265 codec settings.
+    #[serde(default)]
+    pub h265: ::core::option::Option<H265CodecSettings>,
+    /// VP9 codec settings.
+    #[serde(default)]
+    pub vp9: ::core::option::Option<Vp9CodecSettings>,
+}
+
+/// Defines configuration for DRM systems in use.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DrmSystems {
+    /// Clearkey configuration.
+    #[serde(default)]
+    pub clearkey: ::core::option::Option<serde_json::Value>,
+    /// Fairplay configuration.
+    #[serde(default)]
+    pub fairplay: ::core::option::Option<serde_json::Value>,
+    /// Playready configuration.
+    #[serde(default)]
+    pub playready: ::core::option::Option<serde_json::Value>,
+    /// Widevine configuration.
+    #[serde(default)]
+    pub widevine: ::core::option::Option<serde_json::Value>,
+}
+
+/// Configuration for MPEG Common Encryption (MPEG-CENC).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MpegCommonEncryption {
+    /// Required. Specify the encryption scheme. Supported encryption schemes: - cenc - cbcs
+    #[serde(default)]
+    pub scheme: ::core::option::Option<String>,
+}
+
+/// Configuration for secrets stored in Google Secret Manager.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecretManagerSource {
+    /// Required. The name of the Secret Version containing the encryption key in the following format: projects/{project}/secrets/{secret_id}/versions/{version_number} Note that only numbered versions are supported. Aliases like "latest" are not supported.
+    #[serde(default, rename = "secretVersion")]
+    pub secret_version: ::core::option::Option<String>,
+}
+
+/// Input attributes that provide additional information about the input asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputAttributes {
+    /// Optional. A list of track definitions for the input asset.
+    #[serde(default, rename = "trackDefinitions")]
+    pub track_definitions: ::core::option::Option<::std::vec::Vec<TrackDefinition>>,
+}
+
+/// Preprocessing configurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreprocessingConfig {
+    /// Audio preprocessing configuration.
+    #[serde(default)]
+    pub audio: ::core::option::Option<Audio>,
+    /// Color preprocessing configuration.
+    #[serde(default)]
+    pub color: ::core::option::Option<Color>,
+    /// Specify the video cropping configuration.
+    #[serde(default)]
+    pub crop: ::core::option::Option<Crop>,
+    /// Deblock preprocessing configuration.
+    #[serde(default)]
+    pub deblock: ::core::option::Option<Deblock>,
+    /// Specify the video deinterlace configuration.
+    #[serde(default)]
+    pub deinterlace: ::core::option::Option<Deinterlace>,
+    /// Denoise preprocessing configuration.
+    #[serde(default)]
+    pub denoise: ::core::option::Option<Denoise>,
+    /// Specify the video pad filter configuration.
+    #[serde(default)]
+    pub pad: ::core::option::Option<Pad>,
+}
+
+/// DASH manifest configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DashConfig {
+    /// The segment reference scheme for a DASH manifest. The default is SEGMENT_LIST. // TODO: enum values: ["SEGMENT_REFERENCE_SCHEME_UNSPECIFIED", "SEGMENT_LIST", "SEGMENT_TEMPLATE_NUMBER"]
+    #[serde(default, rename = "segmentReferenceScheme")]
+    pub segment_reference_scheme: ::core::option::Option<String>,
+}
+
 /// fmp4 container configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Fmp4Config {
     /// Optional. Specify the codec tag string that will be used in the media bitstream. When not specified, the codec appropriate value is used. Supported H265 codec tags: - hvc1 (default) - hev1
     #[serde(default, rename = "codecTag")]
     pub codec_tag: ::core::option::Option<String>,
+}
+
+/// Segment settings for ts, fmp4 and vtt.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SegmentSettings {
+    /// Required. Create an individual segment file. The default is false.
+    #[serde(default, rename = "individualSegments")]
+    pub individual_segments: ::core::option::Option<bool>,
+    /// Duration of the segments in seconds. The default is 6.0s. Note that segmentDuration must be greater than or equal to [gopDuration](#videostream), and segmentDuration must be divisible by [gopDuration](#videostream).
+    #[serde(default, rename = "segmentDuration")]
+    pub segment_duration: ::core::option::Option<String>,
+}
+
+/// Animation types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Animation {
+    /// End previous animation.
+    #[serde(default, rename = "animationEnd")]
+    pub animation_end: ::core::option::Option<AnimationEnd>,
+    /// Display overlay object with fade animation.
+    #[serde(default, rename = "animationFade")]
+    pub animation_fade: ::core::option::Option<AnimationFade>,
+    /// Display static overlay object.
+    #[serde(default, rename = "animationStatic")]
+    pub animation_static: ::core::option::Option<AnimationStatic>,
+}
+
+/// Overlaid image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// Target image opacity. Valid values are from 1.0 (solid, default) to 0.0 (transparent), exclusive. Set this to a value greater than 0.0.
+    #[serde(default)]
+    pub alpha: ::core::option::Option<f64>,
+    /// Normalized image resolution, based on output video resolution. Valid values: 0.0–1.0. To respect the original image aspect ratio, set either x or y to 0.0. To use the original image resolution, set both x and y to 0.0.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<NormalizedCoordinate>,
+    /// Required. URI of the image in Cloud Storage. For example, gs://bucket/inputs/image.png. Only PNG and JPEG images are supported.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// The mapping for the JobConfig.edit_list atoms with audio EditAtom.inputs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioMapping {
+    /// Required. The EditAtom.key that references the atom with audio inputs in the JobConfig.edit_list.
+    #[serde(default, rename = "atomKey")]
+    pub atom_key: ::core::option::Option<String>,
+    /// Audio volume control in dB. Negative values decrease volume, positive values increase. The default is 0.
+    #[serde(default, rename = "gainDb")]
+    pub gain_db: ::core::option::Option<f64>,
+    /// Required. The zero-based index of the channel in the input audio stream.
+    #[serde(default, rename = "inputChannel")]
+    pub input_channel: ::core::option::Option<i32>,
+    /// Required. The Input.key that identifies the input file.
+    #[serde(default, rename = "inputKey")]
+    pub input_key: ::core::option::Option<String>,
+    /// Required. The zero-based index of the track in the input file.
+    #[serde(default, rename = "inputTrack")]
+    pub input_track: ::core::option::Option<i32>,
+    /// Required. The zero-based index of the channel in the output audio stream.
+    #[serde(default, rename = "outputChannel")]
+    pub output_channel: ::core::option::Option<i32>,
+}
+
+/// The mapping for the JobConfig.edit_list atoms with text EditAtom.inputs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextMapping {
+    /// Required. The EditAtom.key that references atom with text inputs in the JobConfig.edit_list.
+    #[serde(default, rename = "atomKey")]
+    pub atom_key: ::core::option::Option<String>,
+    /// Required. The Input.key that identifies the input file.
+    #[serde(default, rename = "inputKey")]
+    pub input_key: ::core::option::Option<String>,
+    /// Required. The zero-based index of the track in the input file.
+    #[serde(default, rename = "inputTrack")]
+    pub input_track: ::core::option::Option<i32>,
 }
 
 /// H264 codec settings.
@@ -450,443 +714,6 @@ pub struct H265CodecSettings {
     pub width_pixels: ::core::option::Option<i32>,
 }
 
-/// Overlaid image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// Target image opacity. Valid values are from 1.0 (solid, default) to 0.0 (transparent), exclusive. Set this to a value greater than 0.0.
-    #[serde(default)]
-    pub alpha: ::core::option::Option<f64>,
-    /// Normalized image resolution, based on output video resolution. Valid values: 0.0–1.0. To respect the original image aspect ratio, set either x or y to 0.0. To use the original image resolution, set both x and y to 0.0.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<NormalizedCoordinate>,
-    /// Required. URI of the image in Cloud Storage. For example, gs://bucket/inputs/image.png. Only PNG and JPEG images are supported.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Input {
-    /// Optional. Input Attributes.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<InputAttributes>,
-    /// A unique key for this input. Must be specified when using advanced mapping and edit lists.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Preprocessing configurations.
-    #[serde(default, rename = "preprocessingConfig")]
-    pub preprocessing_config: ::core::option::Option<PreprocessingConfig>,
-    /// URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, gs://bucket/inputs/file.mp4). If empty, the value is populated from Job.input_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Input attributes that provide additional information about the input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputAttributes {
-    /// Optional. A list of track definitions for the input asset.
-    #[serde(default, rename = "trackDefinitions")]
-    pub track_definitions: ::core::option::Option<::std::vec::Vec<TrackDefinition>>,
-}
-
-/// Transcoding job resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Job {
-    /// The processing priority of a batch job. This field can only be set for batch mode jobs. The default value is 0. This value cannot be negative. Higher values correspond to higher priorities for the job.
-    #[serde(default, rename = "batchModePriority")]
-    pub batch_mode_priority: ::core::option::Option<i32>,
-    /// The configuration for this job.
-    #[serde(default)]
-    pub config: ::core::option::Option<JobConfig>,
-    /// Output only. The time the job was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the transcoding finished.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. An error object that describes the reason for the failure. This property is always present when ProcessingState is FAILED.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Optional. Insert silence and duplicate frames when timestamp gaps are detected in a given stream.
-    #[serde(default, rename = "fillContentGaps")]
-    pub fill_content_gaps: ::core::option::Option<bool>,
-    /// Input only. Specify the input_uri to populate empty uri fields in each element of Job.config.inputs or JobTemplate.config.inputs when using template. URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, gs://bucket/inputs/file.mp4). See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
-    #[serde(default, rename = "inputUri")]
-    pub input_uri: ::core::option::Option<String>,
-    /// The labels associated with this job. You can use these to organize and group your jobs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The processing mode of the job. The default is PROCESSING_MODE_INTERACTIVE. // TODO: enum values: ["PROCESSING_MODE_UNSPECIFIED", "PROCESSING_MODE_INTERACTIVE", "PROCESSING_MODE_BATCH"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// The resource name of the job. Format: projects/{project_number}/locations/{location}/jobs/{job}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The optimization strategy of the job. The default is AUTODETECT. // TODO: enum values: ["OPTIMIZATION_STRATEGY_UNSPECIFIED", "AUTODETECT", "DISABLED"]
-    #[serde(default)]
-    pub optimization: ::core::option::Option<String>,
-    /// Input only. Specify the output_uri to populate an empty Job.config.output.uri or JobTemplate.config.output.uri when using template. URI for the output file(s). For example, gs://my-bucket/outputs/. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
-    #[serde(default, rename = "outputUri")]
-    pub output_uri: ::core::option::Option<String>,
-    /// Output only. The time the transcoding started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The current state of the job. // TODO: enum values: ["PROCESSING_STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Input only. Specify the template_id to use for populating Job.config. The default is preset/web-hd, which is the only supported preset. User defined JobTemplate: {job_template_id}
-    #[serde(default, rename = "templateId")]
-    pub template_id: ::core::option::Option<String>,
-    /// Job time to live value in days, which will be effective after job completion. Job should be deleted automatically after the given TTL. Enter a value between 1 and 90. The default is 30.
-    #[serde(default, rename = "ttlAfterCompletionDays")]
-    pub ttl_after_completion_days: ::core::option::Option<i32>,
-}
-
-/// Job configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JobConfig {
-    /// List of ad breaks. Specifies where to insert ad break tags in the output manifests.
-    #[serde(default, rename = "adBreaks")]
-    pub ad_breaks: ::core::option::Option<::std::vec::Vec<AdBreak>>,
-    /// List of edit atoms. Defines the ultimate timeline of the resulting file or manifest.
-    #[serde(default, rename = "editList")]
-    pub edit_list: ::core::option::Option<::std::vec::Vec<EditAtom>>,
-    /// List of elementary streams.
-    #[serde(default, rename = "elementaryStreams")]
-    pub elementary_streams: ::core::option::Option<::std::vec::Vec<ElementaryStream>>,
-    /// List of encryption configurations for the content. Each configuration has an ID. Specify this ID in the MuxStream.encryption_id field to indicate the configuration to use for that MuxStream output.
-    #[serde(default)]
-    pub encryptions: ::core::option::Option<::std::vec::Vec<Encryption>>,
-    /// List of input assets stored in Cloud Storage.
-    #[serde(default)]
-    pub inputs: ::core::option::Option<::std::vec::Vec<Input>>,
-    /// List of output manifests.
-    #[serde(default)]
-    pub manifests: ::core::option::Option<::std::vec::Vec<Manifest>>,
-    /// List of multiplexing settings for output streams.
-    #[serde(default, rename = "muxStreams")]
-    pub mux_streams: ::core::option::Option<::std::vec::Vec<MuxStream>>,
-    /// Output configuration.
-    #[serde(default)]
-    pub output: ::core::option::Option<Output>,
-    /// List of overlays on the output video, in descending Z-order.
-    #[serde(default)]
-    pub overlays: ::core::option::Option<::std::vec::Vec<Overlay>>,
-    /// Destination on Pub/Sub.
-    #[serde(default, rename = "pubsubDestination")]
-    pub pubsub_destination: ::core::option::Option<PubsubDestination>,
-    /// List of output sprite sheets. Spritesheets require at least one VideoStream in the Jobconfig.
-    #[serde(default, rename = "spriteSheets")]
-    pub sprite_sheets: ::core::option::Option<::std::vec::Vec<SpriteSheet>>,
-}
-
-/// Transcoding job template resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JobTemplate {
-    /// The configuration for this template.
-    #[serde(default)]
-    pub config: ::core::option::Option<JobConfig>,
-    /// The labels associated with this job template. You can use these to organize and group your job templates.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The resource name of the job template. Format: projects/{project_number}/locations/{location}/jobTemplates/{job_template}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Response message for TranscoderService.ListJobTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListJobTemplatesResponse {
-    /// List of job templates in the specified region.
-    #[serde(default, rename = "jobTemplates")]
-    pub job_templates: ::core::option::Option<::std::vec::Vec<JobTemplate>>,
-    /// The pagination token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// List of regions that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TranscoderService.ListJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListJobsResponse {
-    /// List of jobs in the specified region.
-    #[serde(default)]
-    pub jobs: ::core::option::Option<::std::vec::Vec<Job>>,
-    /// The pagination token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// List of regions that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Manifest configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Manifest {
-    /// DASH manifest configuration.
-    #[serde(default)]
-    pub dash: ::core::option::Option<DashConfig>,
-    /// The name of the generated file. The default is manifest with the extension suffix corresponding to the Manifest.type.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Required. List of user supplied MuxStream.key values that should appear in this manifest. When Manifest.type is HLS, a media manifest with name MuxStream.key and .m3u8 extension is generated for each element in this list.
-    #[serde(default, rename = "muxStreams")]
-    pub mux_streams: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Type of the manifest. // TODO: enum values: ["MANIFEST_TYPE_UNSPECIFIED", "HLS", "DASH"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Configuration for MPEG Common Encryption (MPEG-CENC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MpegCommonEncryption {
-    /// Required. Specify the encryption scheme. Supported encryption schemes: - cenc - cbcs
-    #[serde(default)]
-    pub scheme: ::core::option::Option<String>,
-}
-
-/// Multiplexing settings for output stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MuxStream {
-    /// The container format. The default is mp4 Supported streaming formats: - ts - fmp4- the corresponding file extension is .m4s Supported standalone file formats: - mp4 - mp3 - ogg - vtt See also: [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats)
-    #[serde(default)]
-    pub container: ::core::option::Option<String>,
-    /// List of ElementaryStream.key values multiplexed in this stream.
-    #[serde(default, rename = "elementaryStreams")]
-    pub elementary_streams: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifier of the encryption configuration to use. If omitted, output will be unencrypted.
-    #[serde(default, rename = "encryptionId")]
-    pub encryption_id: ::core::option::Option<String>,
-    /// The name of the generated file. The default is MuxStream.key with the extension suffix corresponding to the MuxStream.container. Individual segments also have an incremental 10-digit zero-padded suffix starting from 0 before the extension, such as mux_stream0000000123.ts.
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<String>,
-    /// Optional. fmp4 container configuration.
-    #[serde(default)]
-    pub fmp4: ::core::option::Option<Fmp4Config>,
-    /// A unique key for this multiplexed stream.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Segment settings for ts, fmp4 and vtt.
-    #[serde(default, rename = "segmentSettings")]
-    pub segment_settings: ::core::option::Option<SegmentSettings>,
-}
-
-/// 2D normalized coordinates. Default: {0.0, 0.0}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NormalizedCoordinate {
-    /// Normalized x coordinate.
-    #[serde(default)]
-    pub x: ::core::option::Option<f64>,
-    /// Normalized y coordinate.
-    #[serde(default)]
-    pub y: ::core::option::Option<f64>,
-}
-
-/// Location of output file(s) in a Cloud Storage bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Output {
-    /// URI for the output file(s). For example, gs://my-bucket/outputs/. Must be a directory and not a top-level bucket. If empty, the value is populated from Job.output_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Overlay configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Overlay {
-    /// List of animations. The list should be chronological, without any time overlap.
-    #[serde(default)]
-    pub animations: ::core::option::Option<::std::vec::Vec<Animation>>,
-    /// Image overlay.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-}
-
-/// Pad filter configuration for the input video. The padded input video is scaled after padding with black to match the output resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Pad {
-    /// The number of pixels to add to the bottom. The default is 0.
-    #[serde(default, rename = "bottomPixels")]
-    pub bottom_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to add to the left. The default is 0.
-    #[serde(default, rename = "leftPixels")]
-    pub left_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to add to the right. The default is 0.
-    #[serde(default, rename = "rightPixels")]
-    pub right_pixels: ::core::option::Option<i32>,
-    /// The number of pixels to add to the top. The default is 0.
-    #[serde(default, rename = "topPixels")]
-    pub top_pixels: ::core::option::Option<i32>,
-}
-
-/// Preprocessing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreprocessingConfig {
-    /// Audio preprocessing configuration.
-    #[serde(default)]
-    pub audio: ::core::option::Option<Audio>,
-    /// Color preprocessing configuration.
-    #[serde(default)]
-    pub color: ::core::option::Option<Color>,
-    /// Specify the video cropping configuration.
-    #[serde(default)]
-    pub crop: ::core::option::Option<Crop>,
-    /// Deblock preprocessing configuration.
-    #[serde(default)]
-    pub deblock: ::core::option::Option<Deblock>,
-    /// Specify the video deinterlace configuration.
-    #[serde(default)]
-    pub deinterlace: ::core::option::Option<Deinterlace>,
-    /// Denoise preprocessing configuration.
-    #[serde(default)]
-    pub denoise: ::core::option::Option<Denoise>,
-    /// Specify the video pad filter configuration.
-    #[serde(default)]
-    pub pad: ::core::option::Option<Pad>,
-}
-
-/// A Pub/Sub destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubsubDestination {
-    /// The name of the Pub/Sub topic to publish job completion notification to. For example: projects/{project}/topics/{topic}.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-}
-
-/// Configuration for secrets stored in Google Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecretManagerSource {
-    /// Required. The name of the Secret Version containing the encryption key in the following format: projects/{project}/secrets/{secret_id}/versions/{version_number} Note that only numbered versions are supported. Aliases like "latest" are not supported.
-    #[serde(default, rename = "secretVersion")]
-    pub secret_version: ::core::option::Option<String>,
-}
-
-/// Segment settings for ts, fmp4 and vtt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SegmentSettings {
-    /// Required. Create an individual segment file. The default is false.
-    #[serde(default, rename = "individualSegments")]
-    pub individual_segments: ::core::option::Option<bool>,
-    /// Duration of the segments in seconds. The default is 6.0s. Note that segmentDuration must be greater than or equal to [gopDuration](#videostream), and segmentDuration must be divisible by [gopDuration](#videostream).
-    #[serde(default, rename = "segmentDuration")]
-    pub segment_duration: ::core::option::Option<String>,
-}
-
-/// Sprite sheet configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpriteSheet {
-    /// The maximum number of sprites per row in a sprite sheet. The default is 0, which indicates no maximum limit.
-    #[serde(default, rename = "columnCount")]
-    pub column_count: ::core::option::Option<i32>,
-    /// End time in seconds, relative to the output file timeline. When end_time_offset is not specified, the sprites are generated until the end of the output file.
-    #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: ::core::option::Option<String>,
-    /// Required. File name prefix for the generated sprite sheets. Each sprite sheet has an incremental 10-digit zero-padded suffix starting from 0 before the extension, such as sprite_sheet0000000123.jpeg.
-    #[serde(default, rename = "filePrefix")]
-    pub file_prefix: ::core::option::Option<String>,
-    /// Format type. The default is jpeg. Supported formats: - jpeg
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Starting from 0s, create sprites at regular intervals. Specify the interval value in seconds.
-    #[serde(default)]
-    pub interval: ::core::option::Option<String>,
-    /// The quality of the generated sprite sheet. Enter a value between 1 and 100, where 1 is the lowest quality and 100 is the highest quality. The default is 100. A high quality value corresponds to a low image data compression ratio.
-    #[serde(default)]
-    pub quality: ::core::option::Option<i32>,
-    /// The maximum number of rows per sprite sheet. When the sprite sheet is full, a new sprite sheet is created. The default is 0, which indicates no maximum limit.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<i32>,
-    /// Required. The height of sprite in pixels. Must be an even integer. To preserve the source aspect ratio, set the SpriteSheet.sprite_height_pixels field or the SpriteSheet.sprite_width_pixels field, but not both (the API will automatically calculate the missing field). For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
-    #[serde(default, rename = "spriteHeightPixels")]
-    pub sprite_height_pixels: ::core::option::Option<i32>,
-    /// Required. The width of sprite in pixels. Must be an even integer. To preserve the source aspect ratio, set the SpriteSheet.sprite_width_pixels field or the SpriteSheet.sprite_height_pixels field, but not both (the API will automatically calculate the missing field). For portrait videos that contain horizontal ASR and rotation metadata, provide the width, in pixels, per the horizontal ASR. The API calculates the height per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
-    #[serde(default, rename = "spriteWidthPixels")]
-    pub sprite_width_pixels: ::core::option::Option<i32>,
-    /// Start time in seconds, relative to the output file timeline. Determines the first sprite to pick. The default is 0s.
-    #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: ::core::option::Option<String>,
-    /// Total number of sprites. Create the specified number of sprites distributed evenly across the timeline of the output media. The default is 100.
-    #[serde(default, rename = "totalCount")]
-    pub total_count: ::core::option::Option<i32>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// The mapping for the JobConfig.edit_list atoms with text EditAtom.inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextMapping {
-    /// Required. The EditAtom.key that references atom with text inputs in the JobConfig.edit_list.
-    #[serde(default, rename = "atomKey")]
-    pub atom_key: ::core::option::Option<String>,
-    /// Required. The Input.key that identifies the input file.
-    #[serde(default, rename = "inputKey")]
-    pub input_key: ::core::option::Option<String>,
-    /// Required. The zero-based index of the track in the input file.
-    #[serde(default, rename = "inputTrack")]
-    pub input_track: ::core::option::Option<i32>,
-}
-
-/// Encoding of a text stream. For example, closed captions or subtitles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextStream {
-    /// The codec for this text stream. The default is webvtt. Supported text codecs: - srt - ttml - cea608 - cea708 - webvtt
-    #[serde(default)]
-    pub codec: ::core::option::Option<String>,
-    /// The name for this particular text stream that will be added to the HLS/DASH manifest. Not supported in MP4 files.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The BCP-47 language code, such as en-US or sr-Latn. For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. Not supported in MP4 files.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// The mapping for the JobConfig.edit_list atoms with text EditAtom.inputs.
-    #[serde(default)]
-    pub mapping: ::core::option::Option<::std::vec::Vec<TextMapping>>,
-}
-
-/// Track definition for the input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrackDefinition {
-    /// Optional. Whether to automatically detect the languages present in the track. If true, the system will attempt to identify all the languages present in the track and populate the languages field.
-    #[serde(default, rename = "detectLanguages")]
-    pub detect_languages: ::core::option::Option<bool>,
-    /// Output only. A list of languages detected in the input asset, represented by a BCP 47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. This field is only populated if the detect_languages field is set to true.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The input track.
-    #[serde(default, rename = "inputTrack")]
-    pub input_track: ::core::option::Option<i32>,
-    /// Optional. A list of languages spoken in the input asset, represented by a BCP 47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
-    #[serde(default)]
-    pub languages: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Video stream resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VideoStream {
-    /// H264 codec settings.
-    #[serde(default)]
-    pub h264: ::core::option::Option<H264CodecSettings>,
-    /// H265 codec settings.
-    #[serde(default)]
-    pub h265: ::core::option::Option<H265CodecSettings>,
-    /// VP9 codec settings.
-    #[serde(default)]
-    pub vp9: ::core::option::Option<Vp9CodecSettings>,
-}
-
 /// VP9 codec settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vp9CodecSettings {
@@ -931,6 +758,168 @@ pub struct Vp9CodecSettings {
     pub width_pixels: ::core::option::Option<i32>,
 }
 
+/// Track definition for the input asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrackDefinition {
+    /// Optional. Whether to automatically detect the languages present in the track. If true, the system will attempt to identify all the languages present in the track and populate the languages field.
+    #[serde(default, rename = "detectLanguages")]
+    pub detect_languages: ::core::option::Option<bool>,
+    /// Output only. A list of languages detected in the input asset, represented by a BCP 47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier. This field is only populated if the detect_languages field is set to true.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The input track.
+    #[serde(default, rename = "inputTrack")]
+    pub input_track: ::core::option::Option<i32>,
+    /// Optional. A list of languages spoken in the input asset, represented by a BCP 47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
+    #[serde(default)]
+    pub languages: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Audio preprocessing configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Audio {
+    /// Enable boosting high frequency components. The default is false. **Note:** This field is not supported.
+    #[serde(default, rename = "highBoost")]
+    pub high_boost: ::core::option::Option<bool>,
+    /// Enable boosting low frequency components. The default is false. **Note:** This field is not supported.
+    #[serde(default, rename = "lowBoost")]
+    pub low_boost: ::core::option::Option<bool>,
+    /// Specify audio loudness normalization in loudness units relative to full scale (LUFS). Enter a value between -24 and 0 (the default), where: * -24 is the Advanced Television Systems Committee (ATSC A/85) standard * -23 is the EU R128 broadcast standard * -19 is the prior standard for online mono audio * -18 is the ReplayGain standard * -16 is the prior standard for stereo audio * -14 is the new online audio standard recommended by Spotify, as well as Amazon Echo * 0 disables normalization
+    #[serde(default)]
+    pub lufs: ::core::option::Option<f64>,
+}
+
+/// Color preprocessing configuration. **Note:** This configuration is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Color {
+    /// Control brightness of the video. Enter a value between -1 and 1, where -1 is minimum brightness and 1 is maximum brightness. 0 is no change. The default is 0.
+    #[serde(default)]
+    pub brightness: ::core::option::Option<f64>,
+    /// Control black and white contrast of the video. Enter a value between -1 and 1, where -1 is minimum contrast and 1 is maximum contrast. 0 is no change. The default is 0.
+    #[serde(default)]
+    pub contrast: ::core::option::Option<f64>,
+    /// Control color saturation of the video. Enter a value between -1 and 1, where -1 is fully desaturated and 1 is maximum saturation. 0 is no change. The default is 0.
+    #[serde(default)]
+    pub saturation: ::core::option::Option<f64>,
+}
+
+/// Video cropping configuration for the input video. The cropped input video is scaled to match the output resolution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Crop {
+    /// The number of pixels to crop from the bottom. The default is 0.
+    #[serde(default, rename = "bottomPixels")]
+    pub bottom_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to crop from the left. The default is 0.
+    #[serde(default, rename = "leftPixels")]
+    pub left_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to crop from the right. The default is 0.
+    #[serde(default, rename = "rightPixels")]
+    pub right_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to crop from the top. The default is 0.
+    #[serde(default, rename = "topPixels")]
+    pub top_pixels: ::core::option::Option<i32>,
+}
+
+/// Deblock preprocessing configuration. **Note:** This configuration is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Deblock {
+    /// Enable deblocker. The default is false.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Set strength of the deblocker. Enter a value between 0 and 1. The higher the value, the stronger the block removal. 0 is no deblocking. The default is 0.
+    #[serde(default)]
+    pub strength: ::core::option::Option<f64>,
+}
+
+/// Deinterlace configuration for input video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Deinterlace {
+    /// Specifies the Bob Weaver Deinterlacing Filter Configuration.
+    #[serde(default)]
+    pub bwdif: ::core::option::Option<BwdifConfig>,
+    /// Specifies the Yet Another Deinterlacing Filter Configuration.
+    #[serde(default)]
+    pub yadif: ::core::option::Option<YadifConfig>,
+}
+
+/// Denoise preprocessing configuration. **Note:** This configuration is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Denoise {
+    /// Set strength of the denoise. Enter a value between 0 and 1. The higher the value, the smoother the image. 0 is no denoising. The default is 0.
+    #[serde(default)]
+    pub strength: ::core::option::Option<f64>,
+    /// Set the denoiser mode. The default is standard. Supported denoiser modes: - standard - grain
+    #[serde(default)]
+    pub tune: ::core::option::Option<String>,
+}
+
+/// Pad filter configuration for the input video. The padded input video is scaled after padding with black to match the output resolution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pad {
+    /// The number of pixels to add to the bottom. The default is 0.
+    #[serde(default, rename = "bottomPixels")]
+    pub bottom_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to add to the left. The default is 0.
+    #[serde(default, rename = "leftPixels")]
+    pub left_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to add to the right. The default is 0.
+    #[serde(default, rename = "rightPixels")]
+    pub right_pixels: ::core::option::Option<i32>,
+    /// The number of pixels to add to the top. The default is 0.
+    #[serde(default, rename = "topPixels")]
+    pub top_pixels: ::core::option::Option<i32>,
+}
+
+/// End previous overlay animation from the video. Without AnimationEnd, the overlay object will keep the state of previous animation until the end of the video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimationEnd {
+    /// The time to end overlay object, in seconds. Default: 0
+    #[serde(default, rename = "startTimeOffset")]
+    pub start_time_offset: ::core::option::Option<String>,
+}
+
+/// Display overlay object with fade animation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimationFade {
+    /// The time to end the fade animation, in seconds. Default: start_time_offset + 1s
+    #[serde(default, rename = "endTimeOffset")]
+    pub end_time_offset: ::core::option::Option<String>,
+    /// Required. Type of fade animation: FADE_IN or FADE_OUT. // TODO: enum values: ["FADE_TYPE_UNSPECIFIED", "FADE_IN", "FADE_OUT"]
+    #[serde(default, rename = "fadeType")]
+    pub fade_type: ::core::option::Option<String>,
+    /// The time to start the fade animation, in seconds. Default: 0
+    #[serde(default, rename = "startTimeOffset")]
+    pub start_time_offset: ::core::option::Option<String>,
+    /// Normalized coordinates based on output video resolution. Valid values: 0.0–1.0. xy is the upper-left coordinate of the overlay object. For example, use the x and y coordinates {0,0} to position the top-left corner of the overlay animation in the top-left corner of the output video.
+    #[serde(default)]
+    pub xy: ::core::option::Option<NormalizedCoordinate>,
+}
+
+/// Display static overlay object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimationStatic {
+    /// The time to start displaying the overlay object, in seconds. Default: 0
+    #[serde(default, rename = "startTimeOffset")]
+    pub start_time_offset: ::core::option::Option<String>,
+    /// Normalized coordinates based on output video resolution. Valid values: 0.0–1.0. xy is the upper-left coordinate of the overlay object. For example, use the x and y coordinates {0,0} to position the top-left corner of the overlay animation in the top-left corner of the output video.
+    #[serde(default)]
+    pub xy: ::core::option::Option<NormalizedCoordinate>,
+}
+
+/// Bob Weaver Deinterlacing Filter Configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BwdifConfig {
+    /// Deinterlace all frames rather than just the frames identified as interlaced. The default is false.
+    #[serde(default, rename = "deinterlaceAllFrames")]
+    pub deinterlace_all_frames: ::core::option::Option<bool>,
+    /// Specifies the deinterlacing mode to adopt. The default is send_frame. Supported values: - send_frame: Output one frame for each frame - send_field: Output one frame for each field
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// The picture field parity assumed for the input interlaced video. The default is auto. Supported values: - tff: Assume the top field is first - bff: Assume the bottom field is first - auto: Enable automatic detection of field parity
+    #[serde(default)]
+    pub parity: ::core::option::Option<String>,
+}
+
 /// Yet Another Deinterlacing Filter Configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct YadifConfig {
@@ -946,4 +935,15 @@ pub struct YadifConfig {
     /// The picture field parity assumed for the input interlaced video. The default is auto. Supported values: - tff: Assume the top field is first - bff: Assume the bottom field is first - auto: Enable automatic detection of field parity
     #[serde(default)]
     pub parity: ::core::option::Option<String>,
+}
+
+/// 2D normalized coordinates. Default: {0.0, 0.0}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NormalizedCoordinate {
+    /// Normalized x coordinate.
+    #[serde(default)]
+    pub x: ::core::option::Option<f64>,
+    /// Normalized y coordinate.
+    #[serde(default)]
+    pub y: ::core::option::Option<f64>,
 }

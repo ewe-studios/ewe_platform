@@ -10,89 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Settings for Binary Authorization feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2BinaryAuthorization {
-    /// Optional. If present, indicates to use Breakglass using this justification. If use_default is False, then it must be empty. For more information on breakglass, see https://cloud.google.com/binary-authorization/docs/using-breakglass
-    #[serde(default, rename = "breakglassJustification")]
-    pub breakglass_justification: ::core::option::Option<String>,
-    /// Optional. The path to a binary authorization policy. Format: projects/{project}/platforms/cloudRun/{policy-name}
-    #[serde(default)]
-    pub policy: ::core::option::Option<String>,
-    /// Optional. If True, indicates to use the default project''s binary authorization policy. If False, binary authorization will be disabled.
-    #[serde(default, rename = "useDefault")]
-    pub use_default: ::core::option::Option<bool>,
-}
-
-/// Describes the Build step of the function that builds a container from the given source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2BuildConfig {
-    /// Optional. The base image used to build the function.
-    #[serde(default, rename = "baseImage")]
-    pub base_image: ::core::option::Option<String>,
-    /// Optional. Sets whether the function will receive automatic base image updates.
-    #[serde(default, rename = "enableAutomaticUpdates")]
-    pub enable_automatic_updates: ::core::option::Option<bool>,
-    /// Optional. User-provided build-time environment variables for the function
-    #[serde(default, rename = "environmentVariables")]
-    pub environment_variables: ::core::option::Option<serde_json::Value>,
-    /// Optional. The name of the function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. For backward compatibility, if function with given name is not found, then the system will try to use function named "function".
-    #[serde(default, rename = "functionTarget")]
-    pub function_target: ::core::option::Option<String>,
-    /// Optional. Artifact Registry URI to store the built image.
-    #[serde(default, rename = "imageUri")]
-    pub image_uri: ::core::option::Option<String>,
-    /// Output only. The Cloud Build name of the latest successful deployment of the function.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Service account to be used for building the container. The format of this field is projects/{projectId}/serviceAccounts/{serviceAccountEmail}.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// The Cloud Storage bucket URI where the function source code is located.
-    #[serde(default, rename = "sourceLocation")]
-    pub source_location: ::core::option::Option<String>,
-    /// Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the Cloud Run function. The format of this field is projects/{project}/locations/{region}/workerPools/{workerPool} where {project} and {region} are the project id and region respectively where the worker pool is defined and {workerPool} is the short name of the worker pool.
-    #[serde(default, rename = "workerPool")]
-    pub worker_pool: ::core::option::Option<String>,
-}
-
-/// Build information of the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2BuildInfo {
-    /// Output only. Entry point of the function when the image is a Cloud Run function.
-    #[serde(default, rename = "functionTarget")]
-    pub function_target: ::core::option::Option<String>,
-    /// Output only. Source code location of the image.
-    #[serde(default, rename = "sourceLocation")]
-    pub source_location: ::core::option::Option<String>,
-}
-
-/// Build the source using Buildpacks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2BuildpacksBuild {
-    /// Optional. The base image to use for the build.
-    #[serde(default, rename = "baseImage")]
-    pub base_image: ::core::option::Option<String>,
-    /// Optional. cache_image_uri is the GCR/AR URL where the cache image will be stored. cache_image_uri is optional and omitting it will disable caching. This URL must be stable across builds. It is used to derive a build-specific temporary URL by substituting the tag with the build ID. The build will clean up the temporary image on a best-effort basis.
-    #[serde(default, rename = "cacheImageUri")]
-    pub cache_image_uri: ::core::option::Option<String>,
-    /// Optional. Whether or not the application container will be enrolled in automatic base image updates. When true, the application will be built on a scratch base image, so the base layers can be appended at run time.
-    #[serde(default, rename = "enableAutomaticUpdates")]
-    pub enable_automatic_updates: ::core::option::Option<bool>,
-    /// Optional. User-provided build-time environment variables.
-    #[serde(default, rename = "environmentVariables")]
-    pub environment_variables: ::core::option::Option<serde_json::Value>,
-    /// Optional. Name of the function target if the source is a function source. Required for function builds.
-    #[serde(default, rename = "functionTarget")]
-    pub function_target: ::core::option::Option<String>,
-    /// Optional. project_descriptor stores the path to the project descriptor file. When empty, it means that there is no project descriptor file in the source.
-    #[serde(default, rename = "projectDescriptor")]
-    pub project_descriptor: ::core::option::Option<String>,
-    /// The runtime name, e.g. ''go113''. Leave blank for generic builds.
-    #[serde(default)]
-    pub runtime: ::core::option::Option<String>,
-}
-
 /// Request message for deleting an Execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRunV2CancelExecutionRequest {
@@ -104,180 +21,282 @@ pub struct GoogleCloudRunV2CancelExecutionRequest {
     pub validate_only: ::core::option::Option<bool>,
 }
 
-/// Represents a set of Cloud SQL instances. Each one will be available under /cloudsql/[instance]. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
+/// Request message for exporting Cloud Run image.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2CloudSqlInstance {
-    /// A list of Cloud SQL instance connection names. Cloud Run uses these to establish connections to the specified Cloud SQL instances. While the SQL instance name itself is unique within a project, the full connection name requires the location for proper routing. Format: {project}:{location}:{instance} Example: my-project:us-central1:my-instance You can find this value on the instance''s **Overview** page in the Google Cloud console or by using the following gcloud command: sh gcloud sql instances describe INSTANCE_NAME \ --format=''value(connectionName)''  Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GoogleCloudRunV2ExportImageRequest {
+    /// Required. The export destination url (the Artifact Registry repo).
+    #[serde(default, rename = "destinationRepo")]
+    pub destination_repo: ::core::option::Option<String>,
 }
 
-/// Cloud Storage source.
+/// ExportImageResponse contains an operation Id to track the image export operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2CloudStorageSource {
-    /// Required. The Cloud Storage bucket name.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. The Cloud Storage object generation.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// Required. The Cloud Storage object name.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
+pub struct GoogleCloudRunV2ExportImageResponse {
+    /// An operation ID used to track the status of image exports tied to the original pod ID in the request.
+    #[serde(default, rename = "operationId")]
+    pub operation_id: ::core::option::Option<String>,
 }
 
-/// Defines a status condition for a resource.
+/// ExportStatusResponse contains the status of image export operation, with the status of each image export job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Condition {
-    /// Output only. A reason for the execution condition. // TODO: enum values: ["EXECUTION_REASON_UNDEFINED", "JOB_STATUS_SERVICE_POLLING_ERROR", "NON_ZERO_EXIT_CODE", "CANCELLED", "CANCELLING", "DELETED", "DELAYED_START_PENDING"]
-    #[serde(default, rename = "executionReason")]
-    pub execution_reason: ::core::option::Option<String>,
-    /// Last time the condition transitioned from one status to another.
-    #[serde(default, rename = "lastTransitionTime")]
-    pub last_transition_time: ::core::option::Option<String>,
-    /// Human readable message indicating details about the current status.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. A common (service-level) reason for this condition. // TODO: enum values: ["COMMON_REASON_UNDEFINED", "UNKNOWN", "REVISION_FAILED", "PROGRESS_DEADLINE_EXCEEDED", "CONTAINER_MISSING", "CONTAINER_PERMISSION_DENIED", "CONTAINER_IMAGE_UNAUTHORIZED", "CONTAINER_IMAGE_AUTHORIZATION_CHECK_FAILED", "ENCRYPTION_KEY_PERMISSION_DENIED", "ENCRYPTION_KEY_CHECK_FAILED", "SECRETS_ACCESS_CHECK_FAILED", "WAITING_FOR_OPERATION", "IMMEDIATE_RETRY", "POSTPONED_RETRY", "INTERNAL", "VPC_NETWORK_NOT_FOUND"]
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Output only. A reason for the revision condition. // TODO: enum values: ["REVISION_REASON_UNDEFINED", "PENDING", "RESERVE", "RETIRED", "RETIRING", "RECREATING", "HEALTH_CHECK_CONTAINER_ERROR", "CUSTOMIZED_PATH_RESPONSE_PENDING", "MIN_INSTANCES_NOT_PROVISIONED", "ACTIVE_REVISION_LIMIT_REACHED", "NO_DEPLOYMENT", "HEALTH_CHECK_SKIPPED", "MIN_INSTANCES_WARMING"]
-    #[serde(default, rename = "revisionReason")]
-    pub revision_reason: ::core::option::Option<String>,
-    /// How to interpret failures of this condition, one of Error, Warning, Info // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// State of the condition. // TODO: enum values: ["STATE_UNSPECIFIED", "CONDITION_PENDING", "CONDITION_RECONCILING", "CONDITION_FAILED", "CONDITION_SUCCEEDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+pub struct GoogleCloudRunV2ExportStatusResponse {
+    /// The status of each image export job.
+    #[serde(default, rename = "imageExportStatuses")]
+    pub image_export_statuses:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ImageExportStatus>>,
+    /// The operation id.
+    #[serde(default, rename = "operationId")]
+    pub operation_id: ::core::option::Option<String>,
+    /// Output only. The state of the overall export operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "IN_PROGRESS", "FINISHED"]
+    #[serde(default, rename = "operationState")]
+    pub operation_state: ::core::option::Option<String>,
 }
 
-/// A single application container. This specifies both the container to run, the command to run in the container and the arguments to supply to it. Note that additional arguments can be supplied by the system to the container at runtime.
+/// Response message containing a list of Executions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Container {
-    /// Arguments to the entrypoint. The docker image''s CMD is used if this is not provided.
+pub struct GoogleCloudRunV2ListExecutionsResponse {
+    /// The resulting list of Executions.
     #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Base image for this container. Only supported for services. If set, it indicates that the service is enrolled into automatic base image update.
+    pub executions: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Execution>>,
+    /// A token indicating there are more items than page_size. Use it in the next ListExecutions request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message containing a list of Instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListInstancesResponse {
+    /// The resulting list of Instances.
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Instance>>,
+    /// A token indicating there are more items than page_size. Use it in the next ListInstances request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message containing a list of Jobs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListJobsResponse {
+    /// The resulting list of Jobs.
+    #[serde(default)]
+    pub jobs: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Job>>,
+    /// A token indicating there are more items than page_size. Use it in the next ListJobs request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message containing a list of Revisions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListRevisionsResponse {
+    /// A token indicating there are more items than page_size. Use it in the next ListRevisions request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The resulting list of Revisions.
+    #[serde(default)]
+    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Revision>>,
+}
+
+/// Response message containing a list of Services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListServicesResponse {
+    /// A token indicating there are more items than page_size. Use it in the next ListServices request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The resulting list of Services.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Service>>,
+    /// Output only. For global requests, returns the list of regions that could not be reached within the deadline.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message containing a list of Tasks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListTasksResponse {
+    /// A token indicating there are more items than page_size. Use it in the next ListTasks request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The resulting list of Tasks.
+    #[serde(default)]
+    pub tasks: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Task>>,
+}
+
+/// Response message containing a list of WorkerPools.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ListWorkerPoolsResponse {
+    /// A token indicating there are more items than page_size. Use it in the next ListWorkerPools request to continue.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The resulting list of WorkerPools.
+    #[serde(default, rename = "workerPools")]
+    pub worker_pools: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2WorkerPool>>,
+}
+
+/// Metadata represents the JSON encoded generated customer metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2Metadata {
+    /// JSON encoded Google-generated Customer Metadata for a given resource/project.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<String>,
+}
+
+/// Request message to create a new Execution of a Job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2RunJobRequest {
+    /// A system-generated fingerprint for this version of the resource. May be used to detect modification conflict during updates.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Overrides specification for a given execution of a job. If provided, overrides will be applied to update the execution or task spec.
+    #[serde(default)]
+    pub overrides: ::core::option::Option<GoogleCloudRunV2Overrides>,
+    /// Indicates that the request should be validated without actually deleting any resources.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Request message for starting an Instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2StartInstanceRequest {
+    /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Indicates that the request should be validated without actually stopping any resources.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Request message for deleting an Instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2StopInstanceRequest {
+    /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Indicates that the request should be validated without actually stopping any resources.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Request message for submitting a Build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SubmitBuildRequest {
+    /// Build the source using Buildpacks.
+    #[serde(default, rename = "buildpackBuild")]
+    pub buildpack_build: ::core::option::Option<GoogleCloudRunV2BuildpacksBuild>,
+    /// Optional. The client that initiated the build request.
+    #[serde(default)]
+    pub client: ::core::option::Option<String>,
+    /// Build the source using Docker. This means the source has a Dockerfile.
+    #[serde(default, rename = "dockerBuild")]
+    pub docker_build: ::core::option::Option<serde_json::Value>,
+    /// Required. Artifact Registry URI to store the built image.
+    #[serde(default, rename = "imageUri")]
+    pub image_uri: ::core::option::Option<String>,
+    /// Optional. The machine type from default pool to use for the build. If left blank, cloudbuild will use a sensible default. Currently only E2_HIGHCPU_8 is supported. If worker_pool is set, this field will be ignored.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Optional. The release track of the client that initiated the build request. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
+    #[serde(default, rename = "releaseTrack")]
+    pub release_track: ::core::option::Option<String>,
+    /// Optional. The service account to use for the build. If not set, the default Cloud Build service account for the project will be used.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Required. Source for the build.
+    #[serde(default, rename = "storageSource")]
+    pub storage_source: ::core::option::Option<GoogleCloudRunV2StorageSource>,
+    /// Optional. Additional tags to annotate the build.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the function. The format of this field is projects/{project}/locations/{region}/workerPools/{workerPool} where {project} and {region} are the project id and region respectively where the worker pool is defined and {workerPool} is the short name of the worker pool.
+    #[serde(default, rename = "workerPool")]
+    pub worker_pool: ::core::option::Option<String>,
+}
+
+/// Response message for submitting a Build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SubmitBuildResponse {
+    /// URI of the base builder image in Artifact Registry being used in the build. Used to opt into automatic base image updates.
     #[serde(default, rename = "baseImageUri")]
     pub base_image_uri: ::core::option::Option<String>,
-    /// Output only. The build info of the container image.
-    #[serde(default, rename = "buildInfo")]
-    pub build_info: ::core::option::Option<GoogleCloudRunV2BuildInfo>,
-    /// Entrypoint array. Not executed within a shell. The docker image''s ENTRYPOINT is used if this is not provided.
-    #[serde(default)]
-    pub command: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Names of the containers that must start before this container.
-    #[serde(default, rename = "dependsOn")]
-    pub depends_on: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of environment variables to set in the container.
-    #[serde(default)]
-    pub env: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2EnvVar>>,
-    /// Required. Name of the container image in Dockerhub, Google Artifact Registry, or Google Container Registry. If the host is not provided, Dockerhub is assumed.
-    #[serde(default)]
-    pub image: ::core::option::Option<String>,
-    /// Periodic probe of container liveness. Container will be restarted if the probe fails.
-    #[serde(default, rename = "livenessProbe")]
-    pub liveness_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
-    /// Name of the container specified as a DNS_LABEL (RFC 1123).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of ports to expose from the container. Only a single port can be specified. The specified ports must be listening on all interfaces (0.0.0.0) within the container to be accessible. If omitted, a port number will be chosen and passed to the container through the PORT environment variable for the container to listen on.
-    #[serde(default)]
-    pub ports: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ContainerPort>>,
-    /// Readiness probe to be used for health checks.
-    #[serde(default, rename = "readinessProbe")]
-    pub readiness_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
-    /// Compute Resource requirements by this container.
-    #[serde(default)]
-    pub resources: ::core::option::Option<GoogleCloudRunV2ResourceRequirements>,
-    /// Optional. Location of the source.
-    #[serde(default, rename = "sourceCode")]
-    pub source_code: ::core::option::Option<GoogleCloudRunV2SourceCode>,
-    /// Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not be added to service endpoints if the probe fails.
-    #[serde(default, rename = "startupProbe")]
-    pub startup_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
-    /// Volume to mount into the container''s filesystem.
-    #[serde(default, rename = "volumeMounts")]
-    pub volume_mounts: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2VolumeMount>>,
-    /// Container''s working directory. If not specified, the container runtime''s default will be used, which might be configured in the container image.
-    #[serde(default, rename = "workingDir")]
-    pub working_dir: ::core::option::Option<String>,
+    /// Warning message for the base image.
+    #[serde(default, rename = "baseImageWarning")]
+    pub base_image_warning: ::core::option::Option<String>,
+    /// Cloud Build operation to be polled via CloudBuild API.
+    #[serde(default, rename = "buildOperation")]
+    pub build_operation: ::core::option::Option<GoogleLongrunningOperation>,
 }
 
-/// Per-container override specification.
+/// Metadata for build operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ContainerOverride {
-    /// Optional. Arguments to the entrypoint. Will replace existing args for override.
+pub struct GoogleDevtoolsCloudbuildV1BuildOperationMetadata {
+    /// The build that the operation is tracking.
     #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. True if the intention is to clear out existing args list.
-    #[serde(default, rename = "clearArgs")]
-    pub clear_args: ::core::option::Option<bool>,
-    /// List of environment variables to set in the container. Will be merged with existing env for override.
-    #[serde(default)]
-    pub env: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2EnvVar>>,
-    /// The name of the container specified as a DNS_LABEL.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub build: ::core::option::Option<GoogleDevtoolsCloudbuildV1Build>,
 }
 
-/// ContainerPort represents a network port in a single container.
+/// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ContainerPort {
-    /// Port number the container listens on. This must be a valid TCP port number, 0 &lt; container_port &lt; 65536.
-    #[serde(default, rename = "containerPort")]
-    pub container_port: ::core::option::Option<i32>,
-    /// If specified, used to specify which protocol to use. Allowed values are "http1" and "h2c".
+pub struct GoogleIamV1SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
-/// ContainerStatus holds the information of container name and image digest value.
+/// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ContainerStatus {
-    /// ImageDigest holds the resolved digest for the image specified and resolved during the creation of Revision. This field holds the digest value regardless of whether a tag or digest was originally specified in the Container object.
-    #[serde(default, rename = "imageDigest")]
-    pub image_digest: ::core::option::Option<String>,
-    /// The name of the container, if specified.
+pub struct GoogleIamV1TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).
+/// Response message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2EmptyDirVolumeSource {
-    /// The medium on which the data is stored. Acceptable values today is only MEMORY or none. When none, the default will currently be backed by memory but could change over time. +optional // TODO: enum values: ["MEDIUM_UNSPECIFIED", "MEMORY", "DISK"]
+pub struct GoogleIamV1TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub medium: ::core::option::Option<String>,
-    /// Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
-    #[serde(default, rename = "sizeLimit")]
-    pub size_limit: ::core::option::Option<String>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// EnvVar represents an environment variable present in a Container.
+/// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2EnvVar {
-    /// Required. Name of the environment variable. Must not exceed 32768 characters.
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Literal value of the environment variable. Defaults to "", and the maximum length is 32768 bytes. Variable references are not supported in Cloud Run.
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
-    /// Source for the environment variable''s value.
-    #[serde(default, rename = "valueSource")]
-    pub value_source: ::core::option::Option<GoogleCloudRunV2EnvVarSource>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// EnvVarSource represents a source for the value of an EnvVar.
+/// The request message for Operations.WaitOperation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2EnvVarSource {
-    /// Selects a secret and a specific version from Cloud Secret Manager.
-    #[serde(default, rename = "secretKeyRef")]
-    pub secret_key_ref: ::core::option::Option<GoogleCloudRunV2SecretKeySelector>,
+pub struct GoogleLongrunningWaitOperationRequest {
+    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// The status of an image export job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ImageExportStatus {
+    /// Output only. Has the image export job finished (regardless of successful or failure). // TODO: enum values: ["EXPORT_JOB_STATE_UNSPECIFIED", "IN_PROGRESS", "FINISHED"]
+    #[serde(default, rename = "exportJobState")]
+    pub export_job_state: ::core::option::Option<String>,
+    /// The exported image ID as it will appear in Artifact Registry.
+    #[serde(default, rename = "exportedImageDigest")]
+    pub exported_image_digest: ::core::option::Option<String>,
+    /// The status of the export task if done.
+    #[serde(default)]
+    pub status: ::core::option::Option<UtilStatusProto>,
+    /// The image tag as it will appear in Artifact Registry.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Execution represents the configuration of a single execution. A execution an immutable resource that references a container image which is run to completion.
@@ -373,158 +392,6 @@ pub struct GoogleCloudRunV2Execution {
     /// Output only. The last-modified time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Reference to an Execution. Use /Executions.GetExecution with the given name to get full execution including the latest status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ExecutionReference {
-    /// Status for the execution completion. // TODO: enum values: ["COMPLETION_STATUS_UNSPECIFIED", "EXECUTION_SUCCEEDED", "EXECUTION_FAILED", "EXECUTION_RUNNING", "EXECUTION_PENDING", "EXECUTION_CANCELLED"]
-    #[serde(default, rename = "completionStatus")]
-    pub completion_status: ::core::option::Option<String>,
-    /// Creation timestamp of the execution.
-    #[serde(default, rename = "completionTime")]
-    pub completion_time: ::core::option::Option<String>,
-    /// Creation timestamp of the execution.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The deletion time of the execution. It is only populated as a response to a Delete request.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Name of the execution.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// ExecutionTemplate describes the data an execution should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ExecutionTemplate {
-    /// Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 ExecutionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. Arbitrary identifier for the API client.
-    #[serde(default)]
-    pub client: ::core::option::Option<String>,
-    /// Optional. Arbitrary version identifier for the API client.
-    #[serde(default, rename = "clientVersion")]
-    pub client_version: ::core::option::Option<String>,
-    /// Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 ExecutionTemplate.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Specifies the maximum desired number of tasks the execution should run at given time. When the job is run, if this field is 0 or unset, the maximum possible value will be used for that execution. The actual number of tasks running in steady state will be less than this number when there are fewer tasks waiting to be completed remaining, i.e. when the work left to do is less than max parallelism.
-    #[serde(default)]
-    pub parallelism: ::core::option::Option<i32>,
-    /// Specifies the desired number of tasks the execution should run. Setting to 1 means that parallelism is limited to 1 and the success of that task signals the success of the execution. Defaults to 1.
-    #[serde(default, rename = "taskCount")]
-    pub task_count: ::core::option::Option<i32>,
-    /// Required. Describes the task(s) that will be created when executing an execution.
-    #[serde(default)]
-    pub template: ::core::option::Option<GoogleCloudRunV2TaskTemplate>,
-}
-
-/// Request message for exporting Cloud Run image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ExportImageRequest {
-    /// Required. The export destination url (the Artifact Registry repo).
-    #[serde(default, rename = "destinationRepo")]
-    pub destination_repo: ::core::option::Option<String>,
-}
-
-/// ExportImageResponse contains an operation Id to track the image export operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ExportImageResponse {
-    /// An operation ID used to track the status of image exports tied to the original pod ID in the request.
-    #[serde(default, rename = "operationId")]
-    pub operation_id: ::core::option::Option<String>,
-}
-
-/// ExportStatusResponse contains the status of image export operation, with the status of each image export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ExportStatusResponse {
-    /// The status of each image export job.
-    #[serde(default, rename = "imageExportStatuses")]
-    pub image_export_statuses:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ImageExportStatus>>,
-    /// The operation id.
-    #[serde(default, rename = "operationId")]
-    pub operation_id: ::core::option::Option<String>,
-    /// Output only. The state of the overall export operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "IN_PROGRESS", "FINISHED"]
-    #[serde(default, rename = "operationState")]
-    pub operation_state: ::core::option::Option<String>,
-}
-
-/// Represents a volume backed by a Cloud Storage bucket using Cloud Storage FUSE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2gCSVolumeSource {
-    /// Cloud Storage Bucket name.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// A list of additional flags to pass to the gcsfuse CLI. Options should be specified without the leading "--".
-    #[serde(default, rename = "mountOptions")]
-    pub mount_options: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If true, the volume will be mounted as read only for all mounts.
-    #[serde(default, rename = "readOnly")]
-    pub read_only: ::core::option::Option<bool>,
-}
-
-/// GRPCAction describes an action involving a GRPC port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2gRPCAction {
-    /// Optional. Port number of the gRPC service. Number must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md ). If this is not specified, the default behavior is defined by gRPC.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// HTTPGetAction describes an action based on HTTP Get requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2hTTPGetAction {
-    /// Optional. Custom headers to set in the request. HTTP allows repeated headers.
-    #[serde(default, rename = "httpHeaders")]
-    pub http_headers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2hTTPHeader>>,
-    /// Optional. Path to access on the HTTP server. Defaults to ''/''.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-}
-
-/// HTTPHeader describes a custom header to be used in HTTP probes
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2hTTPHeader {
-    /// Required. The header field name
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The header field value
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The status of an image export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ImageExportStatus {
-    /// Output only. Has the image export job finished (regardless of successful or failure). // TODO: enum values: ["EXPORT_JOB_STATE_UNSPECIFIED", "IN_PROGRESS", "FINISHED"]
-    #[serde(default, rename = "exportJobState")]
-    pub export_job_state: ::core::option::Option<String>,
-    /// The exported image ID as it will appear in Artifact Registry.
-    #[serde(default, rename = "exportedImageDigest")]
-    pub exported_image_digest: ::core::option::Option<String>,
-    /// The status of the export task if done.
-    #[serde(default)]
-    pub status: ::core::option::Option<UtilStatusProto>,
-    /// The image tag as it will appear in Artifact Registry.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-}
-
-/// Inlined source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2InlinedSource {
-    /// Required. Input only. The source code.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2SourceFile>>,
 }
 
 /// A Cloud Run Instance represents a single group of containers running in a region.
@@ -644,34 +511,6 @@ pub struct GoogleCloudRunV2Instance {
     pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
 }
 
-/// Holds a single instance split entry for the Worker. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2InstanceSplit {
-    /// Specifies percent of the instance split to this Revision. This defaults to zero if unspecified.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-    /// Revision to which to assign this portion of instances, if split allocation is by revision.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// The allocation type for this instance split. // TODO: enum values: ["INSTANCE_SPLIT_ALLOCATION_TYPE_UNSPECIFIED", "INSTANCE_SPLIT_ALLOCATION_TYPE_LATEST", "INSTANCE_SPLIT_ALLOCATION_TYPE_REVISION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the observed state of a single InstanceSplit entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2InstanceSplitStatus {
-    /// Specifies percent of the instance split to this Revision.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-    /// Revision to which this instance split is assigned.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// The allocation type for this instance split. // TODO: enum values: ["INSTANCE_SPLIT_ALLOCATION_TYPE_UNSPECIFIED", "INSTANCE_SPLIT_ALLOCATION_TYPE_LATEST", "INSTANCE_SPLIT_ALLOCATION_TYPE_REVISION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// Job represents the configuration of a single job, which references a container image that is run to completion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRunV2Job {
@@ -753,196 +592,6 @@ pub struct GoogleCloudRunV2Job {
     /// Output only. The last-modified time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Response message containing a list of Executions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListExecutionsResponse {
-    /// The resulting list of Executions.
-    #[serde(default)]
-    pub executions: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Execution>>,
-    /// A token indicating there are more items than page_size. Use it in the next ListExecutions request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message containing a list of Instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListInstancesResponse {
-    /// The resulting list of Instances.
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Instance>>,
-    /// A token indicating there are more items than page_size. Use it in the next ListInstances request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message containing a list of Jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListJobsResponse {
-    /// The resulting list of Jobs.
-    #[serde(default)]
-    pub jobs: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Job>>,
-    /// A token indicating there are more items than page_size. Use it in the next ListJobs request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message containing a list of Revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListRevisionsResponse {
-    /// A token indicating there are more items than page_size. Use it in the next ListRevisions request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The resulting list of Revisions.
-    #[serde(default)]
-    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Revision>>,
-}
-
-/// Response message containing a list of Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListServicesResponse {
-    /// A token indicating there are more items than page_size. Use it in the next ListServices request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The resulting list of Services.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Service>>,
-    /// Output only. For global requests, returns the list of regions that could not be reached within the deadline.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message containing a list of Tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListTasksResponse {
-    /// A token indicating there are more items than page_size. Use it in the next ListTasks request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The resulting list of Tasks.
-    #[serde(default)]
-    pub tasks: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Task>>,
-}
-
-/// Response message containing a list of WorkerPools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ListWorkerPoolsResponse {
-    /// A token indicating there are more items than page_size. Use it in the next ListWorkerPools request to continue.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The resulting list of WorkerPools.
-    #[serde(default, rename = "workerPools")]
-    pub worker_pools: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2WorkerPool>>,
-}
-
-/// Metadata represents the JSON encoded generated customer metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Metadata {
-    /// JSON encoded Google-generated Customer Metadata for a given resource/project.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<String>,
-}
-
-/// Settings for multi-region deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2MultiRegionSettings {
-    /// Optional. System-generated unique id for the multi-region Service.
-    #[serde(default, rename = "multiRegionId")]
-    pub multi_region_id: ::core::option::Option<String>,
-    /// Required. List of regions to deploy to, including primary region.
-    #[serde(default)]
-    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents an NFS mount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2nFSVolumeSource {
-    /// Path that is exported by the NFS server.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// If true, the volume will be mounted as read only for all mounts.
-    #[serde(default, rename = "readOnly")]
-    pub read_only: ::core::option::Option<bool>,
-    /// Hostname or IP address of the NFS server
-    #[serde(default)]
-    pub server: ::core::option::Option<String>,
-}
-
-/// Direct VPC egress settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2NetworkInterface {
-    /// Optional. The VPC network that the Cloud Run resource will be able to send traffic to. At least one of network or subnetwork must be specified. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If network is not specified, it will be looked up from the subnetwork.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Optional. The VPC subnetwork that the Cloud Run resource will get IPs from. At least one of network or subnetwork must be specified. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If subnetwork is not specified, the subnetwork with the same name with the network will be used.
-    #[serde(default)]
-    pub subnetwork: ::core::option::Option<String>,
-    /// Optional. Network tags applied to this Cloud Run resource.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Hardware constraints configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2NodeSelector {
-    /// Required. GPU accelerator type to attach to an instance.
-    #[serde(default)]
-    pub accelerator: ::core::option::Option<String>,
-}
-
-/// RunJob Overrides that contains Execution fields to be overridden.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Overrides {
-    /// Per container override specification.
-    #[serde(default, rename = "containerOverrides")]
-    pub container_overrides:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ContainerOverride>>,
-    /// Optional. The desired number of tasks the execution should run. Will replace existing task_count value.
-    #[serde(default, rename = "taskCount")]
-    pub task_count: ::core::option::Option<i32>,
-    /// Duration in seconds the task may be active before the system will actively try to mark it failed and kill associated containers. Will replace existing timeout_seconds value.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Probe {
-    /// Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.
-    #[serde(default, rename = "failureThreshold")]
-    pub failure_threshold: ::core::option::Option<i32>,
-    /// Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.
-    #[serde(default)]
-    pub grpc: ::core::option::Option<GoogleCloudRunV2gRPCAction>,
-    /// Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.
-    #[serde(default, rename = "httpGet")]
-    pub http_get: ::core::option::Option<GoogleCloudRunV2hTTPGetAction>,
-    /// Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.
-    #[serde(default, rename = "initialDelaySeconds")]
-    pub initial_delay_seconds: ::core::option::Option<i32>,
-    /// Optional. How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240. Must be greater or equal than timeout_seconds.
-    #[serde(default, rename = "periodSeconds")]
-    pub period_seconds: ::core::option::Option<i32>,
-    /// Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.
-    #[serde(default, rename = "tcpSocket")]
-    pub tcp_socket: ::core::option::Option<GoogleCloudRunV2tCPSocketAction>,
-    /// Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.
-    #[serde(default, rename = "timeoutSeconds")]
-    pub timeout_seconds: ::core::option::Option<i32>,
-}
-
-/// ResourceRequirements describes the compute resource requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ResourceRequirements {
-    /// Determines whether CPU is only allocated during requests (true by default). However, if ResourceRequirements is set, the caller must explicitly set this field to true to preserve the default behavior.
-    #[serde(default, rename = "cpuIdle")]
-    pub cpu_idle: ::core::option::Option<bool>,
-    /// Only memory, cpu and nvidia.com/gpu keys in the map are supported. Notes: * The only supported values for CPU are ''1'', ''2'', ''4'', and ''8''. Setting 4 CPU requires at least 2Gi of memory. For more information, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported ''memory'' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits * The only supported ''nvidia.com/gpu'' value is ''1''.
-    #[serde(default)]
-    pub limits: ::core::option::Option<serde_json::Value>,
-    /// Determines whether CPU should be boosted on startup of a new container instance above the requested CPU threshold, this can help reduce cold-start latency.
-    #[serde(default, rename = "startupCpuBoost")]
-    pub startup_cpu_boost: ::core::option::Option<bool>,
 }
 
 /// A Revision is an immutable snapshot of code and configuration. A Revision references a container image. Revisions are only created by updates to its parent Service.
@@ -1056,138 +705,6 @@ pub struct GoogleCloudRunV2Revision {
     /// VPC Access configuration for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
     #[serde(default, rename = "vpcAccess")]
     pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
-}
-
-/// Settings for revision-level scaling settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2RevisionScaling {
-    /// Optional. Determines a threshold for concurrency utilization before scaling begins. Accepted values are between 0.1 and 0.95 (inclusive) or 0.0 to disable concurrency utilization as threshold for scaling. CPU and concurrency scaling cannot both be disabled.
-    #[serde(default, rename = "concurrencyUtilization")]
-    pub concurrency_utilization: ::core::option::Option<f32>,
-    /// Optional. Determines a threshold for CPU utilization before scaling begins. Accepted values are between 0.1 and 0.95 (inclusive) or 0.0 to disable CPU utilization as threshold for scaling. CPU and concurrency scaling cannot both be disabled.
-    #[serde(default, rename = "cpuUtilization")]
-    pub cpu_utilization: ::core::option::Option<f32>,
-    /// Optional. Maximum number of serving instances that this resource should have. When unspecified, the field is set to the server default value of 100. For more information see https://cloud.google.com/run/docs/configuring/max-instances
-    #[serde(default, rename = "maxInstanceCount")]
-    pub max_instance_count: ::core::option::Option<i32>,
-    /// Optional. Minimum number of serving instances that this resource should have.
-    #[serde(default, rename = "minInstanceCount")]
-    pub min_instance_count: ::core::option::Option<i32>,
-}
-
-/// Effective settings for the current revision
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2RevisionScalingStatus {
-    /// The current number of min instances provisioned for this revision.
-    #[serde(default, rename = "desiredMinInstanceCount")]
-    pub desired_min_instance_count: ::core::option::Option<i32>,
-}
-
-/// RevisionTemplate describes the data a revision should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2RevisionTemplate {
-    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 RevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. Arbitrary identifier for the API client.
-    #[serde(default)]
-    pub client: ::core::option::Option<String>,
-    /// Optional. Arbitrary version identifier for the API client.
-    #[serde(default, rename = "clientVersion")]
-    pub client_version: ::core::option::Option<String>,
-    /// Holds the list which define the units of execution for this Revision.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
-    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
-    #[serde(default, rename = "encryptionKey")]
-    pub encryption_key: ::core::option::Option<String>,
-    /// Optional. The action to take if the encryption key is revoked. // TODO: enum values: ["ENCRYPTION_KEY_REVOCATION_ACTION_UNSPECIFIED", "PREVENT_NEW", "SHUTDOWN"]
-    #[serde(default, rename = "encryptionKeyRevocationAction")]
-    pub encryption_key_revocation_action: ::core::option::Option<String>,
-    /// Optional. If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.
-    #[serde(default, rename = "encryptionKeyShutdownDuration")]
-    pub encryption_key_shutdown_duration: ::core::option::Option<String>,
-    /// Optional. The sandbox environment to host this Revision. // TODO: enum values: ["EXECUTION_ENVIRONMENT_UNSPECIFIED", "EXECUTION_ENVIRONMENT_GEN1", "EXECUTION_ENVIRONMENT_GEN2"]
-    #[serde(default, rename = "executionEnvironment")]
-    pub execution_environment: ::core::option::Option<String>,
-    /// Optional. True if GPU zonal redundancy is disabled on this revision.
-    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
-    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
-    /// Optional. Disables health checking containers during deployment.
-    #[serde(default, rename = "healthCheckDisabled")]
-    pub health_check_disabled: ::core::option::Option<bool>,
-    /// Optional. Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 RevisionTemplate.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Sets the maximum number of requests that each serving instance can receive. If not specified or 0, concurrency defaults to 80 when requested CPU &gt;= 1 and defaults to 1 when requested CPU &lt; 1.
-    #[serde(default, rename = "maxInstanceRequestConcurrency")]
-    pub max_instance_request_concurrency: ::core::option::Option<i32>,
-    /// Optional. The node selector for the revision template.
-    #[serde(default, rename = "nodeSelector")]
-    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
-    /// Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the Service name.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Optional. Scaling settings for this Revision.
-    #[serde(default)]
-    pub scaling: ::core::option::Option<GoogleCloudRunV2RevisionScaling>,
-    /// Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project''s default service account.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Optional. Enables service mesh connectivity.
-    #[serde(default, rename = "serviceMesh")]
-    pub service_mesh: ::core::option::Option<GoogleCloudRunV2ServiceMesh>,
-    /// Optional. Enable session affinity.
-    #[serde(default, rename = "sessionAffinity")]
-    pub session_affinity: ::core::option::Option<bool>,
-    /// Optional. Max allowed time for an instance to respond to a request.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-    /// Optional. A list of Volumes to make available to containers.
-    #[serde(default)]
-    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
-    /// Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
-    #[serde(default, rename = "vpcAccess")]
-    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
-}
-
-/// Request message to create a new Execution of a Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2RunJobRequest {
-    /// A system-generated fingerprint for this version of the resource. May be used to detect modification conflict during updates.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Overrides specification for a given execution of a job. If provided, overrides will be applied to update the execution or task spec.
-    #[serde(default)]
-    pub overrides: ::core::option::Option<GoogleCloudRunV2Overrides>,
-    /// Indicates that the request should be validated without actually deleting any resources.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// SecretEnvVarSource represents a source for the value of an EnvVar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SecretKeySelector {
-    /// Required. The name of the secret in Cloud Secret Manager. Format: {secret_name} if the secret is in the same project. projects/{project}/secrets/{secret_name} if the secret is in a different project.
-    #[serde(default)]
-    pub secret: ::core::option::Option<String>,
-    /// The Cloud Secret Manager secret version. Can be ''latest'' for the latest version, an integer for a specific version, or a version alias.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// The secret''s value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SecretVolumeSource {
-    /// Integer representation of mode bits to use on created files by default. Must be a value between 0000 and 0777 (octal), defaulting to 0444. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. This might be in conflict with other options that affect the file mode, like fsGroup, and as a result, other mode bits could be set.
-    #[serde(default, rename = "defaultMode")]
-    pub default_mode: ::core::option::Option<i32>,
-    /// If unspecified, the volume will expose a file whose name is the secret, relative to VolumeMount.mount_path + VolumeMount.sub_path. If specified, the key will be used as the version to fetch from Cloud Secret Manager and the path will be the name of the file exposed in the volume. When items are defined, they must specify a path and a version.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2VersionToPath>>,
-    /// Required. The name of the secret in Cloud Secret Manager. Format: {secret} if the secret is in the same project. projects/{project}/secrets/{secret} if the secret is in a different project.
-    #[serde(default)]
-    pub secret: ::core::option::Option<String>,
 }
 
 /// Service acts as a top-level container that manages a set of configurations and revision templates which implement a network service. Service exists to provide a singular abstraction which can be access controlled, reasoned about, and which encapsulates software lifecycle decisions such as rollout policy and team resource ownership.
@@ -1310,146 +827,6 @@ pub struct GoogleCloudRunV2Service {
     pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Settings for Cloud Service Mesh. For more information see https://cloud.google.com/service-mesh/docs/overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ServiceMesh {
-    /// The Mesh resource name. Format: projects/{project}/locations/global/meshes/{mesh}, where {project} can be project id or number.
-    #[serde(default)]
-    pub mesh: ::core::option::Option<String>,
-}
-
-/// Scaling settings applied at the service level rather than at the revision level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2ServiceScaling {
-    /// Optional. total instance count for the service in manual scaling mode. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
-    #[serde(default, rename = "manualInstanceCount")]
-    pub manual_instance_count: ::core::option::Option<i32>,
-    /// Optional. total max instances for the service. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
-    #[serde(default, rename = "maxInstanceCount")]
-    pub max_instance_count: ::core::option::Option<i32>,
-    /// Optional. total min instances for the service. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
-    #[serde(default, rename = "minInstanceCount")]
-    pub min_instance_count: ::core::option::Option<i32>,
-    /// Optional. The scaling mode for the service. // TODO: enum values: ["SCALING_MODE_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
-    #[serde(default, rename = "scalingMode")]
-    pub scaling_mode: ::core::option::Option<String>,
-}
-
-/// Source type for the container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SourceCode {
-    /// The source is a Cloud Storage bucket.
-    #[serde(default, rename = "cloudStorageSource")]
-    pub cloud_storage_source: ::core::option::Option<GoogleCloudRunV2CloudStorageSource>,
-    /// Optional. Input only. Source code inlined in the request. Cloud Run will store the inlined_source to Cloud Storage and replace the field with cloud_storage_source.
-    #[serde(default, rename = "inlinedSource")]
-    pub inlined_source: ::core::option::Option<GoogleCloudRunV2InlinedSource>,
-}
-
-/// Source file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SourceFile {
-    /// Required. Input only. Represents the exact, literal, and complete source code of the file. Placeholders like ... or comments such as # [rest of code] should NEVER be used as omission. Every character in this field will be built into the final container. Any omission will result in a broken application.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Required. Input only. The file name for the source code. e.g., "index.js" or "node_modules/dependency.js". The filename must be less than 255 characters and cannot contain .., ./, //, or end with a /. Cloud Run will place the files in the container subdirectories, please use relative path to access the file.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-}
-
-/// Request message for starting an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2StartInstanceRequest {
-    /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Indicates that the request should be validated without actually stopping any resources.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Request message for deleting an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2StopInstanceRequest {
-    /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Indicates that the request should be validated without actually stopping any resources.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Location of the source in an archive file in Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2StorageSource {
-    /// Required. Google Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. Google Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// Required. Google Cloud Storage object containing the source. This object must be a gzipped archive file (.tar.gz) containing source to build.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
-}
-
-/// Request message for submitting a Build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SubmitBuildRequest {
-    /// Build the source using Buildpacks.
-    #[serde(default, rename = "buildpackBuild")]
-    pub buildpack_build: ::core::option::Option<GoogleCloudRunV2BuildpacksBuild>,
-    /// Optional. The client that initiated the build request.
-    #[serde(default)]
-    pub client: ::core::option::Option<String>,
-    /// Build the source using Docker. This means the source has a Dockerfile.
-    #[serde(default, rename = "dockerBuild")]
-    pub docker_build: ::core::option::Option<serde_json::Value>,
-    /// Required. Artifact Registry URI to store the built image.
-    #[serde(default, rename = "imageUri")]
-    pub image_uri: ::core::option::Option<String>,
-    /// Optional. The machine type from default pool to use for the build. If left blank, cloudbuild will use a sensible default. Currently only E2_HIGHCPU_8 is supported. If worker_pool is set, this field will be ignored.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Optional. The release track of the client that initiated the build request. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
-    #[serde(default, rename = "releaseTrack")]
-    pub release_track: ::core::option::Option<String>,
-    /// Optional. The service account to use for the build. If not set, the default Cloud Build service account for the project will be used.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Required. Source for the build.
-    #[serde(default, rename = "storageSource")]
-    pub storage_source: ::core::option::Option<GoogleCloudRunV2StorageSource>,
-    /// Optional. Additional tags to annotate the build.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the function. The format of this field is projects/{project}/locations/{region}/workerPools/{workerPool} where {project} and {region} are the project id and region respectively where the worker pool is defined and {workerPool} is the short name of the worker pool.
-    #[serde(default, rename = "workerPool")]
-    pub worker_pool: ::core::option::Option<String>,
-}
-
-/// Response message for submitting a Build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2SubmitBuildResponse {
-    /// URI of the base builder image in Artifact Registry being used in the build. Used to opt into automatic base image updates.
-    #[serde(default, rename = "baseImageUri")]
-    pub base_image_uri: ::core::option::Option<String>,
-    /// Warning message for the base image.
-    #[serde(default, rename = "baseImageWarning")]
-    pub base_image_warning: ::core::option::Option<String>,
-    /// Cloud Build operation to be polled via CloudBuild API.
-    #[serde(default, rename = "buildOperation")]
-    pub build_operation: ::core::option::Option<GoogleLongrunningOperation>,
-}
-
-/// TCPSocketAction describes an action based on opening a socket
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2tCPSocketAction {
-    /// Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-}
-
 /// Task represents a single run of a container to completion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRunV2Task {
@@ -1554,158 +931,6 @@ pub struct GoogleCloudRunV2Task {
     pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
 }
 
-/// Result of a task attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2TaskAttemptResult {
-    /// Output only. The exit code of this attempt. This may be unset if the container was unable to exit cleanly with a code due to some other failure. See status field for possible failure details. At most one of exit_code or term_signal will be set.
-    #[serde(default, rename = "exitCode")]
-    pub exit_code: ::core::option::Option<i32>,
-    /// Output only. The status of this attempt. If the status code is OK, then the attempt succeeded.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-    /// Output only. Termination signal of the container. This is set to non-zero if the container is terminated by the system. At most one of exit_code or term_signal will be set.
-    #[serde(default, rename = "termSignal")]
-    pub term_signal: ::core::option::Option<i32>,
-}
-
-/// TaskTemplate describes the data a task should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2TaskTemplate {
-    /// Holds the single container that defines the unit of execution for this task.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
-    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
-    #[serde(default, rename = "encryptionKey")]
-    pub encryption_key: ::core::option::Option<String>,
-    /// Optional. The execution environment being used to host this Task. // TODO: enum values: ["EXECUTION_ENVIRONMENT_UNSPECIFIED", "EXECUTION_ENVIRONMENT_GEN1", "EXECUTION_ENVIRONMENT_GEN2"]
-    #[serde(default, rename = "executionEnvironment")]
-    pub execution_environment: ::core::option::Option<String>,
-    /// Optional. True if GPU zonal redundancy is disabled on this task template.
-    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
-    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
-    /// Number of retries allowed per Task, before marking this Task failed. Defaults to 3.
-    #[serde(default, rename = "maxRetries")]
-    pub max_retries: ::core::option::Option<i32>,
-    /// Optional. The node selector for the task template.
-    #[serde(default, rename = "nodeSelector")]
-    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
-    /// Optional. Email address of the IAM service account associated with the Task of a Job. The service account represents the identity of the running task, and determines what permissions the task has. If not provided, the task will use the project''s default service account.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Optional. Max allowed time duration the Task may be active before the system will actively try to mark it failed and kill associated containers. This applies per attempt of a task, meaning each retry can run for the full timeout. Defaults to 600 seconds.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-    /// Optional. A list of Volumes to make available to containers.
-    #[serde(default)]
-    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
-    /// Optional. VPC Access configuration to use for this Task. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
-    #[serde(default, rename = "vpcAccess")]
-    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
-}
-
-/// Holds a single traffic routing entry for the Service. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2TrafficTarget {
-    /// Specifies percent of the traffic to this Revision. This defaults to zero if unspecified.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-    /// Revision to which to send this portion of traffic, if traffic allocation is by revision.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Indicates a string to be part of the URI to exclusively reference this target.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-    /// The allocation type for this traffic target. // TODO: enum values: ["TRAFFIC_TARGET_ALLOCATION_TYPE_UNSPECIFIED", "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST", "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the observed state of a single TrafficTarget entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2TrafficTargetStatus {
-    /// Specifies percent of the traffic to this Revision.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-    /// Revision to which this traffic is sent.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Indicates the string used in the URI to exclusively reference this target.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-    /// The allocation type for this traffic target. // TODO: enum values: ["TRAFFIC_TARGET_ALLOCATION_TYPE_UNSPECIFIED", "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST", "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Displays the target URI.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// VersionToPath maps a specific version of a secret to a relative file to mount to, relative to VolumeMount''s mount_path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2VersionToPath {
-    /// Integer octal mode bits to use on this file, must be a value between 01 and 0777 (octal). If 0 or not set, the Volume''s default mode will be used. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.
-    #[serde(default)]
-    pub mode: ::core::option::Option<i32>,
-    /// Required. The relative path of the secret in the container.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// The Cloud Secret Manager secret version. Can be ''latest'' for the latest value, or an integer or a secret alias for a specific version.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Volume represents a named volume in a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2Volume {
-    /// For Cloud SQL volumes, contains the specific instances that should be mounted. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
-    #[serde(default, rename = "cloudSqlInstance")]
-    pub cloud_sql_instance: ::core::option::Option<GoogleCloudRunV2CloudSqlInstance>,
-    /// Ephemeral storage used as a shared volume.
-    #[serde(default, rename = "emptyDir")]
-    pub empty_dir: ::core::option::Option<GoogleCloudRunV2EmptyDirVolumeSource>,
-    /// Persistent storage backed by a Google Cloud Storage bucket.
-    #[serde(default)]
-    pub gcs: ::core::option::Option<GoogleCloudRunV2gCSVolumeSource>,
-    /// Required. Volume''s name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// For NFS Voumes, contains the path to the nfs Volume
-    #[serde(default)]
-    pub nfs: ::core::option::Option<GoogleCloudRunV2nFSVolumeSource>,
-    /// Secret represents a secret that should populate this volume.
-    #[serde(default)]
-    pub secret: ::core::option::Option<GoogleCloudRunV2SecretVolumeSource>,
-}
-
-/// VolumeMount describes a mounting of a Volume within a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2VolumeMount {
-    /// Required. Path within the container at which the volume should be mounted. Must not contain '':''. For Cloud SQL volumes, it can be left empty, or must otherwise be /cloudsql. All instances defined in the Volume will be available as /cloudsql/[instance]. For more information on Cloud SQL volumes, visit https://cloud.google.com/sql/docs/mysql/connect-run
-    #[serde(default, rename = "mountPath")]
-    pub mount_path: ::core::option::Option<String>,
-    /// Required. This must match the Name of a Volume.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Path within the volume from which the container''s volume should be mounted. Defaults to "" (volume''s root). This field is currently ignored for Secret volumes.
-    #[serde(default, rename = "subPath")]
-    pub sub_path: ::core::option::Option<String>,
-}
-
-/// VPC Access settings. For more information on sending traffic to a VPC network, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2VpcAccess {
-    /// VPC Access connector name. Format: projects/{project}/locations/{location}/connectors/{connector}, where {project} can be project id or number. For more information on sending traffic to a VPC network via a connector, visit https://cloud.google.com/run/docs/configuring/vpc-connectors.
-    #[serde(default)]
-    pub connector: ::core::option::Option<String>,
-    /// Optional. Traffic VPC egress settings. If not provided, it defaults to PRIVATE_RANGES_ONLY. // TODO: enum values: ["VPC_EGRESS_UNSPECIFIED", "ALL_TRAFFIC", "PRIVATE_RANGES_ONLY"]
-    #[serde(default)]
-    pub egress: ::core::option::Option<String>,
-    /// Optional. Direct VPC egress settings. Currently only single network interface is supported.
-    #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2NetworkInterface>>,
-}
-
 /// WorkerPool acts as a top-level container that manages a set of configurations and revision templates which implement a pull-based workload. WorkerPool exists to provide a singular abstraction which can be access controlled, reasoned about, and which encapsulates software lifecycle decisions such as rollout policy and team resource ownership.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRunV2WorkerPool {
@@ -1802,136 +1027,59 @@ pub struct GoogleCloudRunV2WorkerPool {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// WorkerPoolRevisionTemplate describes the data a worker pool revision should have when created from a template.
+/// RunJob Overrides that contains Execution fields to be overridden.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2WorkerPoolRevisionTemplate {
-    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 WorkerPoolRevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
+pub struct GoogleCloudRunV2Overrides {
+    /// Per container override specification.
+    #[serde(default, rename = "containerOverrides")]
+    pub container_overrides:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ContainerOverride>>,
+    /// Optional. The desired number of tasks the execution should run. Will replace existing task_count value.
+    #[serde(default, rename = "taskCount")]
+    pub task_count: ::core::option::Option<i32>,
+    /// Duration in seconds the task may be active before the system will actively try to mark it failed and kill associated containers. Will replace existing timeout_seconds value.
     #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. Arbitrary identifier for the API client.
-    #[serde(default)]
-    pub client: ::core::option::Option<String>,
-    /// Optional. Arbitrary version identifier for the API client.
-    #[serde(default, rename = "clientVersion")]
-    pub client_version: ::core::option::Option<String>,
-    /// Holds list of the containers that defines the unit of execution for this Revision.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
-    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
-    #[serde(default, rename = "encryptionKey")]
-    pub encryption_key: ::core::option::Option<String>,
-    /// Optional. The action to take if the encryption key is revoked. // TODO: enum values: ["ENCRYPTION_KEY_REVOCATION_ACTION_UNSPECIFIED", "PREVENT_NEW", "SHUTDOWN"]
-    #[serde(default, rename = "encryptionKeyRevocationAction")]
-    pub encryption_key_revocation_action: ::core::option::Option<String>,
-    /// Optional. If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.
-    #[serde(default, rename = "encryptionKeyShutdownDuration")]
-    pub encryption_key_shutdown_duration: ::core::option::Option<String>,
-    /// Optional. True if GPU zonal redundancy is disabled on this worker pool.
-    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
-    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
-    /// Optional. Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 WorkerPoolRevisionTemplate.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. The node selector for the revision template.
-    #[serde(default, rename = "nodeSelector")]
-    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
-    /// Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the WorkerPool name.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project''s default service account.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Optional. Enables service mesh connectivity.
-    #[serde(default, rename = "serviceMesh")]
-    pub service_mesh: ::core::option::Option<GoogleCloudRunV2ServiceMesh>,
-    /// Optional. A list of Volumes to make available to containers.
-    #[serde(default)]
-    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
-    /// Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
-    #[serde(default, rename = "vpcAccess")]
-    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
+    pub timeout: ::core::option::Option<String>,
 }
 
-/// Worker pool scaling settings.
+/// Build the source using Buildpacks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRunV2WorkerPoolScaling {
-    /// Optional. The total number of instances in manual scaling mode.
-    #[serde(default, rename = "manualInstanceCount")]
-    pub manual_instance_count: ::core::option::Option<i32>,
+pub struct GoogleCloudRunV2BuildpacksBuild {
+    /// Optional. The base image to use for the build.
+    #[serde(default, rename = "baseImage")]
+    pub base_image: ::core::option::Option<String>,
+    /// Optional. cache_image_uri is the GCR/AR URL where the cache image will be stored. cache_image_uri is optional and omitting it will disable caching. This URL must be stable across builds. It is used to derive a build-specific temporary URL by substituting the tag with the build ID. The build will clean up the temporary image on a best-effort basis.
+    #[serde(default, rename = "cacheImageUri")]
+    pub cache_image_uri: ::core::option::Option<String>,
+    /// Optional. Whether or not the application container will be enrolled in automatic base image updates. When true, the application will be built on a scratch base image, so the base layers can be appended at run time.
+    #[serde(default, rename = "enableAutomaticUpdates")]
+    pub enable_automatic_updates: ::core::option::Option<bool>,
+    /// Optional. User-provided build-time environment variables.
+    #[serde(default, rename = "environmentVariables")]
+    pub environment_variables: ::core::option::Option<serde_json::Value>,
+    /// Optional. Name of the function target if the source is a function source. Required for function builds.
+    #[serde(default, rename = "functionTarget")]
+    pub function_target: ::core::option::Option<String>,
+    /// Optional. project_descriptor stores the path to the project descriptor file. When empty, it means that there is no project descriptor file in the source.
+    #[serde(default, rename = "projectDescriptor")]
+    pub project_descriptor: ::core::option::Option<String>,
+    /// The runtime name, e.g. ''go113''. Leave blank for generic builds.
+    #[serde(default)]
+    pub runtime: ::core::option::Option<String>,
 }
 
-/// ApprovalConfig describes configuration for manual approval of a build.
+/// Location of the source in an archive file in Google Cloud Storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1ApprovalConfig {
-    /// Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.
-    #[serde(default, rename = "approvalRequired")]
-    pub approval_required: ::core::option::Option<bool>,
-}
-
-/// ApprovalResult describes the decision and associated metadata of a manual approval of a build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1ApprovalResult {
-    /// Output only. The time when the approval decision was made.
-    #[serde(default, rename = "approvalTime")]
-    pub approval_time: ::core::option::Option<String>,
-    /// Output only. Email of the user that called the ApproveBuild API to approve or reject a build at the time that the API was called.
-    #[serde(default, rename = "approverAccount")]
-    pub approver_account: ::core::option::Option<String>,
-    /// Optional. An optional comment for this manual approval result.
+pub struct GoogleCloudRunV2StorageSource {
+    /// Required. Google Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
-    pub comment: ::core::option::Option<String>,
-    /// Required. The decision of this manual approval. // TODO: enum values: ["DECISION_UNSPECIFIED", "APPROVED", "REJECTED"]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. Google Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
     #[serde(default)]
-    pub decision: ::core::option::Option<String>,
-    /// Optional. An optional URL tied to this manual approval result. This field is essentially the same as comment, except that it will be rendered by the UI differently. An example use case is a link to an external job that approved this Build.
+    pub generation: ::core::option::Option<String>,
+    /// Required. Google Cloud Storage object containing the source. This object must be a gzipped archive file (.tar.gz) containing source to build.
     #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1ArtifactObjects {
-    /// Cloud Storage bucket and optional object path, in the form "gs://bucket/path/to/somewhere/". (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Files in the workspace matching any path pattern will be uploaded to Cloud Storage with this location as a prefix.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Path globs used to match files in the build''s workspace.
-    #[serde(default)]
-    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Stores timing information for pushing all artifact objects.
-    #[serde(default)]
-    pub timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
-}
-
-/// Artifacts produced by a build that should be uploaded upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Artifacts {
-    /// Optional. A list of generic artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. If any artifacts fail to be pushed, the build is marked FAILURE.
-    #[serde(default, rename = "genericArtifacts")]
-    pub generic_artifacts:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1GenericArtifact>>,
-    /// Optional. A list of Go modules to be uploaded to Artifact Registry upon successful completion of all build steps. If any objects fail to be pushed, the build is marked FAILURE.
-    #[serde(default, rename = "goModules")]
-    pub go_modules: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1GoModule>>,
-    /// A list of images to be pushed upon the successful completion of all build steps. The images will be pushed using the builder service account''s credentials. The digests of the pushed images will be stored in the Build resource''s results field. If any of the images fail to be pushed, the build is marked FAILURE.
-    #[serde(default)]
-    pub images: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A list of Maven artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. Artifacts in the workspace matching specified paths globs will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any artifacts fail to be pushed, the build is marked FAILURE.
-    #[serde(default, rename = "mavenArtifacts")]
-    pub maven_artifacts:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1MavenArtifact>>,
-    /// A list of npm packages to be uploaded to Artifact Registry upon successful completion of all build steps. Npm packages in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any packages fail to be pushed, the build is marked FAILURE.
-    #[serde(default, rename = "npmPackages")]
-    pub npm_packages: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1NpmPackage>>,
-    /// A list of objects to be uploaded to Cloud Storage upon successful completion of all build steps. Files in the workspace matching specified paths globs will be uploaded to the specified Cloud Storage location using the builder service account''s credentials. The location and generation of the uploaded objects will be stored in the Build resource''s results field. If any objects fail to be pushed, the build is marked FAILURE.
-    #[serde(default)]
-    pub objects: ::core::option::Option<GoogleDevtoolsCloudbuildV1ArtifactObjects>,
-    /// Optional. A list of OCI images to be uploaded to Artifact Registry upon successful completion of all build steps. OCI images in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any images fail to be pushed, the build is marked FAILURE.
-    #[serde(default)]
-    pub oci: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1Oci>>,
-    /// A list of Python packages to be uploaded to Artifact Registry upon successful completion of all build steps. The build service account credentials will be used to perform the upload. If any objects fail to be pushed, the build is marked FAILURE.
-    #[serde(default, rename = "pythonPackages")]
-    pub python_packages:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1PythonPackage>>,
+    pub object: ::core::option::Option<String>,
 }
 
 /// A build resource in the Cloud Build API. At a high level, a Build describes where to find source code, how to build it (for example, the builder image to run on the source), and where to store the built artifacts. Fields can include the following variables, which will be expanded when the build is created: - $PROJECT_ID: the project ID of the build. - $PROJECT_NUMBER: the project number of the build. - $LOCATION: the location/region of the build. - $BUILD_ID: the autogenerated ID of the build. - $REPO_NAME: the source repository name specified by RepoSource. - $BRANCH_NAME: the branch name specified by RepoSource. - $TAG_NAME: the tag name specified by RepoSource. - $REVISION_ID or $COMMIT_SHA: the commit SHA specified by RepoSource or resolved from the specified branch or tag. - $SHORT_SHA: first 7 characters of $REVISION_ID or $COMMIT_SHA.
@@ -2032,6 +1180,453 @@ pub struct GoogleDevtoolsCloudbuildV1Build {
     pub warnings: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1Warning>>,
 }
 
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Wire-format for a Status object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UtilStatusProto {
+    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
+    #[serde(default, rename = "canonicalCode")]
+    pub canonical_code: ::core::option::Option<i32>,
+    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
+    #[serde(default, rename = "messageSet")]
+    pub message_set: ::core::option::Option<serde_json::Value>,
+    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// ContainerStatus holds the information of container name and image digest value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ContainerStatus {
+    /// ImageDigest holds the resolved digest for the image specified and resolved during the creation of Revision. This field holds the digest value regardless of whether a tag or digest was originally specified in the Container object.
+    #[serde(default, rename = "imageDigest")]
+    pub image_digest: ::core::option::Option<String>,
+    /// The name of the container, if specified.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Reference to an Execution. Use /Executions.GetExecution with the given name to get full execution including the latest status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ExecutionReference {
+    /// Status for the execution completion. // TODO: enum values: ["COMPLETION_STATUS_UNSPECIFIED", "EXECUTION_SUCCEEDED", "EXECUTION_FAILED", "EXECUTION_RUNNING", "EXECUTION_PENDING", "EXECUTION_CANCELLED"]
+    #[serde(default, rename = "completionStatus")]
+    pub completion_status: ::core::option::Option<String>,
+    /// Creation timestamp of the execution.
+    #[serde(default, rename = "completionTime")]
+    pub completion_time: ::core::option::Option<String>,
+    /// Creation timestamp of the execution.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The deletion time of the execution. It is only populated as a response to a Delete request.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Name of the execution.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// ExecutionTemplate describes the data an execution should have when created from a template.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ExecutionTemplate {
+    /// Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 ExecutionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. Arbitrary identifier for the API client.
+    #[serde(default)]
+    pub client: ::core::option::Option<String>,
+    /// Optional. Arbitrary version identifier for the API client.
+    #[serde(default, rename = "clientVersion")]
+    pub client_version: ::core::option::Option<String>,
+    /// Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 ExecutionTemplate.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Specifies the maximum desired number of tasks the execution should run at given time. When the job is run, if this field is 0 or unset, the maximum possible value will be used for that execution. The actual number of tasks running in steady state will be less than this number when there are fewer tasks waiting to be completed remaining, i.e. when the work left to do is less than max parallelism.
+    #[serde(default)]
+    pub parallelism: ::core::option::Option<i32>,
+    /// Specifies the desired number of tasks the execution should run. Setting to 1 means that parallelism is limited to 1 and the success of that task signals the success of the execution. Defaults to 1.
+    #[serde(default, rename = "taskCount")]
+    pub task_count: ::core::option::Option<i32>,
+    /// Required. Describes the task(s) that will be created when executing an execution.
+    #[serde(default)]
+    pub template: ::core::option::Option<GoogleCloudRunV2TaskTemplate>,
+}
+
+/// Effective settings for the current revision
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2RevisionScalingStatus {
+    /// The current number of min instances provisioned for this revision.
+    #[serde(default, rename = "desiredMinInstanceCount")]
+    pub desired_min_instance_count: ::core::option::Option<i32>,
+}
+
+/// Describes the Build step of the function that builds a container from the given source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2BuildConfig {
+    /// Optional. The base image used to build the function.
+    #[serde(default, rename = "baseImage")]
+    pub base_image: ::core::option::Option<String>,
+    /// Optional. Sets whether the function will receive automatic base image updates.
+    #[serde(default, rename = "enableAutomaticUpdates")]
+    pub enable_automatic_updates: ::core::option::Option<bool>,
+    /// Optional. User-provided build-time environment variables for the function
+    #[serde(default, rename = "environmentVariables")]
+    pub environment_variables: ::core::option::Option<serde_json::Value>,
+    /// Optional. The name of the function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. For backward compatibility, if function with given name is not found, then the system will try to use function named "function".
+    #[serde(default, rename = "functionTarget")]
+    pub function_target: ::core::option::Option<String>,
+    /// Optional. Artifact Registry URI to store the built image.
+    #[serde(default, rename = "imageUri")]
+    pub image_uri: ::core::option::Option<String>,
+    /// Output only. The Cloud Build name of the latest successful deployment of the function.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Service account to be used for building the container. The format of this field is projects/{projectId}/serviceAccounts/{serviceAccountEmail}.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// The Cloud Storage bucket URI where the function source code is located.
+    #[serde(default, rename = "sourceLocation")]
+    pub source_location: ::core::option::Option<String>,
+    /// Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the Cloud Run function. The format of this field is projects/{project}/locations/{region}/workerPools/{workerPool} where {project} and {region} are the project id and region respectively where the worker pool is defined and {workerPool} is the short name of the worker pool.
+    #[serde(default, rename = "workerPool")]
+    pub worker_pool: ::core::option::Option<String>,
+}
+
+/// Settings for multi-region deployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2MultiRegionSettings {
+    /// Optional. System-generated unique id for the multi-region Service.
+    #[serde(default, rename = "multiRegionId")]
+    pub multi_region_id: ::core::option::Option<String>,
+    /// Required. List of regions to deploy to, including primary region.
+    #[serde(default)]
+    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Scaling settings applied at the service level rather than at the revision level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ServiceScaling {
+    /// Optional. total instance count for the service in manual scaling mode. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
+    #[serde(default, rename = "manualInstanceCount")]
+    pub manual_instance_count: ::core::option::Option<i32>,
+    /// Optional. total max instances for the service. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
+    #[serde(default, rename = "maxInstanceCount")]
+    pub max_instance_count: ::core::option::Option<i32>,
+    /// Optional. total min instances for the service. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
+    #[serde(default, rename = "minInstanceCount")]
+    pub min_instance_count: ::core::option::Option<i32>,
+    /// Optional. The scaling mode for the service. // TODO: enum values: ["SCALING_MODE_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
+    #[serde(default, rename = "scalingMode")]
+    pub scaling_mode: ::core::option::Option<String>,
+}
+
+/// RevisionTemplate describes the data a revision should have when created from a template.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2RevisionTemplate {
+    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 RevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. Arbitrary identifier for the API client.
+    #[serde(default)]
+    pub client: ::core::option::Option<String>,
+    /// Optional. Arbitrary version identifier for the API client.
+    #[serde(default, rename = "clientVersion")]
+    pub client_version: ::core::option::Option<String>,
+    /// Holds the list which define the units of execution for this Revision.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
+    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
+    #[serde(default, rename = "encryptionKey")]
+    pub encryption_key: ::core::option::Option<String>,
+    /// Optional. The action to take if the encryption key is revoked. // TODO: enum values: ["ENCRYPTION_KEY_REVOCATION_ACTION_UNSPECIFIED", "PREVENT_NEW", "SHUTDOWN"]
+    #[serde(default, rename = "encryptionKeyRevocationAction")]
+    pub encryption_key_revocation_action: ::core::option::Option<String>,
+    /// Optional. If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.
+    #[serde(default, rename = "encryptionKeyShutdownDuration")]
+    pub encryption_key_shutdown_duration: ::core::option::Option<String>,
+    /// Optional. The sandbox environment to host this Revision. // TODO: enum values: ["EXECUTION_ENVIRONMENT_UNSPECIFIED", "EXECUTION_ENVIRONMENT_GEN1", "EXECUTION_ENVIRONMENT_GEN2"]
+    #[serde(default, rename = "executionEnvironment")]
+    pub execution_environment: ::core::option::Option<String>,
+    /// Optional. True if GPU zonal redundancy is disabled on this revision.
+    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
+    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
+    /// Optional. Disables health checking containers during deployment.
+    #[serde(default, rename = "healthCheckDisabled")]
+    pub health_check_disabled: ::core::option::Option<bool>,
+    /// Optional. Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 RevisionTemplate.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Sets the maximum number of requests that each serving instance can receive. If not specified or 0, concurrency defaults to 80 when requested CPU &gt;= 1 and defaults to 1 when requested CPU &lt; 1.
+    #[serde(default, rename = "maxInstanceRequestConcurrency")]
+    pub max_instance_request_concurrency: ::core::option::Option<i32>,
+    /// Optional. The node selector for the revision template.
+    #[serde(default, rename = "nodeSelector")]
+    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
+    /// Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the Service name.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Optional. Scaling settings for this Revision.
+    #[serde(default)]
+    pub scaling: ::core::option::Option<GoogleCloudRunV2RevisionScaling>,
+    /// Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project''s default service account.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Optional. Enables service mesh connectivity.
+    #[serde(default, rename = "serviceMesh")]
+    pub service_mesh: ::core::option::Option<GoogleCloudRunV2ServiceMesh>,
+    /// Optional. Enable session affinity.
+    #[serde(default, rename = "sessionAffinity")]
+    pub session_affinity: ::core::option::Option<bool>,
+    /// Optional. Max allowed time for an instance to respond to a request.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+    /// Optional. A list of Volumes to make available to containers.
+    #[serde(default)]
+    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
+    /// Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
+    #[serde(default, rename = "vpcAccess")]
+    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
+}
+
+/// Holds a single traffic routing entry for the Service. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2TrafficTarget {
+    /// Specifies percent of the traffic to this Revision. This defaults to zero if unspecified.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
+    /// Revision to which to send this portion of traffic, if traffic allocation is by revision.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Indicates a string to be part of the URI to exclusively reference this target.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+    /// The allocation type for this traffic target. // TODO: enum values: ["TRAFFIC_TARGET_ALLOCATION_TYPE_UNSPECIFIED", "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST", "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the observed state of a single TrafficTarget entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2TrafficTargetStatus {
+    /// Specifies percent of the traffic to this Revision.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
+    /// Revision to which this traffic is sent.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Indicates the string used in the URI to exclusively reference this target.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+    /// The allocation type for this traffic target. // TODO: enum values: ["TRAFFIC_TARGET_ALLOCATION_TYPE_UNSPECIFIED", "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST", "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Displays the target URI.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Result of a task attempt.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2TaskAttemptResult {
+    /// Output only. The exit code of this attempt. This may be unset if the container was unable to exit cleanly with a code due to some other failure. See status field for possible failure details. At most one of exit_code or term_signal will be set.
+    #[serde(default, rename = "exitCode")]
+    pub exit_code: ::core::option::Option<i32>,
+    /// Output only. The status of this attempt. If the status code is OK, then the attempt succeeded.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+    /// Output only. Termination signal of the container. This is set to non-zero if the container is terminated by the system. At most one of exit_code or term_signal will be set.
+    #[serde(default, rename = "termSignal")]
+    pub term_signal: ::core::option::Option<i32>,
+}
+
+/// Settings for Binary Authorization feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2BinaryAuthorization {
+    /// Optional. If present, indicates to use Breakglass using this justification. If use_default is False, then it must be empty. For more information on breakglass, see https://cloud.google.com/binary-authorization/docs/using-breakglass
+    #[serde(default, rename = "breakglassJustification")]
+    pub breakglass_justification: ::core::option::Option<String>,
+    /// Optional. The path to a binary authorization policy. Format: projects/{project}/platforms/cloudRun/{policy-name}
+    #[serde(default)]
+    pub policy: ::core::option::Option<String>,
+    /// Optional. If True, indicates to use the default project''s binary authorization policy. If False, binary authorization will be disabled.
+    #[serde(default, rename = "useDefault")]
+    pub use_default: ::core::option::Option<bool>,
+}
+
+/// Defines a status condition for a resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2Condition {
+    /// Output only. A reason for the execution condition. // TODO: enum values: ["EXECUTION_REASON_UNDEFINED", "JOB_STATUS_SERVICE_POLLING_ERROR", "NON_ZERO_EXIT_CODE", "CANCELLED", "CANCELLING", "DELETED", "DELAYED_START_PENDING"]
+    #[serde(default, rename = "executionReason")]
+    pub execution_reason: ::core::option::Option<String>,
+    /// Last time the condition transitioned from one status to another.
+    #[serde(default, rename = "lastTransitionTime")]
+    pub last_transition_time: ::core::option::Option<String>,
+    /// Human readable message indicating details about the current status.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. A common (service-level) reason for this condition. // TODO: enum values: ["COMMON_REASON_UNDEFINED", "UNKNOWN", "REVISION_FAILED", "PROGRESS_DEADLINE_EXCEEDED", "CONTAINER_MISSING", "CONTAINER_PERMISSION_DENIED", "CONTAINER_IMAGE_UNAUTHORIZED", "CONTAINER_IMAGE_AUTHORIZATION_CHECK_FAILED", "ENCRYPTION_KEY_PERMISSION_DENIED", "ENCRYPTION_KEY_CHECK_FAILED", "SECRETS_ACCESS_CHECK_FAILED", "WAITING_FOR_OPERATION", "IMMEDIATE_RETRY", "POSTPONED_RETRY", "INTERNAL", "VPC_NETWORK_NOT_FOUND"]
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+    /// Output only. A reason for the revision condition. // TODO: enum values: ["REVISION_REASON_UNDEFINED", "PENDING", "RESERVE", "RETIRED", "RETIRING", "RECREATING", "HEALTH_CHECK_CONTAINER_ERROR", "CUSTOMIZED_PATH_RESPONSE_PENDING", "MIN_INSTANCES_NOT_PROVISIONED", "ACTIVE_REVISION_LIMIT_REACHED", "NO_DEPLOYMENT", "HEALTH_CHECK_SKIPPED", "MIN_INSTANCES_WARMING"]
+    #[serde(default, rename = "revisionReason")]
+    pub revision_reason: ::core::option::Option<String>,
+    /// How to interpret failures of this condition, one of Error, Warning, Info // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// State of the condition. // TODO: enum values: ["STATE_UNSPECIFIED", "CONDITION_PENDING", "CONDITION_RECONCILING", "CONDITION_FAILED", "CONDITION_SUCCEEDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the observed state of a single InstanceSplit entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2InstanceSplitStatus {
+    /// Specifies percent of the instance split to this Revision.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
+    /// Revision to which this instance split is assigned.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// The allocation type for this instance split. // TODO: enum values: ["INSTANCE_SPLIT_ALLOCATION_TYPE_UNSPECIFIED", "INSTANCE_SPLIT_ALLOCATION_TYPE_LATEST", "INSTANCE_SPLIT_ALLOCATION_TYPE_REVISION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Holds a single instance split entry for the Worker. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2InstanceSplit {
+    /// Specifies percent of the instance split to this Revision. This defaults to zero if unspecified.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
+    /// Revision to which to assign this portion of instances, if split allocation is by revision.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// The allocation type for this instance split. // TODO: enum values: ["INSTANCE_SPLIT_ALLOCATION_TYPE_UNSPECIFIED", "INSTANCE_SPLIT_ALLOCATION_TYPE_LATEST", "INSTANCE_SPLIT_ALLOCATION_TYPE_REVISION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Worker pool scaling settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2WorkerPoolScaling {
+    /// Optional. The total number of instances in manual scaling mode.
+    #[serde(default, rename = "manualInstanceCount")]
+    pub manual_instance_count: ::core::option::Option<i32>,
+}
+
+/// WorkerPoolRevisionTemplate describes the data a worker pool revision should have when created from a template.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2WorkerPoolRevisionTemplate {
+    /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 WorkerPoolRevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. Arbitrary identifier for the API client.
+    #[serde(default)]
+    pub client: ::core::option::Option<String>,
+    /// Optional. Arbitrary version identifier for the API client.
+    #[serde(default, rename = "clientVersion")]
+    pub client_version: ::core::option::Option<String>,
+    /// Holds list of the containers that defines the unit of execution for this Revision.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
+    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
+    #[serde(default, rename = "encryptionKey")]
+    pub encryption_key: ::core::option::Option<String>,
+    /// Optional. The action to take if the encryption key is revoked. // TODO: enum values: ["ENCRYPTION_KEY_REVOCATION_ACTION_UNSPECIFIED", "PREVENT_NEW", "SHUTDOWN"]
+    #[serde(default, rename = "encryptionKeyRevocationAction")]
+    pub encryption_key_revocation_action: ::core::option::Option<String>,
+    /// Optional. If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.
+    #[serde(default, rename = "encryptionKeyShutdownDuration")]
+    pub encryption_key_shutdown_duration: ::core::option::Option<String>,
+    /// Optional. True if GPU zonal redundancy is disabled on this worker pool.
+    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
+    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
+    /// Optional. Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google''s billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 WorkerPoolRevisionTemplate.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. The node selector for the revision template.
+    #[serde(default, rename = "nodeSelector")]
+    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
+    /// Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the WorkerPool name.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project''s default service account.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Optional. Enables service mesh connectivity.
+    #[serde(default, rename = "serviceMesh")]
+    pub service_mesh: ::core::option::Option<GoogleCloudRunV2ServiceMesh>,
+    /// Optional. A list of Volumes to make available to containers.
+    #[serde(default)]
+    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
+    /// Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
+    #[serde(default, rename = "vpcAccess")]
+    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
+}
+
+/// Per-container override specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ContainerOverride {
+    /// Optional. Arguments to the entrypoint. Will replace existing args for override.
+    #[serde(default)]
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. True if the intention is to clear out existing args list.
+    #[serde(default, rename = "clearArgs")]
+    pub clear_args: ::core::option::Option<bool>,
+    /// List of environment variables to set in the container. Will be merged with existing env for override.
+    #[serde(default)]
+    pub env: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2EnvVar>>,
+    /// The name of the container specified as a DNS_LABEL.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// BuildApproval describes a build''s approval configuration, state, and result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDevtoolsCloudbuildV1BuildApproval {
@@ -2046,12 +1641,82 @@ pub struct GoogleDevtoolsCloudbuildV1BuildApproval {
     pub state: ::core::option::Option<String>,
 }
 
-/// Metadata for build operations.
+/// Artifacts produced by a build that should be uploaded upon successful completion of all build steps.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1BuildOperationMetadata {
-    /// The build that the operation is tracking.
+pub struct GoogleDevtoolsCloudbuildV1Artifacts {
+    /// Optional. A list of generic artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. If any artifacts fail to be pushed, the build is marked FAILURE.
+    #[serde(default, rename = "genericArtifacts")]
+    pub generic_artifacts:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1GenericArtifact>>,
+    /// Optional. A list of Go modules to be uploaded to Artifact Registry upon successful completion of all build steps. If any objects fail to be pushed, the build is marked FAILURE.
+    #[serde(default, rename = "goModules")]
+    pub go_modules: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1GoModule>>,
+    /// A list of images to be pushed upon the successful completion of all build steps. The images will be pushed using the builder service account''s credentials. The digests of the pushed images will be stored in the Build resource''s results field. If any of the images fail to be pushed, the build is marked FAILURE.
     #[serde(default)]
-    pub build: ::core::option::Option<GoogleDevtoolsCloudbuildV1Build>,
+    pub images: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A list of Maven artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. Artifacts in the workspace matching specified paths globs will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any artifacts fail to be pushed, the build is marked FAILURE.
+    #[serde(default, rename = "mavenArtifacts")]
+    pub maven_artifacts:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1MavenArtifact>>,
+    /// A list of npm packages to be uploaded to Artifact Registry upon successful completion of all build steps. Npm packages in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any packages fail to be pushed, the build is marked FAILURE.
+    #[serde(default, rename = "npmPackages")]
+    pub npm_packages: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1NpmPackage>>,
+    /// A list of objects to be uploaded to Cloud Storage upon successful completion of all build steps. Files in the workspace matching specified paths globs will be uploaded to the specified Cloud Storage location using the builder service account''s credentials. The location and generation of the uploaded objects will be stored in the Build resource''s results field. If any objects fail to be pushed, the build is marked FAILURE.
+    #[serde(default)]
+    pub objects: ::core::option::Option<GoogleDevtoolsCloudbuildV1ArtifactObjects>,
+    /// Optional. A list of OCI images to be uploaded to Artifact Registry upon successful completion of all build steps. OCI images in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any images fail to be pushed, the build is marked FAILURE.
+    #[serde(default)]
+    pub oci: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1Oci>>,
+    /// A list of Python packages to be uploaded to Artifact Registry upon successful completion of all build steps. The build service account credentials will be used to perform the upload. If any objects fail to be pushed, the build is marked FAILURE.
+    #[serde(default, rename = "pythonPackages")]
+    pub python_packages:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1PythonPackage>>,
+}
+
+/// Secrets and secret environment variables.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Secrets {
+    /// Secrets encrypted with KMS key and the associated secret environment variable.
+    #[serde(default)]
+    pub inline: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1InlineSecret>>,
+    /// Secrets in Secret Manager and associated secret environment variable.
+    #[serde(default, rename = "secretManager")]
+    pub secret_manager:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1SecretManagerSecret>>,
+}
+
+/// A dependency that the Cloud Build worker will fetch before executing user steps.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Dependency {
+    /// If set to true disable all dependency fetching (ignoring the default source as well).
+    #[serde(default)]
+    pub empty: ::core::option::Option<bool>,
+    /// Represents a generic artifact as a build dependency.
+    #[serde(default, rename = "genericArtifact")]
+    pub generic_artifact:
+        ::core::option::Option<GoogleDevtoolsCloudbuildV1GenericArtifactDependency>,
+    /// Represents a git repository as a build dependency.
+    #[serde(default, rename = "gitSource")]
+    pub git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSourceDependency>,
+}
+
+/// A fatal problem encountered during the execution of the build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1FailureInfo {
+    /// Explains the failure issue in more detail using hard-coded text.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The name of the failure. // TODO: enum values: ["FAILURE_TYPE_UNSPECIFIED", "PUSH_FAILED", "PUSH_IMAGE_NOT_FOUND", "PUSH_NOT_AUTHORIZED", "LOGGING_FAILURE", "USER_BUILD_STEP", "FETCH_SOURCE_FAILED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// GitConfig is a configuration for git operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1GitConfig {
+    /// Configuration for HTTP related git operations.
+    #[serde(default)]
+    pub http: ::core::option::Option<GoogleDevtoolsCloudbuildV1HttpConfig>,
 }
 
 /// Optional arguments to enable specific features of builds.
@@ -2108,6 +1773,110 @@ pub struct GoogleDevtoolsCloudbuildV1BuildOptions {
     /// This field deprecated; please use pool.name instead.
     #[serde(default, rename = "workerPool")]
     pub worker_pool: ::core::option::Option<String>,
+}
+
+/// Artifacts created by the build pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Results {
+    /// Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
+    #[serde(default, rename = "artifactManifest")]
+    pub artifact_manifest: ::core::option::Option<String>,
+    /// Time to push all non-container artifacts to Cloud Storage.
+    #[serde(default, rename = "artifactTiming")]
+    pub artifact_timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
+    /// List of build step digests, in the order corresponding to build step indices.
+    #[serde(default, rename = "buildStepImages")]
+    pub build_step_images: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to $BUILDER_OUTPUT/output. Only the first 50KB of data is stored. Note that the $BUILDER_OUTPUT variable is read-only and can''t be substituted.
+    #[serde(default, rename = "buildStepOutputs")]
+    pub build_step_outputs: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Generic artifacts uploaded to Artifact Registry at the end of the build.
+    #[serde(default, rename = "genericArtifacts")]
+    pub generic_artifacts:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedGenericArtifact>>,
+    /// Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.
+    #[serde(default, rename = "goModules")]
+    pub go_modules:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedGoModule>>,
+    /// Container images that were built as a part of the build.
+    #[serde(default)]
+    pub images: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1BuiltImage>>,
+    /// Maven artifacts uploaded to Artifact Registry at the end of the build.
+    #[serde(default, rename = "mavenArtifacts")]
+    pub maven_artifacts:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedMavenArtifact>>,
+    /// Npm packages uploaded to Artifact Registry at the end of the build.
+    #[serde(default, rename = "npmPackages")]
+    pub npm_packages:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedNpmPackage>>,
+    /// Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
+    #[serde(default, rename = "numArtifacts")]
+    pub num_artifacts: ::core::option::Option<String>,
+    /// Python artifacts uploaded to Artifact Registry at the end of the build.
+    #[serde(default, rename = "pythonPackages")]
+    pub python_packages:
+        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedPythonPackage>>,
+}
+
+/// Pairs a set of secret environment variables containing encrypted values with the Cloud KMS key to use to decrypt the value. Note: Use kmsKeyName with available_secrets instead of using kmsKeyName with secret. For instructions see: https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-credentials.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Secret {
+    /// Cloud KMS key name to use to decrypt these envs.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
+    #[serde(default, rename = "secretEnv")]
+    pub secret_env: ::core::option::Option<serde_json::Value>,
+}
+
+/// Location of the source in a supported storage service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Source {
+    /// Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.
+    #[serde(default, rename = "connectedRepository")]
+    pub connected_repository: ::core::option::Option<GoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    /// If provided, get the source from this Developer Connect config.
+    #[serde(default, rename = "developerConnectConfig")]
+    pub developer_connect_config:
+        ::core::option::Option<GoogleDevtoolsCloudbuildV1DeveloperConnectConfig>,
+    /// If provided, get the source from this Git repository.
+    #[serde(default, rename = "gitSource")]
+    pub git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSource>,
+    /// If provided, get the source from this location in a Cloud Source Repository.
+    #[serde(default, rename = "repoSource")]
+    pub repo_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1RepoSource>,
+    /// If provided, get the source from this location in Cloud Storage.
+    #[serde(default, rename = "storageSource")]
+    pub storage_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSource>,
+    /// If provided, get the source from this manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
+    #[serde(default, rename = "storageSourceManifest")]
+    pub storage_source_manifest:
+        ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+}
+
+/// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1SourceProvenance {
+    /// Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that FileHashes will only be populated if BuildOptions has requested a SourceProvenanceHash. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.
+    #[serde(default, rename = "fileHashes")]
+    pub file_hashes: ::core::option::Option<serde_json::Value>,
+    /// Output only. A copy of the build''s source.connected_repository, if exists, with any revisions resolved.
+    #[serde(default, rename = "resolvedConnectedRepository")]
+    pub resolved_connected_repository:
+        ::core::option::Option<GoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    /// Output only. A copy of the build''s source.git_source, if exists, with any revisions resolved.
+    #[serde(default, rename = "resolvedGitSource")]
+    pub resolved_git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSource>,
+    /// A copy of the build''s source.repo_source, if exists, with any revisions resolved.
+    #[serde(default, rename = "resolvedRepoSource")]
+    pub resolved_repo_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1RepoSource>,
+    /// A copy of the build''s source.storage_source, if exists, with any generations resolved.
+    #[serde(default, rename = "resolvedStorageSource")]
+    pub resolved_storage_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSource>,
+    /// A copy of the build''s source.storage_source_manifest, if exists, with any revisions resolved. This feature is in Preview.
+    #[serde(default, rename = "resolvedStorageSourceManifest")]
+    pub resolved_storage_source_manifest:
+        ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSourceManifest>,
 }
 
 /// A step in the build pipeline.
@@ -2169,86 +1938,142 @@ pub struct GoogleDevtoolsCloudbuildV1BuildStep {
     pub wait_for: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// An image built by the pipeline.
+/// A non-fatal problem encountered during the execution of the build.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1BuiltImage {
-    /// Output only. Path to the artifact in Artifact Registry.
-    #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: ::core::option::Option<String>,
-    /// Docker Registry 2.0 digest.
+pub struct GoogleDevtoolsCloudbuildV1Warning {
+    /// The priority for this warning. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "INFO", "WARNING", "ALERT"]
     #[serde(default)]
-    pub digest: ::core::option::Option<String>,
-    /// Name used to push the container image to Google Container Registry, as presented to docker push.
+    pub priority: ::core::option::Option<String>,
+    /// Explanation of the warning generated.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The OCI media type of the artifact. Non-OCI images, such as Docker images, will have an unspecified value. // TODO: enum values: ["OCI_MEDIA_TYPE_UNSPECIFIED", "IMAGE_MANIFEST", "IMAGE_INDEX"]
-    #[serde(default, rename = "ociMediaType")]
-    pub oci_media_type: ::core::option::Option<String>,
-    /// Output only. Stores timing information for pushing the specified image.
-    #[serde(default, rename = "pushTiming")]
-    pub push_timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub text: ::core::option::Option<String>,
 }
 
-/// Location of the source in a 2nd-gen Google Cloud Build repository resource.
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1ConnectedRepository {
-    /// Optional. Directory, relative to the source root, in which to run the build.
+pub struct GoogleIamV1AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub dir: ::core::option::Option<String>,
-    /// Required. Name of the Google Cloud Build repository, formatted as projects/*/locations/*/connections/*/repositories/*.
-    #[serde(default)]
-    pub repository: ::core::option::Option<String>,
-    /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
-/// A dependency that the Cloud Build worker will fetch before executing user steps.
+/// Associates members, or principals, with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Dependency {
-    /// If set to true disable all dependency fetching (ignoring the default source as well).
+pub struct GoogleIamV1Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub empty: ::core::option::Option<bool>,
-    /// Represents a generic artifact as a build dependency.
-    #[serde(default, rename = "genericArtifact")]
-    pub generic_artifact:
-        ::core::option::Option<GoogleDevtoolsCloudbuildV1GenericArtifactDependency>,
-    /// Represents a git repository as a build dependency.
-    #[serde(default, rename = "gitSource")]
-    pub git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSourceDependency>,
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
 }
 
-/// This config defines the location of a source through Developer Connect.
+/// TaskTemplate describes the data a task should have when created from a template.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
-    /// Required. Directory, relative to the source root, in which to run the build.
+pub struct GoogleCloudRunV2TaskTemplate {
+    /// Holds the single container that defines the unit of execution for this task.
     #[serde(default)]
-    pub dir: ::core::option::Option<String>,
-    /// Required. The Developer Connect Git repository link, formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*.
-    #[serde(default, rename = "gitRepositoryLink")]
-    pub git_repository_link: ::core::option::Option<String>,
-    /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
+    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Container>>,
+    /// A reference to a customer managed encryption key (CMEK) to use to encrypt this container image. For more information, go to https://cloud.google.com/run/docs/securing/using-cmek
+    #[serde(default, rename = "encryptionKey")]
+    pub encryption_key: ::core::option::Option<String>,
+    /// Optional. The execution environment being used to host this Task. // TODO: enum values: ["EXECUTION_ENVIRONMENT_UNSPECIFIED", "EXECUTION_ENVIRONMENT_GEN1", "EXECUTION_ENVIRONMENT_GEN2"]
+    #[serde(default, rename = "executionEnvironment")]
+    pub execution_environment: ::core::option::Option<String>,
+    /// Optional. True if GPU zonal redundancy is disabled on this task template.
+    #[serde(default, rename = "gpuZonalRedundancyDisabled")]
+    pub gpu_zonal_redundancy_disabled: ::core::option::Option<bool>,
+    /// Number of retries allowed per Task, before marking this Task failed. Defaults to 3.
+    #[serde(default, rename = "maxRetries")]
+    pub max_retries: ::core::option::Option<i32>,
+    /// Optional. The node selector for the task template.
+    #[serde(default, rename = "nodeSelector")]
+    pub node_selector: ::core::option::Option<GoogleCloudRunV2NodeSelector>,
+    /// Optional. Email address of the IAM service account associated with the Task of a Job. The service account represents the identity of the running task, and determines what permissions the task has. If not provided, the task will use the project''s default service account.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Optional. Max allowed time duration the Task may be active before the system will actively try to mark it failed and kill associated containers. This applies per attempt of a task, meaning each retry can run for the full timeout. Defaults to 600 seconds.
     #[serde(default)]
-    pub revision: ::core::option::Option<String>,
+    pub timeout: ::core::option::Option<String>,
+    /// Optional. A list of Volumes to make available to containers.
+    #[serde(default)]
+    pub volumes: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2Volume>>,
+    /// Optional. VPC Access configuration to use for this Task. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
+    #[serde(default, rename = "vpcAccess")]
+    pub vpc_access: ::core::option::Option<GoogleCloudRunV2VpcAccess>,
 }
 
-/// A fatal problem encountered during the execution of the build.
+/// Settings for revision-level scaling settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1FailureInfo {
-    /// Explains the failure issue in more detail using hard-coded text.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The name of the failure. // TODO: enum values: ["FAILURE_TYPE_UNSPECIFIED", "PUSH_FAILED", "PUSH_IMAGE_NOT_FOUND", "PUSH_NOT_AUTHORIZED", "LOGGING_FAILURE", "USER_BUILD_STEP", "FETCH_SOURCE_FAILED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+pub struct GoogleCloudRunV2RevisionScaling {
+    /// Optional. Determines a threshold for concurrency utilization before scaling begins. Accepted values are between 0.1 and 0.95 (inclusive) or 0.0 to disable concurrency utilization as threshold for scaling. CPU and concurrency scaling cannot both be disabled.
+    #[serde(default, rename = "concurrencyUtilization")]
+    pub concurrency_utilization: ::core::option::Option<f32>,
+    /// Optional. Determines a threshold for CPU utilization before scaling begins. Accepted values are between 0.1 and 0.95 (inclusive) or 0.0 to disable CPU utilization as threshold for scaling. CPU and concurrency scaling cannot both be disabled.
+    #[serde(default, rename = "cpuUtilization")]
+    pub cpu_utilization: ::core::option::Option<f32>,
+    /// Optional. Maximum number of serving instances that this resource should have. When unspecified, the field is set to the server default value of 100. For more information see https://cloud.google.com/run/docs/configuring/max-instances
+    #[serde(default, rename = "maxInstanceCount")]
+    pub max_instance_count: ::core::option::Option<i32>,
+    /// Optional. Minimum number of serving instances that this resource should have.
+    #[serde(default, rename = "minInstanceCount")]
+    pub min_instance_count: ::core::option::Option<i32>,
 }
 
-/// Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1FileHashes {
-    /// Collection of file hashes.
-    #[serde(default, rename = "fileHash")]
-    pub file_hash: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1Hash>>,
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Settings for Cloud Service Mesh. For more information see https://cloud.google.com/service-mesh/docs/overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ServiceMesh {
+    /// The Mesh resource name. Format: projects/{project}/locations/global/meshes/{mesh}, where {project} can be project id or number.
+    #[serde(default)]
+    pub mesh: ::core::option::Option<String>,
+}
+
+/// ApprovalConfig describes configuration for manual approval of a build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1ApprovalConfig {
+    /// Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.
+    #[serde(default, rename = "approvalRequired")]
+    pub approval_required: ::core::option::Option<bool>,
+}
+
+/// ApprovalResult describes the decision and associated metadata of a manual approval of a build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1ApprovalResult {
+    /// Output only. The time when the approval decision was made.
+    #[serde(default, rename = "approvalTime")]
+    pub approval_time: ::core::option::Option<String>,
+    /// Output only. Email of the user that called the ApproveBuild API to approve or reject a build at the time that the API was called.
+    #[serde(default, rename = "approverAccount")]
+    pub approver_account: ::core::option::Option<String>,
+    /// Optional. An optional comment for this manual approval result.
+    #[serde(default)]
+    pub comment: ::core::option::Option<String>,
+    /// Required. The decision of this manual approval. // TODO: enum values: ["DECISION_UNSPECIFIED", "APPROVED", "REJECTED"]
+    #[serde(default)]
+    pub decision: ::core::option::Option<String>,
+    /// Optional. An optional URL tied to this manual approval result. This field is essentially the same as comment, except that it will be rendered by the UI differently. An example use case is a link to an external job that approved this Build.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
 }
 
 /// Generic artifact to upload to Artifact Registry upon successful completion of all build steps.
@@ -2260,70 +2085,6 @@ pub struct GoogleDevtoolsCloudbuildV1GenericArtifact {
     /// Required. Registry path to upload the generic artifact to, in the form projects/$PROJECT/locations/$LOCATION/repositories/$REPO/packages/$PACKAGE/versions/$VERSION
     #[serde(default, rename = "registryPath")]
     pub registry_path: ::core::option::Option<String>,
-}
-
-/// Represents a generic artifact as a build dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1GenericArtifactDependency {
-    /// Required. Where the artifact files should be placed on the worker.
-    #[serde(default, rename = "destPath")]
-    pub dest_path: ::core::option::Option<String>,
-    /// Required. The location to download the artifact files from. Ex: projects/p1/locations/us/repositories/r1/packages/p1/versions/v1
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-}
-
-/// GitConfig is a configuration for git operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1GitConfig {
-    /// Configuration for HTTP related git operations.
-    #[serde(default)]
-    pub http: ::core::option::Option<GoogleDevtoolsCloudbuildV1HttpConfig>,
-}
-
-/// Location of the source in any accessible Git repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1GitSource {
-    /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
-    #[serde(default)]
-    pub dir: ::core::option::Option<String>,
-    /// Optional. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref. Cloud Build uses git fetch to fetch the revision from the Git repository; therefore make sure that the string you provide for revision is parsable by the command. For information on string values accepted by git fetch, see https://git-scm.com/docs/gitrevisions#_specifying_revisions. For information on git fetch, see https://git-scm.com/docs/git-fetch.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Required. Location of the Git repo to build. This will be used as a git remote, see https://git-scm.com/docs/git-remote.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Represents a git repository as a build dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1GitSourceDependency {
-    /// Optional. How much history should be fetched for the build (default 1, -1 for all history).
-    #[serde(default)]
-    pub depth: ::core::option::Option<String>,
-    /// Required. Where should the files be placed on the worker.
-    #[serde(default, rename = "destPath")]
-    pub dest_path: ::core::option::Option<String>,
-    /// Optional. True if submodules should be fetched too (default false).
-    #[serde(default, rename = "recurseSubmodules")]
-    pub recurse_submodules: ::core::option::Option<bool>,
-    /// Required. The kind of repo (url or dev connect).
-    #[serde(default)]
-    pub repository: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSourceRepository>,
-    /// Required. The revision that we will fetch the repo at.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-}
-
-/// A repository for a git source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1GitSourceRepository {
-    /// The Developer Connect Git repository link formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*
-    #[serde(default, rename = "developerConnect")]
-    pub developer_connect: ::core::option::Option<String>,
-    /// Location of the Git repository.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Go module to upload to Artifact Registry upon successful completion of all build steps. A module refers to all dependencies in a go.mod file.
@@ -2347,36 +2108,6 @@ pub struct GoogleDevtoolsCloudbuildV1GoModule {
     /// Optional. Source path of the go.mod file in the build''s workspace. If not specified, this will default to the current directory. e.g. ~/code/go/mypackage
     #[serde(default, rename = "sourcePath")]
     pub source_path: ::core::option::Option<String>,
-}
-
-/// Container message for hash values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Hash {
-    /// The type of hash that was performed. // TODO: enum values: ["NONE", "SHA256", "MD5", "GO_MODULE_H1", "SHA512", "DIRSUM_SHA256"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The hash value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// HttpConfig is a configuration for HTTP related git operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1HttpConfig {
-    /// SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have secretmanager.versions.access permissions on this secret. The proxy URL should be in format protocol://@]proxyhost[:port].
-    #[serde(default, rename = "proxySecretVersionName")]
-    pub proxy_secret_version_name: ::core::option::Option<String>,
-}
-
-/// Pairs a set of secret environment variables mapped to encrypted values with the Cloud KMS key to use to decrypt the value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1InlineSecret {
-    /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
-    #[serde(default, rename = "envMap")]
-    pub env_map: ::core::option::Option<serde_json::Value>,
-    /// Resource name of Cloud KMS crypto key to decrypt the encrypted value. In format: projects/*/locations/*/keyRings/*/cryptoKeys/*
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// A Maven artifact to upload to Artifact Registry upon successful completion of all build steps.
@@ -2413,6 +2144,20 @@ pub struct GoogleDevtoolsCloudbuildV1NpmPackage {
     pub repository: ::core::option::Option<String>,
 }
 
+/// Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1ArtifactObjects {
+    /// Cloud Storage bucket and optional object path, in the form "gs://bucket/path/to/somewhere/". (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Files in the workspace matching any path pattern will be uploaded to Cloud Storage with this location as a prefix.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Path globs used to match files in the build''s workspace.
+    #[serde(default)]
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Stores timing information for pushing all artifact objects.
+    #[serde(default)]
+    pub timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
+}
+
 /// OCI image to upload to Artifact Registry upon successful completion of all build steps.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDevtoolsCloudbuildV1Oci {
@@ -2427,14 +2172,6 @@ pub struct GoogleDevtoolsCloudbuildV1Oci {
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Details about how a build should be executed on a WorkerPool. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1PoolOption {
-    /// The WorkerPool resource to execute the build on. You must have cloudbuild.workerpools.use on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Python package to upload to Artifact Registry upon successful completion of all build steps. A package can encapsulate multiple objects to be uploaded to a single repository.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDevtoolsCloudbuildV1PythonPackage {
@@ -2446,87 +2183,15 @@ pub struct GoogleDevtoolsCloudbuildV1PythonPackage {
     pub repository: ::core::option::Option<String>,
 }
 
-/// Location of the source in a Google Cloud Source Repository.
+/// Pairs a set of secret environment variables mapped to encrypted values with the Cloud KMS key to use to decrypt the value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1RepoSource {
-    /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
-    #[serde(default, rename = "branchName")]
-    pub branch_name: ::core::option::Option<String>,
-    /// Explicit commit SHA to build.
-    #[serde(default, rename = "commitSha")]
-    pub commit_sha: ::core::option::Option<String>,
-    /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
-    #[serde(default)]
-    pub dir: ::core::option::Option<String>,
-    /// Optional. Only trigger a build if the revision regex does NOT match the revision regex.
-    #[serde(default, rename = "invertRegex")]
-    pub invert_regex: ::core::option::Option<bool>,
-    /// Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Required. Name of the Cloud Source Repository.
-    #[serde(default, rename = "repoName")]
-    pub repo_name: ::core::option::Option<String>,
-    /// Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger
-    #[serde(default)]
-    pub substitutions: ::core::option::Option<serde_json::Value>,
-    /// Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
-    #[serde(default, rename = "tagName")]
-    pub tag_name: ::core::option::Option<String>,
-}
-
-/// Artifacts created by the build pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Results {
-    /// Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
-    #[serde(default, rename = "artifactManifest")]
-    pub artifact_manifest: ::core::option::Option<String>,
-    /// Time to push all non-container artifacts to Cloud Storage.
-    #[serde(default, rename = "artifactTiming")]
-    pub artifact_timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
-    /// List of build step digests, in the order corresponding to build step indices.
-    #[serde(default, rename = "buildStepImages")]
-    pub build_step_images: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to $BUILDER_OUTPUT/output. Only the first 50KB of data is stored. Note that the $BUILDER_OUTPUT variable is read-only and can''t be substituted.
-    #[serde(default, rename = "buildStepOutputs")]
-    pub build_step_outputs: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Generic artifacts uploaded to Artifact Registry at the end of the build.
-    #[serde(default, rename = "genericArtifacts")]
-    pub generic_artifacts:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedGenericArtifact>>,
-    /// Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.
-    #[serde(default, rename = "goModules")]
-    pub go_modules:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedGoModule>>,
-    /// Container images that were built as a part of the build.
-    #[serde(default)]
-    pub images: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1BuiltImage>>,
-    /// Maven artifacts uploaded to Artifact Registry at the end of the build.
-    #[serde(default, rename = "mavenArtifacts")]
-    pub maven_artifacts:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedMavenArtifact>>,
-    /// Npm packages uploaded to Artifact Registry at the end of the build.
-    #[serde(default, rename = "npmPackages")]
-    pub npm_packages:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedNpmPackage>>,
-    /// Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
-    #[serde(default, rename = "numArtifacts")]
-    pub num_artifacts: ::core::option::Option<String>,
-    /// Python artifacts uploaded to Artifact Registry at the end of the build.
-    #[serde(default, rename = "pythonPackages")]
-    pub python_packages:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1UploadedPythonPackage>>,
-}
-
-/// Pairs a set of secret environment variables containing encrypted values with the Cloud KMS key to use to decrypt the value. Note: Use kmsKeyName with available_secrets instead of using kmsKeyName with secret. For instructions see: https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Secret {
-    /// Cloud KMS key name to use to decrypt these envs.
+pub struct GoogleDevtoolsCloudbuildV1InlineSecret {
+    /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
+    #[serde(default, rename = "envMap")]
+    pub env_map: ::core::option::Option<serde_json::Value>,
+    /// Resource name of Cloud KMS crypto key to decrypt the encrypted value. In format: projects/*/locations/*/keyRings/*/cryptoKeys/*
     #[serde(default, rename = "kmsKeyName")]
     pub kms_key_name: ::core::option::Option<String>,
-    /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
-    #[serde(default, rename = "secretEnv")]
-    pub secret_env: ::core::option::Option<serde_json::Value>,
 }
 
 /// Pairs a secret environment variable with a SecretVersion in Secret Manager.
@@ -2540,108 +2205,51 @@ pub struct GoogleDevtoolsCloudbuildV1SecretManagerSecret {
     pub version_name: ::core::option::Option<String>,
 }
 
-/// Secrets and secret environment variables.
+/// Represents a generic artifact as a build dependency.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Secrets {
-    /// Secrets encrypted with KMS key and the associated secret environment variable.
+pub struct GoogleDevtoolsCloudbuildV1GenericArtifactDependency {
+    /// Required. Where the artifact files should be placed on the worker.
+    #[serde(default, rename = "destPath")]
+    pub dest_path: ::core::option::Option<String>,
+    /// Required. The location to download the artifact files from. Ex: projects/p1/locations/us/repositories/r1/packages/p1/versions/v1
     #[serde(default)]
-    pub inline: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1InlineSecret>>,
-    /// Secrets in Secret Manager and associated secret environment variable.
-    #[serde(default, rename = "secretManager")]
-    pub secret_manager:
-        ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1SecretManagerSecret>>,
+    pub resource: ::core::option::Option<String>,
 }
 
-/// Location of the source in a supported storage service.
+/// Represents a git repository as a build dependency.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Source {
-    /// Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.
-    #[serde(default, rename = "connectedRepository")]
-    pub connected_repository: ::core::option::Option<GoogleDevtoolsCloudbuildV1ConnectedRepository>,
-    /// If provided, get the source from this Developer Connect config.
-    #[serde(default, rename = "developerConnectConfig")]
-    pub developer_connect_config:
-        ::core::option::Option<GoogleDevtoolsCloudbuildV1DeveloperConnectConfig>,
-    /// If provided, get the source from this Git repository.
-    #[serde(default, rename = "gitSource")]
-    pub git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSource>,
-    /// If provided, get the source from this location in a Cloud Source Repository.
-    #[serde(default, rename = "repoSource")]
-    pub repo_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1RepoSource>,
-    /// If provided, get the source from this location in Cloud Storage.
-    #[serde(default, rename = "storageSource")]
-    pub storage_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSource>,
-    /// If provided, get the source from this manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
-    #[serde(default, rename = "storageSourceManifest")]
-    pub storage_source_manifest:
-        ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+pub struct GoogleDevtoolsCloudbuildV1GitSourceDependency {
+    /// Optional. How much history should be fetched for the build (default 1, -1 for all history).
+    #[serde(default)]
+    pub depth: ::core::option::Option<String>,
+    /// Required. Where should the files be placed on the worker.
+    #[serde(default, rename = "destPath")]
+    pub dest_path: ::core::option::Option<String>,
+    /// Optional. True if submodules should be fetched too (default false).
+    #[serde(default, rename = "recurseSubmodules")]
+    pub recurse_submodules: ::core::option::Option<bool>,
+    /// Required. The kind of repo (url or dev connect).
+    #[serde(default)]
+    pub repository: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSourceRepository>,
+    /// Required. The revision that we will fetch the repo at.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
 }
 
-/// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
+/// HttpConfig is a configuration for HTTP related git operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1SourceProvenance {
-    /// Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that FileHashes will only be populated if BuildOptions has requested a SourceProvenanceHash. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.
-    #[serde(default, rename = "fileHashes")]
-    pub file_hashes: ::core::option::Option<serde_json::Value>,
-    /// Output only. A copy of the build''s source.connected_repository, if exists, with any revisions resolved.
-    #[serde(default, rename = "resolvedConnectedRepository")]
-    pub resolved_connected_repository:
-        ::core::option::Option<GoogleDevtoolsCloudbuildV1ConnectedRepository>,
-    /// Output only. A copy of the build''s source.git_source, if exists, with any revisions resolved.
-    #[serde(default, rename = "resolvedGitSource")]
-    pub resolved_git_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1GitSource>,
-    /// A copy of the build''s source.repo_source, if exists, with any revisions resolved.
-    #[serde(default, rename = "resolvedRepoSource")]
-    pub resolved_repo_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1RepoSource>,
-    /// A copy of the build''s source.storage_source, if exists, with any generations resolved.
-    #[serde(default, rename = "resolvedStorageSource")]
-    pub resolved_storage_source: ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSource>,
-    /// A copy of the build''s source.storage_source_manifest, if exists, with any revisions resolved. This feature is in Preview.
-    #[serde(default, rename = "resolvedStorageSourceManifest")]
-    pub resolved_storage_source_manifest:
-        ::core::option::Option<GoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+pub struct GoogleDevtoolsCloudbuildV1HttpConfig {
+    /// SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have secretmanager.versions.access permissions on this secret. The proxy URL should be in format protocol://@]proxyhost[:port].
+    #[serde(default, rename = "proxySecretVersionName")]
+    pub proxy_secret_version_name: ::core::option::Option<String>,
 }
 
-/// Location of the source in an archive file in Cloud Storage.
+/// Details about how a build should be executed on a WorkerPool. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1StorageSource {
-    /// Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
+pub struct GoogleDevtoolsCloudbuildV1PoolOption {
+    /// The WorkerPool resource to execute the build on. You must have cloudbuild.workerpools.use on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}
     #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// Required. Cloud Storage object containing the source. This object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to build.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
-    /// Optional. Option to specify the tool to fetch the source file for the build. // TODO: enum values: ["SOURCE_FETCHER_UNSPECIFIED", "GSUTIL", "GCS_FETCHER"]
-    #[serde(default, rename = "sourceFetcher")]
-    pub source_fetcher: ::core::option::Option<String>,
-}
-
-/// Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1StorageSourceManifest {
-    /// Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// Required. Cloud Storage object containing the source manifest. This object must be a JSON file.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
-}
-
-/// Start and end times for a build execution phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1TimeSpan {
-    /// End of time span.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Start of time span.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A generic artifact uploaded to Artifact Registry using the GenericArtifact directive.
@@ -2679,6 +2287,26 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedGoModule {
     /// URI of the uploaded artifact.
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
+}
+
+/// An image built by the pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1BuiltImage {
+    /// Output only. Path to the artifact in Artifact Registry.
+    #[serde(default, rename = "artifactRegistryPackage")]
+    pub artifact_registry_package: ::core::option::Option<String>,
+    /// Docker Registry 2.0 digest.
+    #[serde(default)]
+    pub digest: ::core::option::Option<String>,
+    /// Name used to push the container image to Google Container Registry, as presented to docker push.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The OCI media type of the artifact. Non-OCI images, such as Docker images, will have an unspecified value. // TODO: enum values: ["OCI_MEDIA_TYPE_UNSPECIFIED", "IMAGE_MANIFEST", "IMAGE_INDEX"]
+    #[serde(default, rename = "ociMediaType")]
+    pub oci_media_type: ::core::option::Option<String>,
+    /// Output only. Stores timing information for pushing the specified image.
+    #[serde(default, rename = "pushTiming")]
+    pub push_timing: ::core::option::Option<GoogleDevtoolsCloudbuildV1TimeSpan>,
 }
 
 /// A Maven artifact uploaded using the MavenArtifact directive.
@@ -2732,6 +2360,108 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedPythonPackage {
     pub uri: ::core::option::Option<String>,
 }
 
+/// This config defines the location of a source through Developer Connect.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
+    /// Required. Directory, relative to the source root, in which to run the build.
+    #[serde(default)]
+    pub dir: ::core::option::Option<String>,
+    /// Required. The Developer Connect Git repository link, formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*.
+    #[serde(default, rename = "gitRepositoryLink")]
+    pub git_repository_link: ::core::option::Option<String>,
+    /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+}
+
+/// Location of the source in a 2nd-gen Google Cloud Build repository resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1ConnectedRepository {
+    /// Optional. Directory, relative to the source root, in which to run the build.
+    #[serde(default)]
+    pub dir: ::core::option::Option<String>,
+    /// Required. Name of the Google Cloud Build repository, formatted as projects/*/locations/*/connections/*/repositories/*.
+    #[serde(default)]
+    pub repository: ::core::option::Option<String>,
+    /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+}
+
+/// Location of the source in any accessible Git repository.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1GitSource {
+    /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
+    #[serde(default)]
+    pub dir: ::core::option::Option<String>,
+    /// Optional. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref. Cloud Build uses git fetch to fetch the revision from the Git repository; therefore make sure that the string you provide for revision is parsable by the command. For information on string values accepted by git fetch, see https://git-scm.com/docs/gitrevisions#_specifying_revisions. For information on git fetch, see https://git-scm.com/docs/git-fetch.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Required. Location of the Git repo to build. This will be used as a git remote, see https://git-scm.com/docs/git-remote.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Location of the source in a Google Cloud Source Repository.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1RepoSource {
+    /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
+    #[serde(default, rename = "branchName")]
+    pub branch_name: ::core::option::Option<String>,
+    /// Explicit commit SHA to build.
+    #[serde(default, rename = "commitSha")]
+    pub commit_sha: ::core::option::Option<String>,
+    /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
+    #[serde(default)]
+    pub dir: ::core::option::Option<String>,
+    /// Optional. Only trigger a build if the revision regex does NOT match the revision regex.
+    #[serde(default, rename = "invertRegex")]
+    pub invert_regex: ::core::option::Option<bool>,
+    /// Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Required. Name of the Cloud Source Repository.
+    #[serde(default, rename = "repoName")]
+    pub repo_name: ::core::option::Option<String>,
+    /// Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger
+    #[serde(default)]
+    pub substitutions: ::core::option::Option<serde_json::Value>,
+    /// Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
+    #[serde(default, rename = "tagName")]
+    pub tag_name: ::core::option::Option<String>,
+}
+
+/// Location of the source in an archive file in Cloud Storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1StorageSource {
+    /// Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// Required. Cloud Storage object containing the source. This object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to build.
+    #[serde(default)]
+    pub object: ::core::option::Option<String>,
+    /// Optional. Option to specify the tool to fetch the source file for the build. // TODO: enum values: ["SOURCE_FETCHER_UNSPECIFIED", "GSUTIL", "GCS_FETCHER"]
+    #[serde(default, rename = "sourceFetcher")]
+    pub source_fetcher: ::core::option::Option<String>,
+}
+
+/// Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1StorageSourceManifest {
+    /// Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// Required. Cloud Storage object containing the source manifest. This object must be a JSON file.
+    #[serde(default)]
+    pub object: ::core::option::Option<String>,
+}
+
 /// Volume describes a Docker container volume which is mounted into build steps in order to persist files across build step execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDevtoolsCloudbuildV1Volume {
@@ -2743,28 +2473,6 @@ pub struct GoogleDevtoolsCloudbuildV1Volume {
     pub path: ::core::option::Option<String>,
 }
 
-/// A non-fatal problem encountered during the execution of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevtoolsCloudbuildV1Warning {
-    /// The priority for this warning. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "INFO", "WARNING", "ALERT"]
-    #[serde(default)]
-    pub priority: ::core::option::Option<String>,
-    /// Explanation of the warning generated.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIamV1AuditLogConfig {
@@ -2774,120 +2482,6 @@ pub struct GoogleIamV1AuditLogConfig {
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
     pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningWaitOperationRequest {
-    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -2907,22 +2501,428 @@ pub struct GoogleTypeExpr {
     pub title: ::core::option::Option<String>,
 }
 
-/// Wire-format for a Status object
+/// A single application container. This specifies both the container to run, the command to run in the container and the arguments to supply to it. Note that additional arguments can be supplied by the system to the container at runtime.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UtilStatusProto {
-    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
-    #[serde(default, rename = "canonicalCode")]
-    pub canonical_code: ::core::option::Option<i32>,
-    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+pub struct GoogleCloudRunV2Container {
+    /// Arguments to the entrypoint. The docker image''s CMD is used if this is not provided.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Base image for this container. Only supported for services. If set, it indicates that the service is enrolled into automatic base image update.
+    #[serde(default, rename = "baseImageUri")]
+    pub base_image_uri: ::core::option::Option<String>,
+    /// Output only. The build info of the container image.
+    #[serde(default, rename = "buildInfo")]
+    pub build_info: ::core::option::Option<GoogleCloudRunV2BuildInfo>,
+    /// Entrypoint array. Not executed within a shell. The docker image''s ENTRYPOINT is used if this is not provided.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
-    #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
-    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
+    pub command: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Names of the containers that must start before this container.
+    #[serde(default, rename = "dependsOn")]
+    pub depends_on: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of environment variables to set in the container.
     #[serde(default)]
-    pub space: ::core::option::Option<String>,
+    pub env: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2EnvVar>>,
+    /// Required. Name of the container image in Dockerhub, Google Artifact Registry, or Google Container Registry. If the host is not provided, Dockerhub is assumed.
+    #[serde(default)]
+    pub image: ::core::option::Option<String>,
+    /// Periodic probe of container liveness. Container will be restarted if the probe fails.
+    #[serde(default, rename = "livenessProbe")]
+    pub liveness_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
+    /// Name of the container specified as a DNS_LABEL (RFC 1123).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of ports to expose from the container. Only a single port can be specified. The specified ports must be listening on all interfaces (0.0.0.0) within the container to be accessible. If omitted, a port number will be chosen and passed to the container through the PORT environment variable for the container to listen on.
+    #[serde(default)]
+    pub ports: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2ContainerPort>>,
+    /// Readiness probe to be used for health checks.
+    #[serde(default, rename = "readinessProbe")]
+    pub readiness_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
+    /// Compute Resource requirements by this container.
+    #[serde(default)]
+    pub resources: ::core::option::Option<GoogleCloudRunV2ResourceRequirements>,
+    /// Optional. Location of the source.
+    #[serde(default, rename = "sourceCode")]
+    pub source_code: ::core::option::Option<GoogleCloudRunV2SourceCode>,
+    /// Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not be added to service endpoints if the probe fails.
+    #[serde(default, rename = "startupProbe")]
+    pub startup_probe: ::core::option::Option<GoogleCloudRunV2Probe>,
+    /// Volume to mount into the container''s filesystem.
+    #[serde(default, rename = "volumeMounts")]
+    pub volume_mounts: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2VolumeMount>>,
+    /// Container''s working directory. If not specified, the container runtime''s default will be used, which might be configured in the container image.
+    #[serde(default, rename = "workingDir")]
+    pub working_dir: ::core::option::Option<String>,
+}
+
+/// Hardware constraints configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2NodeSelector {
+    /// Required. GPU accelerator type to attach to an instance.
+    #[serde(default)]
+    pub accelerator: ::core::option::Option<String>,
+}
+
+/// Volume represents a named volume in a container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2Volume {
+    /// For Cloud SQL volumes, contains the specific instances that should be mounted. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
+    #[serde(default, rename = "cloudSqlInstance")]
+    pub cloud_sql_instance: ::core::option::Option<GoogleCloudRunV2CloudSqlInstance>,
+    /// Ephemeral storage used as a shared volume.
+    #[serde(default, rename = "emptyDir")]
+    pub empty_dir: ::core::option::Option<GoogleCloudRunV2EmptyDirVolumeSource>,
+    /// Persistent storage backed by a Google Cloud Storage bucket.
+    #[serde(default)]
+    pub gcs: ::core::option::Option<GoogleCloudRunV2gCSVolumeSource>,
+    /// Required. Volume''s name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// For NFS Voumes, contains the path to the nfs Volume
+    #[serde(default)]
+    pub nfs: ::core::option::Option<GoogleCloudRunV2nFSVolumeSource>,
+    /// Secret represents a secret that should populate this volume.
+    #[serde(default)]
+    pub secret: ::core::option::Option<GoogleCloudRunV2SecretVolumeSource>,
+}
+
+/// VPC Access settings. For more information on sending traffic to a VPC network, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2VpcAccess {
+    /// VPC Access connector name. Format: projects/{project}/locations/{location}/connectors/{connector}, where {project} can be project id or number. For more information on sending traffic to a VPC network via a connector, visit https://cloud.google.com/run/docs/configuring/vpc-connectors.
+    #[serde(default)]
+    pub connector: ::core::option::Option<String>,
+    /// Optional. Traffic VPC egress settings. If not provided, it defaults to PRIVATE_RANGES_ONLY. // TODO: enum values: ["VPC_EGRESS_UNSPECIFIED", "ALL_TRAFFIC", "PRIVATE_RANGES_ONLY"]
+    #[serde(default)]
+    pub egress: ::core::option::Option<String>,
+    /// Optional. Direct VPC egress settings. Currently only single network interface is supported.
+    #[serde(default, rename = "networkInterfaces")]
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2NetworkInterface>>,
+}
+
+/// A repository for a git source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1GitSourceRepository {
+    /// The Developer Connect Git repository link formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*
+    #[serde(default, rename = "developerConnect")]
+    pub developer_connect: ::core::option::Option<String>,
+    /// Location of the Git repository.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1FileHashes {
+    /// Collection of file hashes.
+    #[serde(default, rename = "fileHash")]
+    pub file_hash: ::core::option::Option<::std::vec::Vec<GoogleDevtoolsCloudbuildV1Hash>>,
+}
+
+/// Start and end times for a build execution phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1TimeSpan {
+    /// End of time span.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Start of time span.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Build information of the image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2BuildInfo {
+    /// Output only. Entry point of the function when the image is a Cloud Run function.
+    #[serde(default, rename = "functionTarget")]
+    pub function_target: ::core::option::Option<String>,
+    /// Output only. Source code location of the image.
+    #[serde(default, rename = "sourceLocation")]
+    pub source_location: ::core::option::Option<String>,
+}
+
+/// EnvVar represents an environment variable present in a Container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2EnvVar {
+    /// Required. Name of the environment variable. Must not exceed 32768 characters.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Literal value of the environment variable. Defaults to "", and the maximum length is 32768 bytes. Variable references are not supported in Cloud Run.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+    /// Source for the environment variable''s value.
+    #[serde(default, rename = "valueSource")]
+    pub value_source: ::core::option::Option<GoogleCloudRunV2EnvVarSource>,
+}
+
+/// Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2Probe {
+    /// Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.
+    #[serde(default, rename = "failureThreshold")]
+    pub failure_threshold: ::core::option::Option<i32>,
+    /// Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.
+    #[serde(default)]
+    pub grpc: ::core::option::Option<GoogleCloudRunV2gRPCAction>,
+    /// Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.
+    #[serde(default, rename = "httpGet")]
+    pub http_get: ::core::option::Option<GoogleCloudRunV2hTTPGetAction>,
+    /// Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.
+    #[serde(default, rename = "initialDelaySeconds")]
+    pub initial_delay_seconds: ::core::option::Option<i32>,
+    /// Optional. How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240. Must be greater or equal than timeout_seconds.
+    #[serde(default, rename = "periodSeconds")]
+    pub period_seconds: ::core::option::Option<i32>,
+    /// Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.
+    #[serde(default, rename = "tcpSocket")]
+    pub tcp_socket: ::core::option::Option<GoogleCloudRunV2tCPSocketAction>,
+    /// Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.
+    #[serde(default, rename = "timeoutSeconds")]
+    pub timeout_seconds: ::core::option::Option<i32>,
+}
+
+/// ContainerPort represents a network port in a single container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ContainerPort {
+    /// Port number the container listens on. This must be a valid TCP port number, 0 &lt; container_port &lt; 65536.
+    #[serde(default, rename = "containerPort")]
+    pub container_port: ::core::option::Option<i32>,
+    /// If specified, used to specify which protocol to use. Allowed values are "http1" and "h2c".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// ResourceRequirements describes the compute resource requirements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2ResourceRequirements {
+    /// Determines whether CPU is only allocated during requests (true by default). However, if ResourceRequirements is set, the caller must explicitly set this field to true to preserve the default behavior.
+    #[serde(default, rename = "cpuIdle")]
+    pub cpu_idle: ::core::option::Option<bool>,
+    /// Only memory, cpu and nvidia.com/gpu keys in the map are supported. Notes: * The only supported values for CPU are ''1'', ''2'', ''4'', and ''8''. Setting 4 CPU requires at least 2Gi of memory. For more information, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported ''memory'' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits * The only supported ''nvidia.com/gpu'' value is ''1''.
+    #[serde(default)]
+    pub limits: ::core::option::Option<serde_json::Value>,
+    /// Determines whether CPU should be boosted on startup of a new container instance above the requested CPU threshold, this can help reduce cold-start latency.
+    #[serde(default, rename = "startupCpuBoost")]
+    pub startup_cpu_boost: ::core::option::Option<bool>,
+}
+
+/// Source type for the container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SourceCode {
+    /// The source is a Cloud Storage bucket.
+    #[serde(default, rename = "cloudStorageSource")]
+    pub cloud_storage_source: ::core::option::Option<GoogleCloudRunV2CloudStorageSource>,
+    /// Optional. Input only. Source code inlined in the request. Cloud Run will store the inlined_source to Cloud Storage and replace the field with cloud_storage_source.
+    #[serde(default, rename = "inlinedSource")]
+    pub inlined_source: ::core::option::Option<GoogleCloudRunV2InlinedSource>,
+}
+
+/// VolumeMount describes a mounting of a Volume within a container.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2VolumeMount {
+    /// Required. Path within the container at which the volume should be mounted. Must not contain '':''. For Cloud SQL volumes, it can be left empty, or must otherwise be /cloudsql. All instances defined in the Volume will be available as /cloudsql/[instance]. For more information on Cloud SQL volumes, visit https://cloud.google.com/sql/docs/mysql/connect-run
+    #[serde(default, rename = "mountPath")]
+    pub mount_path: ::core::option::Option<String>,
+    /// Required. This must match the Name of a Volume.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Path within the volume from which the container''s volume should be mounted. Defaults to "" (volume''s root). This field is currently ignored for Secret volumes.
+    #[serde(default, rename = "subPath")]
+    pub sub_path: ::core::option::Option<String>,
+}
+
+/// Represents a set of Cloud SQL instances. Each one will be available under /cloudsql/[instance]. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2CloudSqlInstance {
+    /// A list of Cloud SQL instance connection names. Cloud Run uses these to establish connections to the specified Cloud SQL instances. While the SQL instance name itself is unique within a project, the full connection name requires the location for proper routing. Format: {project}:{location}:{instance} Example: my-project:us-central1:my-instance You can find this value on the instance''s **Overview** page in the Google Cloud console or by using the following gcloud command: sh gcloud sql instances describe INSTANCE_NAME \ --format=''value(connectionName)''  Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2EmptyDirVolumeSource {
+    /// The medium on which the data is stored. Acceptable values today is only MEMORY or none. When none, the default will currently be backed by memory but could change over time. +optional // TODO: enum values: ["MEDIUM_UNSPECIFIED", "MEMORY", "DISK"]
+    #[serde(default)]
+    pub medium: ::core::option::Option<String>,
+    /// Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+    #[serde(default, rename = "sizeLimit")]
+    pub size_limit: ::core::option::Option<String>,
+}
+
+/// Represents a volume backed by a Cloud Storage bucket using Cloud Storage FUSE.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2gCSVolumeSource {
+    /// Cloud Storage Bucket name.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// A list of additional flags to pass to the gcsfuse CLI. Options should be specified without the leading "--".
+    #[serde(default, rename = "mountOptions")]
+    pub mount_options: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If true, the volume will be mounted as read only for all mounts.
+    #[serde(default, rename = "readOnly")]
+    pub read_only: ::core::option::Option<bool>,
+}
+
+/// Represents an NFS mount.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2nFSVolumeSource {
+    /// Path that is exported by the NFS server.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// If true, the volume will be mounted as read only for all mounts.
+    #[serde(default, rename = "readOnly")]
+    pub read_only: ::core::option::Option<bool>,
+    /// Hostname or IP address of the NFS server
+    #[serde(default)]
+    pub server: ::core::option::Option<String>,
+}
+
+/// The secret''s value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SecretVolumeSource {
+    /// Integer representation of mode bits to use on created files by default. Must be a value between 0000 and 0777 (octal), defaulting to 0444. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. This might be in conflict with other options that affect the file mode, like fsGroup, and as a result, other mode bits could be set.
+    #[serde(default, rename = "defaultMode")]
+    pub default_mode: ::core::option::Option<i32>,
+    /// If unspecified, the volume will expose a file whose name is the secret, relative to VolumeMount.mount_path + VolumeMount.sub_path. If specified, the key will be used as the version to fetch from Cloud Secret Manager and the path will be the name of the file exposed in the volume. When items are defined, they must specify a path and a version.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2VersionToPath>>,
+    /// Required. The name of the secret in Cloud Secret Manager. Format: {secret} if the secret is in the same project. projects/{project}/secrets/{secret} if the secret is in a different project.
+    #[serde(default)]
+    pub secret: ::core::option::Option<String>,
+}
+
+/// Direct VPC egress settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2NetworkInterface {
+    /// Optional. The VPC network that the Cloud Run resource will be able to send traffic to. At least one of network or subnetwork must be specified. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If network is not specified, it will be looked up from the subnetwork.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Optional. The VPC subnetwork that the Cloud Run resource will get IPs from. At least one of network or subnetwork must be specified. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If subnetwork is not specified, the subnetwork with the same name with the network will be used.
+    #[serde(default)]
+    pub subnetwork: ::core::option::Option<String>,
+    /// Optional. Network tags applied to this Cloud Run resource.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Container message for hash values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevtoolsCloudbuildV1Hash {
+    /// The type of hash that was performed. // TODO: enum values: ["NONE", "SHA256", "MD5", "GO_MODULE_H1", "SHA512", "DIRSUM_SHA256"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The hash value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// EnvVarSource represents a source for the value of an EnvVar.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2EnvVarSource {
+    /// Selects a secret and a specific version from Cloud Secret Manager.
+    #[serde(default, rename = "secretKeyRef")]
+    pub secret_key_ref: ::core::option::Option<GoogleCloudRunV2SecretKeySelector>,
+}
+
+/// GRPCAction describes an action involving a GRPC port.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2gRPCAction {
+    /// Optional. Port number of the gRPC service. Number must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md ). If this is not specified, the default behavior is defined by gRPC.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// HTTPGetAction describes an action based on HTTP Get requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2hTTPGetAction {
+    /// Optional. Custom headers to set in the request. HTTP allows repeated headers.
+    #[serde(default, rename = "httpHeaders")]
+    pub http_headers: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2hTTPHeader>>,
+    /// Optional. Path to access on the HTTP server. Defaults to ''/''.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+}
+
+/// TCPSocketAction describes an action based on opening a socket
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2tCPSocketAction {
+    /// Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+}
+
+/// Cloud Storage source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2CloudStorageSource {
+    /// Required. The Cloud Storage bucket name.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. The Cloud Storage object generation.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// Required. The Cloud Storage object name.
+    #[serde(default)]
+    pub object: ::core::option::Option<String>,
+}
+
+/// Inlined source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2InlinedSource {
+    /// Required. Input only. The source code.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<GoogleCloudRunV2SourceFile>>,
+}
+
+/// VersionToPath maps a specific version of a secret to a relative file to mount to, relative to VolumeMount''s mount_path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2VersionToPath {
+    /// Integer octal mode bits to use on this file, must be a value between 01 and 0777 (octal). If 0 or not set, the Volume''s default mode will be used. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.
+    #[serde(default)]
+    pub mode: ::core::option::Option<i32>,
+    /// Required. The relative path of the secret in the container.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// The Cloud Secret Manager secret version. Can be ''latest'' for the latest value, or an integer or a secret alias for a specific version.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// SecretEnvVarSource represents a source for the value of an EnvVar.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SecretKeySelector {
+    /// Required. The name of the secret in Cloud Secret Manager. Format: {secret_name} if the secret is in the same project. projects/{project}/secrets/{secret_name} if the secret is in a different project.
+    #[serde(default)]
+    pub secret: ::core::option::Option<String>,
+    /// The Cloud Secret Manager secret version. Can be ''latest'' for the latest version, an integer for a specific version, or a version alias.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// HTTPHeader describes a custom header to be used in HTTP probes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2hTTPHeader {
+    /// Required. The header field name
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The header field value
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Source file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2SourceFile {
+    /// Required. Input only. Represents the exact, literal, and complete source code of the file. Placeholders like ... or comments such as # [rest of code] should NEVER be used as omission. Every character in this field will be built into the final container. Any omission will result in a broken application.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Required. Input only. The file name for the source code. e.g., "index.js" or "node_modules/dependency.js". The filename must be less than 255 characters and cannot contain .., ./, //, or end with a /. Cloud Run will place the files in the container subdirectories, please use relative path to access the file.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
 }

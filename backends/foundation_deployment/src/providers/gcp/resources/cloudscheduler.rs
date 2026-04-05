@@ -10,43 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// App Engine target. The job will be pushed to a job handler by means of an HTTP request via an http_method such as HTTP POST, HTTP GET, etc. The job is acknowledged by means of an HTTP response code in the range [200 - 299]. Error 503 is considered an App Engine system error instead of an application error. Requests returning error 503 will be retried regardless of retry configuration and not counted against retry counts. Any other response code, or a failure to receive a response before the deadline, constitutes a failed attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppEngineHttpTarget {
-    /// App Engine Routing setting for the job.
-    #[serde(default, rename = "appEngineRouting")]
-    pub app_engine_routing: ::core::option::Option<AppEngineRouting>,
-    /// Body. HTTP request body. A request body is allowed only if the HTTP method is POST or PUT. It will result in invalid argument error to set a body on a job with an incompatible HttpMethod.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the job is created. Cloud Scheduler sets some headers to default values: * User-Agent: By default, this header is "AppEngine-Google; (+http://code.google.com/appengine)". This header can be modified, but Cloud Scheduler will append "AppEngine-Google; (+http://code.google.com/appengine)" to the modified User-Agent. * X-CloudScheduler: This header will be set to true. * X-CloudScheduler-JobName: This header will contain the job name. * X-CloudScheduler-ScheduleTime: For Cloud Scheduler jobs specified in the unix-cron format, this header will contain the job schedule as an offset of UTC parsed according to RFC3339. If the job has a body and the following headers are not set by the user, Cloud Scheduler sets default values: * Content-Type: This will be set to "application/octet-stream". You can override this default by explicitly setting Content-Type to a particular media type when creating the job. For example, you can set Content-Type to "application/json". The headers below are output only. They cannot be set or overridden: * Content-Length: This is computed by Cloud Scheduler. * X-Google-*: For Google internal use only. * X-AppEngine-*: For Google internal use only. In addition, some App Engine headers, which contain job-specific information, are also be sent to the job handler.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The HTTP method to use for the request. PATCH and OPTIONS are not permitted. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    #[serde(default, rename = "httpMethod")]
-    pub http_method: ::core::option::Option<String>,
-    /// The relative URI. The relative URL must begin with "/" and must be a valid HTTP relative URL. It can contain a path, query string arguments, and # fragments. If the relative URL is empty, then the root path "/" will be used. No spaces are allowed, and the maximum length allowed is 2083 characters.
-    #[serde(default, rename = "relativeUri")]
-    pub relative_uri: ::core::option::Option<String>,
-}
-
-/// App Engine Routing. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppEngineRouting {
-    /// Output only. The host that the job is sent to. For more information about how App Engine requests are routed, see [here](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed). The host is constructed as: * host = [application_domain_name] | [service] + ''.'' + [application_domain_name] | [version] + ''.'' + [application_domain_name] | [version_dot_service]+ ''.'' + [application_domain_name] | [instance] + ''.'' + [application_domain_name] | [instance_dot_service] + ''.'' + [application_domain_name] | [instance_dot_version] + ''.'' + [application_domain_name] | [instance_dot_version_dot_service] + ''.'' + [application_domain_name] * application_domain_name = The domain name of the app, for example .appspot.com, which is associated with the job''s project ID. * service = service * version = version * version_dot_service = version + ''.'' + service * instance = instance * instance_dot_service = instance + ''.'' + service * instance_dot_version = instance + ''.'' + version * instance_dot_version_dot_service = instance + ''.'' + version + ''.'' + service If service is empty, then the job will be sent to the service which is the default service when the job is attempted. If version is empty, then the job will be sent to the version which is the default version when the job is attempted. If instance is empty, then the job will be sent to an instance which is available when the job is attempted. If service, version, or instance is invalid, then the job will be sent to the default version of the default service when the job is attempted.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// App instance. By default, the job is sent to an instance which is available when the job is attempted. Requests can only be sent to a specific instance if [manual scaling is used in App Engine Standard](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine?#scaling_types_and_instance_classes). App Engine Flex does not support instances. For more information, see [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
-    #[serde(default)]
-    pub instance: ::core::option::Option<String>,
-    /// App service. By default, the job is sent to the service which is the default service when the job is attempted.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// App version. By default, the job is sent to the version which is the default version when the job is attempted.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
 /// Describes the project/location configuration of Cloud Scheduler Resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CmekConfig {
@@ -58,27 +21,86 @@ pub struct CmekConfig {
     pub name: ::core::option::Option<String>,
 }
 
-/// Http target. The job will be pushed to the job handler by means of an HTTP request via an http_method such as HTTP POST, HTTP GET, etc. The job is acknowledged by means of an HTTP response code in the range [200 - 299]. A failure to receive a response constitutes a failed execution. For a redirected request, the response returned by the redirected request is considered.
+/// Response message for listing jobs using ListJobs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpTarget {
-    /// HTTP request body. A request body is allowed only if the HTTP method is POST, PUT, or PATCH. It is an error to set body on a job with an incompatible HttpMethod.
+pub struct ListJobsResponse {
+    /// The list of jobs.
     #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// HTTP request headers. This map contains the header field names and values. The user can specify HTTP request headers to send with the job''s HTTP request. Repeated headers are not supported, but a header value can contain commas. The following headers represent a subset of the headers that accompany the job''s HTTP request. Some HTTP request headers are ignored or replaced. A partial list of headers that are ignored or replaced is below: * Host: This will be computed by Cloud Scheduler and derived from uri. * Content-Length: This will be computed by Cloud Scheduler. * User-Agent: This will be set to "Google-Cloud-Scheduler". * X-Google-*: Google internal use only. * X-AppEngine-*: Google internal use only. * X-CloudScheduler: This header will be set to true. * X-CloudScheduler-JobName: This header will contain the job name. * X-CloudScheduler-ScheduleTime: For Cloud Scheduler jobs specified in the unix-cron format, this header will contain the job schedule as an offset of UTC parsed according to RFC3339. If the job has a body and the following headers are not set by the user, Cloud Scheduler sets default values: * Content-Type: This will be set to "application/octet-stream". You can override this default by explicitly setting Content-Type to a particular media type when creating the job. For example, you can set Content-Type to "application/json". The total size of headers must be less than 80KB.
+    pub jobs: ::core::option::Option<::std::vec::Vec<Job>>,
+    /// A token to retrieve next page of results. Pass this value in the page_token field in the subsequent call to ListJobs to retrieve the next page of results. If this is empty it indicates that there are no more results through which to paginate. The page token is valid for only 2 hours.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// Which HTTP method to use for the request. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    #[serde(default, rename = "httpMethod")]
-    pub http_method: ::core::option::Option<String>,
-    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) will be generated and attached as an Authorization header in the HTTP request. This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
-    #[serde(default, rename = "oauthToken")]
-    pub oauth_token: ::core::option::Option<OAuthToken>,
-    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token will be generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
-    #[serde(default, rename = "oidcToken")]
-    pub oidc_token: ::core::option::Option<OidcToken>,
-    /// Required. The full URI path that the request will be sent to. This string must begin with either "http://" or "https://". Some examples of valid values for uri are: http://acme.com and https://acme.com/sales:8080. Cloud Scheduler will encode some characters for safety and compatibility. The maximum allowed URL length is 2083 characters after encoding.
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub uri: ::core::option::Option<String>,
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "cancelRequested")]
+    pub cancel_requested: ::core::option::Option<bool>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusDetail")]
+    pub status_detail: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubMessage {
+    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
+    #[serde(default, rename = "orderingKey")]
+    pub ordering_key: ::core::option::Option<String>,
+    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
 }
 
 /// Configuration for a job. The maximum allowed size for a job is 1MB.
@@ -131,42 +153,6 @@ pub struct Job {
     pub user_update_time: ::core::option::Option<String>,
 }
 
-/// Response message for listing jobs using ListJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListJobsResponse {
-    /// The list of jobs.
-    #[serde(default)]
-    pub jobs: ::core::option::Option<::std::vec::Vec<Job>>,
-    /// A token to retrieve next page of results. Pass this value in the page_token field in the subsequent call to ListJobs to retrieve the next page of results. If this is empty it indicates that there are no more results through which to paginate. The page token is valid for only 2 hours.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -185,28 +171,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthToken {
-    /// OAuth scope to be used for generating OAuth access token. If not specified, "https://www.googleapis.com/auth/cloud-platform" will be used.
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the job. The caller must have iam.serviceAccounts.actAs permission for the service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-}
-
-/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OidcToken {
-    /// Audience to be used when generating OIDC token. If not specified, the URI specified in target will be used.
-    #[serde(default)]
-    pub audience: ::core::option::Option<String>,
-    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the job. The caller must have iam.serviceAccounts.actAs permission for the service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -229,50 +193,47 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Represents the metadata of the long-running operation.
+/// App Engine target. The job will be pushed to a job handler by means of an HTTP request via an http_method such as HTTP POST, HTTP GET, etc. The job is acknowledged by means of an HTTP response code in the range [200 - 299]. Error 503 is considered an App Engine system error instead of an application error. Requests returning error 503 will be retried regardless of retry configuration and not counted against retry counts. Any other response code, or a failure to receive a response before the deadline, constitutes a failed attempt.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: ::core::option::Option<bool>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusDetail")]
-    pub status_detail: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
+pub struct AppEngineHttpTarget {
+    /// App Engine Routing setting for the job.
+    #[serde(default, rename = "appEngineRouting")]
+    pub app_engine_routing: ::core::option::Option<AppEngineRouting>,
+    /// Body. HTTP request body. A request body is allowed only if the HTTP method is POST or PUT. It will result in invalid argument error to set a body on a job with an incompatible HttpMethod.
     #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
+    pub body: ::core::option::Option<String>,
+    /// HTTP request headers. This map contains the header field names and values. Headers can be set when the job is created. Cloud Scheduler sets some headers to default values: * User-Agent: By default, this header is "AppEngine-Google; (+http://code.google.com/appengine)". This header can be modified, but Cloud Scheduler will append "AppEngine-Google; (+http://code.google.com/appengine)" to the modified User-Agent. * X-CloudScheduler: This header will be set to true. * X-CloudScheduler-JobName: This header will contain the job name. * X-CloudScheduler-ScheduleTime: For Cloud Scheduler jobs specified in the unix-cron format, this header will contain the job schedule as an offset of UTC parsed according to RFC3339. If the job has a body and the following headers are not set by the user, Cloud Scheduler sets default values: * Content-Type: This will be set to "application/octet-stream". You can override this default by explicitly setting Content-Type to a particular media type when creating the job. For example, you can set Content-Type to "application/json". The headers below are output only. They cannot be set or overridden: * Content-Length: This is computed by Cloud Scheduler. * X-Google-*: For Google internal use only. * X-AppEngine-*: For Google internal use only. In addition, some App Engine headers, which contain job-specific information, are also be sent to the job handler.
     #[serde(default)]
-    pub verb: ::core::option::Option<String>,
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// The HTTP method to use for the request. PATCH and OPTIONS are not permitted. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    #[serde(default, rename = "httpMethod")]
+    pub http_method: ::core::option::Option<String>,
+    /// The relative URI. The relative URL must begin with "/" and must be a valid HTTP relative URL. It can contain a path, query string arguments, and # fragments. If the relative URL is empty, then the root path "/" will be used. No spaces are allowed, and the maximum length allowed is 2083 characters.
+    #[serde(default, rename = "relativeUri")]
+    pub relative_uri: ::core::option::Option<String>,
 }
 
-/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
+/// Http target. The job will be pushed to the job handler by means of an HTTP request via an http_method such as HTTP POST, HTTP GET, etc. The job is acknowledged by means of an HTTP response code in the range [200 - 299]. A failure to receive a response constitutes a failed execution. For a redirected request, the response returned by the redirected request is considered.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubsubMessage {
-    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
+pub struct HttpTarget {
+    /// HTTP request body. A request body is allowed only if the HTTP method is POST, PUT, or PATCH. It is an error to set body on a job with an incompatible HttpMethod.
     #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
+    pub body: ::core::option::Option<String>,
+    /// HTTP request headers. This map contains the header field names and values. The user can specify HTTP request headers to send with the job''s HTTP request. Repeated headers are not supported, but a header value can contain commas. The following headers represent a subset of the headers that accompany the job''s HTTP request. Some HTTP request headers are ignored or replaced. A partial list of headers that are ignored or replaced is below: * Host: This will be computed by Cloud Scheduler and derived from uri. * Content-Length: This will be computed by Cloud Scheduler. * User-Agent: This will be set to "Google-Cloud-Scheduler". * X-Google-*: Google internal use only. * X-AppEngine-*: Google internal use only. * X-CloudScheduler: This header will be set to true. * X-CloudScheduler-JobName: This header will contain the job name. * X-CloudScheduler-ScheduleTime: For Cloud Scheduler jobs specified in the unix-cron format, this header will contain the job schedule as an offset of UTC parsed according to RFC3339. If the job has a body and the following headers are not set by the user, Cloud Scheduler sets default values: * Content-Type: This will be set to "application/octet-stream". You can override this default by explicitly setting Content-Type to a particular media type when creating the job. For example, you can set Content-Type to "application/json". The total size of headers must be less than 80KB.
     #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
-    #[serde(default, rename = "orderingKey")]
-    pub ordering_key: ::core::option::Option<String>,
-    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Which HTTP method to use for the request. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    #[serde(default, rename = "httpMethod")]
+    pub http_method: ::core::option::Option<String>,
+    /// If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) will be generated and attached as an Authorization header in the HTTP request. This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
+    #[serde(default, rename = "oauthToken")]
+    pub oauth_token: ::core::option::Option<OAuthToken>,
+    /// If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token will be generated and attached as an Authorization header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
+    #[serde(default, rename = "oidcToken")]
+    pub oidc_token: ::core::option::Option<OidcToken>,
+    /// Required. The full URI path that the request will be sent to. This string must begin with either "http://" or "https://". Some examples of valid values for uri are: http://acme.com and https://acme.com/sales:8080. Cloud Scheduler will encode some characters for safety and compatibility. The maximum allowed URL length is 2083 characters after encoding.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Pub/Sub target. The job will be delivered by publishing a message to the given Pub/Sub topic.
@@ -321,4 +282,43 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// App Engine Routing. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppEngineRouting {
+    /// Output only. The host that the job is sent to. For more information about how App Engine requests are routed, see [here](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed). The host is constructed as: * host = [application_domain_name] | [service] + ''.'' + [application_domain_name] | [version] + ''.'' + [application_domain_name] | [version_dot_service]+ ''.'' + [application_domain_name] | [instance] + ''.'' + [application_domain_name] | [instance_dot_service] + ''.'' + [application_domain_name] | [instance_dot_version] + ''.'' + [application_domain_name] | [instance_dot_version_dot_service] + ''.'' + [application_domain_name] * application_domain_name = The domain name of the app, for example .appspot.com, which is associated with the job''s project ID. * service = service * version = version * version_dot_service = version + ''.'' + service * instance = instance * instance_dot_service = instance + ''.'' + service * instance_dot_version = instance + ''.'' + version * instance_dot_version_dot_service = instance + ''.'' + version + ''.'' + service If service is empty, then the job will be sent to the service which is the default service when the job is attempted. If version is empty, then the job will be sent to the version which is the default version when the job is attempted. If instance is empty, then the job will be sent to an instance which is available when the job is attempted. If service, version, or instance is invalid, then the job will be sent to the default version of the default service when the job is attempted.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// App instance. By default, the job is sent to an instance which is available when the job is attempted. Requests can only be sent to a specific instance if [manual scaling is used in App Engine Standard](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine?#scaling_types_and_instance_classes). App Engine Flex does not support instances. For more information, see [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed) and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed).
+    #[serde(default)]
+    pub instance: ::core::option::Option<String>,
+    /// App service. By default, the job is sent to the service which is the default service when the job is attempted.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// App version. By default, the job is sent to the version which is the default version when the job is attempted.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuthToken {
+    /// OAuth scope to be used for generating OAuth access token. If not specified, "https://www.googleapis.com/auth/cloud-platform" will be used.
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the job. The caller must have iam.serviceAccounts.actAs permission for the service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+}
+
+/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OidcToken {
+    /// Audience to be used when generating OIDC token. If not specified, the URI specified in target will be used.
+    #[serde(default)]
+    pub audience: ::core::option::Option<String>,
+    /// [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the job. The caller must have iam.serviceAccounts.actAs permission for the service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
 }

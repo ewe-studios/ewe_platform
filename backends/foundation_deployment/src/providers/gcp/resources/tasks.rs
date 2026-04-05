@@ -10,40 +10,61 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Information about the source of the task assignment (Document, Chat Space).
+/// TaskLists resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssignmentInfo {
-    /// Output only. Information about the Drive file where this task originates from. Currently, the Drive file can only be a document. This field is read-only.
-    #[serde(default, rename = "driveResourceInfo")]
-    pub drive_resource_info: ::core::option::Option<DriveResourceInfo>,
-    /// Output only. An absolute link to the original task in the surface of assignment (Docs, Chat spaces, etc.).
-    #[serde(default, rename = "linkToTask")]
-    pub link_to_task: ::core::option::Option<String>,
-    /// Output only. Information about the Chat Space where this task originates from. This field is read-only.
-    #[serde(default, rename = "spaceInfo")]
-    pub space_info: ::core::option::Option<SpaceInfo>,
-    /// Output only. The type of surface this assigned task originates from. Currently limited to DOCUMENT or SPACE. // TODO: enum values: ["CONTEXT_TYPE_UNSPECIFIED", "GMAIL", "DOCUMENT", "SPACE"]
-    #[serde(default, rename = "surfaceType")]
-    pub surface_type: ::core::option::Option<String>,
-}
-
-/// Information about the Drive resource where a task was assigned from (the document, sheet, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveResourceInfo {
-    /// Output only. Identifier of the file in the Drive API.
-    #[serde(default, rename = "driveFileId")]
-    pub drive_file_id: ::core::option::Option<String>,
-    /// Output only. Resource key required to access files shared via a shared link. Not required for all files. See also developers.google.com/drive/api/guides/resource-keys.
-    #[serde(default, rename = "resourceKey")]
-    pub resource_key: ::core::option::Option<String>,
-}
-
-/// Information about the Chat Space where a task was assigned from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceInfo {
-    /// Output only. The Chat space where this task originates from. The format is "spaces/{space}".
+pub struct TaskLists {
+    /// ETag of the resource.
     #[serde(default)]
-    pub space: ::core::option::Option<String>,
+    pub etag: ::core::option::Option<String>,
+    /// Collection of task lists.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<TaskList>>,
+    /// Type of the resource. This is always "tasks#taskLists".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Token that can be used to request the next page of this result.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Tasks resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tasks {
+    /// ETag of the resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Collection of tasks.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Task>>,
+    /// Type of the resource. This is always "tasks#tasks".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Token used to access the next page of this result.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// TaskList resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskList {
+    /// ETag of the resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Task list identifier.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. Type of the resource. This is always "tasks#taskList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. URL pointing to this task list. Used to retrieve, update, or delete this task list.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Title of the task list. Maximum length allowed: 1024 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Output only. Last modification time of the task list (as a RFC 3339 timestamp).
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
 }
 
 /// Task resource type.
@@ -102,59 +123,38 @@ pub struct Task {
     pub web_view_link: ::core::option::Option<String>,
 }
 
-/// TaskList resource type.
+/// Information about the source of the task assignment (Document, Chat Space).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskList {
-    /// ETag of the resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Task list identifier.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Type of the resource. This is always "tasks#taskList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Output only. URL pointing to this task list. Used to retrieve, update, or delete this task list.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Title of the task list. Maximum length allowed: 1024 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Output only. Last modification time of the task list (as a RFC 3339 timestamp).
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
+pub struct AssignmentInfo {
+    /// Output only. Information about the Drive file where this task originates from. Currently, the Drive file can only be a document. This field is read-only.
+    #[serde(default, rename = "driveResourceInfo")]
+    pub drive_resource_info: ::core::option::Option<DriveResourceInfo>,
+    /// Output only. An absolute link to the original task in the surface of assignment (Docs, Chat spaces, etc.).
+    #[serde(default, rename = "linkToTask")]
+    pub link_to_task: ::core::option::Option<String>,
+    /// Output only. Information about the Chat Space where this task originates from. This field is read-only.
+    #[serde(default, rename = "spaceInfo")]
+    pub space_info: ::core::option::Option<SpaceInfo>,
+    /// Output only. The type of surface this assigned task originates from. Currently limited to DOCUMENT or SPACE. // TODO: enum values: ["CONTEXT_TYPE_UNSPECIFIED", "GMAIL", "DOCUMENT", "SPACE"]
+    #[serde(default, rename = "surfaceType")]
+    pub surface_type: ::core::option::Option<String>,
 }
 
-/// TaskLists resource type.
+/// Information about the Drive resource where a task was assigned from (the document, sheet, etc.).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskLists {
-    /// ETag of the resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Collection of task lists.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<TaskList>>,
-    /// Type of the resource. This is always "tasks#taskLists".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Token that can be used to request the next page of this result.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+pub struct DriveResourceInfo {
+    /// Output only. Identifier of the file in the Drive API.
+    #[serde(default, rename = "driveFileId")]
+    pub drive_file_id: ::core::option::Option<String>,
+    /// Output only. Resource key required to access files shared via a shared link. Not required for all files. See also developers.google.com/drive/api/guides/resource-keys.
+    #[serde(default, rename = "resourceKey")]
+    pub resource_key: ::core::option::Option<String>,
 }
 
-/// Tasks resource type.
+/// Information about the Chat Space where a task was assigned from.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tasks {
-    /// ETag of the resource.
+pub struct SpaceInfo {
+    /// Output only. The Chat space where this task originates from. The format is "spaces/{space}".
     #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Collection of tasks.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Task>>,
-    /// Type of the resource. This is always "tasks#tasks".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Token used to access the next page of this result.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    pub space: ::core::option::Option<String>,
 }

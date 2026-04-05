@@ -10,209 +10,12 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an Abi.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Abi {
-    /// Alias for an abi. // TODO: enum values: ["UNSPECIFIED_CPU_ARCHITECTURE", "ARMEABI", "ARMEABI_V7A", "ARM64_V8A", "X86", "X86_64", "RISCV64"]
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-}
-
-/// Targeting based on Abi.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AbiTargeting {
-    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<Abi>>,
-    /// Value of an abi.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<Abi>>,
-}
-
-/// Represents a targeting rule of the form: User never had {scope} before.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AcquisitionTargetingRule {
-    /// Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "any subscription in app".
-    #[serde(default)]
-    pub scope: ::core::option::Option<TargetingRuleScope>,
-}
-
-/// Request message for ActivateBasePlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivateBasePlanRequest {
-    /// Required. The unique base plan ID of the base plan to activate.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the base plan to activate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent subscription (ID) of the base plan to activate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// Request message for ActivateOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivateOneTimeProductOfferRequest {
-    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The offer ID of the offer to activate.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to activate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the offer to activate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The parent purchase option (ID) of the offer to activate.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for UpdatePurchaseOptionState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivatePurchaseOptionRequest {
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the purchase option to activate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the purchase option to activate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The purchase option ID of the purchase option to activate.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for ActivateSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivateSubscriptionOfferRequest {
-    /// Required. The parent base plan (ID) of the offer to activate.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The unique offer ID of the offer to activate.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to activate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent subscription (ID) of the offer to activate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
 /// Request message for AddTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddTargetingRequest {
     /// Specifies targeting updates such as regions, android sdk versions etc.
     #[serde(default, rename = "targetingUpdate")]
     pub targeting_update: ::core::option::Option<TargetingUpdate>,
-}
-
-/// Object representation to describe all set of users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AllUsers {
-    /// Required. Set to true if all set of users are needed.
-    #[serde(default, rename = "isAllUsersRequested")]
-    pub is_all_users_requested: ::core::option::Option<bool>,
-}
-
-/// Android api level targeting data for app recovery action targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidSdks {
-    /// Android api levels of devices targeted by recovery action. See https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels for different api levels in android.
-    #[serde(default, rename = "sdkLevels")]
-    pub sdk_levels: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information about an APK. The resource for ApksService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Apk {
-    /// Information about the binary payload of this APK.
-    #[serde(default)]
-    pub binary: ::core::option::Option<ApkBinary>,
-    /// The version code of the APK, as specified in the manifest file.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-}
-
-/// Represents the binary payload of an APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkBinary {
-    /// A sha1 hash of the APK payload, encoded as a hex string and matching the output of the sha1sum command.
-    #[serde(default)]
-    pub sha1: ::core::option::Option<String>,
-    /// A sha256 hash of the APK payload, encoded as a hex string and matching the output of the sha256sum command.
-    #[serde(default)]
-    pub sha256: ::core::option::Option<String>,
-}
-
-/// Description of the created apks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkDescription {
-    /// Set only for asset slices.
-    #[serde(default, rename = "assetSliceMetadata")]
-    pub asset_slice_metadata: ::core::option::Option<SplitApkMetadata>,
-    /// Set only for Instant split APKs.
-    #[serde(default, rename = "instantApkMetadata")]
-    pub instant_apk_metadata: ::core::option::Option<SplitApkMetadata>,
-    /// Path of the Apk, will be in the following format: .apk where DownloadId is the ID used to download the apk using GeneratedApks.Download API.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Set only for Split APKs.
-    #[serde(default, rename = "splitApkMetadata")]
-    pub split_apk_metadata: ::core::option::Option<SplitApkMetadata>,
-    /// Set only for standalone APKs.
-    #[serde(default, rename = "standaloneApkMetadata")]
-    pub standalone_apk_metadata: ::core::option::Option<StandaloneApkMetadata>,
-    /// Apk-level targeting.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<ApkTargeting>,
-}
-
-/// A set of apks representing a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkSet {
-    /// Description of the generated apks.
-    #[serde(default, rename = "apkDescription")]
-    pub apk_description: ::core::option::Option<::std::vec::Vec<ApkDescription>>,
-    /// Metadata about the module represented by this ApkSet
-    #[serde(default, rename = "moduleMetadata")]
-    pub module_metadata: ::core::option::Option<ModuleMetadata>,
-}
-
-/// Represents a set of apk-level targetings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkTargeting {
-    /// The abi that the apk targets
-    #[serde(default, rename = "abiTargeting")]
-    pub abi_targeting: ::core::option::Option<AbiTargeting>,
-    /// The language that the apk targets
-    #[serde(default, rename = "languageTargeting")]
-    pub language_targeting: ::core::option::Option<LanguageTargeting>,
-    /// Multi-api-level targeting.
-    #[serde(default, rename = "multiAbiTargeting")]
-    pub multi_abi_targeting: ::core::option::Option<MultiAbiTargeting>,
-    /// The screen density that this apk supports.
-    #[serde(default, rename = "screenDensityTargeting")]
-    pub screen_density_targeting: ::core::option::Option<ScreenDensityTargeting>,
-    /// The sdk version that the apk targets
-    #[serde(default, rename = "sdkVersionTargeting")]
-    pub sdk_version_targeting: ::core::option::Option<SdkVersionTargeting>,
-    /// Texture-compression-format-level targeting
-    #[serde(default, rename = "textureCompressionFormatTargeting")]
-    pub texture_compression_format_targeting:
-        ::core::option::Option<TextureCompressionFormatTargeting>,
 }
 
 /// Request to create a new externally hosted APK.
@@ -268,159 +71,6 @@ pub struct AppEdit {
     /// Output only. Identifier of the edit. Can be used in subsequent API calls.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-}
-
-/// Information about an app recovery action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppRecoveryAction {
-    /// ID corresponding to the app recovery action.
-    #[serde(default, rename = "appRecoveryId")]
-    pub app_recovery_id: ::core::option::Option<String>,
-    /// Timestamp of when the app recovery action is canceled by the developer. Only set if the recovery action has been canceled.
-    #[serde(default, rename = "cancelTime")]
-    pub cancel_time: ::core::option::Option<String>,
-    /// Timestamp of when the app recovery action is created by the developer. It is always set after creation of the recovery action.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Timestamp of when the app recovery action is deployed to the users. Only set if the recovery action has been deployed.
-    #[serde(default, rename = "deployTime")]
-    pub deploy_time: ::core::option::Option<String>,
-    /// Timestamp of when the developer last updated recovery action. In case the action is cancelled, it corresponds to cancellation time. It is always set after creation of the recovery action.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-    /// Data about the remote in-app update action such as such as recovered user base, recoverable user base etc. Set only if the recovery action type is Remote In-App Update.
-    #[serde(default, rename = "remoteInAppUpdateData")]
-    pub remote_in_app_update_data: ::core::option::Option<RemoteInAppUpdateData>,
-    /// The status of the recovery action. // TODO: enum values: ["RECOVERY_STATUS_UNSPECIFIED", "RECOVERY_STATUS_ACTIVE", "RECOVERY_STATUS_CANCELED", "RECOVERY_STATUS_DRAFT", "RECOVERY_STATUS_GENERATION_IN_PROGRESS", "RECOVERY_STATUS_GENERATION_FAILED"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Specifies targeting criteria for the recovery action such as regions, android sdk versions, app versions etc.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<Targeting>,
-}
-
-/// Data format for a list of app versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppVersionList {
-    /// List of app version codes.
-    #[serde(default, rename = "versionCodes")]
-    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Data format for a continuous range of app versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppVersionRange {
-    /// Highest app version in the range, inclusive.
-    #[serde(default, rename = "versionCodeEnd")]
-    pub version_code_end: ::core::option::Option<String>,
-    /// Lowest app version in the range, inclusive.
-    #[serde(default, rename = "versionCodeStart")]
-    pub version_code_start: ::core::option::Option<String>,
-}
-
-/// Summary of an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArtifactSummary {
-    /// Artifact''s version code
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-}
-
-/// Metadata of an asset module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetModuleMetadata {
-    /// Indicates the delivery type for persistent install. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
-    #[serde(default, rename = "deliveryType")]
-    pub delivery_type: ::core::option::Option<String>,
-    /// Module name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Set of asset slices belonging to a single asset module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetSliceSet {
-    /// Asset slices.
-    #[serde(default, rename = "apkDescription")]
-    pub apk_description: ::core::option::Option<::std::vec::Vec<ApkDescription>>,
-    /// Module level metadata.
-    #[serde(default, rename = "assetModuleMetadata")]
-    pub asset_module_metadata: ::core::option::Option<AssetModuleMetadata>,
-}
-
-/// Represents a base plan that automatically renews at the end of its subscription period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutoRenewingBasePlanType {
-    /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
-    #[serde(default, rename = "accountHoldDuration")]
-    pub account_hold_duration: ::core::option::Option<String>,
-    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
-    #[serde(default, rename = "billingPeriodDuration")]
-    pub billing_period_duration: ::core::option::Option<String>,
-    /// Grace period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and the lesser of 30D and base plan billing period. If not specified, a default value will be used based on the billing period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
-    #[serde(default, rename = "gracePeriodDuration")]
-    pub grace_period_duration: ::core::option::Option<String>,
-    /// Whether the renewing base plan is backward compatible. The backward compatible base plan is returned by the Google Play Billing Library deprecated method querySkuDetailsAsync(). Only one renewing base plan can be marked as legacy compatible for a given subscription.
-    #[serde(default, rename = "legacyCompatible")]
-    pub legacy_compatible: ::core::option::Option<bool>,
-    /// Subscription offer id which is legacy compatible. The backward compatible subscription offer is returned by the Google Play Billing Library deprecated method querySkuDetailsAsync(). Only one subscription offer can be marked as legacy compatible for a given renewing base plan. To have no Subscription offer as legacy compatible set this field as empty string.
-    #[serde(default, rename = "legacyCompatibleSubscriptionOfferId")]
-    pub legacy_compatible_subscription_offer_id: ::core::option::Option<String>,
-    /// The proration mode for the base plan determines what happens when a user switches to this plan from another base plan. If unspecified, defaults to CHARGE_ON_NEXT_BILLING_DATE. // TODO: enum values: ["SUBSCRIPTION_PRORATION_MODE_UNSPECIFIED", "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE", "SUBSCRIPTION_PRORATION_MODE_CHARGE_FULL_PRICE_IMMEDIATELY"]
-    #[serde(default, rename = "prorationMode")]
-    pub proration_mode: ::core::option::Option<String>,
-    /// Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified. // TODO: enum values: ["RESUBSCRIBE_STATE_UNSPECIFIED", "RESUBSCRIBE_STATE_ACTIVE", "RESUBSCRIBE_STATE_INACTIVE"]
-    #[serde(default, rename = "resubscribeState")]
-    pub resubscribe_state: ::core::option::Option<String>,
-}
-
-/// Information related to an auto renewing plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutoRenewingPlan {
-    /// If the subscription is currently set to auto-renew, e.g. the user has not canceled the subscription
-    #[serde(default, rename = "autoRenewEnabled")]
-    pub auto_renew_enabled: ::core::option::Option<bool>,
-    /// The installment plan commitment and state related info for the auto renewing plan.
-    #[serde(default, rename = "installmentDetails")]
-    pub installment_details: ::core::option::Option<InstallmentPlan>,
-    /// The information of the last price change for the item since subscription signup.
-    #[serde(default, rename = "priceChangeDetails")]
-    pub price_change_details: ::core::option::Option<SubscriptionItemPriceChangeDetails>,
-    /// The information of the latest price step-up consent.
-    #[serde(default, rename = "priceStepUpConsentDetails")]
-    pub price_step_up_consent_details: ::core::option::Option<PriceStepUpConsentDetails>,
-    /// The current recurring price of the auto renewing plan. Note that the price does not take into account discounts and does not include taxes for tax-exclusive pricing, please call orders.get API instead if transaction details are needed.
-    #[serde(default, rename = "recurringPrice")]
-    pub recurring_price: ::core::option::Option<Money>,
-}
-
-/// A single base plan for a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BasePlan {
-    /// Set when the base plan automatically renews at a regular interval.
-    #[serde(default, rename = "autoRenewingBasePlanType")]
-    pub auto_renewing_base_plan_type: ::core::option::Option<AutoRenewingBasePlanType>,
-    /// Required. Immutable. The unique identifier of this base plan. Must be unique within the subscription, and conform with RFC-1034. That is, this ID can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 63 characters.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Set for installments base plans where a user is committed to a specified number of payments.
-    #[serde(default, rename = "installmentsBasePlanType")]
-    pub installments_base_plan_type: ::core::option::Option<InstallmentsBasePlanType>,
-    /// List of up to 20 custom tags specified for this base plan, and returned to the app through the billing library. Subscription offers for this base plan will also receive these offer tags in the billing library.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
-    /// Pricing information for any new locations Play may launch in the future. If omitted, the BasePlan will not be automatically available any new locations Play may launch in the future.
-    #[serde(default, rename = "otherRegionsConfig")]
-    pub other_regions_config: ::core::option::Option<OtherRegionsBasePlanConfig>,
-    /// Set when the base plan does not automatically renew at the end of the billing period.
-    #[serde(default, rename = "prepaidBasePlanType")]
-    pub prepaid_base_plan_type: ::core::option::Option<PrepaidBasePlanType>,
-    /// Region-specific information for this base plan.
-    #[serde(default, rename = "regionalConfigs")]
-    pub regional_configs: ::core::option::Option<::std::vec::Vec<RegionalBasePlanConfig>>,
-    /// Output only. The state of the base plan, i.e. whether it''s active. Draft and inactive base plans can be activated or deleted. Active base plans can be made inactive. Inactive base plans can be canceled. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for BatchDeleteOneTimeProductOffers.
@@ -646,20 +296,6 @@ pub struct BatchUpdateSubscriptionsResponse {
     pub subscriptions: ::core::option::Option<::std::vec::Vec<Subscription>>,
 }
 
-/// Information about an app bundle. The resource for BundlesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bundle {
-    /// A sha1 hash of the upload payload, encoded as a hex string and matching the output of the sha1sum command.
-    #[serde(default)]
-    pub sha1: ::core::option::Option<String>,
-    /// A sha256 hash of the upload payload, encoded as a hex string and matching the output of the sha256sum command.
-    #[serde(default)]
-    pub sha256: ::core::option::Option<String>,
-    /// The version code of the Android App Bundle, as specified in the Android App Bundle''s base module APK manifest file.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-}
-
 /// Response listing all app bundles.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BundlesListResponse {
@@ -671,101 +307,12 @@ pub struct BundlesListResponse {
     pub kind: ::core::option::Option<String>,
 }
 
-/// Address information for the customer, for use in tax computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuyerAddress {
-    /// Two letter country code based on ISO-3166-1 Alpha-2 (UN country codes).
-    #[serde(default, rename = "buyerCountry")]
-    pub buyer_country: ::core::option::Option<String>,
-    /// Postal code of an address. When Google is the Merchant of Record for the order, this information is not included.
-    #[serde(default, rename = "buyerPostcode")]
-    pub buyer_postcode: ::core::option::Option<String>,
-    /// Top-level administrative subdivision of the buyer address country. When Google is the Merchant of Record for the order, this information is not included.
-    #[serde(default, rename = "buyerState")]
-    pub buyer_state: ::core::option::Option<String>,
-}
-
-/// Request message for CancelOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CancelOneTimeProductOfferRequest {
-    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The offer ID of the offer to cancel.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to cancel.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the offer to cancel.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The parent purchase option (ID) of the offer to cancel.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
 /// Request for the purchases.subscriptionsv2.cancel API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelSubscriptionPurchaseRequest {
     /// Required. Additional details around the subscription revocation.
     #[serde(default, rename = "cancellationContext")]
     pub cancellation_context: ::core::option::Option<CancellationContext>,
-}
-
-/// Result of the cancel survey when the subscription was canceled by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CancelSurveyResult {
-    /// The reason the user selected in the cancel survey. // TODO: enum values: ["CANCEL_SURVEY_REASON_UNSPECIFIED", "CANCEL_SURVEY_REASON_NOT_ENOUGH_USAGE", "CANCEL_SURVEY_REASON_TECHNICAL_ISSUES", "CANCEL_SURVEY_REASON_COST_RELATED", "CANCEL_SURVEY_REASON_FOUND_BETTER_APP", "CANCEL_SURVEY_REASON_OTHERS"]
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Only set for CANCEL_SURVEY_REASON_OTHERS. This is the user''s freeform response to the survey.
-    #[serde(default, rename = "reasonUserInput")]
-    pub reason_user_input: ::core::option::Option<String>,
-}
-
-/// Information specific to a subscription in the SUBSCRIPTION_STATE_CANCELED or SUBSCRIPTION_STATE_EXPIRED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CanceledStateContext {
-    /// Subscription was canceled by the developer.
-    #[serde(default, rename = "developerInitiatedCancellation")]
-    pub developer_initiated_cancellation: ::core::option::Option<serde_json::Value>,
-    /// Subscription was replaced by a new subscription.
-    #[serde(default, rename = "replacementCancellation")]
-    pub replacement_cancellation: ::core::option::Option<serde_json::Value>,
-    /// Subscription was canceled by the system, for example because of a billing problem.
-    #[serde(default, rename = "systemInitiatedCancellation")]
-    pub system_initiated_cancellation: ::core::option::Option<serde_json::Value>,
-    /// Subscription was canceled by user.
-    #[serde(default, rename = "userInitiatedCancellation")]
-    pub user_initiated_cancellation: ::core::option::Option<UserInitiatedCancellation>,
-}
-
-/// Cancellation context of the purchases.subscriptionsv2.cancel API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CancellationContext {
-    /// Required. The type of cancellation for the purchased subscription. // TODO: enum values: ["CANCELLATION_TYPE_UNSPECIFIED", "USER_REQUESTED_STOP_RENEWALS", "DEVELOPER_REQUESTED_STOP_PAYMENTS"]
-    #[serde(default, rename = "cancellationType")]
-    pub cancellation_type: ::core::option::Option<String>,
-}
-
-/// Details of when the order was canceled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CancellationEvent {
-    /// The time when the order was canceled.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-}
-
-/// An entry of conversation between user and developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Comment {
-    /// A comment from a developer.
-    #[serde(default, rename = "developerComment")]
-    pub developer_comment: ::core::option::Option<DeveloperComment>,
-    /// A comment from a user.
-    #[serde(default, rename = "userComment")]
-    pub user_comment: ::core::option::Option<UserComment>,
 }
 
 /// Request message for ConvertRegionPrices.
@@ -793,17 +340,6 @@ pub struct ConvertRegionPricesResponse {
     pub region_version: ::core::option::Option<RegionsVersion>,
 }
 
-/// Converted other regions prices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConvertedOtherRegionsPrice {
-    /// Price in EUR to use for the "Other regions" location exclusive of taxes.
-    #[serde(default, rename = "eurPrice")]
-    pub eur_price: ::core::option::Option<Money>,
-    /// Price in USD to use for the "Other regions" location exclusive of taxes.
-    #[serde(default, rename = "usdPrice")]
-    pub usd_price: ::core::option::Option<Money>,
-}
-
 /// A converted region price.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConvertedRegionPrice {
@@ -818,17 +354,6 @@ pub struct ConvertedRegionPrice {
     pub tax_amount: ::core::option::Option<Money>,
 }
 
-/// Country targeting specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CountryTargeting {
-    /// Countries to target, specified as two letter [CLDR codes](https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html).
-    #[serde(default)]
-    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Include "rest of world" as well as explicitly targeted countries.
-    #[serde(default, rename = "includeRestOfWorld")]
-    pub include_rest_of_world: ::core::option::Option<bool>,
-}
-
 /// Request message for CreateDraftAppRecovery.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateDraftAppRecoveryRequest {
@@ -838,80 +363,6 @@ pub struct CreateDraftAppRecoveryRequest {
     /// Specifies targeting criteria for the recovery action such as regions, android sdk versions, app versions etc.
     #[serde(default)]
     pub targeting: ::core::option::Option<Targeting>,
-}
-
-/// Request message for DeactivateBasePlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeactivateBasePlanRequest {
-    /// Required. The unique base plan ID of the base plan to deactivate.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the base plan to deactivate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent subscription (ID) of the base plan to deactivate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// Request message for DeactivateOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeactivateOneTimeProductOfferRequest {
-    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The offer ID of the offer to deactivate.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to deactivate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the offer to deactivate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The parent purchase option (ID) of the offer to deactivate.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for UpdatePurchaseOptionState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeactivatePurchaseOptionRequest {
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the purchase option to deactivate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the purchase option to deactivate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The purchase option ID of the purchase option to deactivate.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for DeactivateSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeactivateSubscriptionOfferRequest {
-    /// Required. The parent base plan (ID) of the offer to deactivate.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The unique offer ID of the offer to deactivate.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to deactivate.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent subscription (ID) of the offer to deactivate.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
 }
 
 /// Request for the v2 purchases.subscriptions.defer API.
@@ -930,90 +381,6 @@ pub struct DeferSubscriptionPurchaseResponse {
     pub item_expiry_time_details: ::core::option::Option<::std::vec::Vec<ItemExpiryTimeDetails>>,
 }
 
-/// Deferral context of the purchases.subscriptionsv2.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeferralContext {
-    /// Required. The duration by which all subscription items should be deferred.
-    #[serde(default, rename = "deferDuration")]
-    pub defer_duration: ::core::option::Option<String>,
-    /// Required. The API will fail if the etag does not match the latest etag for this subscription. The etag is retrieved from purchases.subscriptionsv2.get: https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/get
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// If set to "true", the request is a dry run to validate the effect of Defer, the subscription would not be impacted.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Information related to deferred item replacement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeferredItemReplacement {
-    /// The product_id going to replace the existing product_id.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// Request message for deleting an one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeleteOneTimeProductOfferRequest {
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The unique offer ID of the offer to delete.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to delete.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the offer to delete.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The parent purchase option (ID) of the offer to delete.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for deleting a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeleteOneTimeProductRequest {
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the one-time product to delete.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The one-time product ID of the one-time product to delete.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// Request message for deleting a purchase option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeletePurchaseOptionRequest {
-    /// Optional. This field has no effect for purchase options with no offers under them. For purchase options with associated offers: * If force is set to false (default), an error will be returned. * If force is set to true, any associated offers under the purchase option will be deleted.
-    #[serde(default)]
-    pub force: ::core::option::Option<bool>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the purchase option to delete.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the purchase option to delete.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The purchase option ID of the purchase option to delete.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Represents a deobfuscation file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeobfuscationFile {
-    /// The type of the deobfuscation file. // TODO: enum values: ["deobfuscationFileTypeUnspecified", "proguard", "nativeCode"]
-    #[serde(default, rename = "symbolType")]
-    pub symbol_type: ::core::option::Option<String>,
-}
-
 /// Responses for the upload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeobfuscationFilesUploadResponse {
@@ -1022,247 +389,12 @@ pub struct DeobfuscationFilesUploadResponse {
     pub deobfuscation_file: ::core::option::Option<DeobfuscationFile>,
 }
 
-/// Developer entry from conversation between user and developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeveloperComment {
-    /// The last time at which this comment was updated.
-    #[serde(default, rename = "lastModified")]
-    pub last_modified: ::core::option::Option<Timestamp>,
-    /// The content of the comment, i.e. reply body.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Represents a device feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceFeature {
-    /// Name of the feature.
-    #[serde(default, rename = "featureName")]
-    pub feature_name: ::core::option::Option<String>,
-    /// The feature version specified by android:glEsVersion or android:version in in the AndroidManifest.
-    #[serde(default, rename = "featureVersion")]
-    pub feature_version: ::core::option::Option<i32>,
-}
-
-/// Targeting for a device feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceFeatureTargeting {
-    /// Feature of the device.
-    #[serde(default, rename = "requiredFeature")]
-    pub required_feature: ::core::option::Option<DeviceFeature>,
-}
-
-/// A group of devices. A group is defined by a set of device selectors. A device belongs to the group if it matches any selector (logical OR).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceGroup {
-    /// Device selectors for this group. A device matching any of the selectors is included in this group.
-    #[serde(default, rename = "deviceSelectors")]
-    pub device_selectors: ::core::option::Option<::std::vec::Vec<DeviceSelector>>,
-    /// The name of the group.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Identifier of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceId {
-    /// Value of Build.BRAND.
-    #[serde(default, rename = "buildBrand")]
-    pub build_brand: ::core::option::Option<String>,
-    /// Value of Build.DEVICE.
-    #[serde(default, rename = "buildDevice")]
-    pub build_device: ::core::option::Option<String>,
-}
-
-/// Characteristics of the user''s device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceMetadata {
-    /// Device CPU make, e.g. "Qualcomm"
-    #[serde(default, rename = "cpuMake")]
-    pub cpu_make: ::core::option::Option<String>,
-    /// Device CPU model, e.g. "MSM8974"
-    #[serde(default, rename = "cpuModel")]
-    pub cpu_model: ::core::option::Option<String>,
-    /// Device class (e.g. tablet)
-    #[serde(default, rename = "deviceClass")]
-    pub device_class: ::core::option::Option<String>,
-    /// OpenGL version
-    #[serde(default, rename = "glEsVersion")]
-    pub gl_es_version: ::core::option::Option<i32>,
-    /// Device manufacturer (e.g. Motorola)
-    #[serde(default)]
-    pub manufacturer: ::core::option::Option<String>,
-    /// Comma separated list of native platforms (e.g. "arm", "arm7")
-    #[serde(default, rename = "nativePlatform")]
-    pub native_platform: ::core::option::Option<String>,
-    /// Device model name (e.g. Droid)
-    #[serde(default, rename = "productName")]
-    pub product_name: ::core::option::Option<String>,
-    /// Device RAM in Megabytes, e.g. "2048"
-    #[serde(default, rename = "ramMb")]
-    pub ram_mb: ::core::option::Option<i32>,
-    /// Screen density in DPI
-    #[serde(default, rename = "screenDensityDpi")]
-    pub screen_density_dpi: ::core::option::Option<i32>,
-    /// Screen height in pixels
-    #[serde(default, rename = "screenHeightPx")]
-    pub screen_height_px: ::core::option::Option<i32>,
-    /// Screen width in pixels
-    #[serde(default, rename = "screenWidthPx")]
-    pub screen_width_px: ::core::option::Option<i32>,
-}
-
-/// Conditions about a device''s RAM capabilities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceRam {
-    /// Maximum RAM in bytes (bound excluded).
-    #[serde(default, rename = "maxBytes")]
-    pub max_bytes: ::core::option::Option<String>,
-    /// Minimum RAM in bytes (bound included).
-    #[serde(default, rename = "minBytes")]
-    pub min_bytes: ::core::option::Option<String>,
-}
-
-/// Selector for a device group. A selector consists of a set of conditions on the device that should all match (logical AND) to determine a device group eligibility. For instance, if a selector specifies RAM conditions, device model inclusion and device model exclusion, a device is considered to match if: device matches RAM conditions AND device matches one of the included device models AND device doesn''t match excluded device models
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceSelector {
-    /// Conditions on the device''s RAM.
-    #[serde(default, rename = "deviceRam")]
-    pub device_ram: ::core::option::Option<DeviceRam>,
-    /// Device models excluded by this selector, even if they match all other conditions.
-    #[serde(default, rename = "excludedDeviceIds")]
-    pub excluded_device_ids: ::core::option::Option<::std::vec::Vec<DeviceId>>,
-    /// A device that has any of these system features is excluded by this selector, even if it matches all other conditions.
-    #[serde(default, rename = "forbiddenSystemFeatures")]
-    pub forbidden_system_features: ::core::option::Option<::std::vec::Vec<SystemFeature>>,
-    /// Device models included by this selector.
-    #[serde(default, rename = "includedDeviceIds")]
-    pub included_device_ids: ::core::option::Option<::std::vec::Vec<DeviceId>>,
-    /// A device needs to have all these system features to be included by the selector.
-    #[serde(default, rename = "requiredSystemFeatures")]
-    pub required_system_features: ::core::option::Option<::std::vec::Vec<SystemFeature>>,
-    /// Optional. The SoCs included by this selector. Only works for Android S+ devices.
-    #[serde(default, rename = "systemOnChips")]
-    pub system_on_chips: ::core::option::Option<::std::vec::Vec<SystemOnChip>>,
-}
-
-/// The device spec used to generate a system APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceSpec {
-    /// Screen dpi.
-    #[serde(default, rename = "screenDensity")]
-    pub screen_density: ::core::option::Option<i64>,
-    /// Supported ABI architectures in the order of preference. The values should be the string as reported by the platform, e.g. "armeabi-v7a", "x86_64".
-    #[serde(default, rename = "supportedAbis")]
-    pub supported_abis: ::core::option::Option<::std::vec::Vec<String>>,
-    /// All installed locales represented as BCP-47 strings, e.g. "en-US".
-    #[serde(default, rename = "supportedLocales")]
-    pub supported_locales: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A single device tier. Devices matching any of the device groups in device_group_names are considered to match the tier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceTier {
-    /// Groups of devices included in this tier. These groups must be defined explicitly under device_groups in this configuration.
-    #[serde(default, rename = "deviceGroupNames")]
-    pub device_group_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The priority level of the tier. Tiers are evaluated in descending order of level: the highest level tier has the highest priority. The highest tier matching a given device is selected for that device. You should use a contiguous range of levels for your tiers in a tier set; tier levels in a tier set must be unique. For instance, if your tier set has 4 tiers (including the global fallback), you should define tiers 1, 2 and 3 in this configuration. Note: tier 0 is implicitly defined as a global fallback and selected for devices that don''t match any of the tiers explicitly defined here. You mustn''t define level 0 explicitly in this configuration.
-    #[serde(default)]
-    pub level: ::core::option::Option<i32>,
-}
-
-/// Configuration describing device targeting criteria for the content of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceTierConfig {
-    /// Definition of device groups for the app.
-    #[serde(default, rename = "deviceGroups")]
-    pub device_groups: ::core::option::Option<::std::vec::Vec<DeviceGroup>>,
-    /// Output only. The device tier config ID.
-    #[serde(default, rename = "deviceTierConfigId")]
-    pub device_tier_config_id: ::core::option::Option<String>,
-    /// Definition of the set of device tiers for the app.
-    #[serde(default, rename = "deviceTierSet")]
-    pub device_tier_set: ::core::option::Option<DeviceTierSet>,
-    /// Definition of user country sets for the app.
-    #[serde(default, rename = "userCountrySets")]
-    pub user_country_sets: ::core::option::Option<::std::vec::Vec<UserCountrySet>>,
-}
-
-/// A set of device tiers. A tier set determines what variation of app content gets served to a specific device, for device-targeted content. You should assign a priority level to each tier, which determines the ordering by which they are evaluated by Play. See the documentation of DeviceTier.level for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceTierSet {
-    /// Device tiers belonging to the set.
-    #[serde(default, rename = "deviceTiers")]
-    pub device_tiers: ::core::option::Option<::std::vec::Vec<DeviceTier>>,
-}
-
-/// An expansion file. The resource for ExpansionFilesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExpansionFile {
-    /// If set, this field indicates that this APK has an expansion file uploaded to it: this APK does not reference another APK''s expansion file. The field''s value is the size of the uploaded expansion file in bytes.
-    #[serde(default, rename = "fileSize")]
-    pub file_size: ::core::option::Option<String>,
-    /// If set, this APK''s expansion file references another APK''s expansion file. The file_size field will not be set.
-    #[serde(default, rename = "referencesVersion")]
-    pub references_version: ::core::option::Option<i32>,
-}
-
 /// Response for uploading an expansion file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExpansionFilesUploadResponse {
     /// The uploaded expansion file configuration.
     #[serde(default, rename = "expansionFile")]
     pub expansion_file: ::core::option::Option<ExpansionFile>,
-}
-
-/// User account identifier in the third-party service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalAccountIdentifiers {
-    /// User account identifier in the third-party service. Only present if account linking happened as part of the subscription purchase flow.
-    #[serde(default, rename = "externalAccountId")]
-    pub external_account_id: ::core::option::Option<String>,
-    /// An obfuscated version of the id that is uniquely associated with the user''s account in your app. Present for the following purchases: * If account linking happened as part of the subscription purchase flow. * It was specified using https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedaccountid when the purchase was made.
-    #[serde(default, rename = "obfuscatedExternalAccountId")]
-    pub obfuscated_external_account_id: ::core::option::Option<String>,
-    /// An obfuscated version of the id that is uniquely associated with the user''s profile in your app. Only present if specified using https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedprofileid when the purchase was made.
-    #[serde(default, rename = "obfuscatedExternalProfileId")]
-    pub obfuscated_external_profile_id: ::core::option::Option<String>,
-}
-
-/// User account identifier in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalAccountIds {
-    /// Optional. Specifies an optional obfuscated string that is uniquely associated with the purchaser''s user account in your app. If you pass this value, Google Play can use it to detect irregular activity. Do not use this field to store any Personally Identifiable Information (PII) such as emails in cleartext. Attempting to store PII in this field will result in purchases being blocked. Google Play recommends that you use either encryption or a one-way hash to generate an obfuscated identifier to send to Google Play. This identifier is limited to 64 characters. This field can only be set for resubscription purchases. See https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedaccountid to set this field for purchases made using the standard in-app billing flow.
-    #[serde(default, rename = "obfuscatedAccountId")]
-    pub obfuscated_account_id: ::core::option::Option<String>,
-    /// Optional. Specifies an optional obfuscated string that is uniquely associated with the purchaser''s user profile in your app. If you pass this value, Google Play can use it to detect irregular activity. Do not use this field to store any Personally Identifiable Information (PII) such as emails in cleartext. Attempting to store PII in this field will result in purchases being blocked. Google Play recommends that you use either encryption or a one-way hash to generate an obfuscated identifier to send to Google Play. This identifier is limited to 64 characters. This field can only be set for resubscription purchases. See https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedprofileid to set this field for purchases made using the standard in-app billing flow.
-    #[serde(default, rename = "obfuscatedProfileId")]
-    pub obfuscated_profile_id: ::core::option::Option<String>,
-}
-
-/// Reporting details unique to the external offers program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalOfferDetails {
-    /// Optional. The external transaction id associated with the app download event through an external link. Required when reporting transactions made in externally installed apps.
-    #[serde(default, rename = "appDownloadEventExternalTransactionId")]
-    pub app_download_event_external_transaction_id: ::core::option::Option<String>,
-    /// Optional. The category of the downloaded app though this transaction. This must match the category provided in Play Console during the external app verification process. Only required for app downloads. // TODO: enum values: ["EXTERNAL_OFFER_APP_CATEGORY_UNSPECIFIED", "APP", "GAME"]
-    #[serde(default, rename = "installedAppCategory")]
-    pub installed_app_category: ::core::option::Option<String>,
-    /// Optional. The package name of the app downloaded through this transaction. Required when link_type is LINK_TO_APP_DOWNLOAD.
-    #[serde(default, rename = "installedAppPackage")]
-    pub installed_app_package: ::core::option::Option<String>,
-    /// Optional. The type of content being reported by this transaction. Required when reporting app downloads or purchased digital content offers made in app installed through Google Play. // TODO: enum values: ["EXTERNAL_OFFER_LINK_TYPE_UNSPECIFIED", "LINK_TO_DIGITAL_CONTENT_OFFER", "LINK_TO_APP_DOWNLOAD"]
-    #[serde(default, rename = "linkType")]
-    pub link_type: ::core::option::Option<String>,
-}
-
-/// Details of an external subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalSubscription {
-    /// Required. The type of the external subscription. // TODO: enum values: ["SUBSCRIPTION_TYPE_UNSPECIFIED", "RECURRING", "PREPAID"]
-    #[serde(default, rename = "subscriptionType")]
-    pub subscription_type: ::core::option::Option<String>,
 }
 
 /// The details of an external transaction.
@@ -1315,235 +447,12 @@ pub struct ExternalTransaction {
     pub user_tax_address: ::core::option::Option<ExternalTransactionAddress>,
 }
 
-/// User''s address for the external transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalTransactionAddress {
-    /// Optional. Top-level administrative subdivision of the country/region. Only required for transactions in India. Valid values are "ANDAMAN AND NICOBAR ISLANDS", "ANDHRA PRADESH", "ARUNACHAL PRADESH", "ASSAM", "BIHAR", "CHANDIGARH", "CHHATTISGARH", "DADRA AND NAGAR HAVELI", "DADRA AND NAGAR HAVELI AND DAMAN AND DIU", "DAMAN AND DIU", "DELHI", "GOA", "GUJARAT", "HARYANA", "HIMACHAL PRADESH", "JAMMU AND KASHMIR", "JHARKHAND", "KARNATAKA", "KERALA", "LADAKH", "LAKSHADWEEP", "MADHYA PRADESH", "MAHARASHTRA", "MANIPUR", "MEGHALAYA", "MIZORAM", "NAGALAND", "ODISHA", "PUDUCHERRY", "PUNJAB", "RAJASTHAN", "SIKKIM", "TAMIL NADU", "TELANGANA", "TRIPURA", "UTTAR PRADESH", "UTTARAKHAND", and "WEST BENGAL".
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Required. Two letter region code based on ISO-3166-1 Alpha-2 (UN region codes).
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Defines an APK available for this application that is hosted externally and not uploaded to Google Play. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternallyHostedApk {
-    /// The application label.
-    #[serde(default, rename = "applicationLabel")]
-    pub application_label: ::core::option::Option<String>,
-    /// A certificate (or array of certificates if a certificate-chain is used) used to sign this APK, represented as a base64 encoded byte array.
-    #[serde(default, rename = "certificateBase64s")]
-    pub certificate_base64s: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The URL at which the APK is hosted. This must be an https URL.
-    #[serde(default, rename = "externallyHostedUrl")]
-    pub externally_hosted_url: ::core::option::Option<String>,
-    /// The sha1 checksum of this APK, represented as a base64 encoded byte array.
-    #[serde(default, rename = "fileSha1Base64")]
-    pub file_sha1_base64: ::core::option::Option<String>,
-    /// The sha256 checksum of this APK, represented as a base64 encoded byte array.
-    #[serde(default, rename = "fileSha256Base64")]
-    pub file_sha256_base64: ::core::option::Option<String>,
-    /// The file size in bytes of this APK.
-    #[serde(default, rename = "fileSize")]
-    pub file_size: ::core::option::Option<String>,
-    /// The icon image from the APK, as a base64 encoded byte array.
-    #[serde(default, rename = "iconBase64")]
-    pub icon_base64: ::core::option::Option<String>,
-    /// The maximum SDK supported by this APK (optional).
-    #[serde(default, rename = "maximumSdk")]
-    pub maximum_sdk: ::core::option::Option<i32>,
-    /// The minimum SDK targeted by this APK.
-    #[serde(default, rename = "minimumSdk")]
-    pub minimum_sdk: ::core::option::Option<i32>,
-    /// The native code environments supported by this APK (optional).
-    #[serde(default, rename = "nativeCodes")]
-    pub native_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The package name.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The features required by this APK (optional).
-    #[serde(default, rename = "usesFeatures")]
-    pub uses_features: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The permissions requested by this APK.
-    #[serde(default, rename = "usesPermissions")]
-    pub uses_permissions: ::core::option::Option<::std::vec::Vec<UsesPermission>>,
-    /// The version code of this APK.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<i32>,
-    /// The version name of this APK.
-    #[serde(default, rename = "versionName")]
-    pub version_name: ::core::option::Option<String>,
-}
-
 /// Response to list generated APKs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeneratedApksListResponse {
     /// All generated APKs, grouped by the APK signing key.
     #[serde(default, rename = "generatedApks")]
     pub generated_apks: ::core::option::Option<::std::vec::Vec<GeneratedApksPerSigningKey>>,
-}
-
-/// Download metadata for split, standalone and universal APKs, as well as asset pack slices, signed with a given key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedApksPerSigningKey {
-    /// SHA256 hash of the APK signing public key certificate.
-    #[serde(default, rename = "certificateSha256Hash")]
-    pub certificate_sha256_hash: ::core::option::Option<String>,
-    /// List of asset pack slices which will be served for this app bundle, signed with a key corresponding to certificate_sha256_hash.
-    #[serde(default, rename = "generatedAssetPackSlices")]
-    pub generated_asset_pack_slices:
-        ::core::option::Option<::std::vec::Vec<GeneratedAssetPackSlice>>,
-    /// Generated recovery apks for recovery actions signed with a key corresponding to certificate_sha256_hash. This includes all generated recovery APKs, also those in draft or cancelled state. This field is not set if no recovery actions were created for this signing key.
-    #[serde(default, rename = "generatedRecoveryModules")]
-    pub generated_recovery_modules: ::core::option::Option<::std::vec::Vec<GeneratedRecoveryApk>>,
-    /// List of generated split APKs, signed with a key corresponding to certificate_sha256_hash.
-    #[serde(default, rename = "generatedSplitApks")]
-    pub generated_split_apks: ::core::option::Option<::std::vec::Vec<GeneratedSplitApk>>,
-    /// List of generated standalone APKs, signed with a key corresponding to certificate_sha256_hash.
-    #[serde(default, rename = "generatedStandaloneApks")]
-    pub generated_standalone_apks: ::core::option::Option<::std::vec::Vec<GeneratedStandaloneApk>>,
-    /// Generated universal APK, signed with a key corresponding to certificate_sha256_hash. This field is not set if no universal APK was generated for this signing key.
-    #[serde(default, rename = "generatedUniversalApk")]
-    pub generated_universal_apk: ::core::option::Option<GeneratedUniversalApk>,
-    /// Contains targeting information about the generated apks.
-    #[serde(default, rename = "targetingInfo")]
-    pub targeting_info: ::core::option::Option<TargetingInfo>,
-}
-
-/// Download metadata for an asset pack slice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedAssetPackSlice {
-    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
-    #[serde(default, rename = "downloadId")]
-    pub download_id: ::core::option::Option<String>,
-    /// Name of the module that this asset slice belongs to.
-    #[serde(default, rename = "moduleName")]
-    pub module_name: ::core::option::Option<String>,
-    /// Asset slice ID.
-    #[serde(default, rename = "sliceId")]
-    pub slice_id: ::core::option::Option<String>,
-    /// Asset module version.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Download metadata for an app recovery module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedRecoveryApk {
-    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
-    #[serde(default, rename = "downloadId")]
-    pub download_id: ::core::option::Option<String>,
-    /// Name of the module which recovery apk belongs to.
-    #[serde(default, rename = "moduleName")]
-    pub module_name: ::core::option::Option<String>,
-    /// ID of the recovery action.
-    #[serde(default, rename = "recoveryId")]
-    pub recovery_id: ::core::option::Option<String>,
-    /// The status of the recovery action corresponding to the recovery apk. // TODO: enum values: ["RECOVERY_STATUS_UNSPECIFIED", "RECOVERY_STATUS_ACTIVE", "RECOVERY_STATUS_CANCELED", "RECOVERY_STATUS_DRAFT", "RECOVERY_STATUS_GENERATION_IN_PROGRESS", "RECOVERY_STATUS_GENERATION_FAILED"]
-    #[serde(default, rename = "recoveryStatus")]
-    pub recovery_status: ::core::option::Option<String>,
-}
-
-/// Download metadata for a split APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedSplitApk {
-    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
-    #[serde(default, rename = "downloadId")]
-    pub download_id: ::core::option::Option<String>,
-    /// Name of the module that this APK belongs to.
-    #[serde(default, rename = "moduleName")]
-    pub module_name: ::core::option::Option<String>,
-    /// Split ID. Empty for the main split of the base module.
-    #[serde(default, rename = "splitId")]
-    pub split_id: ::core::option::Option<String>,
-    /// ID of the generated variant.
-    #[serde(default, rename = "variantId")]
-    pub variant_id: ::core::option::Option<i32>,
-}
-
-/// Download metadata for a standalone APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedStandaloneApk {
-    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
-    #[serde(default, rename = "downloadId")]
-    pub download_id: ::core::option::Option<String>,
-    /// ID of the generated variant.
-    #[serde(default, rename = "variantId")]
-    pub variant_id: ::core::option::Option<i32>,
-}
-
-/// Download metadata for a universal APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedUniversalApk {
-    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
-    #[serde(default, rename = "downloadId")]
-    pub download_id: ::core::option::Option<String>,
-}
-
-/// Request message for GetOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetOneTimeProductOfferRequest {
-    /// Required. The unique offer ID of the offer to get.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to get.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent one-time product (ID) of the offer to get.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The parent purchase option (ID) of the offer to get.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-}
-
-/// Request message for GetSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetSubscriptionOfferRequest {
-    /// Required. The parent base plan (ID) of the offer to get.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Required. The unique offer ID of the offer to get.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Required. The parent app (package name) of the offer to get.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The parent subscription (ID) of the offer to get.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// An access grant resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Grant {
-    /// The permissions granted to the user for this app.
-    #[serde(default, rename = "appLevelPermissions")]
-    pub app_level_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Resource name for this grant, following the pattern "developers/{developer}/users/{email}/grants/{package_name}". If this grant is for a draft app, the app ID will be used in this resource name instead of the package name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. The package name of the app. This will be empty for draft apps.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// An uploaded image. The resource for ImagesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// A unique id representing this image.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A sha1 hash of the image.
-    #[serde(default)]
-    pub sha1: ::core::option::Option<String>,
-    /// A sha256 hash of the image.
-    #[serde(default)]
-    pub sha256: ::core::option::Option<String>,
-    /// A URL that will serve a preview of the image.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Response for deleting all images.
@@ -1568,52 +477,6 @@ pub struct ImagesUploadResponse {
     /// The uploaded image.
     #[serde(default)]
     pub image: ::core::option::Option<Image>,
-}
-
-/// An in-app product. The resource for InappproductsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InAppProduct {
-    /// Default language of the localized data, as defined by BCP-47. e.g. "en-US".
-    #[serde(default, rename = "defaultLanguage")]
-    pub default_language: ::core::option::Option<String>,
-    /// Default price. Cannot be zero, as in-app products are never free. Always in the developer''s Checkout merchant currency.
-    #[serde(default, rename = "defaultPrice")]
-    pub default_price: ::core::option::Option<Price>,
-    /// Grace period of the subscription, specified in ISO 8601 format. Allows developers to give their subscribers a grace period when the payment for the new recurrence period is declined. Acceptable values are P0D (zero days), P3D (three days), P7D (seven days), P14D (14 days), and P30D (30 days).
-    #[serde(default, rename = "gracePeriod")]
-    pub grace_period: ::core::option::Option<String>,
-    /// List of localized title and description data. Map key is the language of the localized data, as defined by BCP-47, e.g. "en-US".
-    #[serde(default)]
-    pub listings: ::core::option::Option<serde_json::Value>,
-    /// Details about taxes and legal compliance. Only applicable to managed products.
-    #[serde(default, rename = "managedProductTaxesAndComplianceSettings")]
-    pub managed_product_taxes_and_compliance_settings:
-        ::core::option::Option<ManagedProductTaxAndComplianceSettings>,
-    /// Package name of the parent app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Prices per buyer region. None of these can be zero, as in-app products are never free. Map key is region code, as defined by ISO 3166-2.
-    #[serde(default)]
-    pub prices: ::core::option::Option<serde_json::Value>,
-    /// The type of the product, e.g. a recurring subscription. // TODO: enum values: ["purchaseTypeUnspecified", "managedUser", "subscription"]
-    #[serde(default, rename = "purchaseType")]
-    pub purchase_type: ::core::option::Option<String>,
-    /// Stock-keeping-unit (SKU) of the product, unique within an app.
-    #[serde(default)]
-    pub sku: ::core::option::Option<String>,
-    /// The status of the product, e.g. whether it''s active. // TODO: enum values: ["statusUnspecified", "active", "inactive"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Subscription period, specified in ISO 8601 format. Acceptable values are P1W (one week), P1M (one month), P3M (three months), P6M (six months), and P1Y (one year).
-    #[serde(default, rename = "subscriptionPeriod")]
-    pub subscription_period: ::core::option::Option<String>,
-    /// Details about taxes and legal compliance. Only applicable to subscription products.
-    #[serde(default, rename = "subscriptionTaxesAndComplianceSettings")]
-    pub subscription_taxes_and_compliance_settings:
-        ::core::option::Option<SubscriptionTaxAndComplianceSettings>,
-    /// Trial period, specified in ISO 8601 format. Acceptable values are anything between P7D (seven days) and P999D (999 days).
-    #[serde(default, rename = "trialPeriod")]
-    pub trial_period: ::core::option::Option<String>,
 }
 
 /// Store listing of a single in-app product.
@@ -1662,20 +525,6 @@ pub struct InappproductsBatchUpdateResponse {
     pub inappproducts: ::core::option::Option<::std::vec::Vec<InAppProduct>>,
 }
 
-/// Request to delete an in-app product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InappproductsDeleteRequest {
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Package name of the app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Unique identifier for the in-app product.
-    #[serde(default)]
-    pub sku: ::core::option::Option<String>,
-}
-
 /// Response listing all in-app products.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InappproductsListResponse {
@@ -1693,72 +542,6 @@ pub struct InappproductsListResponse {
     pub token_pagination: ::core::option::Option<TokenPagination>,
 }
 
-/// Request to update an in-app product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InappproductsUpdateRequest {
-    /// If set to true, and the in-app product with the given package_name and sku doesn''t exist, the in-app product will be created.
-    #[serde(default, rename = "allowMissing")]
-    pub allow_missing: ::core::option::Option<bool>,
-    /// If true the prices for all regions targeted by the parent app that don''t have a price specified for this in-app product will be auto converted to the target currency based on the default price. Defaults to false.
-    #[serde(default, rename = "autoConvertMissingPrices")]
-    pub auto_convert_missing_prices: ::core::option::Option<bool>,
-    /// The new in-app product.
-    #[serde(default)]
-    pub inappproduct: ::core::option::Option<InAppProduct>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Package name of the app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Unique identifier for the in-app product.
-    #[serde(default)]
-    pub sku: ::core::option::Option<String>,
-}
-
-/// Information to a installment plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstallmentPlan {
-    /// Total number of payments the user is initially committed for.
-    #[serde(default, rename = "initialCommittedPaymentsCount")]
-    pub initial_committed_payments_count: ::core::option::Option<i32>,
-    /// If present, this installment plan is pending to be canceled. The cancellation will happen only after the user finished all committed payments.
-    #[serde(default, rename = "pendingCancellation")]
-    pub pending_cancellation: ::core::option::Option<serde_json::Value>,
-    /// Total number of committed payments remaining to be paid for in this renewal cycle.
-    #[serde(default, rename = "remainingCommittedPaymentsCount")]
-    pub remaining_committed_payments_count: ::core::option::Option<i32>,
-    /// Total number of payments the user will be committed for after each commitment period. Empty means the installment plan will fall back to a normal auto-renew subscription after initial commitment.
-    #[serde(default, rename = "subsequentCommittedPaymentsCount")]
-    pub subsequent_committed_payments_count: ::core::option::Option<i32>,
-}
-
-/// Represents an installments base plan where a user commits to a specified number of payments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstallmentsBasePlanType {
-    /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
-    #[serde(default, rename = "accountHoldDuration")]
-    pub account_hold_duration: ::core::option::Option<String>,
-    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
-    #[serde(default, rename = "billingPeriodDuration")]
-    pub billing_period_duration: ::core::option::Option<String>,
-    /// Required. Immutable. The number of payments the user is committed to. It is immutable after the base plan is created.
-    #[serde(default, rename = "committedPaymentsCount")]
-    pub committed_payments_count: ::core::option::Option<i32>,
-    /// Grace period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and the lesser of 30D and base plan billing period. If not specified, a default value will be used based on the billing period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
-    #[serde(default, rename = "gracePeriodDuration")]
-    pub grace_period_duration: ::core::option::Option<String>,
-    /// The proration mode for the base plan determines what happens when a user switches to this plan from another base plan. If unspecified, defaults to CHARGE_ON_NEXT_BILLING_DATE. // TODO: enum values: ["SUBSCRIPTION_PRORATION_MODE_UNSPECIFIED", "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE", "SUBSCRIPTION_PRORATION_MODE_CHARGE_FULL_PRICE_IMMEDIATELY"]
-    #[serde(default, rename = "prorationMode")]
-    pub proration_mode: ::core::option::Option<String>,
-    /// Required. Immutable. Installments base plan renewal type. Determines the behavior at the end of the initial commitment. The renewal type is immutable after the base plan is created. // TODO: enum values: ["RENEWAL_TYPE_UNSPECIFIED", "RENEWAL_TYPE_RENEWS_WITHOUT_COMMITMENT", "RENEWAL_TYPE_RENEWS_WITH_COMMITMENT"]
-    #[serde(default, rename = "renewalType")]
-    pub renewal_type: ::core::option::Option<String>,
-    /// Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified. // TODO: enum values: ["RESUBSCRIBE_STATE_UNSPECIFIED", "RESUBSCRIBE_STATE_ACTIVE", "RESUBSCRIBE_STATE_INACTIVE"]
-    #[serde(default, rename = "resubscribeState")]
-    pub resubscribe_state: ::core::option::Option<String>,
-}
-
 /// An artifact resource which gets created when uploading an APK or Android App Bundle through internal app sharing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InternalAppSharingArtifact {
@@ -1771,91 +554,6 @@ pub struct InternalAppSharingArtifact {
     /// The sha256 hash of the artifact represented as a lowercase hexadecimal number, matching the output of the sha256sum command.
     #[serde(default)]
     pub sha256: ::core::option::Option<String>,
-}
-
-/// Contains the introductory price information for a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntroductoryPriceInfo {
-    /// Introductory price of the subscription, not including tax. The currency is the same as price_currency_code. Price is expressed in micro-units, where 1,000,000 micro-units represents one unit of the currency. For example, if the subscription price is €1.99, price_amount_micros is 1990000.
-    #[serde(default, rename = "introductoryPriceAmountMicros")]
-    pub introductory_price_amount_micros: ::core::option::Option<String>,
-    /// ISO 4217 currency code for the introductory subscription price. For example, if the price is specified in British pounds sterling, price_currency_code is "GBP".
-    #[serde(default, rename = "introductoryPriceCurrencyCode")]
-    pub introductory_price_currency_code: ::core::option::Option<String>,
-    /// The number of billing period to offer introductory pricing.
-    #[serde(default, rename = "introductoryPriceCycles")]
-    pub introductory_price_cycles: ::core::option::Option<i32>,
-    /// Introductory price period, specified in ISO 8601 format. Common values are (but not limited to) "P1W" (one week), "P1M" (one month), "P3M" (three months), "P6M" (six months), and "P1Y" (one year).
-    #[serde(default, rename = "introductoryPricePeriod")]
-    pub introductory_price_period: ::core::option::Option<String>,
-}
-
-/// Expiry time details of a subscription item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ItemExpiryTimeDetails {
-    /// The new expiry time for this subscription item.
-    #[serde(default, rename = "expiryTime")]
-    pub expiry_time: ::core::option::Option<String>,
-    /// The product ID of the subscription item (for example, ''premium_plan'').
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
-/// Details about a subscription line item that is being replaced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ItemReplacement {
-    /// The base plan ID of the subscription line item being replaced.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// The offer ID of the subscription line item being replaced, if applicable.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// The product ID of the subscription line item being replaced.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// The replacement mode applied during the purchase. // TODO: enum values: ["REPLACEMENT_MODE_UNSPECIFIED", "WITH_TIME_PRORATION", "CHARGE_PRORATED_PRICE", "WITHOUT_PRORATION", "CHARGE_FULL_PRICE", "DEFERRED", "KEEP_EXISTING"]
-    #[serde(default, rename = "replacementMode")]
-    pub replacement_mode: ::core::option::Option<String>,
-}
-
-/// Targeting based on language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LanguageTargeting {
-    /// Alternative languages.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<String>>,
-    /// ISO-639: 2 or 3 letter language code.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Details of a line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LineItem {
-    /// Item''s listed price on Play Store, this may or may not include tax. Excludes Google-funded discounts only.
-    #[serde(default, rename = "listingPrice")]
-    pub listing_price: ::core::option::Option<Money>,
-    /// Details of a one-time purchase.
-    #[serde(default, rename = "oneTimePurchaseDetails")]
-    pub one_time_purchase_details: ::core::option::Option<OneTimePurchaseDetails>,
-    /// Details of a paid app purchase.
-    #[serde(default, rename = "paidAppDetails")]
-    pub paid_app_details: ::core::option::Option<serde_json::Value>,
-    /// The purchased product ID or in-app SKU (for example, ''monthly001'' or ''com.some.thing.inapp1'').
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Developer-specified name of the product. Displayed in buyer''s locale. Example: coins, monthly subscription, etc.
-    #[serde(default, rename = "productTitle")]
-    pub product_title: ::core::option::Option<String>,
-    /// Details of a subscription purchase.
-    #[serde(default, rename = "subscriptionDetails")]
-    pub subscription_details: ::core::option::Option<SubscriptionDetails>,
-    /// The tax paid for this line item.
-    #[serde(default)]
-    pub tax: ::core::option::Option<Money>,
-    /// The total amount paid by the user for this line item, taking into account discounts and tax.
-    #[serde(default)]
-    pub total: ::core::option::Option<Money>,
 }
 
 /// Response message for ListAppRecoveries. -- api-linter: core::0158::response-next-page-token-field=disabled
@@ -1940,26 +638,6 @@ pub struct ListUsersResponse {
     pub users: ::core::option::Option<::std::vec::Vec<User>>,
 }
 
-/// A localized store listing. The resource for ListingsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Listing {
-    /// Full description of the app.
-    #[serde(default, rename = "fullDescription")]
-    pub full_description: ::core::option::Option<String>,
-    /// Language localization code (a BCP-47 language tag; for example, "de-AT" for Austrian German).
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// Short description of the app.
-    #[serde(default, rename = "shortDescription")]
-    pub short_description: ::core::option::Option<String>,
-    /// Localized title of the app.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// URL of a promotional YouTube video for the app.
-    #[serde(default)]
-    pub video: ::core::option::Option<String>,
-}
-
 /// Response listing all localized listings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListingsListResponse {
@@ -1969,746 +647,6 @@ pub struct ListingsListResponse {
     /// All localized listings.
     #[serde(default)]
     pub listings: ::core::option::Option<::std::vec::Vec<Listing>>,
-}
-
-/// Localized text in given language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizedText {
-    /// Language localization code (a BCP-47 language tag; for example, "de-AT" for Austrian German).
-    #[serde(default)]
-    pub language: ::core::option::Option<String>,
-    /// The text in the given language.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Details about taxation and legal compliance for managed products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedProductTaxAndComplianceSettings {
-    /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
-    #[serde(default, rename = "eeaWithdrawalRightType")]
-    pub eea_withdrawal_right_type: ::core::option::Option<String>,
-    /// Whether this in-app product is declared as a product representing a tokenized digital asset.
-    #[serde(default, rename = "isTokenizedDigitalAsset")]
-    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
-    /// Product tax category code to assign to the in-app product. Product tax category determines the transaction tax rates applied to the product. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
-    #[serde(default, rename = "productTaxCategoryCode")]
-    pub product_tax_category_code: ::core::option::Option<String>,
-    /// Regional age rating information. Currently this field is only supported for region code US.
-    #[serde(default, rename = "regionalProductAgeRatingInfos")]
-    pub regional_product_age_rating_infos:
-        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
-    /// A mapping from region code to tax rate details. The keys are region codes as defined by Unicode''s "CLDR".
-    #[serde(default, rename = "taxRateInfoByRegionCode")]
-    pub tax_rate_info_by_region_code: ::core::option::Option<serde_json::Value>,
-}
-
-/// Request message for MigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrateBasePlanPricesRequest {
-    /// Required. The unique base plan ID of the base plan to update prices on.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
-    #[serde(default, rename = "latencyTolerance")]
-    pub latency_tolerance: ::core::option::Option<String>,
-    /// Required. Package name of the parent app. Must be equal to the package_name field on the Subscription resource.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The ID of the subscription to update. Must be equal to the product_id field on the Subscription resource.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The regional prices to update.
-    #[serde(default, rename = "regionalPriceMigrations")]
-    pub regional_price_migrations:
-        ::core::option::Option<::std::vec::Vec<RegionalPriceMigrationConfig>>,
-    /// Required. The version of the available regions being used for the regional_price_migrations.
-    #[serde(default, rename = "regionsVersion")]
-    pub regions_version: ::core::option::Option<RegionsVersion>,
-}
-
-/// Metadata of a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModuleMetadata {
-    /// Indicates the delivery type (e.g. on-demand) of the module. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
-    #[serde(default, rename = "deliveryType")]
-    pub delivery_type: ::core::option::Option<String>,
-    /// Names of the modules that this module directly depends on. Each module implicitly depends on the base module.
-    #[serde(default)]
-    pub dependencies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Indicates the type of this feature module. // TODO: enum values: ["UNKNOWN_MODULE_TYPE", "FEATURE_MODULE"]
-    #[serde(default, rename = "moduleType")]
-    pub module_type: ::core::option::Option<String>,
-    /// Module name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The targeting that makes a conditional module installed. Relevant only for Split APKs.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<ModuleTargeting>,
-}
-
-/// Targeting on the module level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModuleTargeting {
-    /// Targeting for device features.
-    #[serde(default, rename = "deviceFeatureTargeting")]
-    pub device_feature_targeting: ::core::option::Option<::std::vec::Vec<DeviceFeatureTargeting>>,
-    /// The sdk version that the variant targets
-    #[serde(default, rename = "sdkVersionTargeting")]
-    pub sdk_version_targeting: ::core::option::Option<SdkVersionTargeting>,
-    /// Countries-level targeting
-    #[serde(default, rename = "userCountriesTargeting")]
-    pub user_countries_targeting: ::core::option::Option<UserCountriesTargeting>,
-}
-
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Money {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
-/// Represents a list of ABIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiAbi {
-    /// A list of targeted ABIs, as represented by the Android Platform
-    #[serde(default)]
-    pub abi: ::core::option::Option<::std::vec::Vec<Abi>>,
-}
-
-/// Targeting based on multiple abis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiAbiTargeting {
-    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<MultiAbi>>,
-    /// Value of a multi abi.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<MultiAbi>>,
-}
-
-/// Offer details information related to a purchase line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OfferDetails {
-    /// The base plan ID. Present for all base plan and offers.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// The offer ID. Only present for discounted offers.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// The latest offer tags associated with the offer. It includes tags inherited from the base plan.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Offer phase details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OfferPhase {
-    /// Set when the offer phase is a base plan pricing phase.
-    #[serde(default, rename = "basePrice")]
-    pub base_price: ::core::option::Option<serde_json::Value>,
-    /// Set when the offer phase is a free trial.
-    #[serde(default, rename = "freeTrial")]
-    pub free_trial: ::core::option::Option<serde_json::Value>,
-    /// Set when the offer phase is an introductory price offer phase.
-    #[serde(default, rename = "introductoryPrice")]
-    pub introductory_price: ::core::option::Option<serde_json::Value>,
-    /// Set when the offer phase is a proration period.
-    #[serde(default, rename = "prorationPeriod")]
-    pub proration_period: ::core::option::Option<ProrationPeriodOfferPhase>,
-}
-
-/// Details of a pricing phase for the entitlement period funded by this order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OfferPhaseDetails {
-    /// The order funds a base price period.
-    #[serde(default, rename = "baseDetails")]
-    pub base_details: ::core::option::Option<serde_json::Value>,
-    /// The order funds a free trial period.
-    #[serde(default, rename = "freeTrialDetails")]
-    pub free_trial_details: ::core::option::Option<serde_json::Value>,
-    /// The order funds an introductory pricing period.
-    #[serde(default, rename = "introductoryPriceDetails")]
-    pub introductory_price_details: ::core::option::Option<serde_json::Value>,
-    /// The order funds a proration period.
-    #[serde(default, rename = "prorationPeriodDetails")]
-    pub proration_period_details: ::core::option::Option<ProrationPeriodDetails>,
-}
-
-/// Represents a custom tag specified for a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OfferTag {
-    /// Must conform with RFC-1034. That is, this string can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 20 characters.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-}
-
-/// Represents a one-time transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeExternalTransaction {
-    /// Input only. Provided during the call to Create. Retrieved from the client when the alternative billing flow is launched.
-    #[serde(default, rename = "externalTransactionToken")]
-    pub external_transaction_token: ::core::option::Option<String>,
-}
-
-/// A single one-time product for an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProduct {
-    /// Required. Set of localized title and description data. Must not have duplicate entries with the same language_code.
-    #[serde(default)]
-    pub listings: ::core::option::Option<::std::vec::Vec<OneTimeProductListing>>,
-    /// Optional. List of up to 20 custom tags specified for this one-time product, and returned to the app through the billing library. Purchase options and offers for this product will also receive these tags in the billing library.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
-    /// Required. Immutable. Package name of the parent app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. Immutable. Unique product ID of the product. Unique within the parent app. Product IDs must start with a number or lowercase letter, and can contain numbers (0-9), lowercase letters (a-z), underscores (_), and periods (.).
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The set of purchase options for this one-time product.
-    #[serde(default, rename = "purchaseOptions")]
-    pub purchase_options: ::core::option::Option<::std::vec::Vec<OneTimeProductPurchaseOption>>,
-    /// Output only. The version of the regions configuration that was used to generate the one-time product.
-    #[serde(default, rename = "regionsVersion")]
-    pub regions_version: ::core::option::Option<RegionsVersion>,
-    /// Optional. Countries where the purchase of this one-time product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
-    #[serde(default, rename = "restrictedPaymentCountries")]
-    pub restricted_payment_countries: ::core::option::Option<RestrictedPaymentCountries>,
-    /// Details about taxes and legal compliance.
-    #[serde(default, rename = "taxAndComplianceSettings")]
-    pub tax_and_compliance_settings: ::core::option::Option<OneTimeProductTaxAndComplianceSettings>,
-}
-
-/// A purchase option that can be bought.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductBuyPurchaseOption {
-    /// Optional. Whether this purchase option will be available in legacy PBL flows that do not support one-time products model. Up to one "buy" purchase option can be marked as backwards compatible.
-    #[serde(default, rename = "legacyCompatible")]
-    pub legacy_compatible: ::core::option::Option<bool>,
-    /// Optional. Whether this purchase option allows multi-quantity. Multi-quantity allows buyer to purchase more than one item in a single checkout.
-    #[serde(default, rename = "multiQuantityEnabled")]
-    pub multi_quantity_enabled: ::core::option::Option<bool>,
-}
-
-/// Configuration specific to discounted offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductDiscountedOffer {
-    /// Time when the offer will stop being available.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. The number of times this offer can be redeemed. If unset or set to 0, allows for unlimited offer redemptions. Otherwise must be a number between 1 and 50 inclusive.
-    #[serde(default, rename = "redemptionLimit")]
-    pub redemption_limit: ::core::option::Option<String>,
-    /// Time when the offer will start being available.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Regional store listing for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductListing {
-    /// Required. The description of this product in the language of this listing. The maximum length is 200 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The language of this listing, as defined by BCP-47, e.g., "en-US".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Required. The title of this product in the language of this listing. The maximum length is 55 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A single offer for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductOffer {
-    /// A discounted offer.
-    #[serde(default, rename = "discountedOffer")]
-    pub discounted_offer: ::core::option::Option<OneTimeProductDiscountedOffer>,
-    /// Required. Immutable. The ID of this product offer. Must be unique within the purchase option. It must start with a number or lower-case letter, and can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-). The maximum length is 63 characters.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// Optional. List of up to 20 custom tags specified for this offer, and returned to the app through the billing library.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
-    /// Required. Immutable. The package name of the app the parent product belongs to.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// A pre-order offer.
-    #[serde(default, rename = "preOrderOffer")]
-    pub pre_order_offer: ::core::option::Option<OneTimeProductPreOrderOffer>,
-    /// Required. Immutable. The ID of the parent product this offer belongs to.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. Immutable. The ID of the purchase option to which this offer is an extension.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-    /// Set of regional pricing and availability information for this offer. Must not have duplicate entries with the same region_code.
-    #[serde(default, rename = "regionalPricingAndAvailabilityConfigs")]
-    pub regional_pricing_and_availability_configs: ::core::option::Option<
-        ::std::vec::Vec<OneTimeProductOfferRegionalPricingAndAvailabilityConfig>,
-    >,
-    /// Output only. The version of the regions configuration that was used to generate the one-time product offer.
-    #[serde(default, rename = "regionsVersion")]
-    pub regions_version: ::core::option::Option<RegionsVersion>,
-    /// Output only. The current state of this offer. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "CANCELLED", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Regional pricing and availability configuration for a one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
-    /// The absolute value of the discount that is subtracted from the purchase option price. It should be between 0 and the purchase option price.
-    #[serde(default, rename = "absoluteDiscount")]
-    pub absolute_discount: ::core::option::Option<Money>,
-    /// Required. The availability for this region. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE"]
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// The price defined in the purchase option for this region will be used.
-    #[serde(default, rename = "noOverride")]
-    pub no_override: ::core::option::Option<serde_json::Value>,
-    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The fraction of the purchase option price that the user pays for this offer. For example, if the purchase option price for this region is $12, then a 50% discount would correspond to a price of $6. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in this region.
-    #[serde(default, rename = "relativeDiscount")]
-    pub relative_discount: ::core::option::Option<f64>,
-}
-
-/// Configuration specific to pre-order offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductPreOrderOffer {
-    /// Required. Time when the pre-order will stop being available.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. Immutable. Specifies how price changes affect pre-existing pre-orders. // TODO: enum values: ["PRE_ORDER_PRICE_CHANGE_BEHAVIOR_UNSPECIFIED", "PRE_ORDER_PRICE_CHANGE_BEHAVIOR_TWO_POINT_LOWEST", "PRE_ORDER_PRICE_CHANGE_BEHAVIOR_NEW_ORDERS_ONLY"]
-    #[serde(default, rename = "priceChangeBehavior")]
-    pub price_change_behavior: ::core::option::Option<String>,
-    /// Required. Time on which the product associated with the pre-order will be released and the pre-order orders fulfilled.
-    #[serde(default, rename = "releaseTime")]
-    pub release_time: ::core::option::Option<String>,
-    /// Required. Time when the pre-order will start being available.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// A single purchase option for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductPurchaseOption {
-    /// A purchase option that can be bought.
-    #[serde(default, rename = "buyOption")]
-    pub buy_option: ::core::option::Option<OneTimeProductBuyPurchaseOption>,
-    /// Pricing information for any new locations Play may launch in the future. If omitted, the purchase option will not be automatically available in any new locations Play may launch in the future.
-    #[serde(default, rename = "newRegionsConfig")]
-    pub new_regions_config: ::core::option::Option<OneTimeProductPurchaseOptionNewRegionsConfig>,
-    /// Optional. List of up to 20 custom tags specified for this purchase option, and returned to the app through the billing library. Offers for this purchase option will also receive these tags in the billing library.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
-    /// Required. Immutable. The unique identifier of this purchase option. Must be unique within the one-time product. It must start with a number or lower-case letter, and can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-). The maximum length is 63 characters.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-    /// Regional pricing and availability information for this purchase option.
-    #[serde(default, rename = "regionalPricingAndAvailabilityConfigs")]
-    pub regional_pricing_and_availability_configs: ::core::option::Option<
-        ::std::vec::Vec<OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig>,
-    >,
-    /// A purchase option that can be rented.
-    #[serde(default, rename = "rentOption")]
-    pub rent_option: ::core::option::Option<OneTimeProductRentPurchaseOption>,
-    /// Output only. The state of the purchase option, i.e., whether it''s active. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE", "INACTIVE_PUBLISHED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Details about taxes and legal compliance.
-    #[serde(default, rename = "taxAndComplianceSettings")]
-    pub tax_and_compliance_settings: ::core::option::Option<PurchaseOptionTaxAndComplianceSettings>,
-}
-
-/// Pricing information for any new regions Play may launch in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
-    /// Required. The regional availability for the new regions config. When set to AVAILABLE, the pricing information will be used for any new regions Play may launch in the future. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE"]
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// Required. Price in EUR to use for any new regions Play may launch in.
-    #[serde(default, rename = "eurPrice")]
-    pub eur_price: ::core::option::Option<Money>,
-    /// Required. Price in USD to use for any new regions Play may launch in.
-    #[serde(default, rename = "usdPrice")]
-    pub usd_price: ::core::option::Option<Money>,
-}
-
-/// Regional pricing and availability configuration for a purchase option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
-    /// The availability of the purchase option. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE", "AVAILABLE_IF_RELEASED", "AVAILABLE_FOR_OFFERS_ONLY"]
-    #[serde(default)]
-    pub availability: ::core::option::Option<String>,
-    /// The price of the purchase option in the specified region. Must be set in the currency that is linked to the specified region.
-    #[serde(default)]
-    pub price: ::core::option::Option<Money>,
-    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// A purchase option that can be rented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductRentPurchaseOption {
-    /// Optional. The amount of time the user has after starting consuming the entitlement before it is revoked. Specified in ISO 8601 format.
-    #[serde(default, rename = "expirationPeriod")]
-    pub expiration_period: ::core::option::Option<String>,
-    /// Required. The amount of time a user has the entitlement for. Starts at purchase flow completion. Specified in ISO 8601 format.
-    #[serde(default, rename = "rentalPeriod")]
-    pub rental_period: ::core::option::Option<String>,
-}
-
-/// Details about taxation, Google Play policy and legal compliance for one-time products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimeProductTaxAndComplianceSettings {
-    /// Whether this one-time product is declared as a product representing a tokenized digital asset.
-    #[serde(default, rename = "isTokenizedDigitalAsset")]
-    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
-    /// Product tax category code to assign to the one-time product. Product tax category determines the transaction tax rates applied to the product. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
-    #[serde(default, rename = "productTaxCategoryCode")]
-    pub product_tax_category_code: ::core::option::Option<String>,
-    /// Regional age rating information. Currently this field is only supported for region code US.
-    #[serde(default, rename = "regionalProductAgeRatingInfos")]
-    pub regional_product_age_rating_infos:
-        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
-    /// Regional tax configuration.
-    #[serde(default, rename = "regionalTaxConfigs")]
-    pub regional_tax_configs: ::core::option::Option<::std::vec::Vec<RegionalTaxConfig>>,
-}
-
-/// Details of a one-time purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OneTimePurchaseDetails {
-    /// The offer ID of the one-time purchase offer.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// The details of a pre-order purchase. Only set if it is a pre-order purchase. Note that this field will be set even after pre-order is fulfilled.
-    #[serde(default, rename = "preorderDetails")]
-    pub preorder_details: ::core::option::Option<serde_json::Value>,
-    /// ID of the purchase option. This field is set for both purchase options and variant offers. For purchase options, this ID identifies the purchase option itself. For variant offers, this ID refers to the associated purchase option, and in conjunction with offer_id it identifies the variant offer.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-    /// The number of items purchased (for multi-quantity item purchases).
-    #[serde(default)]
-    pub quantity: ::core::option::Option<i32>,
-    /// The details of a rent purchase. Only set if it is a rent purchase.
-    #[serde(default, rename = "rentalDetails")]
-    pub rental_details: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Order resource encapsulates comprehensive information about a transaction made on Google Play. It includes a variety of attributes that provide details about the order itself, the products purchased, and the history of events related to the order. The Orders APIs provide real-time access to your order data within the Google Play ecosystem. You can retrieve detailed information and metadata for both one-time and recurring orders, including transaction details like charges, taxes, and refunds, as well as metadata such as pricing phases for subscriptions. The Orders APIs let you automate tasks related to order management, reducing the need for manual checks via the Play Developer Console. The following are some of the use cases for this API: + Real-time order data retrieval - Get order details and metadata immediately after a purchase using an order ID. + Order update synchronization - Periodically sync order updates to maintain an up-to-date record of order information. Note: + The Orders API calls count towards your Play Developer API quota, which defaults to 200K daily, and may be insufficient to sync extensive order histories. + A maximum of 1000 orders can be retrieved per call. Using larger page sizes is recommended to minimize quota usage. Check your quota in the Cloud Console and request more if required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Order {
-    /// Address information for the customer, for use in tax computation. When Google is the Merchant of Record for the order, only country is shown.
-    #[serde(default, rename = "buyerAddress")]
-    pub buyer_address: ::core::option::Option<BuyerAddress>,
-    /// The time when the order was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Your revenue for this order in the buyer''s currency, including deductions of partial refunds, taxes and fees. Google deducts standard transaction and third party fees from each sale, including VAT in some regions.
-    #[serde(default, rename = "developerRevenueInBuyerCurrency")]
-    pub developer_revenue_in_buyer_currency: ::core::option::Option<Money>,
-    /// The time of the last event that occurred on the order.
-    #[serde(default, rename = "lastEventTime")]
-    pub last_event_time: ::core::option::Option<String>,
-    /// The individual line items making up this order.
-    #[serde(default, rename = "lineItems")]
-    pub line_items: ::core::option::Option<::std::vec::Vec<LineItem>>,
-    /// Detailed information about the order at creation time.
-    #[serde(default, rename = "orderDetails")]
-    pub order_details: ::core::option::Option<OrderDetails>,
-    /// Details about events which modified the order.
-    #[serde(default, rename = "orderHistory")]
-    pub order_history: ::core::option::Option<OrderHistory>,
-    /// The order ID.
-    #[serde(default, rename = "orderId")]
-    pub order_id: ::core::option::Option<String>,
-    /// Play points applied to the order, including offer information, discount rate and point values.
-    #[serde(default, rename = "pointsDetails")]
-    pub points_details: ::core::option::Option<PointsDetails>,
-    /// The token provided to the user''s device when the subscription or item was purchased.
-    #[serde(default, rename = "purchaseToken")]
-    pub purchase_token: ::core::option::Option<String>,
-    /// The originating sales channel of the order. // TODO: enum values: ["SALES_CHANNEL_UNSPECIFIED", "IN_APP", "PC_EMULATOR", "NATIVE_PC", "PLAY_STORE", "OUTSIDE_PLAY_STORE"]
-    #[serde(default, rename = "salesChannel")]
-    pub sales_channel: ::core::option::Option<String>,
-    /// The state of the order. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "PROCESSED", "CANCELED", "PENDING_REFUND", "PARTIALLY_REFUNDED", "REFUNDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The total tax paid as a part of this order.
-    #[serde(default)]
-    pub tax: ::core::option::Option<Money>,
-    /// The final amount paid by the customer, taking into account discounts and taxes.
-    #[serde(default)]
-    pub total: ::core::option::Option<Money>,
-}
-
-/// Detailed information about the order at creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderDetails {
-    /// Indicates whether the listed price was tax inclusive or not.
-    #[serde(default, rename = "taxInclusive")]
-    pub tax_inclusive: ::core::option::Option<bool>,
-}
-
-/// Details about events which modified the order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderHistory {
-    /// Details of when the order was canceled.
-    #[serde(default, rename = "cancellationEvent")]
-    pub cancellation_event: ::core::option::Option<CancellationEvent>,
-    /// Details of the partial refund events for this order.
-    #[serde(default, rename = "partialRefundEvents")]
-    pub partial_refund_events: ::core::option::Option<::std::vec::Vec<PartialRefundEvent>>,
-    /// Details of when the order was processed.
-    #[serde(default, rename = "processedEvent")]
-    pub processed_event: ::core::option::Option<ProcessedEvent>,
-    /// Details of when the order was fully refunded.
-    #[serde(default, rename = "refundEvent")]
-    pub refund_event: ::core::option::Option<RefundEvent>,
-}
-
-/// Pricing information for any new locations Play may launch in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OtherRegionsBasePlanConfig {
-    /// Required. Price in EUR to use for any new locations Play may launch in.
-    #[serde(default, rename = "eurPrice")]
-    pub eur_price: ::core::option::Option<Money>,
-    /// Whether the base plan is available for new subscribers in any new locations Play may launch in. If not specified, this will default to false.
-    #[serde(default, rename = "newSubscriberAvailability")]
-    pub new_subscriber_availability: ::core::option::Option<bool>,
-    /// Required. Price in USD to use for any new locations Play may launch in.
-    #[serde(default, rename = "usdPrice")]
-    pub usd_price: ::core::option::Option<Money>,
-}
-
-/// Configuration for any new locations Play may launch in specified on a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OtherRegionsSubscriptionOfferConfig {
-    /// Whether the subscription offer in any new locations Play may launch in the future. If not specified, this will default to false.
-    #[serde(default, rename = "otherRegionsNewSubscriberAvailability")]
-    pub other_regions_new_subscriber_availability: ::core::option::Option<bool>,
-}
-
-/// Configuration for any new locations Play may launch in for a single offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OtherRegionsSubscriptionOfferPhaseConfig {
-    /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for any new locations Play may launch in.
-    #[serde(default, rename = "absoluteDiscounts")]
-    pub absolute_discounts: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
-    /// Set to specify this offer is free to obtain.
-    #[serde(default)]
-    pub free: ::core::option::Option<serde_json::Value>,
-    /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for any new locations Play may launch in.
-    #[serde(default, rename = "otherRegionsPrices")]
-    pub other_regions_prices: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
-    /// The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in any new locations Play may launch in.
-    #[serde(default, rename = "relativeDiscount")]
-    pub relative_discount: ::core::option::Option<f64>,
-}
-
-/// Pricing information for any new locations Play may launch in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OtherRegionsSubscriptionOfferPhasePrices {
-    /// Required. Price in EUR to use for any new locations Play may launch in.
-    #[serde(default, rename = "eurPrice")]
-    pub eur_price: ::core::option::Option<Money>,
-    /// Required. Price in USD to use for any new locations Play may launch in.
-    #[serde(default, rename = "usdPrice")]
-    pub usd_price: ::core::option::Option<Money>,
-}
-
-/// Information specific to an out of app purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OutOfAppPurchaseContext {
-    /// User account identifier from the last expired subscription for this SKU.
-    #[serde(default, rename = "expiredExternalAccountIdentifiers")]
-    pub expired_external_account_identifiers: ::core::option::Option<ExternalAccountIdentifiers>,
-    /// The purchase token of the last expired subscription. This purchase token must only be used to help identify the user if the link between the purchaseToken and user is stored in your database. This cannot be used to call the Google Developer API if it has been more than 60 days since expiry.
-    #[serde(default, rename = "expiredPurchaseToken")]
-    pub expired_purchase_token: ::core::option::Option<String>,
-}
-
-/// Information about the current page. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PageInfo {
-    /// Maximum number of results returned in one page. ! The number of results included in the API response.
-    #[serde(default, rename = "resultPerPage")]
-    pub result_per_page: ::core::option::Option<i32>,
-    /// Index of the first result returned in the current page.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// Total number of results available on the backend ! The total number of results in the result set.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-}
-
-/// A partial refund of a transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartialRefund {
-    /// Required. A unique id distinguishing this partial refund. If the refund is successful, subsequent refunds with the same id will fail. Must be unique across refunds for one individual transaction.
-    #[serde(default, rename = "refundId")]
-    pub refund_id: ::core::option::Option<String>,
-    /// Required. The pre-tax amount of the partial refund. Should be less than the remaining pre-tax amount of the transaction.
-    #[serde(default, rename = "refundPreTaxAmount")]
-    pub refund_pre_tax_amount: ::core::option::Option<Price>,
-}
-
-/// Details of the partial refund events for this order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartialRefundEvent {
-    /// The time when the partial refund was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The time when the partial refund was processed.
-    #[serde(default, rename = "processTime")]
-    pub process_time: ::core::option::Option<String>,
-    /// Details for the partial refund.
-    #[serde(default, rename = "refundDetails")]
-    pub refund_details: ::core::option::Option<RefundDetails>,
-    /// The state of the partial refund. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "PROCESSED_SUCCESSFULLY"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Information specific to a subscription in paused state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PausedStateContext {
-    /// Time at which the subscription will be automatically resumed.
-    #[serde(default, rename = "autoResumeTime")]
-    pub auto_resume_time: ::core::option::Option<String>,
-}
-
-/// Details relating to any Play Points applied to an order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PointsDetails {
-    /// The monetary value of a Play Points coupon. This is the discount the coupon provides, which may not be the total amount. Only set when Play Points coupons have been used. E.g. for a 100 points for $2 coupon, this is $2.
-    #[serde(default, rename = "pointsCouponValue")]
-    pub points_coupon_value: ::core::option::Option<Money>,
-    /// The percentage rate which the Play Points promotion reduces the cost by. E.g. for a 100 points for $2 coupon, this is 500,000. Since $2 has an estimate of 200 points, but the actual Points required, 100, is 50% of this, and 50% in micros is 500,000. Between 0 and 1,000,000.
-    #[serde(default, rename = "pointsDiscountRateMicros")]
-    pub points_discount_rate_micros: ::core::option::Option<String>,
-    /// ID unique to the play points offer in use for this order.
-    #[serde(default, rename = "pointsOfferId")]
-    pub points_offer_id: ::core::option::Option<String>,
-    /// The number of Play Points applied in this order. E.g. for a 100 points for $2 coupon, this is 100. For coupon stacked with base offer, this is the total points spent across both.
-    #[serde(default, rename = "pointsSpent")]
-    pub points_spent: ::core::option::Option<String>,
-}
-
-/// Offer details information related to a preorder line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreorderOfferDetails {
-    /// The time when a preordered item is released for a preorder purchase.
-    #[serde(default, rename = "preorderReleaseTime")]
-    pub preorder_release_time: ::core::option::Option<String>,
-}
-
-/// Represents a base plan that does not automatically renew at the end of the base plan, and must be manually renewed by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrepaidBasePlanType {
-    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
-    #[serde(default, rename = "billingPeriodDuration")]
-    pub billing_period_duration: ::core::option::Option<String>,
-    /// Whether users should be able to extend this prepaid base plan in Google Play surfaces. Defaults to TIME_EXTENSION_ACTIVE if not specified. // TODO: enum values: ["TIME_EXTENSION_UNSPECIFIED", "TIME_EXTENSION_ACTIVE", "TIME_EXTENSION_INACTIVE"]
-    #[serde(default, rename = "timeExtension")]
-    pub time_extension: ::core::option::Option<String>,
-}
-
-/// Information related to a prepaid plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrepaidPlan {
-    /// If present, this is the time after which top up purchases are allowed for the prepaid plan. Will not be present for expired prepaid plans.
-    #[serde(default, rename = "allowExtendAfterTime")]
-    pub allow_extend_after_time: ::core::option::Option<String>,
-}
-
-/// Definition of a price, i.e. currency and units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Price {
-    /// 3 letter Currency code, as defined by ISO 4217. See java/com/google/common/money/CurrencyCode.java
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-    /// Price in 1/million of the currency base unit, represented as a string.
-    #[serde(default, rename = "priceMicros")]
-    pub price_micros: ::core::option::Option<String>,
-}
-
-/// Information related to a price step-up that requires user consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PriceStepUpConsentDetails {
-    /// The deadline by which the user must provide consent. If consent is not provided by this time, the subscription will be canceled.
-    #[serde(default, rename = "consentDeadlineTime")]
-    pub consent_deadline_time: ::core::option::Option<String>,
-    /// The new price which requires user consent.
-    #[serde(default, rename = "newPrice")]
-    pub new_price: ::core::option::Option<Money>,
-    /// Output only. The state of the price step-up consent. // TODO: enum values: ["CONSENT_STATE_UNSPECIFIED", "PENDING", "CONFIRMED", "COMPLETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Details of when the order was processed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProcessedEvent {
-    /// The time when the order was processed.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-}
-
-/// Contains item-level info for a ProductPurchaseV2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductLineItem {
-    /// The purchased product ID (for example, ''monthly001'').
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// The offer details for this item.
-    #[serde(default, rename = "productOfferDetails")]
-    pub product_offer_details: ::core::option::Option<ProductOfferDetails>,
-}
-
-/// Offer details information related to a purchase line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductOfferDetails {
-    /// Output only. The consumption state of the purchase. // TODO: enum values: ["CONSUMPTION_STATE_UNSPECIFIED", "CONSUMPTION_STATE_YET_TO_BE_CONSUMED", "CONSUMPTION_STATE_CONSUMED"]
-    #[serde(default, rename = "consumptionState")]
-    pub consumption_state: ::core::option::Option<String>,
-    /// The offer ID. Only present for offers.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// The latest offer tags associated with the offer. It includes tags inherited from the purchase option.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The per-transaction offer token used to make this purchase line item.
-    #[serde(default, rename = "offerToken")]
-    pub offer_token: ::core::option::Option<String>,
-    /// Offer details for a preorder offer. This will only be set for preorders.
-    #[serde(default, rename = "preorderOfferDetails")]
-    pub preorder_offer_details: ::core::option::Option<PreorderOfferDetails>,
-    /// The purchase option ID.
-    #[serde(default, rename = "purchaseOptionId")]
-    pub purchase_option_id: ::core::option::Option<String>,
-    /// The quantity associated with the purchase of the inapp product.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<i32>,
-    /// The quantity eligible for refund, i.e. quantity that hasn''t been refunded. The value reflects quantity-based partial refunds and full refunds.
-    #[serde(default, rename = "refundableQuantity")]
-    pub refundable_quantity: ::core::option::Option<i32>,
-    /// Offer details about rent offers. This will only be set for rental line items.
-    #[serde(default, rename = "rentOfferDetails")]
-    pub rent_offer_details: ::core::option::Option<serde_json::Value>,
 }
 
 /// A ProductPurchase resource indicates the status of a user''s inapp product purchase.
@@ -2804,83 +742,6 @@ pub struct ProductPurchasesAcknowledgeRequest {
     pub developer_payload: ::core::option::Option<String>,
 }
 
-/// Details of a proration period. A proration period can be a period calculated during a plan change to cover existing entitlements (For more information, see [Allow users to upgrade, downgrade, or change their subscription](https://developer.android.com/google/play/billing/subscriptions#allow-users-change), or a prorated period to align add-on renewal dates with the base (For more information, see [Rules applicable for items in the purchase](https://developer.android.com/google/play/billing/subscription-with-addons#rules-base-addons)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProrationPeriodDetails {
-    /// Represent the original offer phase from the purchased the line item if the proration period contains any of them. For example, a proration period from CHARGE_FULL_PRICE plan change may merge the 1st offer phase of the subscription offer of the new product user purchased. In this case, the original offer phase will be set here. // TODO: enum values: ["OFFER_PHASE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
-    #[serde(default, rename = "originalOfferPhase")]
-    pub original_offer_phase: ::core::option::Option<String>,
-}
-
-/// Details about proration period offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProrationPeriodOfferPhase {
-    /// The original offer phase type before the proration period. Only set when the proration period is updated from an existing offer phase. // TODO: enum values: ["ORIGINAL_OFFER_PHASE_TYPE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
-    #[serde(default, rename = "originalOfferPhaseType")]
-    pub original_offer_phase_type: ::core::option::Option<String>,
-}
-
-/// Details about taxation, Google Play policy and legal compliance for one-time product purchase options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PurchaseOptionTaxAndComplianceSettings {
-    /// Optional. Digital content or service classification for products distributed to users in eligible regions. If unset, it defaults to WITHDRAWAL_RIGHT_DIGITAL_CONTENT. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
-    #[serde(default, rename = "withdrawalRightType")]
-    pub withdrawal_right_type: ::core::option::Option<String>,
-}
-
-/// Context about the purchase state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PurchaseStateContext {
-    /// Output only. The purchase state of the purchase. // TODO: enum values: ["PURCHASE_STATE_UNSPECIFIED", "PURCHASED", "CANCELLED", "PENDING"]
-    #[serde(default, rename = "purchaseState")]
-    pub purchase_state: ::core::option::Option<String>,
-}
-
-/// Represents a transaction that is part of a recurring series of payments. This can be a subscription or a one-time product with multiple payments (such as preorder).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecurringExternalTransaction {
-    /// Details of an external subscription.
-    #[serde(default, rename = "externalSubscription")]
-    pub external_subscription: ::core::option::Option<ExternalSubscription>,
-    /// Input only. Provided during the call to Create. Retrieved from the client when the alternative billing flow is launched. Required only for the initial purchase.
-    #[serde(default, rename = "externalTransactionToken")]
-    pub external_transaction_token: ::core::option::Option<String>,
-    /// The external transaction id of the first transaction of this recurring series of transactions. For example, for a subscription this would be the transaction id of the first payment. Required when creating recurring external transactions.
-    #[serde(default, rename = "initialExternalTransactionId")]
-    pub initial_external_transaction_id: ::core::option::Option<String>,
-    /// Input only. Provided during the call to Create. Must only be used when migrating a subscription from manual monthly reporting to automated reporting. // TODO: enum values: ["EXTERNAL_TRANSACTION_PROGRAM_UNSPECIFIED", "USER_CHOICE_BILLING", "ALTERNATIVE_BILLING_ONLY"]
-    #[serde(default, rename = "migratedTransactionProgram")]
-    pub migrated_transaction_program: ::core::option::Option<String>,
-    /// Details of a recurring external transaction product which doesn''t belong to any other specific category.
-    #[serde(default, rename = "otherRecurringProduct")]
-    pub other_recurring_product: ::core::option::Option<serde_json::Value>,
-}
-
-/// Details for a partial or full refund.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RefundDetails {
-    /// The amount of tax refunded.
-    #[serde(default)]
-    pub tax: ::core::option::Option<Money>,
-    /// The total amount refunded, including tax.
-    #[serde(default)]
-    pub total: ::core::option::Option<Money>,
-}
-
-/// Details of when the order was fully refunded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RefundEvent {
-    /// The time when the order was fully refunded.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Details for the full refund.
-    #[serde(default, rename = "refundDetails")]
-    pub refund_details: ::core::option::Option<RefundDetails>,
-    /// The reason the order was refunded. // TODO: enum values: ["REFUND_REASON_UNSPECIFIED", "OTHER", "CHARGEBACK"]
-    #[serde(default, rename = "refundReason")]
-    pub refund_reason: ::core::option::Option<String>,
-}
-
 /// A request to refund an existing external transaction.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RefundExternalTransactionRequest {
@@ -2895,93 +756,6 @@ pub struct RefundExternalTransactionRequest {
     pub refund_time: ::core::option::Option<String>,
 }
 
-/// Configuration for a base plan specific to a region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalBasePlanConfig {
-    /// Whether the base plan in the specified region is available for new subscribers. Existing subscribers will not have their subscription canceled if this value is set to false. If not specified, this will default to false.
-    #[serde(default, rename = "newSubscriberAvailability")]
-    pub new_subscriber_availability: ::core::option::Option<bool>,
-    /// The price of the base plan in the specified region. Must be set if the base plan is available to new subscribers. Must be set in the currency that is linked to the specified region.
-    #[serde(default)]
-    pub price: ::core::option::Option<Money>,
-    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Configuration for migration of a legacy price cohort.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalPriceMigrationConfig {
-    /// Required. Subscribers in all legacy price cohorts before this time will be migrated to the current price. Subscribers in any newer price cohorts are unaffected. Affected subscribers will receive one or more notifications from Google Play about the price change. Price decreases occur at the subscriber''s next billing date. Price increases occur at the subscriber''s next billing date following a notification period that varies by region and price increase type.
-    #[serde(default, rename = "oldestAllowedPriceVersionTime")]
-    pub oldest_allowed_price_version_time: ::core::option::Option<String>,
-    /// Optional. The requested type of price increase // TODO: enum values: ["PRICE_INCREASE_TYPE_UNSPECIFIED", "PRICE_INCREASE_TYPE_OPT_IN", "PRICE_INCREASE_TYPE_OPT_OUT"]
-    #[serde(default, rename = "priceIncreaseType")]
-    pub price_increase_type: ::core::option::Option<String>,
-    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Details about the age rating for a specific geographic region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalProductAgeRatingInfo {
-    /// The age rating tier of a product for the given region. // TODO: enum values: ["PRODUCT_AGE_RATING_TIER_UNKNOWN", "PRODUCT_AGE_RATING_TIER_EVERYONE", "PRODUCT_AGE_RATING_TIER_THIRTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_SIXTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_EIGHTEEN_AND_ABOVE"]
-    #[serde(default, rename = "productAgeRatingTier")]
-    pub product_age_rating_tier: ::core::option::Option<String>,
-    /// Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Configuration for a subscription offer in a single region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalSubscriptionOfferConfig {
-    /// Whether the subscription offer in the specified region is available for new subscribers. Existing subscribers will not have their subscription cancelled if this value is set to false. If not specified, this will default to false.
-    #[serde(default, rename = "newSubscriberAvailability")]
-    pub new_subscriber_availability: ::core::option::Option<bool>,
-    /// Required. Immutable. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Configuration for a single phase of a subscription offer in a single region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalSubscriptionOfferPhaseConfig {
-    /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for this region.
-    #[serde(default, rename = "absoluteDiscount")]
-    pub absolute_discount: ::core::option::Option<Money>,
-    /// Set to specify this offer is free to obtain.
-    #[serde(default)]
-    pub free: ::core::option::Option<serde_json::Value>,
-    /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for this region.
-    #[serde(default)]
-    pub price: ::core::option::Option<Money>,
-    /// Required. Immutable. The region to which this config applies.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in this region.
-    #[serde(default, rename = "relativeDiscount")]
-    pub relative_discount: ::core::option::Option<f64>,
-}
-
-/// Details about taxation in a given geographical region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionalTaxConfig {
-    /// You must tell us if your app contains streaming products to correctly charge US state and local sales tax. Field only supported in the United States.
-    #[serde(default, rename = "eligibleForStreamingServiceTaxRate")]
-    pub eligible_for_streaming_service_tax_rate: ::core::option::Option<bool>,
-    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// To collect communications or amusement taxes in the United States, choose the appropriate tax category. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498#streaming_tax). // TODO: enum values: ["STREAMING_TAX_TYPE_UNSPECIFIED", "STREAMING_TAX_TYPE_TELCO_VIDEO_RENTAL", "STREAMING_TAX_TYPE_TELCO_VIDEO_SALES", "STREAMING_TAX_TYPE_TELCO_VIDEO_MULTI_CHANNEL", "STREAMING_TAX_TYPE_TELCO_AUDIO_RENTAL", "STREAMING_TAX_TYPE_TELCO_AUDIO_SALES", "STREAMING_TAX_TYPE_TELCO_AUDIO_MULTI_CHANNEL"]
-    #[serde(default, rename = "streamingTaxType")]
-    pub streaming_tax_type: ::core::option::Option<String>,
-    /// Tax tier to specify reduced tax rate. Developers who sell digital news, magazines, newspapers, books, or audiobooks in various regions may be eligible for reduced tax rates. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498). // TODO: enum values: ["TAX_TIER_UNSPECIFIED", "TAX_TIER_BOOKS_1", "TAX_TIER_NEWS_1", "TAX_TIER_NEWS_2", "TAX_TIER_MUSIC_OR_AUDIO_1", "TAX_TIER_LIVE_OR_BROADCAST_1"]
-    #[serde(default, rename = "taxTier")]
-    pub tax_tier: ::core::option::Option<String>,
-}
-
 /// Specified details about taxation in a given geographical region.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegionalTaxRateInfo {
@@ -2994,103 +768,6 @@ pub struct RegionalTaxRateInfo {
     /// Tax tier to specify reduced tax rate. Developers who sell digital news, magazines, newspapers, books, or audiobooks in various regions may be eligible for reduced tax rates. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498). // TODO: enum values: ["TAX_TIER_UNSPECIFIED", "TAX_TIER_BOOKS_1", "TAX_TIER_NEWS_1", "TAX_TIER_NEWS_2", "TAX_TIER_MUSIC_OR_AUDIO_1", "TAX_TIER_LIVE_OR_BROADCAST_1"]
     #[serde(default, rename = "taxTier")]
     pub tax_tier: ::core::option::Option<String>,
-}
-
-/// Region targeting data for app recovery action targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Regions {
-    /// Regions targeted by the recovery action. Region codes are ISO 3166 Alpha-2 country codes. For example, US stands for United States of America. See https://www.iso.org/iso-3166-country-codes.html for the complete list of country codes.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The version of the available regions being used for the specified resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionsVersion {
-    /// Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region''s version and set of regional prices and currencies will succeed even though a new version is available.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Summary of a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReleaseSummary {
-    /// List of active artifacts on this release
-    #[serde(default, rename = "activeArtifacts")]
-    pub active_artifacts: ::core::option::Option<::std::vec::Vec<ArtifactSummary>>,
-    /// The lifecycle state of a release. // TODO: enum values: ["RELEASE_LIFECYCLE_STATE_UNSPECIFIED", "RELEASE_LIFECYCLE_STATE_DRAFT", "RELEASE_LIFECYCLE_STATE_NOT_SENT_FOR_REVIEW", "RELEASE_LIFECYCLE_STATE_IN_REVIEW", "RELEASE_LIFECYCLE_STATE_APPROVED_NOT_PUBLISHED", "RELEASE_LIFECYCLE_STATE_NOT_APPROVED", "RELEASE_LIFECYCLE_STATE_PUBLISHED"]
-    #[serde(default, rename = "releaseLifecycleState")]
-    pub release_lifecycle_state: ::core::option::Option<String>,
-    /// Name of the release.
-    #[serde(default, rename = "releaseName")]
-    pub release_name: ::core::option::Option<String>,
-    /// Identifier for the track. [Learn more about track names.](https://developers.google.com/android-publisher/tracks).
-    #[serde(default)]
-    pub track: ::core::option::Option<String>,
-}
-
-/// Object representation for Remote in-app update action type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoteInAppUpdate {
-    /// Required. Set to true if Remote In-App Update action type is needed.
-    #[serde(default, rename = "isRemoteInAppUpdateRequested")]
-    pub is_remote_in_app_update_requested: ::core::option::Option<bool>,
-}
-
-/// Data related to Remote In-App Update action such as recovered user count, affected user count etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoteInAppUpdateData {
-    /// Data related to the recovery action at bundle level.
-    #[serde(default, rename = "remoteAppUpdateDataPerBundle")]
-    pub remote_app_update_data_per_bundle:
-        ::core::option::Option<::std::vec::Vec<RemoteInAppUpdateDataPerBundle>>,
-}
-
-/// Data related to the recovery action at bundle level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoteInAppUpdateDataPerBundle {
-    /// Total number of devices which have been rescued.
-    #[serde(default, rename = "recoveredDeviceCount")]
-    pub recovered_device_count: ::core::option::Option<String>,
-    /// Total number of devices affected by this recovery action associated with bundle of the app.
-    #[serde(default, rename = "totalDeviceCount")]
-    pub total_device_count: ::core::option::Option<String>,
-    /// Version Code corresponding to the target bundle.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<String>,
-}
-
-/// Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestrictedPaymentCountries {
-    /// Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".
-    #[serde(default, rename = "regionCodes")]
-    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An Android app review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Review {
-    /// The name of the user who wrote the review.
-    #[serde(default, rename = "authorName")]
-    pub author_name: ::core::option::Option<String>,
-    /// A repeated field containing comments for the review.
-    #[serde(default)]
-    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
-    /// Unique identifier for this review.
-    #[serde(default, rename = "reviewId")]
-    pub review_id: ::core::option::Option<String>,
-}
-
-/// The result of replying/updating a reply to review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReviewReplyResult {
-    /// The time at which the reply took effect.
-    #[serde(default, rename = "lastEdited")]
-    pub last_edited: ::core::option::Option<Timestamp>,
-    /// The reply text that was applied.
-    #[serde(default, rename = "replyText")]
-    pub reply_text: ::core::option::Option<String>,
 }
 
 /// Response listing reviews.
@@ -3123,28 +800,6 @@ pub struct ReviewsReplyResponse {
     pub result: ::core::option::Option<ReviewReplyResult>,
 }
 
-/// Revocation context of the purchases.subscriptionsv2.revoke API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevocationContext {
-    /// Optional. Used when users should be refunded the full amount of latest charge on each item in the subscription.
-    #[serde(default, rename = "fullRefund")]
-    pub full_refund: ::core::option::Option<serde_json::Value>,
-    /// Optional. Used when a specific item should be refunded in a subscription with add-on items.
-    #[serde(default, rename = "itemBasedRefund")]
-    pub item_based_refund: ::core::option::Option<RevocationContextItemBasedRefund>,
-    /// Optional. Used when users should be refunded a prorated amount they paid for their subscription based on the amount of time remaining in a subscription.
-    #[serde(default, rename = "proratedRefund")]
-    pub prorated_refund: ::core::option::Option<serde_json::Value>,
-}
-
-/// Used to determine what specific item to revoke in a subscription with multiple items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevocationContextItemBasedRefund {
-    /// Required. If the subscription is a subscription with add-ons, the product id of the subscription item to revoke.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-}
-
 /// Request for the purchases.subscriptionsv2.revoke API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RevokeSubscriptionPurchaseRequest {
@@ -3159,291 +814,6 @@ pub struct SafetyLabelsUpdateRequest {
     /// Required. Contents of the CSV file containing Data Safety responses. For the format of this file, see the Help Center documentation at https://support.google.com/googleplay/android-developer/answer/10787469?#zippy=%2Cunderstand-the-csv-format To download an up to date template, follow the steps at https://support.google.com/googleplay/android-developer/answer/10787469?#zippy=%2Cexport-to-a-csv-file
     #[serde(default, rename = "safetyLabels")]
     pub safety_labels: ::core::option::Option<String>,
-}
-
-/// Represents a screen density.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenDensity {
-    /// Alias for a screen density. // TODO: enum values: ["DENSITY_UNSPECIFIED", "NODPI", "LDPI", "MDPI", "TVDPI", "HDPI", "XHDPI", "XXHDPI", "XXXHDPI"]
-    #[serde(default, rename = "densityAlias")]
-    pub density_alias: ::core::option::Option<String>,
-    /// Value for density dpi.
-    #[serde(default, rename = "densityDpi")]
-    pub density_dpi: ::core::option::Option<i32>,
-}
-
-/// Targeting based on screen density.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenDensityTargeting {
-    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<ScreenDensity>>,
-    /// Value of a screen density.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<ScreenDensity>>,
-}
-
-/// Represents an sdk version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SdkVersion {
-    /// Inclusive minimum value of an sdk version.
-    #[serde(default)]
-    pub min: ::core::option::Option<i32>,
-}
-
-/// Targeting based on sdk version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SdkVersionTargeting {
-    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<SdkVersion>>,
-    /// Value of an sdk version.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<SdkVersion>>,
-}
-
-/// The promotion applied on this item when purchased.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignupPromotion {
-    /// A one-time code was applied.
-    #[serde(default, rename = "oneTimeCode")]
-    pub one_time_code: ::core::option::Option<serde_json::Value>,
-    /// A vanity code was applied.
-    #[serde(default, rename = "vanityCode")]
-    pub vanity_code: ::core::option::Option<VanityCode>,
-}
-
-/// Holds data specific to Split APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SplitApkMetadata {
-    /// Indicates whether this APK is the main split of the module.
-    #[serde(default, rename = "isMasterSplit")]
-    pub is_master_split: ::core::option::Option<bool>,
-    /// Id of the split.
-    #[serde(default, rename = "splitId")]
-    pub split_id: ::core::option::Option<String>,
-}
-
-/// Variant is a group of APKs that covers a part of the device configuration space. APKs from multiple variants are never combined on one device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SplitApkVariant {
-    /// Set of APKs, one set per module.
-    #[serde(default, rename = "apkSet")]
-    pub apk_set: ::core::option::Option<::std::vec::Vec<ApkSet>>,
-    /// Variant-level targeting.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<VariantTargeting>,
-    /// Number of the variant, starting at 0 (unless overridden). A device will receive APKs from the first variant that matches the device configuration, with higher variant numbers having priority over lower variant numbers.
-    #[serde(default, rename = "variantNumber")]
-    pub variant_number: ::core::option::Option<i32>,
-}
-
-/// Holds data specific to Standalone APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StandaloneApkMetadata {
-    /// Names of the modules fused in this standalone APK.
-    #[serde(default, rename = "fusedModuleName")]
-    pub fused_module_name: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information associated with purchases made with ''Subscribe with Google''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscribeWithGoogleInfo {
-    /// The email address of the user when the subscription was purchased.
-    #[serde(default, rename = "emailAddress")]
-    pub email_address: ::core::option::Option<String>,
-    /// The family name of the user when the subscription was purchased.
-    #[serde(default, rename = "familyName")]
-    pub family_name: ::core::option::Option<String>,
-    /// The given name of the user when the subscription was purchased.
-    #[serde(default, rename = "givenName")]
-    pub given_name: ::core::option::Option<String>,
-    /// The Google profile id of the user when the subscription was purchased.
-    #[serde(default, rename = "profileId")]
-    pub profile_id: ::core::option::Option<String>,
-    /// The profile name of the user when the subscription was purchased.
-    #[serde(default, rename = "profileName")]
-    pub profile_name: ::core::option::Option<String>,
-}
-
-/// A single subscription for an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscription {
-    /// Output only. Deprecated: subscription archiving is not supported.
-    #[serde(default)]
-    pub archived: ::core::option::Option<bool>,
-    /// The set of base plans for this subscription. Represents the prices and duration of the subscription if no other offers apply.
-    #[serde(default, rename = "basePlans")]
-    pub base_plans: ::core::option::Option<::std::vec::Vec<BasePlan>>,
-    /// Required. List of localized listings for this subscription. Must contain at least an entry for the default language of the parent app.
-    #[serde(default)]
-    pub listings: ::core::option::Option<::std::vec::Vec<SubscriptionListing>>,
-    /// Immutable. Package name of the parent app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Immutable. Unique product ID of the product. Unique within the parent app. Product IDs must be composed of lower-case letters (a-z), numbers (0-9), underscores (_) and dots (.). It must start with a lower-case letter or number, and be between 1 and 40 (inclusive) characters in length.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Optional. Countries where the purchase of this subscription is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
-    #[serde(default, rename = "restrictedPaymentCountries")]
-    pub restricted_payment_countries: ::core::option::Option<RestrictedPaymentCountries>,
-    /// Details about taxes and legal compliance.
-    #[serde(default, rename = "taxAndComplianceSettings")]
-    pub tax_and_compliance_settings: ::core::option::Option<SubscriptionTaxAndComplianceSettings>,
-}
-
-/// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionCancelSurveyResult {
-    /// The cancellation reason the user chose in the survey. Possible values are: 0. Other 1. I don''t use this service enough 2. Technical issues 3. Cost-related reasons 4. I found a better app
-    #[serde(default, rename = "cancelSurveyReason")]
-    pub cancel_survey_reason: ::core::option::Option<i32>,
-    /// The customized input cancel reason from the user. Only present when cancelReason is 0.
-    #[serde(default, rename = "userInputCancelReason")]
-    pub user_input_cancel_reason: ::core::option::Option<String>,
-}
-
-/// A SubscriptionDeferralInfo contains the data needed to defer a subscription purchase to a future expiry time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionDeferralInfo {
-    /// The desired next expiry time to assign to the subscription, in milliseconds since the Epoch. The given time must be later/greater than the current expiry time for the subscription.
-    #[serde(default, rename = "desiredExpiryTimeMillis")]
-    pub desired_expiry_time_millis: ::core::option::Option<String>,
-    /// The expected expiry time for the subscription. If the current expiry time for the subscription is not the value specified here, the deferral will not occur.
-    #[serde(default, rename = "expectedExpiryTimeMillis")]
-    pub expected_expiry_time_millis: ::core::option::Option<String>,
-}
-
-/// Details of a subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionDetails {
-    /// The base plan ID of the subscription.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// The offer ID for the current subscription offer.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// The pricing phase for the billing period funded by this order. Deprecated. Use offer_phase_details instead. // TODO: enum values: ["OFFER_PHASE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
-    #[serde(default, rename = "offerPhase")]
-    pub offer_phase: ::core::option::Option<String>,
-    /// The pricing phase details for the entitlement period funded by this order.
-    #[serde(default, rename = "offerPhaseDetails")]
-    pub offer_phase_details: ::core::option::Option<OfferPhaseDetails>,
-    /// The end of the billing period funded by this order. This is a snapshot of the billing/service period end time at the moment the order was processed, and should be used only for accounting. To get the current end time of the subscription service period, use purchases.subscriptionsv2.get.
-    #[serde(default, rename = "servicePeriodEndTime")]
-    pub service_period_end_time: ::core::option::Option<String>,
-    /// The start of the billing period funded by this order. This is a snapshot of the billing/service period start time at the moment the order was processed, and should be used only for accounting.
-    #[serde(default, rename = "servicePeriodStartTime")]
-    pub service_period_start_time: ::core::option::Option<String>,
-}
-
-/// Price change related information of a subscription item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionItemPriceChangeDetails {
-    /// The renewal time at which the price change will become effective for the user. This is subject to change(to a future time) due to cases where the renewal time shifts like pause. This field is only populated if the price change has not taken effect.
-    #[serde(default, rename = "expectedNewPriceChargeTime")]
-    pub expected_new_price_charge_time: ::core::option::Option<String>,
-    /// New recurring price for the subscription item.
-    #[serde(default, rename = "newPrice")]
-    pub new_price: ::core::option::Option<Money>,
-    /// Price change mode specifies how the subscription item price is changing. // TODO: enum values: ["PRICE_CHANGE_MODE_UNSPECIFIED", "PRICE_DECREASE", "PRICE_INCREASE", "OPT_OUT_PRICE_INCREASE"]
-    #[serde(default, rename = "priceChangeMode")]
-    pub price_change_mode: ::core::option::Option<String>,
-    /// State the price change is currently in. // TODO: enum values: ["PRICE_CHANGE_STATE_UNSPECIFIED", "OUTSTANDING", "CONFIRMED", "APPLIED", "CANCELED"]
-    #[serde(default, rename = "priceChangeState")]
-    pub price_change_state: ::core::option::Option<String>,
-}
-
-/// The consumer-visible metadata of a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionListing {
-    /// A list of benefits shown to the user on platforms such as the Play Store and in restoration flows in the language of this listing. Plain text. Ordered list of at most four benefits.
-    #[serde(default)]
-    pub benefits: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The description of this subscription in the language of this listing. Maximum length - 80 characters. Plain text.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The language of this listing, as defined by BCP-47, e.g. "en-US".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Required. The title of this subscription in the language of this listing. Plain text.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A single, temporary offer
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionOffer {
-    /// Required. Immutable. The ID of the base plan to which this offer is an extension.
-    #[serde(default, rename = "basePlanId")]
-    pub base_plan_id: ::core::option::Option<String>,
-    /// Required. Immutable. Unique ID of this subscription offer. Must be unique within the base plan.
-    #[serde(default, rename = "offerId")]
-    pub offer_id: ::core::option::Option<String>,
-    /// List of up to 20 custom tags specified for this offer, and returned to the app through the billing library.
-    #[serde(default, rename = "offerTags")]
-    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
-    /// The configuration for any new locations Play may launch in the future.
-    #[serde(default, rename = "otherRegionsConfig")]
-    pub other_regions_config: ::core::option::Option<OtherRegionsSubscriptionOfferConfig>,
-    /// Required. Immutable. The package name of the app the parent subscription belongs to.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Required. The phases of this subscription offer. Must contain at least one and at most two entries. Users will always receive all these phases in the specified order.
-    #[serde(default)]
-    pub phases: ::core::option::Option<::std::vec::Vec<SubscriptionOfferPhase>>,
-    /// Required. Immutable. The ID of the parent subscription this offer belongs to.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Required. The region-specific configuration of this offer. Must contain at least one entry.
-    #[serde(default, rename = "regionalConfigs")]
-    pub regional_configs: ::core::option::Option<::std::vec::Vec<RegionalSubscriptionOfferConfig>>,
-    /// Output only. The current state of this offer. Can be changed using Activate and Deactivate actions. NB: the base plan state supersedes this state, so an active offer may not be available if the base plan is not active. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The requirements that users need to fulfil to be eligible for this offer. Represents the requirements that Play will evaluate to decide whether an offer should be returned. Developers may further filter these offers themselves.
-    #[serde(default)]
-    pub targeting: ::core::option::Option<SubscriptionOfferTargeting>,
-}
-
-/// A single phase of a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionOfferPhase {
-    /// Required. The duration of a single recurrence of this phase. Specified in ISO 8601 format.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Pricing information for any new locations Play may launch in.
-    #[serde(default, rename = "otherRegionsConfig")]
-    pub other_regions_config: ::core::option::Option<OtherRegionsSubscriptionOfferPhaseConfig>,
-    /// Required. The number of times this phase repeats. If this offer phase is not free, each recurrence charges the user the price of this offer phase.
-    #[serde(default, rename = "recurrenceCount")]
-    pub recurrence_count: ::core::option::Option<i32>,
-    /// Required. The region-specific configuration of this offer phase. This list must contain exactly one entry for each region for which the subscription offer has a regional config.
-    #[serde(default, rename = "regionalConfigs")]
-    pub regional_configs:
-        ::core::option::Option<::std::vec::Vec<RegionalSubscriptionOfferPhaseConfig>>,
-}
-
-/// Defines the rule a user needs to satisfy to receive this offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionOfferTargeting {
-    /// Offer targeting rule for new user acquisition.
-    #[serde(default, rename = "acquisitionRule")]
-    pub acquisition_rule: ::core::option::Option<AcquisitionTargetingRule>,
-    /// Offer targeting rule for upgrading users'' existing plans.
-    #[serde(default, rename = "upgradeRule")]
-    pub upgrade_rule: ::core::option::Option<UpgradeTargetingRule>,
-}
-
-/// Contains the price change information for a subscription that can be used to control the user journey for the price change in the app. This can be in the form of seeking confirmation from the user or tailoring the experience for a successful conversion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionPriceChange {
-    /// The new price the subscription will renew with if the price change is accepted by the user.
-    #[serde(default, rename = "newPrice")]
-    pub new_price: ::core::option::Option<Price>,
-    /// The current state of the price change. Possible values are: 0. Outstanding: State for a pending price change waiting for the user to agree. In this state, you can optionally seek confirmation from the user using the In-App API. 1. Accepted: State for an accepted price change that the subscription will renew with unless it''s canceled. The price change takes effect on a future date when the subscription renews. Note that the change might not occur when the subscription is renewed next.
-    #[serde(default)]
-    pub state: ::core::option::Option<i32>,
 }
 
 /// A SubscriptionPurchase resource indicates the status of a user''s subscription purchase.
@@ -3538,44 +908,6 @@ pub struct SubscriptionPurchase {
     pub user_cancellation_time_millis: ::core::option::Option<String>,
 }
 
-/// Item-level info for a subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionPurchaseLineItem {
-    /// The item is auto renewing.
-    #[serde(default, rename = "autoRenewingPlan")]
-    pub auto_renewing_plan: ::core::option::Option<AutoRenewingPlan>,
-    /// Information for deferred item removal.
-    #[serde(default, rename = "deferredItemRemoval")]
-    pub deferred_item_removal: ::core::option::Option<serde_json::Value>,
-    /// Information for deferred item replacement.
-    #[serde(default, rename = "deferredItemReplacement")]
-    pub deferred_item_replacement: ::core::option::Option<DeferredItemReplacement>,
-    /// Time at which the subscription expired or will expire unless the access is extended (ex. renews).
-    #[serde(default, rename = "expiryTime")]
-    pub expiry_time: ::core::option::Option<String>,
-    /// Details of the item being replaced. This field is only populated if this item replaced another item in a previous subscription and is only available for 60 days after the purchase time.
-    #[serde(default, rename = "itemReplacement")]
-    pub item_replacement: ::core::option::Option<ItemReplacement>,
-    /// The order id of the latest successful order associated with this item. Not present if the item is not owned by the user yet (e.g. the item being deferred replaced to).
-    #[serde(default, rename = "latestSuccessfulOrderId")]
-    pub latest_successful_order_id: ::core::option::Option<String>,
-    /// The offer details for this item.
-    #[serde(default, rename = "offerDetails")]
-    pub offer_details: ::core::option::Option<OfferDetails>,
-    /// Current offer phase details for this item.
-    #[serde(default, rename = "offerPhase")]
-    pub offer_phase: ::core::option::Option<OfferPhase>,
-    /// The item is prepaid.
-    #[serde(default, rename = "prepaidPlan")]
-    pub prepaid_plan: ::core::option::Option<PrepaidPlan>,
-    /// The purchased product ID (for example, ''monthly001'').
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Promotion details about this item. Only set if a promotion was applied during signup.
-    #[serde(default, rename = "signupPromotion")]
-    pub signup_promotion: ::core::option::Option<SignupPromotion>,
-}
-
 /// Indicates the status of a user''s subscription purchase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubscriptionPurchaseV2 {
@@ -3653,41 +985,6 @@ pub struct SubscriptionPurchasesDeferResponse {
     pub new_expiry_time_millis: ::core::option::Option<String>,
 }
 
-/// Details about taxation, Google Play policy, and legal compliance for subscription products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionTaxAndComplianceSettings {
-    /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
-    #[serde(default, rename = "eeaWithdrawalRightType")]
-    pub eea_withdrawal_right_type: ::core::option::Option<String>,
-    /// Whether this subscription is declared as a product representing a tokenized digital asset.
-    #[serde(default, rename = "isTokenizedDigitalAsset")]
-    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
-    /// Product tax category code to assign to the subscription. Product tax category determines the transaction tax rates applied to the subscription. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
-    #[serde(default, rename = "productTaxCategoryCode")]
-    pub product_tax_category_code: ::core::option::Option<String>,
-    /// Regional age rating information. Currently this field is only supported for region code US.
-    #[serde(default, rename = "regionalProductAgeRatingInfos")]
-    pub regional_product_age_rating_infos:
-        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
-    /// A mapping from region code to tax rate details. The keys are region codes as defined by Unicode''s "CLDR".
-    #[serde(default, rename = "taxRateInfoByRegionCode")]
-    pub tax_rate_info_by_region_code: ::core::option::Option<serde_json::Value>,
-}
-
-/// Options for system APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemApkOptions {
-    /// Whether to use the rotated key for signing the system APK.
-    #[serde(default)]
-    pub rotated: ::core::option::Option<bool>,
-    /// Whether system APK was generated with uncompressed dex files.
-    #[serde(default, rename = "uncompressedDexFiles")]
-    pub uncompressed_dex_files: ::core::option::Option<bool>,
-    /// Whether system APK was generated with uncompressed native libraries.
-    #[serde(default, rename = "uncompressedNativeLibraries")]
-    pub uncompressed_native_libraries: ::core::option::Option<bool>,
-}
-
 /// Response to list previously created system APK variants.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemApksListResponse {
@@ -3696,152 +993,12 @@ pub struct SystemApksListResponse {
     pub variants: ::core::option::Option<::std::vec::Vec<Variant>>,
 }
 
-/// Representation of a system feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemFeature {
-    /// The name of the feature.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Representation of a System-on-Chip (SoC) of an Android device. Can be used to target S+ devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemOnChip {
-    /// Required. The designer of the SoC, eg. "Google" Value of build property "ro.soc.manufacturer" https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER Required.
-    #[serde(default)]
-    pub manufacturer: ::core::option::Option<String>,
-    /// Required. The model of the SoC, eg. "Tensor" Value of build property "ro.soc.model" https://developer.android.com/reference/android/os/Build#SOC_MODEL Required.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-}
-
-/// Targeting details for a recovery action such as regions, android sdk levels, app versions etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Targeting {
-    /// All users are targeted.
-    #[serde(default, rename = "allUsers")]
-    pub all_users: ::core::option::Option<AllUsers>,
-    /// Targeting is based on android api levels of devices.
-    #[serde(default, rename = "androidSdks")]
-    pub android_sdks: ::core::option::Option<AndroidSdks>,
-    /// Targeting is based on the user account region.
-    #[serde(default)]
-    pub regions: ::core::option::Option<Regions>,
-    /// Target version codes as a list.
-    #[serde(default, rename = "versionList")]
-    pub version_list: ::core::option::Option<AppVersionList>,
-    /// Target version codes as a range.
-    #[serde(default, rename = "versionRange")]
-    pub version_range: ::core::option::Option<AppVersionRange>,
-}
-
-/// Targeting information about the generated apks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetingInfo {
-    /// List of created asset slices.
-    #[serde(default, rename = "assetSliceSet")]
-    pub asset_slice_set: ::core::option::Option<::std::vec::Vec<AssetSliceSet>>,
-    /// The package name of this app.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// List of the created variants.
-    #[serde(default)]
-    pub variant: ::core::option::Option<::std::vec::Vec<SplitApkVariant>>,
-}
-
-/// Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetingRuleScope {
-    /// The scope of the current targeting rule is any subscription in the parent app.
-    #[serde(default, rename = "anySubscriptionInApp")]
-    pub any_subscription_in_app: ::core::option::Option<serde_json::Value>,
-    /// The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.
-    #[serde(default, rename = "specificSubscriptionInApp")]
-    pub specific_subscription_in_app: ::core::option::Option<String>,
-    /// The scope of the current targeting rule is the subscription in which this offer is defined.
-    #[serde(default, rename = "thisSubscription")]
-    pub this_subscription: ::core::option::Option<serde_json::Value>,
-}
-
-/// Update type for targeting. Note it is always a subset Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetingUpdate {
-    /// All users are targeted.
-    #[serde(default, rename = "allUsers")]
-    pub all_users: ::core::option::Option<AllUsers>,
-    /// Additional android sdk levels are targeted by the recovery action.
-    #[serde(default, rename = "androidSdks")]
-    pub android_sdks: ::core::option::Option<AndroidSdks>,
-    /// Additional regions are targeted by the recovery action.
-    #[serde(default)]
-    pub regions: ::core::option::Option<Regions>,
-}
-
-/// Context about a test purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestPurchaseContext {
-    /// The fop type of the test purchase. // TODO: enum values: ["FOP_TYPE_UNSPECIFIED", "TEST"]
-    #[serde(default, rename = "fopType")]
-    pub fop_type: ::core::option::Option<String>,
-}
-
 /// The testers of an app. The resource for TestersService. Note: while it is possible in the Play Console UI to add testers via email lists, email lists are not supported by this resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Testers {
     /// All testing Google Groups, as email addresses.
     #[serde(default, rename = "googleGroups")]
     pub google_groups: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents texture compression format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextureCompressionFormat {
-    /// Alias for texture compression format. // TODO: enum values: ["UNSPECIFIED_TEXTURE_COMPRESSION_FORMAT", "ETC1_RGB8", "PALETTED", "THREE_DC", "ATC", "LATC", "DXT1", "S3TC", "PVRTC", "ASTC", "ETC2"]
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-}
-
-/// Targeting by a texture compression format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextureCompressionFormatTargeting {
-    /// List of alternative TCFs (TCFs targeted by the sibling splits).
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<TextureCompressionFormat>>,
-    /// The list of targeted TCFs. Should not be empty.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<TextureCompressionFormat>>,
-}
-
-/// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Timestamp {
-    /// Non-negative fractions of a second at nanosecond resolution. Must be from 0 to 999,999,999 inclusive.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Represents seconds of UTC time since Unix epoch.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<String>,
-}
-
-/// Pagination information returned by a List operation when token pagination is enabled. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned. When using token pagination, clients should use the next/previous token to get another page of the result. The presence or absence of next/previous token indicates whether a next/previous page is available and provides a mean of accessing this page. ListRequest.page_token should be set to either next_page_token or previous_page_token to access another page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TokenPagination {
-    /// Tokens to pass to the standard list field ''page_token''. Whenever available, tokens are preferred over manipulating start_index.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    #[serde(default, rename = "previousPageToken")]
-    pub previous_page_token: ::core::option::Option<String>,
-}
-
-/// A track configuration. The resource for TracksService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Track {
-    /// In a read request, represents all active releases in the track. In an update request, represents desired changes.
-    #[serde(default)]
-    pub releases: ::core::option::Option<::std::vec::Vec<TrackRelease>>,
-    /// Identifier of the track. Form factor tracks have a special prefix as an identifier, for example wear:production, automotive:production. [More on track name](https://developers.google.com/android-publisher/tracks#ff-track-name)
-    #[serde(default)]
-    pub track: ::core::option::Option<String>,
 }
 
 /// Configurations of the new track.
@@ -3872,40 +1029,6 @@ pub struct TrackCountryAvailability {
     pub sync_with_production: ::core::option::Option<bool>,
 }
 
-/// A release within a track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrackRelease {
-    /// Restricts a release to a specific set of countries. Note this is only allowed to be set for inProgress releases in the production track.
-    #[serde(default, rename = "countryTargeting")]
-    pub country_targeting: ::core::option::Option<CountryTargeting>,
-    /// In-app update priority of the release. All newly added APKs in the release will be considered at this priority. Can take values in the range [0, 5], with 5 the highest priority. Defaults to 0. in_app_update_priority can not be updated once the release is rolled out. See https://developer.android.com/guide/playcore/in-app-updates.
-    #[serde(default, rename = "inAppUpdatePriority")]
-    pub in_app_update_priority: ::core::option::Option<i32>,
-    /// The release name. Not required to be unique. If not set, the name is generated from the APK''s version_name. If the release contains multiple APKs, the name is generated from the date.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A description of what is new in this release.
-    #[serde(default, rename = "releaseNotes")]
-    pub release_notes: ::core::option::Option<::std::vec::Vec<LocalizedText>>,
-    /// The status of the release. // TODO: enum values: ["statusUnspecified", "draft", "inProgress", "halted", "completed"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Fraction of users who are eligible for a staged release. 0 &lt; fraction &lt; 1. Can only be set when status is "inProgress" or "halted".
-    #[serde(default, rename = "userFraction")]
-    pub user_fraction: ::core::option::Option<f64>,
-    /// Version codes of all APKs in the release. Must include version codes to retain from previous releases.
-    #[serde(default, rename = "versionCodes")]
-    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Representation of a single country where the contents of a track can be made available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrackTargetedCountry {
-    /// The country that can be targeted, as a two-letter CLDR code.
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<String>,
-}
-
 /// Response listing all tracks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracksListResponse {
@@ -3917,6 +1040,253 @@ pub struct TracksListResponse {
     pub tracks: ::core::option::Option<::std::vec::Vec<Track>>,
 }
 
+/// Response for the voidedpurchases.list API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoidedPurchasesListResponse {
+    /// General pagination information.
+    #[serde(default, rename = "pageInfo")]
+    pub page_info: ::core::option::Option<PageInfo>,
+    /// Pagination information for token pagination.
+    #[serde(default, rename = "tokenPagination")]
+    pub token_pagination: ::core::option::Option<TokenPagination>,
+    #[serde(default, rename = "voidedPurchases")]
+    pub voided_purchases: ::core::option::Option<::std::vec::Vec<VoidedPurchase>>,
+}
+
+/// Update type for targeting. Note it is always a subset Targeting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetingUpdate {
+    /// All users are targeted.
+    #[serde(default, rename = "allUsers")]
+    pub all_users: ::core::option::Option<AllUsers>,
+    /// Additional android sdk levels are targeted by the recovery action.
+    #[serde(default, rename = "androidSdks")]
+    pub android_sdks: ::core::option::Option<AndroidSdks>,
+    /// Additional regions are targeted by the recovery action.
+    #[serde(default)]
+    pub regions: ::core::option::Option<Regions>,
+}
+
+/// Defines an APK available for this application that is hosted externally and not uploaded to Google Play. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternallyHostedApk {
+    /// The application label.
+    #[serde(default, rename = "applicationLabel")]
+    pub application_label: ::core::option::Option<String>,
+    /// A certificate (or array of certificates if a certificate-chain is used) used to sign this APK, represented as a base64 encoded byte array.
+    #[serde(default, rename = "certificateBase64s")]
+    pub certificate_base64s: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The URL at which the APK is hosted. This must be an https URL.
+    #[serde(default, rename = "externallyHostedUrl")]
+    pub externally_hosted_url: ::core::option::Option<String>,
+    /// The sha1 checksum of this APK, represented as a base64 encoded byte array.
+    #[serde(default, rename = "fileSha1Base64")]
+    pub file_sha1_base64: ::core::option::Option<String>,
+    /// The sha256 checksum of this APK, represented as a base64 encoded byte array.
+    #[serde(default, rename = "fileSha256Base64")]
+    pub file_sha256_base64: ::core::option::Option<String>,
+    /// The file size in bytes of this APK.
+    #[serde(default, rename = "fileSize")]
+    pub file_size: ::core::option::Option<String>,
+    /// The icon image from the APK, as a base64 encoded byte array.
+    #[serde(default, rename = "iconBase64")]
+    pub icon_base64: ::core::option::Option<String>,
+    /// The maximum SDK supported by this APK (optional).
+    #[serde(default, rename = "maximumSdk")]
+    pub maximum_sdk: ::core::option::Option<i32>,
+    /// The minimum SDK targeted by this APK.
+    #[serde(default, rename = "minimumSdk")]
+    pub minimum_sdk: ::core::option::Option<i32>,
+    /// The native code environments supported by this APK (optional).
+    #[serde(default, rename = "nativeCodes")]
+    pub native_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The package name.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The features required by this APK (optional).
+    #[serde(default, rename = "usesFeatures")]
+    pub uses_features: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The permissions requested by this APK.
+    #[serde(default, rename = "usesPermissions")]
+    pub uses_permissions: ::core::option::Option<::std::vec::Vec<UsesPermission>>,
+    /// The version code of this APK.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+    /// The version name of this APK.
+    #[serde(default, rename = "versionName")]
+    pub version_name: ::core::option::Option<String>,
+}
+
+/// Information about an APK. The resource for ApksService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Apk {
+    /// Information about the binary payload of this APK.
+    #[serde(default)]
+    pub binary: ::core::option::Option<ApkBinary>,
+    /// The version code of the APK, as specified in the manifest file.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+}
+
+/// Request message for deleting an one-time product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteOneTimeProductOfferRequest {
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The unique offer ID of the offer to delete.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to delete.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the offer to delete.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The parent purchase option (ID) of the offer to delete.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for deleting a one-time product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteOneTimeProductRequest {
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the one-time product to delete.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The one-time product ID of the one-time product to delete.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Request message for deleting a purchase option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletePurchaseOptionRequest {
+    /// Optional. This field has no effect for purchase options with no offers under them. For purchase options with associated offers: * If force is set to false (default), an error will be returned. * If force is set to true, any associated offers under the purchase option will be deleted.
+    #[serde(default)]
+    pub force: ::core::option::Option<bool>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the purchase option to delete.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the purchase option to delete.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The purchase option ID of the purchase option to delete.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for GetOneTimeProductOffers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetOneTimeProductOfferRequest {
+    /// Required. The unique offer ID of the offer to get.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to get.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the offer to get.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The parent purchase option (ID) of the offer to get.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// The Order resource encapsulates comprehensive information about a transaction made on Google Play. It includes a variety of attributes that provide details about the order itself, the products purchased, and the history of events related to the order. The Orders APIs provide real-time access to your order data within the Google Play ecosystem. You can retrieve detailed information and metadata for both one-time and recurring orders, including transaction details like charges, taxes, and refunds, as well as metadata such as pricing phases for subscriptions. The Orders APIs let you automate tasks related to order management, reducing the need for manual checks via the Play Developer Console. The following are some of the use cases for this API: + Real-time order data retrieval - Get order details and metadata immediately after a purchase using an order ID. + Order update synchronization - Periodically sync order updates to maintain an up-to-date record of order information. Note: + The Orders API calls count towards your Play Developer API quota, which defaults to 200K daily, and may be insufficient to sync extensive order histories. + A maximum of 1000 orders can be retrieved per call. Using larger page sizes is recommended to minimize quota usage. Check your quota in the Cloud Console and request more if required.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Order {
+    /// Address information for the customer, for use in tax computation. When Google is the Merchant of Record for the order, only country is shown.
+    #[serde(default, rename = "buyerAddress")]
+    pub buyer_address: ::core::option::Option<BuyerAddress>,
+    /// The time when the order was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Your revenue for this order in the buyer''s currency, including deductions of partial refunds, taxes and fees. Google deducts standard transaction and third party fees from each sale, including VAT in some regions.
+    #[serde(default, rename = "developerRevenueInBuyerCurrency")]
+    pub developer_revenue_in_buyer_currency: ::core::option::Option<Money>,
+    /// The time of the last event that occurred on the order.
+    #[serde(default, rename = "lastEventTime")]
+    pub last_event_time: ::core::option::Option<String>,
+    /// The individual line items making up this order.
+    #[serde(default, rename = "lineItems")]
+    pub line_items: ::core::option::Option<::std::vec::Vec<LineItem>>,
+    /// Detailed information about the order at creation time.
+    #[serde(default, rename = "orderDetails")]
+    pub order_details: ::core::option::Option<OrderDetails>,
+    /// Details about events which modified the order.
+    #[serde(default, rename = "orderHistory")]
+    pub order_history: ::core::option::Option<OrderHistory>,
+    /// The order ID.
+    #[serde(default, rename = "orderId")]
+    pub order_id: ::core::option::Option<String>,
+    /// Play points applied to the order, including offer information, discount rate and point values.
+    #[serde(default, rename = "pointsDetails")]
+    pub points_details: ::core::option::Option<PointsDetails>,
+    /// The token provided to the user''s device when the subscription or item was purchased.
+    #[serde(default, rename = "purchaseToken")]
+    pub purchase_token: ::core::option::Option<String>,
+    /// The originating sales channel of the order. // TODO: enum values: ["SALES_CHANNEL_UNSPECIFIED", "IN_APP", "PC_EMULATOR", "NATIVE_PC", "PLAY_STORE", "OUTSIDE_PLAY_STORE"]
+    #[serde(default, rename = "salesChannel")]
+    pub sales_channel: ::core::option::Option<String>,
+    /// The state of the order. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "PROCESSED", "CANCELED", "PENDING_REFUND", "PARTIALLY_REFUNDED", "REFUNDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The total tax paid as a part of this order.
+    #[serde(default)]
+    pub tax: ::core::option::Option<Money>,
+    /// The final amount paid by the customer, taking into account discounts and taxes.
+    #[serde(default)]
+    pub total: ::core::option::Option<Money>,
+}
+
+/// Request message for GetSubscriptionOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetSubscriptionOfferRequest {
+    /// Required. The parent base plan (ID) of the offer to get.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Required. The unique offer ID of the offer to get.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to get.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent subscription (ID) of the offer to get.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Request message for MigrateBasePlanPrices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrateBasePlanPricesRequest {
+    /// Required. The unique base plan ID of the base plan to update prices on.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. Package name of the parent app. Must be equal to the package_name field on the Subscription resource.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The ID of the subscription to update. Must be equal to the product_id field on the Subscription resource.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The regional prices to update.
+    #[serde(default, rename = "regionalPriceMigrations")]
+    pub regional_price_migrations:
+        ::core::option::Option<::std::vec::Vec<RegionalPriceMigrationConfig>>,
+    /// Required. The version of the available regions being used for the regional_price_migrations.
+    #[serde(default, rename = "regionsVersion")]
+    pub regions_version: ::core::option::Option<RegionsVersion>,
+}
+
 /// Request message to update the state of a subscription base plan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateBasePlanStateRequest {
@@ -3926,6 +1296,23 @@ pub struct UpdateBasePlanStateRequest {
     /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
     #[serde(default, rename = "deactivateBasePlanRequest")]
     pub deactivate_base_plan_request: ::core::option::Option<DeactivateBasePlanRequest>,
+}
+
+/// Request message to update the state of a one-time product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateOneTimeProductOfferStateRequest {
+    /// Activates an offer. Once activated, the offer is available to users, as long as its conditions are met.
+    #[serde(default, rename = "activateOneTimeProductOfferRequest")]
+    pub activate_one_time_product_offer_request:
+        ::core::option::Option<ActivateOneTimeProductOfferRequest>,
+    /// Cancels an offer. Once cancelled, the offer is not available to users. Any pending orders related to this offer will be cancelled. This state transition is specific to pre-orders.
+    #[serde(default, rename = "cancelOneTimeProductOfferRequest")]
+    pub cancel_one_time_product_offer_request:
+        ::core::option::Option<CancelOneTimeProductOfferRequest>,
+    /// Deactivates an offer. Once deactivated, the offer is no longer available to users. This state transition is specific to discounted offers.
+    #[serde(default, rename = "deactivateOneTimeProductOfferRequest")]
+    pub deactivate_one_time_product_offer_request:
+        ::core::option::Option<DeactivateOneTimeProductOfferRequest>,
 }
 
 /// Request message for UpdateOneTimeProductOffer.
@@ -3946,23 +1333,6 @@ pub struct UpdateOneTimeProductOfferRequest {
     /// Required. The list of fields to be updated.
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message to update the state of a one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateOneTimeProductOfferStateRequest {
-    /// Activates an offer. Once activated, the offer is available to users, as long as its conditions are met.
-    #[serde(default, rename = "activateOneTimeProductOfferRequest")]
-    pub activate_one_time_product_offer_request:
-        ::core::option::Option<ActivateOneTimeProductOfferRequest>,
-    /// Cancels an offer. Once cancelled, the offer is not available to users. Any pending orders related to this offer will be cancelled. This state transition is specific to pre-orders.
-    #[serde(default, rename = "cancelOneTimeProductOfferRequest")]
-    pub cancel_one_time_product_offer_request:
-        ::core::option::Option<CancelOneTimeProductOfferRequest>,
-    /// Deactivates an offer. Once deactivated, the offer is no longer available to users. This state transition is specific to discounted offers.
-    #[serde(default, rename = "deactivateOneTimeProductOfferRequest")]
-    pub deactivate_one_time_product_offer_request:
-        ::core::option::Option<DeactivateOneTimeProductOfferRequest>,
 }
 
 /// Request message for UpdateOneTimeProduct.
@@ -3996,6 +1366,19 @@ pub struct UpdatePurchaseOptionStateRequest {
     pub deactivate_purchase_option_request: ::core::option::Option<DeactivatePurchaseOptionRequest>,
 }
 
+/// Request message to update the state of a subscription offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSubscriptionOfferStateRequest {
+    /// Activates an offer. Once activated, the offer will be available to new subscribers.
+    #[serde(default, rename = "activateSubscriptionOfferRequest")]
+    pub activate_subscription_offer_request:
+        ::core::option::Option<ActivateSubscriptionOfferRequest>,
+    /// Deactivates an offer. Once deactivated, the offer will become unavailable to new subscribers, but existing subscribers will maintain their subscription
+    #[serde(default, rename = "deactivateSubscriptionOfferRequest")]
+    pub deactivate_subscription_offer_request:
+        ::core::option::Option<DeactivateSubscriptionOfferRequest>,
+}
+
 /// Request message for UpdateSubscriptionOffer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateSubscriptionOfferRequest {
@@ -4014,19 +1397,6 @@ pub struct UpdateSubscriptionOfferRequest {
     /// Required. The list of fields to be updated.
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message to update the state of a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSubscriptionOfferStateRequest {
-    /// Activates an offer. Once activated, the offer will be available to new subscribers.
-    #[serde(default, rename = "activateSubscriptionOfferRequest")]
-    pub activate_subscription_offer_request:
-        ::core::option::Option<ActivateSubscriptionOfferRequest>,
-    /// Deactivates an offer. Once deactivated, the offer will become unavailable to new subscribers, but existing subscribers will maintain their subscription
-    #[serde(default, rename = "deactivateSubscriptionOfferRequest")]
-    pub deactivate_subscription_offer_request:
-        ::core::option::Option<DeactivateSubscriptionOfferRequest>,
 }
 
 /// Request message for UpdateSubscription.
@@ -4049,18 +1419,289 @@ pub struct UpdateSubscriptionRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// Represents a targeting rule of the form: User currently has {scope} [with billing period {billing_period}].
+/// Information about an app bundle. The resource for BundlesService.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpgradeTargetingRule {
-    /// The specific billing period duration, specified in ISO 8601 format, that a user must be currently subscribed to to be eligible for this rule. If not specified, users subscribed to any billing period are matched.
-    #[serde(default, rename = "billingPeriodDuration")]
-    pub billing_period_duration: ::core::option::Option<String>,
-    /// Limit this offer to only once per user. If set to true, a user can never be eligible for this offer again if they ever subscribed to this offer.
-    #[serde(default, rename = "oncePerUser")]
-    pub once_per_user: ::core::option::Option<bool>,
-    /// Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "specific subscription in app".
+pub struct Bundle {
+    /// A sha1 hash of the upload payload, encoded as a hex string and matching the output of the sha1sum command.
     #[serde(default)]
-    pub scope: ::core::option::Option<TargetingRuleScope>,
+    pub sha1: ::core::option::Option<String>,
+    /// A sha256 hash of the upload payload, encoded as a hex string and matching the output of the sha256sum command.
+    #[serde(default)]
+    pub sha256: ::core::option::Option<String>,
+    /// The version code of the Android App Bundle, as specified in the Android App Bundle''s base module APK manifest file.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+}
+
+/// Cancellation context of the purchases.subscriptionsv2.cancel API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancellationContext {
+    /// Required. The type of cancellation for the purchased subscription. // TODO: enum values: ["CANCELLATION_TYPE_UNSPECIFIED", "USER_REQUESTED_STOP_RENEWALS", "DEVELOPER_REQUESTED_STOP_PAYMENTS"]
+    #[serde(default, rename = "cancellationType")]
+    pub cancellation_type: ::core::option::Option<String>,
+}
+
+/// Converted other regions prices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConvertedOtherRegionsPrice {
+    /// Price in EUR to use for the "Other regions" location exclusive of taxes.
+    #[serde(default, rename = "eurPrice")]
+    pub eur_price: ::core::option::Option<Money>,
+    /// Price in USD to use for the "Other regions" location exclusive of taxes.
+    #[serde(default, rename = "usdPrice")]
+    pub usd_price: ::core::option::Option<Money>,
+}
+
+/// Object representation for Remote in-app update action type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteInAppUpdate {
+    /// Required. Set to true if Remote In-App Update action type is needed.
+    #[serde(default, rename = "isRemoteInAppUpdateRequested")]
+    pub is_remote_in_app_update_requested: ::core::option::Option<bool>,
+}
+
+/// Deferral context of the purchases.subscriptionsv2.defer API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeferralContext {
+    /// Required. The duration by which all subscription items should be deferred.
+    #[serde(default, rename = "deferDuration")]
+    pub defer_duration: ::core::option::Option<String>,
+    /// Required. The API will fail if the etag does not match the latest etag for this subscription. The etag is retrieved from purchases.subscriptionsv2.get: https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/get
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// If set to "true", the request is a dry run to validate the effect of Defer, the subscription would not be impacted.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Expiry time details of a subscription item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ItemExpiryTimeDetails {
+    /// The new expiry time for this subscription item.
+    #[serde(default, rename = "expiryTime")]
+    pub expiry_time: ::core::option::Option<String>,
+    /// The product ID of the subscription item (for example, ''premium_plan'').
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Represents a deobfuscation file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeobfuscationFile {
+    /// The type of the deobfuscation file. // TODO: enum values: ["deobfuscationFileTypeUnspecified", "proguard", "nativeCode"]
+    #[serde(default, rename = "symbolType")]
+    pub symbol_type: ::core::option::Option<String>,
+}
+
+/// An expansion file. The resource for ExpansionFilesService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpansionFile {
+    /// If set, this field indicates that this APK has an expansion file uploaded to it: this APK does not reference another APK''s expansion file. The field''s value is the size of the uploaded expansion file in bytes.
+    #[serde(default, rename = "fileSize")]
+    pub file_size: ::core::option::Option<String>,
+    /// If set, this APK''s expansion file references another APK''s expansion file. The file_size field will not be set.
+    #[serde(default, rename = "referencesVersion")]
+    pub references_version: ::core::option::Option<i32>,
+}
+
+/// Reporting details unique to the external offers program.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalOfferDetails {
+    /// Optional. The external transaction id associated with the app download event through an external link. Required when reporting transactions made in externally installed apps.
+    #[serde(default, rename = "appDownloadEventExternalTransactionId")]
+    pub app_download_event_external_transaction_id: ::core::option::Option<String>,
+    /// Optional. The category of the downloaded app though this transaction. This must match the category provided in Play Console during the external app verification process. Only required for app downloads. // TODO: enum values: ["EXTERNAL_OFFER_APP_CATEGORY_UNSPECIFIED", "APP", "GAME"]
+    #[serde(default, rename = "installedAppCategory")]
+    pub installed_app_category: ::core::option::Option<String>,
+    /// Optional. The package name of the app downloaded through this transaction. Required when link_type is LINK_TO_APP_DOWNLOAD.
+    #[serde(default, rename = "installedAppPackage")]
+    pub installed_app_package: ::core::option::Option<String>,
+    /// Optional. The type of content being reported by this transaction. Required when reporting app downloads or purchased digital content offers made in app installed through Google Play. // TODO: enum values: ["EXTERNAL_OFFER_LINK_TYPE_UNSPECIFIED", "LINK_TO_DIGITAL_CONTENT_OFFER", "LINK_TO_APP_DOWNLOAD"]
+    #[serde(default, rename = "linkType")]
+    pub link_type: ::core::option::Option<String>,
+}
+
+/// Represents a one-time transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeExternalTransaction {
+    /// Input only. Provided during the call to Create. Retrieved from the client when the alternative billing flow is launched.
+    #[serde(default, rename = "externalTransactionToken")]
+    pub external_transaction_token: ::core::option::Option<String>,
+}
+
+/// Represents a transaction that is part of a recurring series of payments. This can be a subscription or a one-time product with multiple payments (such as preorder).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecurringExternalTransaction {
+    /// Details of an external subscription.
+    #[serde(default, rename = "externalSubscription")]
+    pub external_subscription: ::core::option::Option<ExternalSubscription>,
+    /// Input only. Provided during the call to Create. Retrieved from the client when the alternative billing flow is launched. Required only for the initial purchase.
+    #[serde(default, rename = "externalTransactionToken")]
+    pub external_transaction_token: ::core::option::Option<String>,
+    /// The external transaction id of the first transaction of this recurring series of transactions. For example, for a subscription this would be the transaction id of the first payment. Required when creating recurring external transactions.
+    #[serde(default, rename = "initialExternalTransactionId")]
+    pub initial_external_transaction_id: ::core::option::Option<String>,
+    /// Input only. Provided during the call to Create. Must only be used when migrating a subscription from manual monthly reporting to automated reporting. // TODO: enum values: ["EXTERNAL_TRANSACTION_PROGRAM_UNSPECIFIED", "USER_CHOICE_BILLING", "ALTERNATIVE_BILLING_ONLY"]
+    #[serde(default, rename = "migratedTransactionProgram")]
+    pub migrated_transaction_program: ::core::option::Option<String>,
+    /// Details of a recurring external transaction product which doesn''t belong to any other specific category.
+    #[serde(default, rename = "otherRecurringProduct")]
+    pub other_recurring_product: ::core::option::Option<serde_json::Value>,
+}
+
+/// User''s address for the external transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalTransactionAddress {
+    /// Optional. Top-level administrative subdivision of the country/region. Only required for transactions in India. Valid values are "ANDAMAN AND NICOBAR ISLANDS", "ANDHRA PRADESH", "ARUNACHAL PRADESH", "ASSAM", "BIHAR", "CHANDIGARH", "CHHATTISGARH", "DADRA AND NAGAR HAVELI", "DADRA AND NAGAR HAVELI AND DAMAN AND DIU", "DAMAN AND DIU", "DELHI", "GOA", "GUJARAT", "HARYANA", "HIMACHAL PRADESH", "JAMMU AND KASHMIR", "JHARKHAND", "KARNATAKA", "KERALA", "LADAKH", "LAKSHADWEEP", "MADHYA PRADESH", "MAHARASHTRA", "MANIPUR", "MEGHALAYA", "MIZORAM", "NAGALAND", "ODISHA", "PUDUCHERRY", "PUNJAB", "RAJASTHAN", "SIKKIM", "TAMIL NADU", "TELANGANA", "TRIPURA", "UTTAR PRADESH", "UTTARAKHAND", and "WEST BENGAL".
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Required. Two letter region code based on ISO-3166-1 Alpha-2 (UN region codes).
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Download metadata for split, standalone and universal APKs, as well as asset pack slices, signed with a given key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedApksPerSigningKey {
+    /// SHA256 hash of the APK signing public key certificate.
+    #[serde(default, rename = "certificateSha256Hash")]
+    pub certificate_sha256_hash: ::core::option::Option<String>,
+    /// List of asset pack slices which will be served for this app bundle, signed with a key corresponding to certificate_sha256_hash.
+    #[serde(default, rename = "generatedAssetPackSlices")]
+    pub generated_asset_pack_slices:
+        ::core::option::Option<::std::vec::Vec<GeneratedAssetPackSlice>>,
+    /// Generated recovery apks for recovery actions signed with a key corresponding to certificate_sha256_hash. This includes all generated recovery APKs, also those in draft or cancelled state. This field is not set if no recovery actions were created for this signing key.
+    #[serde(default, rename = "generatedRecoveryModules")]
+    pub generated_recovery_modules: ::core::option::Option<::std::vec::Vec<GeneratedRecoveryApk>>,
+    /// List of generated split APKs, signed with a key corresponding to certificate_sha256_hash.
+    #[serde(default, rename = "generatedSplitApks")]
+    pub generated_split_apks: ::core::option::Option<::std::vec::Vec<GeneratedSplitApk>>,
+    /// List of generated standalone APKs, signed with a key corresponding to certificate_sha256_hash.
+    #[serde(default, rename = "generatedStandaloneApks")]
+    pub generated_standalone_apks: ::core::option::Option<::std::vec::Vec<GeneratedStandaloneApk>>,
+    /// Generated universal APK, signed with a key corresponding to certificate_sha256_hash. This field is not set if no universal APK was generated for this signing key.
+    #[serde(default, rename = "generatedUniversalApk")]
+    pub generated_universal_apk: ::core::option::Option<GeneratedUniversalApk>,
+    /// Contains targeting information about the generated apks.
+    #[serde(default, rename = "targetingInfo")]
+    pub targeting_info: ::core::option::Option<TargetingInfo>,
+}
+
+/// An uploaded image. The resource for ImagesService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// A unique id representing this image.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A sha1 hash of the image.
+    #[serde(default)]
+    pub sha1: ::core::option::Option<String>,
+    /// A sha256 hash of the image.
+    #[serde(default)]
+    pub sha256: ::core::option::Option<String>,
+    /// A URL that will serve a preview of the image.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Request to delete an in-app product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InappproductsDeleteRequest {
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Package name of the app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Unique identifier for the in-app product.
+    #[serde(default)]
+    pub sku: ::core::option::Option<String>,
+}
+
+/// Request to update an in-app product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InappproductsUpdateRequest {
+    /// If set to true, and the in-app product with the given package_name and sku doesn''t exist, the in-app product will be created.
+    #[serde(default, rename = "allowMissing")]
+    pub allow_missing: ::core::option::Option<bool>,
+    /// If true the prices for all regions targeted by the parent app that don''t have a price specified for this in-app product will be auto converted to the target currency based on the default price. Defaults to false.
+    #[serde(default, rename = "autoConvertMissingPrices")]
+    pub auto_convert_missing_prices: ::core::option::Option<bool>,
+    /// The new in-app product.
+    #[serde(default)]
+    pub inappproduct: ::core::option::Option<InAppProduct>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Package name of the app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Unique identifier for the in-app product.
+    #[serde(default)]
+    pub sku: ::core::option::Option<String>,
+}
+
+/// Information about an app recovery action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRecoveryAction {
+    /// ID corresponding to the app recovery action.
+    #[serde(default, rename = "appRecoveryId")]
+    pub app_recovery_id: ::core::option::Option<String>,
+    /// Timestamp of when the app recovery action is canceled by the developer. Only set if the recovery action has been canceled.
+    #[serde(default, rename = "cancelTime")]
+    pub cancel_time: ::core::option::Option<String>,
+    /// Timestamp of when the app recovery action is created by the developer. It is always set after creation of the recovery action.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Timestamp of when the app recovery action is deployed to the users. Only set if the recovery action has been deployed.
+    #[serde(default, rename = "deployTime")]
+    pub deploy_time: ::core::option::Option<String>,
+    /// Timestamp of when the developer last updated recovery action. In case the action is cancelled, it corresponds to cancellation time. It is always set after creation of the recovery action.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+    /// Data about the remote in-app update action such as such as recovered user base, recoverable user base etc. Set only if the recovery action type is Remote In-App Update.
+    #[serde(default, rename = "remoteInAppUpdateData")]
+    pub remote_in_app_update_data: ::core::option::Option<RemoteInAppUpdateData>,
+    /// The status of the recovery action. // TODO: enum values: ["RECOVERY_STATUS_UNSPECIFIED", "RECOVERY_STATUS_ACTIVE", "RECOVERY_STATUS_CANCELED", "RECOVERY_STATUS_DRAFT", "RECOVERY_STATUS_GENERATION_IN_PROGRESS", "RECOVERY_STATUS_GENERATION_FAILED"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Specifies targeting criteria for the recovery action such as regions, android sdk versions, app versions etc.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<Targeting>,
+}
+
+/// Configuration describing device targeting criteria for the content of an app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceTierConfig {
+    /// Definition of device groups for the app.
+    #[serde(default, rename = "deviceGroups")]
+    pub device_groups: ::core::option::Option<::std::vec::Vec<DeviceGroup>>,
+    /// Output only. The device tier config ID.
+    #[serde(default, rename = "deviceTierConfigId")]
+    pub device_tier_config_id: ::core::option::Option<String>,
+    /// Definition of the set of device tiers for the app.
+    #[serde(default, rename = "deviceTierSet")]
+    pub device_tier_set: ::core::option::Option<DeviceTierSet>,
+    /// Definition of user country sets for the app.
+    #[serde(default, rename = "userCountrySets")]
+    pub user_country_sets: ::core::option::Option<::std::vec::Vec<UserCountrySet>>,
+}
+
+/// Summary of a release.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReleaseSummary {
+    /// List of active artifacts on this release
+    #[serde(default, rename = "activeArtifacts")]
+    pub active_artifacts: ::core::option::Option<::std::vec::Vec<ArtifactSummary>>,
+    /// The lifecycle state of a release. // TODO: enum values: ["RELEASE_LIFECYCLE_STATE_UNSPECIFIED", "RELEASE_LIFECYCLE_STATE_DRAFT", "RELEASE_LIFECYCLE_STATE_NOT_SENT_FOR_REVIEW", "RELEASE_LIFECYCLE_STATE_IN_REVIEW", "RELEASE_LIFECYCLE_STATE_APPROVED_NOT_PUBLISHED", "RELEASE_LIFECYCLE_STATE_NOT_APPROVED", "RELEASE_LIFECYCLE_STATE_PUBLISHED"]
+    #[serde(default, rename = "releaseLifecycleState")]
+    pub release_lifecycle_state: ::core::option::Option<String>,
+    /// Name of the release.
+    #[serde(default, rename = "releaseName")]
+    pub release_name: ::core::option::Option<String>,
+    /// Identifier for the track. [Learn more about track names.](https://developers.google.com/android-publisher/tracks).
+    #[serde(default)]
+    pub track: ::core::option::Option<String>,
 }
 
 /// A user resource.
@@ -4087,6 +1728,1706 @@ pub struct User {
     /// Output only. Whether there are more permissions for the user that are not represented here. This can happen if the caller does not have permission to manage all apps in the account. This is also true if this user is the account owner. If this field is true, it should be taken as a signal that this user cannot be fully managed via the API. That is, the API caller is not be able to manage all of the permissions this user holds, either because it doesn''t know about them or because the user is the account owner.
     #[serde(default)]
     pub partial: ::core::option::Option<bool>,
+}
+
+/// A localized store listing. The resource for ListingsService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Listing {
+    /// Full description of the app.
+    #[serde(default, rename = "fullDescription")]
+    pub full_description: ::core::option::Option<String>,
+    /// Language localization code (a BCP-47 language tag; for example, "de-AT" for Austrian German).
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// Short description of the app.
+    #[serde(default, rename = "shortDescription")]
+    pub short_description: ::core::option::Option<String>,
+    /// Localized title of the app.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// URL of a promotional YouTube video for the app.
+    #[serde(default)]
+    pub video: ::core::option::Option<String>,
+}
+
+/// Contains item-level info for a ProductPurchaseV2.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductLineItem {
+    /// The purchased product ID (for example, ''monthly001'').
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// The offer details for this item.
+    #[serde(default, rename = "productOfferDetails")]
+    pub product_offer_details: ::core::option::Option<ProductOfferDetails>,
+}
+
+/// Context about the purchase state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PurchaseStateContext {
+    /// Output only. The purchase state of the purchase. // TODO: enum values: ["PURCHASE_STATE_UNSPECIFIED", "PURCHASED", "CANCELLED", "PENDING"]
+    #[serde(default, rename = "purchaseState")]
+    pub purchase_state: ::core::option::Option<String>,
+}
+
+/// Context about a test purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestPurchaseContext {
+    /// The fop type of the test purchase. // TODO: enum values: ["FOP_TYPE_UNSPECIFIED", "TEST"]
+    #[serde(default, rename = "fopType")]
+    pub fop_type: ::core::option::Option<String>,
+}
+
+/// A partial refund of a transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartialRefund {
+    /// Required. A unique id distinguishing this partial refund. If the refund is successful, subsequent refunds with the same id will fail. Must be unique across refunds for one individual transaction.
+    #[serde(default, rename = "refundId")]
+    pub refund_id: ::core::option::Option<String>,
+    /// Required. The pre-tax amount of the partial refund. Should be less than the remaining pre-tax amount of the transaction.
+    #[serde(default, rename = "refundPreTaxAmount")]
+    pub refund_pre_tax_amount: ::core::option::Option<Price>,
+}
+
+/// An Android app review.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Review {
+    /// The name of the user who wrote the review.
+    #[serde(default, rename = "authorName")]
+    pub author_name: ::core::option::Option<String>,
+    /// A repeated field containing comments for the review.
+    #[serde(default)]
+    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
+    /// Unique identifier for this review.
+    #[serde(default, rename = "reviewId")]
+    pub review_id: ::core::option::Option<String>,
+}
+
+/// The result of replying/updating a reply to review.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReviewReplyResult {
+    /// The time at which the reply took effect.
+    #[serde(default, rename = "lastEdited")]
+    pub last_edited: ::core::option::Option<Timestamp>,
+    /// The reply text that was applied.
+    #[serde(default, rename = "replyText")]
+    pub reply_text: ::core::option::Option<String>,
+}
+
+/// Revocation context of the purchases.subscriptionsv2.revoke API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevocationContext {
+    /// Optional. Used when users should be refunded the full amount of latest charge on each item in the subscription.
+    #[serde(default, rename = "fullRefund")]
+    pub full_refund: ::core::option::Option<serde_json::Value>,
+    /// Optional. Used when a specific item should be refunded in a subscription with add-on items.
+    #[serde(default, rename = "itemBasedRefund")]
+    pub item_based_refund: ::core::option::Option<RevocationContextItemBasedRefund>,
+    /// Optional. Used when users should be refunded a prorated amount they paid for their subscription based on the amount of time remaining in a subscription.
+    #[serde(default, rename = "proratedRefund")]
+    pub prorated_refund: ::core::option::Option<serde_json::Value>,
+}
+
+/// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionCancelSurveyResult {
+    /// The cancellation reason the user chose in the survey. Possible values are: 0. Other 1. I don''t use this service enough 2. Technical issues 3. Cost-related reasons 4. I found a better app
+    #[serde(default, rename = "cancelSurveyReason")]
+    pub cancel_survey_reason: ::core::option::Option<i32>,
+    /// The customized input cancel reason from the user. Only present when cancelReason is 0.
+    #[serde(default, rename = "userInputCancelReason")]
+    pub user_input_cancel_reason: ::core::option::Option<String>,
+}
+
+/// Contains the introductory price information for a subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntroductoryPriceInfo {
+    /// Introductory price of the subscription, not including tax. The currency is the same as price_currency_code. Price is expressed in micro-units, where 1,000,000 micro-units represents one unit of the currency. For example, if the subscription price is €1.99, price_amount_micros is 1990000.
+    #[serde(default, rename = "introductoryPriceAmountMicros")]
+    pub introductory_price_amount_micros: ::core::option::Option<String>,
+    /// ISO 4217 currency code for the introductory subscription price. For example, if the price is specified in British pounds sterling, price_currency_code is "GBP".
+    #[serde(default, rename = "introductoryPriceCurrencyCode")]
+    pub introductory_price_currency_code: ::core::option::Option<String>,
+    /// The number of billing period to offer introductory pricing.
+    #[serde(default, rename = "introductoryPriceCycles")]
+    pub introductory_price_cycles: ::core::option::Option<i32>,
+    /// Introductory price period, specified in ISO 8601 format. Common values are (but not limited to) "P1W" (one week), "P1M" (one month), "P3M" (three months), "P6M" (six months), and "P1Y" (one year).
+    #[serde(default, rename = "introductoryPricePeriod")]
+    pub introductory_price_period: ::core::option::Option<String>,
+}
+
+/// Contains the price change information for a subscription that can be used to control the user journey for the price change in the app. This can be in the form of seeking confirmation from the user or tailoring the experience for a successful conversion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionPriceChange {
+    /// The new price the subscription will renew with if the price change is accepted by the user.
+    #[serde(default, rename = "newPrice")]
+    pub new_price: ::core::option::Option<Price>,
+    /// The current state of the price change. Possible values are: 0. Outstanding: State for a pending price change waiting for the user to agree. In this state, you can optionally seek confirmation from the user using the In-App API. 1. Accepted: State for an accepted price change that the subscription will renew with unless it''s canceled. The price change takes effect on a future date when the subscription renews. Note that the change might not occur when the subscription is renewed next.
+    #[serde(default)]
+    pub state: ::core::option::Option<i32>,
+}
+
+/// Information specific to a subscription in the SUBSCRIPTION_STATE_CANCELED or SUBSCRIPTION_STATE_EXPIRED state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CanceledStateContext {
+    /// Subscription was canceled by the developer.
+    #[serde(default, rename = "developerInitiatedCancellation")]
+    pub developer_initiated_cancellation: ::core::option::Option<serde_json::Value>,
+    /// Subscription was replaced by a new subscription.
+    #[serde(default, rename = "replacementCancellation")]
+    pub replacement_cancellation: ::core::option::Option<serde_json::Value>,
+    /// Subscription was canceled by the system, for example because of a billing problem.
+    #[serde(default, rename = "systemInitiatedCancellation")]
+    pub system_initiated_cancellation: ::core::option::Option<serde_json::Value>,
+    /// Subscription was canceled by user.
+    #[serde(default, rename = "userInitiatedCancellation")]
+    pub user_initiated_cancellation: ::core::option::Option<UserInitiatedCancellation>,
+}
+
+/// Item-level info for a subscription purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionPurchaseLineItem {
+    /// The item is auto renewing.
+    #[serde(default, rename = "autoRenewingPlan")]
+    pub auto_renewing_plan: ::core::option::Option<AutoRenewingPlan>,
+    /// Information for deferred item removal.
+    #[serde(default, rename = "deferredItemRemoval")]
+    pub deferred_item_removal: ::core::option::Option<serde_json::Value>,
+    /// Information for deferred item replacement.
+    #[serde(default, rename = "deferredItemReplacement")]
+    pub deferred_item_replacement: ::core::option::Option<DeferredItemReplacement>,
+    /// Time at which the subscription expired or will expire unless the access is extended (ex. renews).
+    #[serde(default, rename = "expiryTime")]
+    pub expiry_time: ::core::option::Option<String>,
+    /// Details of the item being replaced. This field is only populated if this item replaced another item in a previous subscription and is only available for 60 days after the purchase time.
+    #[serde(default, rename = "itemReplacement")]
+    pub item_replacement: ::core::option::Option<ItemReplacement>,
+    /// The order id of the latest successful order associated with this item. Not present if the item is not owned by the user yet (e.g. the item being deferred replaced to).
+    #[serde(default, rename = "latestSuccessfulOrderId")]
+    pub latest_successful_order_id: ::core::option::Option<String>,
+    /// The offer details for this item.
+    #[serde(default, rename = "offerDetails")]
+    pub offer_details: ::core::option::Option<OfferDetails>,
+    /// Current offer phase details for this item.
+    #[serde(default, rename = "offerPhase")]
+    pub offer_phase: ::core::option::Option<OfferPhase>,
+    /// The item is prepaid.
+    #[serde(default, rename = "prepaidPlan")]
+    pub prepaid_plan: ::core::option::Option<PrepaidPlan>,
+    /// The purchased product ID (for example, ''monthly001'').
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Promotion details about this item. Only set if a promotion was applied during signup.
+    #[serde(default, rename = "signupPromotion")]
+    pub signup_promotion: ::core::option::Option<SignupPromotion>,
+}
+
+/// Information specific to an out of app purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutOfAppPurchaseContext {
+    /// User account identifier from the last expired subscription for this SKU.
+    #[serde(default, rename = "expiredExternalAccountIdentifiers")]
+    pub expired_external_account_identifiers: ::core::option::Option<ExternalAccountIdentifiers>,
+    /// The purchase token of the last expired subscription. This purchase token must only be used to help identify the user if the link between the purchaseToken and user is stored in your database. This cannot be used to call the Google Developer API if it has been more than 60 days since expiry.
+    #[serde(default, rename = "expiredPurchaseToken")]
+    pub expired_purchase_token: ::core::option::Option<String>,
+}
+
+/// Information specific to a subscription in paused state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PausedStateContext {
+    /// Time at which the subscription will be automatically resumed.
+    #[serde(default, rename = "autoResumeTime")]
+    pub auto_resume_time: ::core::option::Option<String>,
+}
+
+/// Information associated with purchases made with ''Subscribe with Google''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscribeWithGoogleInfo {
+    /// The email address of the user when the subscription was purchased.
+    #[serde(default, rename = "emailAddress")]
+    pub email_address: ::core::option::Option<String>,
+    /// The family name of the user when the subscription was purchased.
+    #[serde(default, rename = "familyName")]
+    pub family_name: ::core::option::Option<String>,
+    /// The given name of the user when the subscription was purchased.
+    #[serde(default, rename = "givenName")]
+    pub given_name: ::core::option::Option<String>,
+    /// The Google profile id of the user when the subscription was purchased.
+    #[serde(default, rename = "profileId")]
+    pub profile_id: ::core::option::Option<String>,
+    /// The profile name of the user when the subscription was purchased.
+    #[serde(default, rename = "profileName")]
+    pub profile_name: ::core::option::Option<String>,
+}
+
+/// User account identifier in your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalAccountIds {
+    /// Optional. Specifies an optional obfuscated string that is uniquely associated with the purchaser''s user account in your app. If you pass this value, Google Play can use it to detect irregular activity. Do not use this field to store any Personally Identifiable Information (PII) such as emails in cleartext. Attempting to store PII in this field will result in purchases being blocked. Google Play recommends that you use either encryption or a one-way hash to generate an obfuscated identifier to send to Google Play. This identifier is limited to 64 characters. This field can only be set for resubscription purchases. See https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedaccountid to set this field for purchases made using the standard in-app billing flow.
+    #[serde(default, rename = "obfuscatedAccountId")]
+    pub obfuscated_account_id: ::core::option::Option<String>,
+    /// Optional. Specifies an optional obfuscated string that is uniquely associated with the purchaser''s user profile in your app. If you pass this value, Google Play can use it to detect irregular activity. Do not use this field to store any Personally Identifiable Information (PII) such as emails in cleartext. Attempting to store PII in this field will result in purchases being blocked. Google Play recommends that you use either encryption or a one-way hash to generate an obfuscated identifier to send to Google Play. This identifier is limited to 64 characters. This field can only be set for resubscription purchases. See https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedprofileid to set this field for purchases made using the standard in-app billing flow.
+    #[serde(default, rename = "obfuscatedProfileId")]
+    pub obfuscated_profile_id: ::core::option::Option<String>,
+}
+
+/// A SubscriptionDeferralInfo contains the data needed to defer a subscription purchase to a future expiry time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionDeferralInfo {
+    /// The desired next expiry time to assign to the subscription, in milliseconds since the Epoch. The given time must be later/greater than the current expiry time for the subscription.
+    #[serde(default, rename = "desiredExpiryTimeMillis")]
+    pub desired_expiry_time_millis: ::core::option::Option<String>,
+    /// The expected expiry time for the subscription. If the current expiry time for the subscription is not the value specified here, the deferral will not occur.
+    #[serde(default, rename = "expectedExpiryTimeMillis")]
+    pub expected_expiry_time_millis: ::core::option::Option<String>,
+}
+
+/// APK that is suitable for inclusion in a system image. The resource of SystemApksService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Variant {
+    /// The device spec used to generate the APK.
+    #[serde(default, rename = "deviceSpec")]
+    pub device_spec: ::core::option::Option<DeviceSpec>,
+    /// Optional. Options applied to the generated APK.
+    #[serde(default)]
+    pub options: ::core::option::Option<SystemApkOptions>,
+    /// Output only. The ID of a previously created system APK variant.
+    #[serde(default, rename = "variantId")]
+    pub variant_id: ::core::option::Option<i64>,
+}
+
+/// Representation of a single country where the contents of a track can be made available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrackTargetedCountry {
+    /// The country that can be targeted, as a two-letter CLDR code.
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<String>,
+}
+
+/// A track configuration. The resource for TracksService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Track {
+    /// In a read request, represents all active releases in the track. In an update request, represents desired changes.
+    #[serde(default)]
+    pub releases: ::core::option::Option<::std::vec::Vec<TrackRelease>>,
+    /// Identifier of the track. Form factor tracks have a special prefix as an identifier, for example wear:production, automotive:production. [More on track name](https://developers.google.com/android-publisher/tracks#ff-track-name)
+    #[serde(default)]
+    pub track: ::core::option::Option<String>,
+}
+
+/// Information about the current page. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PageInfo {
+    /// Maximum number of results returned in one page. ! The number of results included in the API response.
+    #[serde(default, rename = "resultPerPage")]
+    pub result_per_page: ::core::option::Option<i32>,
+    /// Index of the first result returned in the current page.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// Total number of results available on the backend ! The total number of results in the result set.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+}
+
+/// Pagination information returned by a List operation when token pagination is enabled. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned. When using token pagination, clients should use the next/previous token to get another page of the result. The presence or absence of next/previous token indicates whether a next/previous page is available and provides a mean of accessing this page. ListRequest.page_token should be set to either next_page_token or previous_page_token to access another page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenPagination {
+    /// Tokens to pass to the standard list field ''page_token''. Whenever available, tokens are preferred over manipulating start_index.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    #[serde(default, rename = "previousPageToken")]
+    pub previous_page_token: ::core::option::Option<String>,
+}
+
+/// A VoidedPurchase resource indicates a purchase that was either canceled/refunded/charged-back.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoidedPurchase {
+    /// This kind represents a voided purchase object in the androidpublisher service.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The order id which uniquely identifies a one-time purchase, subscription purchase, or subscription renewal.
+    #[serde(default, rename = "orderId")]
+    pub order_id: ::core::option::Option<String>,
+    /// The time at which the purchase was made, in milliseconds since the epoch (Jan 1, 1970).
+    #[serde(default, rename = "purchaseTimeMillis")]
+    pub purchase_time_millis: ::core::option::Option<String>,
+    /// The token which uniquely identifies a one-time purchase or subscription. To uniquely identify subscription renewals use order_id (available starting from version 3 of the API).
+    #[serde(default, rename = "purchaseToken")]
+    pub purchase_token: ::core::option::Option<String>,
+    /// The voided quantity as the result of a quantity-based partial refund. Voided purchases of quantity-based partial refunds may only be returned when includeQuantityBasedPartialRefund is set to true.
+    #[serde(default, rename = "voidedQuantity")]
+    pub voided_quantity: ::core::option::Option<i32>,
+    /// The reason why the purchase was voided, possible values are: 0. Other 1. Remorse 2. Not_received 3. Defective 4. Accidental_purchase 5. Fraud 6. Friendly_fraud 7. Chargeback 8. Unacknowledged_purchase
+    #[serde(default, rename = "voidedReason")]
+    pub voided_reason: ::core::option::Option<i32>,
+    /// The initiator of voided purchase, possible values are: 0. User 1. Developer 2. Google
+    #[serde(default, rename = "voidedSource")]
+    pub voided_source: ::core::option::Option<i32>,
+    /// The time at which the purchase was canceled/refunded/charged-back, in milliseconds since the epoch (Jan 1, 1970).
+    #[serde(default, rename = "voidedTimeMillis")]
+    pub voided_time_millis: ::core::option::Option<String>,
+}
+
+/// A permission used by this APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsesPermission {
+    /// Optionally, the maximum SDK version for which the permission is required.
+    #[serde(default, rename = "maxSdkVersion")]
+    pub max_sdk_version: ::core::option::Option<i32>,
+    /// The name of the permission requested.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents the binary payload of an APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkBinary {
+    /// A sha1 hash of the APK payload, encoded as a hex string and matching the output of the sha1sum command.
+    #[serde(default)]
+    pub sha1: ::core::option::Option<String>,
+    /// A sha256 hash of the APK payload, encoded as a hex string and matching the output of the sha256sum command.
+    #[serde(default)]
+    pub sha256: ::core::option::Option<String>,
+}
+
+/// Address information for the customer, for use in tax computation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BuyerAddress {
+    /// Two letter country code based on ISO-3166-1 Alpha-2 (UN country codes).
+    #[serde(default, rename = "buyerCountry")]
+    pub buyer_country: ::core::option::Option<String>,
+    /// Postal code of an address. When Google is the Merchant of Record for the order, this information is not included.
+    #[serde(default, rename = "buyerPostcode")]
+    pub buyer_postcode: ::core::option::Option<String>,
+    /// Top-level administrative subdivision of the buyer address country. When Google is the Merchant of Record for the order, this information is not included.
+    #[serde(default, rename = "buyerState")]
+    pub buyer_state: ::core::option::Option<String>,
+}
+
+/// Details of a line item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LineItem {
+    /// Item''s listed price on Play Store, this may or may not include tax. Excludes Google-funded discounts only.
+    #[serde(default, rename = "listingPrice")]
+    pub listing_price: ::core::option::Option<Money>,
+    /// Details of a one-time purchase.
+    #[serde(default, rename = "oneTimePurchaseDetails")]
+    pub one_time_purchase_details: ::core::option::Option<OneTimePurchaseDetails>,
+    /// Details of a paid app purchase.
+    #[serde(default, rename = "paidAppDetails")]
+    pub paid_app_details: ::core::option::Option<serde_json::Value>,
+    /// The purchased product ID or in-app SKU (for example, ''monthly001'' or ''com.some.thing.inapp1'').
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Developer-specified name of the product. Displayed in buyer''s locale. Example: coins, monthly subscription, etc.
+    #[serde(default, rename = "productTitle")]
+    pub product_title: ::core::option::Option<String>,
+    /// Details of a subscription purchase.
+    #[serde(default, rename = "subscriptionDetails")]
+    pub subscription_details: ::core::option::Option<SubscriptionDetails>,
+    /// The tax paid for this line item.
+    #[serde(default)]
+    pub tax: ::core::option::Option<Money>,
+    /// The total amount paid by the user for this line item, taking into account discounts and tax.
+    #[serde(default)]
+    pub total: ::core::option::Option<Money>,
+}
+
+/// Detailed information about the order at creation time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderDetails {
+    /// Indicates whether the listed price was tax inclusive or not.
+    #[serde(default, rename = "taxInclusive")]
+    pub tax_inclusive: ::core::option::Option<bool>,
+}
+
+/// Details about events which modified the order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderHistory {
+    /// Details of when the order was canceled.
+    #[serde(default, rename = "cancellationEvent")]
+    pub cancellation_event: ::core::option::Option<CancellationEvent>,
+    /// Details of the partial refund events for this order.
+    #[serde(default, rename = "partialRefundEvents")]
+    pub partial_refund_events: ::core::option::Option<::std::vec::Vec<PartialRefundEvent>>,
+    /// Details of when the order was processed.
+    #[serde(default, rename = "processedEvent")]
+    pub processed_event: ::core::option::Option<ProcessedEvent>,
+    /// Details of when the order was fully refunded.
+    #[serde(default, rename = "refundEvent")]
+    pub refund_event: ::core::option::Option<RefundEvent>,
+}
+
+/// Details relating to any Play Points applied to an order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PointsDetails {
+    /// The monetary value of a Play Points coupon. This is the discount the coupon provides, which may not be the total amount. Only set when Play Points coupons have been used. E.g. for a 100 points for $2 coupon, this is $2.
+    #[serde(default, rename = "pointsCouponValue")]
+    pub points_coupon_value: ::core::option::Option<Money>,
+    /// The percentage rate which the Play Points promotion reduces the cost by. E.g. for a 100 points for $2 coupon, this is 500,000. Since $2 has an estimate of 200 points, but the actual Points required, 100, is 50% of this, and 50% in micros is 500,000. Between 0 and 1,000,000.
+    #[serde(default, rename = "pointsDiscountRateMicros")]
+    pub points_discount_rate_micros: ::core::option::Option<String>,
+    /// ID unique to the play points offer in use for this order.
+    #[serde(default, rename = "pointsOfferId")]
+    pub points_offer_id: ::core::option::Option<String>,
+    /// The number of Play Points applied in this order. E.g. for a 100 points for $2 coupon, this is 100. For coupon stacked with base offer, this is the total points spent across both.
+    #[serde(default, rename = "pointsSpent")]
+    pub points_spent: ::core::option::Option<String>,
+}
+
+/// Configuration for migration of a legacy price cohort.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalPriceMigrationConfig {
+    /// Required. Subscribers in all legacy price cohorts before this time will be migrated to the current price. Subscribers in any newer price cohorts are unaffected. Affected subscribers will receive one or more notifications from Google Play about the price change. Price decreases occur at the subscriber''s next billing date. Price increases occur at the subscriber''s next billing date following a notification period that varies by region and price increase type.
+    #[serde(default, rename = "oldestAllowedPriceVersionTime")]
+    pub oldest_allowed_price_version_time: ::core::option::Option<String>,
+    /// Optional. The requested type of price increase // TODO: enum values: ["PRICE_INCREASE_TYPE_UNSPECIFIED", "PRICE_INCREASE_TYPE_OPT_IN", "PRICE_INCREASE_TYPE_OPT_OUT"]
+    #[serde(default, rename = "priceIncreaseType")]
+    pub price_increase_type: ::core::option::Option<String>,
+    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Request message for ActivateBasePlan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivateBasePlanRequest {
+    /// Required. The unique base plan ID of the base plan to activate.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the base plan to activate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent subscription (ID) of the base plan to activate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Request message for DeactivateBasePlan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivateBasePlanRequest {
+    /// Required. The unique base plan ID of the base plan to deactivate.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the base plan to deactivate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent subscription (ID) of the base plan to deactivate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Request message for ActivateOneTimeProductOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivateOneTimeProductOfferRequest {
+    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The offer ID of the offer to activate.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to activate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the offer to activate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The parent purchase option (ID) of the offer to activate.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for CancelOneTimeProductOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOneTimeProductOfferRequest {
+    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The offer ID of the offer to cancel.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to cancel.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the offer to cancel.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The parent purchase option (ID) of the offer to cancel.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for DeactivateOneTimeProductOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivateOneTimeProductOfferRequest {
+    /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The offer ID of the offer to deactivate.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to deactivate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the offer to deactivate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The parent purchase option (ID) of the offer to deactivate.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// A single offer for a one-time product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductOffer {
+    /// A discounted offer.
+    #[serde(default, rename = "discountedOffer")]
+    pub discounted_offer: ::core::option::Option<OneTimeProductDiscountedOffer>,
+    /// Required. Immutable. The ID of this product offer. Must be unique within the purchase option. It must start with a number or lower-case letter, and can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-). The maximum length is 63 characters.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Optional. List of up to 20 custom tags specified for this offer, and returned to the app through the billing library.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
+    /// Required. Immutable. The package name of the app the parent product belongs to.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// A pre-order offer.
+    #[serde(default, rename = "preOrderOffer")]
+    pub pre_order_offer: ::core::option::Option<OneTimeProductPreOrderOffer>,
+    /// Required. Immutable. The ID of the parent product this offer belongs to.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. Immutable. The ID of the purchase option to which this offer is an extension.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+    /// Set of regional pricing and availability information for this offer. Must not have duplicate entries with the same region_code.
+    #[serde(default, rename = "regionalPricingAndAvailabilityConfigs")]
+    pub regional_pricing_and_availability_configs: ::core::option::Option<
+        ::std::vec::Vec<OneTimeProductOfferRegionalPricingAndAvailabilityConfig>,
+    >,
+    /// Output only. The version of the regions configuration that was used to generate the one-time product offer.
+    #[serde(default, rename = "regionsVersion")]
+    pub regions_version: ::core::option::Option<RegionsVersion>,
+    /// Output only. The current state of this offer. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "CANCELLED", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A single one-time product for an app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProduct {
+    /// Required. Set of localized title and description data. Must not have duplicate entries with the same language_code.
+    #[serde(default)]
+    pub listings: ::core::option::Option<::std::vec::Vec<OneTimeProductListing>>,
+    /// Optional. List of up to 20 custom tags specified for this one-time product, and returned to the app through the billing library. Purchase options and offers for this product will also receive these tags in the billing library.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
+    /// Required. Immutable. Package name of the parent app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. Immutable. Unique product ID of the product. Unique within the parent app. Product IDs must start with a number or lowercase letter, and can contain numbers (0-9), lowercase letters (a-z), underscores (_), and periods (.).
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The set of purchase options for this one-time product.
+    #[serde(default, rename = "purchaseOptions")]
+    pub purchase_options: ::core::option::Option<::std::vec::Vec<OneTimeProductPurchaseOption>>,
+    /// Output only. The version of the regions configuration that was used to generate the one-time product.
+    #[serde(default, rename = "regionsVersion")]
+    pub regions_version: ::core::option::Option<RegionsVersion>,
+    /// Optional. Countries where the purchase of this one-time product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
+    #[serde(default, rename = "restrictedPaymentCountries")]
+    pub restricted_payment_countries: ::core::option::Option<RestrictedPaymentCountries>,
+    /// Details about taxes and legal compliance.
+    #[serde(default, rename = "taxAndComplianceSettings")]
+    pub tax_and_compliance_settings: ::core::option::Option<OneTimeProductTaxAndComplianceSettings>,
+}
+
+/// Request message for UpdatePurchaseOptionState.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivatePurchaseOptionRequest {
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the purchase option to activate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the purchase option to activate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The purchase option ID of the purchase option to activate.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for UpdatePurchaseOptionState.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivatePurchaseOptionRequest {
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the purchase option to deactivate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent one-time product (ID) of the purchase option to deactivate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The purchase option ID of the purchase option to deactivate.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+}
+
+/// Request message for ActivateSubscriptionOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivateSubscriptionOfferRequest {
+    /// Required. The parent base plan (ID) of the offer to activate.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The unique offer ID of the offer to activate.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to activate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent subscription (ID) of the offer to activate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Request message for DeactivateSubscriptionOffer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivateSubscriptionOfferRequest {
+    /// Required. The parent base plan (ID) of the offer to deactivate.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
+    #[serde(default, rename = "latencyTolerance")]
+    pub latency_tolerance: ::core::option::Option<String>,
+    /// Required. The unique offer ID of the offer to deactivate.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// Required. The parent app (package name) of the offer to deactivate.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The parent subscription (ID) of the offer to deactivate.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// A single, temporary offer
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionOffer {
+    /// Required. Immutable. The ID of the base plan to which this offer is an extension.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Required. Immutable. Unique ID of this subscription offer. Must be unique within the base plan.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// List of up to 20 custom tags specified for this offer, and returned to the app through the billing library.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
+    /// The configuration for any new locations Play may launch in the future.
+    #[serde(default, rename = "otherRegionsConfig")]
+    pub other_regions_config: ::core::option::Option<OtherRegionsSubscriptionOfferConfig>,
+    /// Required. Immutable. The package name of the app the parent subscription belongs to.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Required. The phases of this subscription offer. Must contain at least one and at most two entries. Users will always receive all these phases in the specified order.
+    #[serde(default)]
+    pub phases: ::core::option::Option<::std::vec::Vec<SubscriptionOfferPhase>>,
+    /// Required. Immutable. The ID of the parent subscription this offer belongs to.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Required. The region-specific configuration of this offer. Must contain at least one entry.
+    #[serde(default, rename = "regionalConfigs")]
+    pub regional_configs: ::core::option::Option<::std::vec::Vec<RegionalSubscriptionOfferConfig>>,
+    /// Output only. The current state of this offer. Can be changed using Activate and Deactivate actions. NB: the base plan state supersedes this state, so an active offer may not be available if the base plan is not active. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The requirements that users need to fulfil to be eligible for this offer. Represents the requirements that Play will evaluate to decide whether an offer should be returned. Developers may further filter these offers themselves.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<SubscriptionOfferTargeting>,
+}
+
+/// A single subscription for an app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subscription {
+    /// Output only. Deprecated: subscription archiving is not supported.
+    #[serde(default)]
+    pub archived: ::core::option::Option<bool>,
+    /// The set of base plans for this subscription. Represents the prices and duration of the subscription if no other offers apply.
+    #[serde(default, rename = "basePlans")]
+    pub base_plans: ::core::option::Option<::std::vec::Vec<BasePlan>>,
+    /// Required. List of localized listings for this subscription. Must contain at least an entry for the default language of the parent app.
+    #[serde(default)]
+    pub listings: ::core::option::Option<::std::vec::Vec<SubscriptionListing>>,
+    /// Immutable. Package name of the parent app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Immutable. Unique product ID of the product. Unique within the parent app. Product IDs must be composed of lower-case letters (a-z), numbers (0-9), underscores (_) and dots (.). It must start with a lower-case letter or number, and be between 1 and 40 (inclusive) characters in length.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Optional. Countries where the purchase of this subscription is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
+    #[serde(default, rename = "restrictedPaymentCountries")]
+    pub restricted_payment_countries: ::core::option::Option<RestrictedPaymentCountries>,
+    /// Details about taxes and legal compliance.
+    #[serde(default, rename = "taxAndComplianceSettings")]
+    pub tax_and_compliance_settings: ::core::option::Option<SubscriptionTaxAndComplianceSettings>,
+}
+
+/// Details of an external subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalSubscription {
+    /// Required. The type of the external subscription. // TODO: enum values: ["SUBSCRIPTION_TYPE_UNSPECIFIED", "RECURRING", "PREPAID"]
+    #[serde(default, rename = "subscriptionType")]
+    pub subscription_type: ::core::option::Option<String>,
+}
+
+/// Download metadata for an asset pack slice.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedAssetPackSlice {
+    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
+    #[serde(default, rename = "downloadId")]
+    pub download_id: ::core::option::Option<String>,
+    /// Name of the module that this asset slice belongs to.
+    #[serde(default, rename = "moduleName")]
+    pub module_name: ::core::option::Option<String>,
+    /// Asset slice ID.
+    #[serde(default, rename = "sliceId")]
+    pub slice_id: ::core::option::Option<String>,
+    /// Asset module version.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Download metadata for an app recovery module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedRecoveryApk {
+    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
+    #[serde(default, rename = "downloadId")]
+    pub download_id: ::core::option::Option<String>,
+    /// Name of the module which recovery apk belongs to.
+    #[serde(default, rename = "moduleName")]
+    pub module_name: ::core::option::Option<String>,
+    /// ID of the recovery action.
+    #[serde(default, rename = "recoveryId")]
+    pub recovery_id: ::core::option::Option<String>,
+    /// The status of the recovery action corresponding to the recovery apk. // TODO: enum values: ["RECOVERY_STATUS_UNSPECIFIED", "RECOVERY_STATUS_ACTIVE", "RECOVERY_STATUS_CANCELED", "RECOVERY_STATUS_DRAFT", "RECOVERY_STATUS_GENERATION_IN_PROGRESS", "RECOVERY_STATUS_GENERATION_FAILED"]
+    #[serde(default, rename = "recoveryStatus")]
+    pub recovery_status: ::core::option::Option<String>,
+}
+
+/// Download metadata for a split APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedSplitApk {
+    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
+    #[serde(default, rename = "downloadId")]
+    pub download_id: ::core::option::Option<String>,
+    /// Name of the module that this APK belongs to.
+    #[serde(default, rename = "moduleName")]
+    pub module_name: ::core::option::Option<String>,
+    /// Split ID. Empty for the main split of the base module.
+    #[serde(default, rename = "splitId")]
+    pub split_id: ::core::option::Option<String>,
+    /// ID of the generated variant.
+    #[serde(default, rename = "variantId")]
+    pub variant_id: ::core::option::Option<i32>,
+}
+
+/// Download metadata for a standalone APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedStandaloneApk {
+    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
+    #[serde(default, rename = "downloadId")]
+    pub download_id: ::core::option::Option<String>,
+    /// ID of the generated variant.
+    #[serde(default, rename = "variantId")]
+    pub variant_id: ::core::option::Option<i32>,
+}
+
+/// Download metadata for a universal APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedUniversalApk {
+    /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
+    #[serde(default, rename = "downloadId")]
+    pub download_id: ::core::option::Option<String>,
+}
+
+/// Targeting information about the generated apks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetingInfo {
+    /// List of created asset slices.
+    #[serde(default, rename = "assetSliceSet")]
+    pub asset_slice_set: ::core::option::Option<::std::vec::Vec<AssetSliceSet>>,
+    /// The package name of this app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// List of the created variants.
+    #[serde(default)]
+    pub variant: ::core::option::Option<::std::vec::Vec<SplitApkVariant>>,
+}
+
+/// An in-app product. The resource for InappproductsService.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InAppProduct {
+    /// Default language of the localized data, as defined by BCP-47. e.g. "en-US".
+    #[serde(default, rename = "defaultLanguage")]
+    pub default_language: ::core::option::Option<String>,
+    /// Default price. Cannot be zero, as in-app products are never free. Always in the developer''s Checkout merchant currency.
+    #[serde(default, rename = "defaultPrice")]
+    pub default_price: ::core::option::Option<Price>,
+    /// Grace period of the subscription, specified in ISO 8601 format. Allows developers to give their subscribers a grace period when the payment for the new recurrence period is declined. Acceptable values are P0D (zero days), P3D (three days), P7D (seven days), P14D (14 days), and P30D (30 days).
+    #[serde(default, rename = "gracePeriod")]
+    pub grace_period: ::core::option::Option<String>,
+    /// List of localized title and description data. Map key is the language of the localized data, as defined by BCP-47, e.g. "en-US".
+    #[serde(default)]
+    pub listings: ::core::option::Option<serde_json::Value>,
+    /// Details about taxes and legal compliance. Only applicable to managed products.
+    #[serde(default, rename = "managedProductTaxesAndComplianceSettings")]
+    pub managed_product_taxes_and_compliance_settings:
+        ::core::option::Option<ManagedProductTaxAndComplianceSettings>,
+    /// Package name of the parent app.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Prices per buyer region. None of these can be zero, as in-app products are never free. Map key is region code, as defined by ISO 3166-2.
+    #[serde(default)]
+    pub prices: ::core::option::Option<serde_json::Value>,
+    /// The type of the product, e.g. a recurring subscription. // TODO: enum values: ["purchaseTypeUnspecified", "managedUser", "subscription"]
+    #[serde(default, rename = "purchaseType")]
+    pub purchase_type: ::core::option::Option<String>,
+    /// Stock-keeping-unit (SKU) of the product, unique within an app.
+    #[serde(default)]
+    pub sku: ::core::option::Option<String>,
+    /// The status of the product, e.g. whether it''s active. // TODO: enum values: ["statusUnspecified", "active", "inactive"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Subscription period, specified in ISO 8601 format. Acceptable values are P1W (one week), P1M (one month), P3M (three months), P6M (six months), and P1Y (one year).
+    #[serde(default, rename = "subscriptionPeriod")]
+    pub subscription_period: ::core::option::Option<String>,
+    /// Details about taxes and legal compliance. Only applicable to subscription products.
+    #[serde(default, rename = "subscriptionTaxesAndComplianceSettings")]
+    pub subscription_taxes_and_compliance_settings:
+        ::core::option::Option<SubscriptionTaxAndComplianceSettings>,
+    /// Trial period, specified in ISO 8601 format. Acceptable values are anything between P7D (seven days) and P999D (999 days).
+    #[serde(default, rename = "trialPeriod")]
+    pub trial_period: ::core::option::Option<String>,
+}
+
+/// Data related to Remote In-App Update action such as recovered user count, affected user count etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteInAppUpdateData {
+    /// Data related to the recovery action at bundle level.
+    #[serde(default, rename = "remoteAppUpdateDataPerBundle")]
+    pub remote_app_update_data_per_bundle:
+        ::core::option::Option<::std::vec::Vec<RemoteInAppUpdateDataPerBundle>>,
+}
+
+/// Targeting details for a recovery action such as regions, android sdk levels, app versions etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Targeting {
+    /// All users are targeted.
+    #[serde(default, rename = "allUsers")]
+    pub all_users: ::core::option::Option<AllUsers>,
+    /// Targeting is based on android api levels of devices.
+    #[serde(default, rename = "androidSdks")]
+    pub android_sdks: ::core::option::Option<AndroidSdks>,
+    /// Targeting is based on the user account region.
+    #[serde(default)]
+    pub regions: ::core::option::Option<Regions>,
+    /// Target version codes as a list.
+    #[serde(default, rename = "versionList")]
+    pub version_list: ::core::option::Option<AppVersionList>,
+    /// Target version codes as a range.
+    #[serde(default, rename = "versionRange")]
+    pub version_range: ::core::option::Option<AppVersionRange>,
+}
+
+/// A group of devices. A group is defined by a set of device selectors. A device belongs to the group if it matches any selector (logical OR).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceGroup {
+    /// Device selectors for this group. A device matching any of the selectors is included in this group.
+    #[serde(default, rename = "deviceSelectors")]
+    pub device_selectors: ::core::option::Option<::std::vec::Vec<DeviceSelector>>,
+    /// The name of the group.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A set of device tiers. A tier set determines what variation of app content gets served to a specific device, for device-targeted content. You should assign a priority level to each tier, which determines the ordering by which they are evaluated by Play. See the documentation of DeviceTier.level for more details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceTierSet {
+    /// Device tiers belonging to the set.
+    #[serde(default, rename = "deviceTiers")]
+    pub device_tiers: ::core::option::Option<::std::vec::Vec<DeviceTier>>,
+}
+
+/// A set of user countries. A country set determines what variation of app content gets served to a specific location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserCountrySet {
+    /// List of country codes representing countries. A Country code is represented in ISO 3166 alpha-2 format. For Example:- "IT" for Italy, "GE" for Georgia.
+    #[serde(default, rename = "countryCodes")]
+    pub country_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Country set name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Summary of an artifact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactSummary {
+    /// Artifact''s version code
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<i32>,
+}
+
+/// An access grant resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Grant {
+    /// The permissions granted to the user for this app.
+    #[serde(default, rename = "appLevelPermissions")]
+    pub app_level_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Resource name for this grant, following the pattern "developers/{developer}/users/{email}/grants/{package_name}". If this grant is for a draft app, the app ID will be used in this resource name instead of the package name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. The package name of the app. This will be empty for draft apps.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// Offer details information related to a purchase line item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductOfferDetails {
+    /// Output only. The consumption state of the purchase. // TODO: enum values: ["CONSUMPTION_STATE_UNSPECIFIED", "CONSUMPTION_STATE_YET_TO_BE_CONSUMED", "CONSUMPTION_STATE_CONSUMED"]
+    #[serde(default, rename = "consumptionState")]
+    pub consumption_state: ::core::option::Option<String>,
+    /// The offer ID. Only present for offers.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// The latest offer tags associated with the offer. It includes tags inherited from the purchase option.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The per-transaction offer token used to make this purchase line item.
+    #[serde(default, rename = "offerToken")]
+    pub offer_token: ::core::option::Option<String>,
+    /// Offer details for a preorder offer. This will only be set for preorders.
+    #[serde(default, rename = "preorderOfferDetails")]
+    pub preorder_offer_details: ::core::option::Option<PreorderOfferDetails>,
+    /// The purchase option ID.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+    /// The quantity associated with the purchase of the inapp product.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<i32>,
+    /// The quantity eligible for refund, i.e. quantity that hasn''t been refunded. The value reflects quantity-based partial refunds and full refunds.
+    #[serde(default, rename = "refundableQuantity")]
+    pub refundable_quantity: ::core::option::Option<i32>,
+    /// Offer details about rent offers. This will only be set for rental line items.
+    #[serde(default, rename = "rentOfferDetails")]
+    pub rent_offer_details: ::core::option::Option<serde_json::Value>,
+}
+
+/// An entry of conversation between user and developer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Comment {
+    /// A comment from a developer.
+    #[serde(default, rename = "developerComment")]
+    pub developer_comment: ::core::option::Option<DeveloperComment>,
+    /// A comment from a user.
+    #[serde(default, rename = "userComment")]
+    pub user_comment: ::core::option::Option<UserComment>,
+}
+
+/// Used to determine what specific item to revoke in a subscription with multiple items.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevocationContextItemBasedRefund {
+    /// Required. If the subscription is a subscription with add-ons, the product id of the subscription item to revoke.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Information specific to cancellations initiated by users.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserInitiatedCancellation {
+    /// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
+    #[serde(default, rename = "cancelSurveyResult")]
+    pub cancel_survey_result: ::core::option::Option<CancelSurveyResult>,
+    /// The time at which the subscription was canceled by the user. The user might still have access to the subscription after this time. Use line_items.expiry_time to determine if a user still has access.
+    #[serde(default, rename = "cancelTime")]
+    pub cancel_time: ::core::option::Option<String>,
+}
+
+/// Information related to an auto renewing plan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoRenewingPlan {
+    /// If the subscription is currently set to auto-renew, e.g. the user has not canceled the subscription
+    #[serde(default, rename = "autoRenewEnabled")]
+    pub auto_renew_enabled: ::core::option::Option<bool>,
+    /// The installment plan commitment and state related info for the auto renewing plan.
+    #[serde(default, rename = "installmentDetails")]
+    pub installment_details: ::core::option::Option<InstallmentPlan>,
+    /// The information of the last price change for the item since subscription signup.
+    #[serde(default, rename = "priceChangeDetails")]
+    pub price_change_details: ::core::option::Option<SubscriptionItemPriceChangeDetails>,
+    /// The information of the latest price step-up consent.
+    #[serde(default, rename = "priceStepUpConsentDetails")]
+    pub price_step_up_consent_details: ::core::option::Option<PriceStepUpConsentDetails>,
+    /// The current recurring price of the auto renewing plan. Note that the price does not take into account discounts and does not include taxes for tax-exclusive pricing, please call orders.get API instead if transaction details are needed.
+    #[serde(default, rename = "recurringPrice")]
+    pub recurring_price: ::core::option::Option<Money>,
+}
+
+/// Information related to deferred item replacement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeferredItemReplacement {
+    /// The product_id going to replace the existing product_id.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+}
+
+/// Details about a subscription line item that is being replaced.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ItemReplacement {
+    /// The base plan ID of the subscription line item being replaced.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// The offer ID of the subscription line item being replaced, if applicable.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// The product ID of the subscription line item being replaced.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// The replacement mode applied during the purchase. // TODO: enum values: ["REPLACEMENT_MODE_UNSPECIFIED", "WITH_TIME_PRORATION", "CHARGE_PRORATED_PRICE", "WITHOUT_PRORATION", "CHARGE_FULL_PRICE", "DEFERRED", "KEEP_EXISTING"]
+    #[serde(default, rename = "replacementMode")]
+    pub replacement_mode: ::core::option::Option<String>,
+}
+
+/// Offer details information related to a purchase line item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OfferDetails {
+    /// The base plan ID. Present for all base plan and offers.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// The offer ID. Only present for discounted offers.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// The latest offer tags associated with the offer. It includes tags inherited from the base plan.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Offer phase details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OfferPhase {
+    /// Set when the offer phase is a base plan pricing phase.
+    #[serde(default, rename = "basePrice")]
+    pub base_price: ::core::option::Option<serde_json::Value>,
+    /// Set when the offer phase is a free trial.
+    #[serde(default, rename = "freeTrial")]
+    pub free_trial: ::core::option::Option<serde_json::Value>,
+    /// Set when the offer phase is an introductory price offer phase.
+    #[serde(default, rename = "introductoryPrice")]
+    pub introductory_price: ::core::option::Option<serde_json::Value>,
+    /// Set when the offer phase is a proration period.
+    #[serde(default, rename = "prorationPeriod")]
+    pub proration_period: ::core::option::Option<ProrationPeriodOfferPhase>,
+}
+
+/// Information related to a prepaid plan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrepaidPlan {
+    /// If present, this is the time after which top up purchases are allowed for the prepaid plan. Will not be present for expired prepaid plans.
+    #[serde(default, rename = "allowExtendAfterTime")]
+    pub allow_extend_after_time: ::core::option::Option<String>,
+}
+
+/// The promotion applied on this item when purchased.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignupPromotion {
+    /// A one-time code was applied.
+    #[serde(default, rename = "oneTimeCode")]
+    pub one_time_code: ::core::option::Option<serde_json::Value>,
+    /// A vanity code was applied.
+    #[serde(default, rename = "vanityCode")]
+    pub vanity_code: ::core::option::Option<VanityCode>,
+}
+
+/// User account identifier in the third-party service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalAccountIdentifiers {
+    /// User account identifier in the third-party service. Only present if account linking happened as part of the subscription purchase flow.
+    #[serde(default, rename = "externalAccountId")]
+    pub external_account_id: ::core::option::Option<String>,
+    /// An obfuscated version of the id that is uniquely associated with the user''s account in your app. Present for the following purchases: * If account linking happened as part of the subscription purchase flow. * It was specified using https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedaccountid when the purchase was made.
+    #[serde(default, rename = "obfuscatedExternalAccountId")]
+    pub obfuscated_external_account_id: ::core::option::Option<String>,
+    /// An obfuscated version of the id that is uniquely associated with the user''s profile in your app. Only present if specified using https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedprofileid when the purchase was made.
+    #[serde(default, rename = "obfuscatedExternalProfileId")]
+    pub obfuscated_external_profile_id: ::core::option::Option<String>,
+}
+
+/// The device spec used to generate a system APK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceSpec {
+    /// Screen dpi.
+    #[serde(default, rename = "screenDensity")]
+    pub screen_density: ::core::option::Option<i64>,
+    /// Supported ABI architectures in the order of preference. The values should be the string as reported by the platform, e.g. "armeabi-v7a", "x86_64".
+    #[serde(default, rename = "supportedAbis")]
+    pub supported_abis: ::core::option::Option<::std::vec::Vec<String>>,
+    /// All installed locales represented as BCP-47 strings, e.g. "en-US".
+    #[serde(default, rename = "supportedLocales")]
+    pub supported_locales: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Options for system APKs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemApkOptions {
+    /// Whether to use the rotated key for signing the system APK.
+    #[serde(default)]
+    pub rotated: ::core::option::Option<bool>,
+    /// Whether system APK was generated with uncompressed dex files.
+    #[serde(default, rename = "uncompressedDexFiles")]
+    pub uncompressed_dex_files: ::core::option::Option<bool>,
+    /// Whether system APK was generated with uncompressed native libraries.
+    #[serde(default, rename = "uncompressedNativeLibraries")]
+    pub uncompressed_native_libraries: ::core::option::Option<bool>,
+}
+
+/// A release within a track.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrackRelease {
+    /// Restricts a release to a specific set of countries. Note this is only allowed to be set for inProgress releases in the production track.
+    #[serde(default, rename = "countryTargeting")]
+    pub country_targeting: ::core::option::Option<CountryTargeting>,
+    /// In-app update priority of the release. All newly added APKs in the release will be considered at this priority. Can take values in the range [0, 5], with 5 the highest priority. Defaults to 0. in_app_update_priority can not be updated once the release is rolled out. See https://developer.android.com/guide/playcore/in-app-updates.
+    #[serde(default, rename = "inAppUpdatePriority")]
+    pub in_app_update_priority: ::core::option::Option<i32>,
+    /// The release name. Not required to be unique. If not set, the name is generated from the APK''s version_name. If the release contains multiple APKs, the name is generated from the date.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A description of what is new in this release.
+    #[serde(default, rename = "releaseNotes")]
+    pub release_notes: ::core::option::Option<::std::vec::Vec<LocalizedText>>,
+    /// The status of the release. // TODO: enum values: ["statusUnspecified", "draft", "inProgress", "halted", "completed"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Fraction of users who are eligible for a staged release. 0 &lt; fraction &lt; 1. Can only be set when status is "inProgress" or "halted".
+    #[serde(default, rename = "userFraction")]
+    pub user_fraction: ::core::option::Option<f64>,
+    /// Version codes of all APKs in the release. Must include version codes to retain from previous releases.
+    #[serde(default, rename = "versionCodes")]
+    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Details of a one-time purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimePurchaseDetails {
+    /// The offer ID of the one-time purchase offer.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// The details of a pre-order purchase. Only set if it is a pre-order purchase. Note that this field will be set even after pre-order is fulfilled.
+    #[serde(default, rename = "preorderDetails")]
+    pub preorder_details: ::core::option::Option<serde_json::Value>,
+    /// ID of the purchase option. This field is set for both purchase options and variant offers. For purchase options, this ID identifies the purchase option itself. For variant offers, this ID refers to the associated purchase option, and in conjunction with offer_id it identifies the variant offer.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+    /// The number of items purchased (for multi-quantity item purchases).
+    #[serde(default)]
+    pub quantity: ::core::option::Option<i32>,
+    /// The details of a rent purchase. Only set if it is a rent purchase.
+    #[serde(default, rename = "rentalDetails")]
+    pub rental_details: ::core::option::Option<serde_json::Value>,
+}
+
+/// Details of a subscription purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionDetails {
+    /// The base plan ID of the subscription.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// The offer ID for the current subscription offer.
+    #[serde(default, rename = "offerId")]
+    pub offer_id: ::core::option::Option<String>,
+    /// The pricing phase for the billing period funded by this order. Deprecated. Use offer_phase_details instead. // TODO: enum values: ["OFFER_PHASE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
+    #[serde(default, rename = "offerPhase")]
+    pub offer_phase: ::core::option::Option<String>,
+    /// The pricing phase details for the entitlement period funded by this order.
+    #[serde(default, rename = "offerPhaseDetails")]
+    pub offer_phase_details: ::core::option::Option<OfferPhaseDetails>,
+    /// The end of the billing period funded by this order. This is a snapshot of the billing/service period end time at the moment the order was processed, and should be used only for accounting. To get the current end time of the subscription service period, use purchases.subscriptionsv2.get.
+    #[serde(default, rename = "servicePeriodEndTime")]
+    pub service_period_end_time: ::core::option::Option<String>,
+    /// The start of the billing period funded by this order. This is a snapshot of the billing/service period start time at the moment the order was processed, and should be used only for accounting.
+    #[serde(default, rename = "servicePeriodStartTime")]
+    pub service_period_start_time: ::core::option::Option<String>,
+}
+
+/// Details of when the order was canceled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancellationEvent {
+    /// The time when the order was canceled.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+}
+
+/// Details of the partial refund events for this order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartialRefundEvent {
+    /// The time when the partial refund was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The time when the partial refund was processed.
+    #[serde(default, rename = "processTime")]
+    pub process_time: ::core::option::Option<String>,
+    /// Details for the partial refund.
+    #[serde(default, rename = "refundDetails")]
+    pub refund_details: ::core::option::Option<RefundDetails>,
+    /// The state of the partial refund. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "PROCESSED_SUCCESSFULLY"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Details of when the order was processed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessedEvent {
+    /// The time when the order was processed.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+}
+
+/// Details of when the order was fully refunded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefundEvent {
+    /// The time when the order was fully refunded.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Details for the full refund.
+    #[serde(default, rename = "refundDetails")]
+    pub refund_details: ::core::option::Option<RefundDetails>,
+    /// The reason the order was refunded. // TODO: enum values: ["REFUND_REASON_UNSPECIFIED", "OTHER", "CHARGEBACK"]
+    #[serde(default, rename = "refundReason")]
+    pub refund_reason: ::core::option::Option<String>,
+}
+
+/// Configuration specific to discounted offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductDiscountedOffer {
+    /// Time when the offer will stop being available.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. The number of times this offer can be redeemed. If unset or set to 0, allows for unlimited offer redemptions. Otherwise must be a number between 1 and 50 inclusive.
+    #[serde(default, rename = "redemptionLimit")]
+    pub redemption_limit: ::core::option::Option<String>,
+    /// Time when the offer will start being available.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Configuration specific to pre-order offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductPreOrderOffer {
+    /// Required. Time when the pre-order will stop being available.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. Immutable. Specifies how price changes affect pre-existing pre-orders. // TODO: enum values: ["PRE_ORDER_PRICE_CHANGE_BEHAVIOR_UNSPECIFIED", "PRE_ORDER_PRICE_CHANGE_BEHAVIOR_TWO_POINT_LOWEST", "PRE_ORDER_PRICE_CHANGE_BEHAVIOR_NEW_ORDERS_ONLY"]
+    #[serde(default, rename = "priceChangeBehavior")]
+    pub price_change_behavior: ::core::option::Option<String>,
+    /// Required. Time on which the product associated with the pre-order will be released and the pre-order orders fulfilled.
+    #[serde(default, rename = "releaseTime")]
+    pub release_time: ::core::option::Option<String>,
+    /// Required. Time when the pre-order will start being available.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Regional pricing and availability configuration for a one-time product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
+    /// The absolute value of the discount that is subtracted from the purchase option price. It should be between 0 and the purchase option price.
+    #[serde(default, rename = "absoluteDiscount")]
+    pub absolute_discount: ::core::option::Option<Money>,
+    /// Required. The availability for this region. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE"]
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// The price defined in the purchase option for this region will be used.
+    #[serde(default, rename = "noOverride")]
+    pub no_override: ::core::option::Option<serde_json::Value>,
+    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The fraction of the purchase option price that the user pays for this offer. For example, if the purchase option price for this region is $12, then a 50% discount would correspond to a price of $6. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in this region.
+    #[serde(default, rename = "relativeDiscount")]
+    pub relative_discount: ::core::option::Option<f64>,
+}
+
+/// Regional store listing for a one-time product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductListing {
+    /// Required. The description of this product in the language of this listing. The maximum length is 200 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The language of this listing, as defined by BCP-47, e.g., "en-US".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Required. The title of this product in the language of this listing. The maximum length is 55 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A single purchase option for a one-time product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductPurchaseOption {
+    /// A purchase option that can be bought.
+    #[serde(default, rename = "buyOption")]
+    pub buy_option: ::core::option::Option<OneTimeProductBuyPurchaseOption>,
+    /// Pricing information for any new locations Play may launch in the future. If omitted, the purchase option will not be automatically available in any new locations Play may launch in the future.
+    #[serde(default, rename = "newRegionsConfig")]
+    pub new_regions_config: ::core::option::Option<OneTimeProductPurchaseOptionNewRegionsConfig>,
+    /// Optional. List of up to 20 custom tags specified for this purchase option, and returned to the app through the billing library. Offers for this purchase option will also receive these tags in the billing library.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
+    /// Required. Immutable. The unique identifier of this purchase option. Must be unique within the one-time product. It must start with a number or lower-case letter, and can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-). The maximum length is 63 characters.
+    #[serde(default, rename = "purchaseOptionId")]
+    pub purchase_option_id: ::core::option::Option<String>,
+    /// Regional pricing and availability information for this purchase option.
+    #[serde(default, rename = "regionalPricingAndAvailabilityConfigs")]
+    pub regional_pricing_and_availability_configs: ::core::option::Option<
+        ::std::vec::Vec<OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig>,
+    >,
+    /// A purchase option that can be rented.
+    #[serde(default, rename = "rentOption")]
+    pub rent_option: ::core::option::Option<OneTimeProductRentPurchaseOption>,
+    /// Output only. The state of the purchase option, i.e., whether it''s active. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE", "INACTIVE_PUBLISHED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Details about taxes and legal compliance.
+    #[serde(default, rename = "taxAndComplianceSettings")]
+    pub tax_and_compliance_settings: ::core::option::Option<PurchaseOptionTaxAndComplianceSettings>,
+}
+
+/// The version of the available regions being used for the specified resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionsVersion {
+    /// Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region''s version and set of regional prices and currencies will succeed even though a new version is available.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Details about taxation, Google Play policy and legal compliance for one-time products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductTaxAndComplianceSettings {
+    /// Whether this one-time product is declared as a product representing a tokenized digital asset.
+    #[serde(default, rename = "isTokenizedDigitalAsset")]
+    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
+    /// Product tax category code to assign to the one-time product. Product tax category determines the transaction tax rates applied to the product. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
+    #[serde(default, rename = "productTaxCategoryCode")]
+    pub product_tax_category_code: ::core::option::Option<String>,
+    /// Regional age rating information. Currently this field is only supported for region code US.
+    #[serde(default, rename = "regionalProductAgeRatingInfos")]
+    pub regional_product_age_rating_infos:
+        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
+    /// Regional tax configuration.
+    #[serde(default, rename = "regionalTaxConfigs")]
+    pub regional_tax_configs: ::core::option::Option<::std::vec::Vec<RegionalTaxConfig>>,
+}
+
+/// Configuration for any new locations Play may launch in specified on a subscription offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRegionsSubscriptionOfferConfig {
+    /// Whether the subscription offer in any new locations Play may launch in the future. If not specified, this will default to false.
+    #[serde(default, rename = "otherRegionsNewSubscriberAvailability")]
+    pub other_regions_new_subscriber_availability: ::core::option::Option<bool>,
+}
+
+/// A single phase of a subscription offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionOfferPhase {
+    /// Required. The duration of a single recurrence of this phase. Specified in ISO 8601 format.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Pricing information for any new locations Play may launch in.
+    #[serde(default, rename = "otherRegionsConfig")]
+    pub other_regions_config: ::core::option::Option<OtherRegionsSubscriptionOfferPhaseConfig>,
+    /// Required. The number of times this phase repeats. If this offer phase is not free, each recurrence charges the user the price of this offer phase.
+    #[serde(default, rename = "recurrenceCount")]
+    pub recurrence_count: ::core::option::Option<i32>,
+    /// Required. The region-specific configuration of this offer phase. This list must contain exactly one entry for each region for which the subscription offer has a regional config.
+    #[serde(default, rename = "regionalConfigs")]
+    pub regional_configs:
+        ::core::option::Option<::std::vec::Vec<RegionalSubscriptionOfferPhaseConfig>>,
+}
+
+/// Configuration for a subscription offer in a single region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalSubscriptionOfferConfig {
+    /// Whether the subscription offer in the specified region is available for new subscribers. Existing subscribers will not have their subscription cancelled if this value is set to false. If not specified, this will default to false.
+    #[serde(default, rename = "newSubscriberAvailability")]
+    pub new_subscriber_availability: ::core::option::Option<bool>,
+    /// Required. Immutable. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Defines the rule a user needs to satisfy to receive this offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionOfferTargeting {
+    /// Offer targeting rule for new user acquisition.
+    #[serde(default, rename = "acquisitionRule")]
+    pub acquisition_rule: ::core::option::Option<AcquisitionTargetingRule>,
+    /// Offer targeting rule for upgrading users'' existing plans.
+    #[serde(default, rename = "upgradeRule")]
+    pub upgrade_rule: ::core::option::Option<UpgradeTargetingRule>,
+}
+
+/// A single base plan for a subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BasePlan {
+    /// Set when the base plan automatically renews at a regular interval.
+    #[serde(default, rename = "autoRenewingBasePlanType")]
+    pub auto_renewing_base_plan_type: ::core::option::Option<AutoRenewingBasePlanType>,
+    /// Required. Immutable. The unique identifier of this base plan. Must be unique within the subscription, and conform with RFC-1034. That is, this ID can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 63 characters.
+    #[serde(default, rename = "basePlanId")]
+    pub base_plan_id: ::core::option::Option<String>,
+    /// Set for installments base plans where a user is committed to a specified number of payments.
+    #[serde(default, rename = "installmentsBasePlanType")]
+    pub installments_base_plan_type: ::core::option::Option<InstallmentsBasePlanType>,
+    /// List of up to 20 custom tags specified for this base plan, and returned to the app through the billing library. Subscription offers for this base plan will also receive these offer tags in the billing library.
+    #[serde(default, rename = "offerTags")]
+    pub offer_tags: ::core::option::Option<::std::vec::Vec<OfferTag>>,
+    /// Pricing information for any new locations Play may launch in the future. If omitted, the BasePlan will not be automatically available any new locations Play may launch in the future.
+    #[serde(default, rename = "otherRegionsConfig")]
+    pub other_regions_config: ::core::option::Option<OtherRegionsBasePlanConfig>,
+    /// Set when the base plan does not automatically renew at the end of the billing period.
+    #[serde(default, rename = "prepaidBasePlanType")]
+    pub prepaid_base_plan_type: ::core::option::Option<PrepaidBasePlanType>,
+    /// Region-specific information for this base plan.
+    #[serde(default, rename = "regionalConfigs")]
+    pub regional_configs: ::core::option::Option<::std::vec::Vec<RegionalBasePlanConfig>>,
+    /// Output only. The state of the base plan, i.e. whether it''s active. Draft and inactive base plans can be activated or deleted. Active base plans can be made inactive. Inactive base plans can be canceled. This field cannot be changed by updating the resource. Use the dedicated endpoints instead. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The consumer-visible metadata of a subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionListing {
+    /// A list of benefits shown to the user on platforms such as the Play Store and in restoration flows in the language of this listing. Plain text. Ordered list of at most four benefits.
+    #[serde(default)]
+    pub benefits: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The description of this subscription in the language of this listing. Maximum length - 80 characters. Plain text.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The language of this listing, as defined by BCP-47, e.g. "en-US".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Required. The title of this subscription in the language of this listing. Plain text.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestrictedPaymentCountries {
+    /// Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCodes")]
+    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Set of asset slices belonging to a single asset module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetSliceSet {
+    /// Asset slices.
+    #[serde(default, rename = "apkDescription")]
+    pub apk_description: ::core::option::Option<::std::vec::Vec<ApkDescription>>,
+    /// Module level metadata.
+    #[serde(default, rename = "assetModuleMetadata")]
+    pub asset_module_metadata: ::core::option::Option<AssetModuleMetadata>,
+}
+
+/// Variant is a group of APKs that covers a part of the device configuration space. APKs from multiple variants are never combined on one device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SplitApkVariant {
+    /// Set of APKs, one set per module.
+    #[serde(default, rename = "apkSet")]
+    pub apk_set: ::core::option::Option<::std::vec::Vec<ApkSet>>,
+    /// Variant-level targeting.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<VariantTargeting>,
+    /// Number of the variant, starting at 0 (unless overridden). A device will receive APKs from the first variant that matches the device configuration, with higher variant numbers having priority over lower variant numbers.
+    #[serde(default, rename = "variantNumber")]
+    pub variant_number: ::core::option::Option<i32>,
+}
+
+/// Definition of a price, i.e. currency and units.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Price {
+    /// 3 letter Currency code, as defined by ISO 4217. See java/com/google/common/money/CurrencyCode.java
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+    /// Price in 1/million of the currency base unit, represented as a string.
+    #[serde(default, rename = "priceMicros")]
+    pub price_micros: ::core::option::Option<String>,
+}
+
+/// Details about taxation and legal compliance for managed products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedProductTaxAndComplianceSettings {
+    /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
+    #[serde(default, rename = "eeaWithdrawalRightType")]
+    pub eea_withdrawal_right_type: ::core::option::Option<String>,
+    /// Whether this in-app product is declared as a product representing a tokenized digital asset.
+    #[serde(default, rename = "isTokenizedDigitalAsset")]
+    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
+    /// Product tax category code to assign to the in-app product. Product tax category determines the transaction tax rates applied to the product. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
+    #[serde(default, rename = "productTaxCategoryCode")]
+    pub product_tax_category_code: ::core::option::Option<String>,
+    /// Regional age rating information. Currently this field is only supported for region code US.
+    #[serde(default, rename = "regionalProductAgeRatingInfos")]
+    pub regional_product_age_rating_infos:
+        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
+    /// A mapping from region code to tax rate details. The keys are region codes as defined by Unicode''s "CLDR".
+    #[serde(default, rename = "taxRateInfoByRegionCode")]
+    pub tax_rate_info_by_region_code: ::core::option::Option<serde_json::Value>,
+}
+
+/// Details about taxation, Google Play policy, and legal compliance for subscription products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionTaxAndComplianceSettings {
+    /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
+    #[serde(default, rename = "eeaWithdrawalRightType")]
+    pub eea_withdrawal_right_type: ::core::option::Option<String>,
+    /// Whether this subscription is declared as a product representing a tokenized digital asset.
+    #[serde(default, rename = "isTokenizedDigitalAsset")]
+    pub is_tokenized_digital_asset: ::core::option::Option<bool>,
+    /// Product tax category code to assign to the subscription. Product tax category determines the transaction tax rates applied to the subscription. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/16408159) for more information.
+    #[serde(default, rename = "productTaxCategoryCode")]
+    pub product_tax_category_code: ::core::option::Option<String>,
+    /// Regional age rating information. Currently this field is only supported for region code US.
+    #[serde(default, rename = "regionalProductAgeRatingInfos")]
+    pub regional_product_age_rating_infos:
+        ::core::option::Option<::std::vec::Vec<RegionalProductAgeRatingInfo>>,
+    /// A mapping from region code to tax rate details. The keys are region codes as defined by Unicode''s "CLDR".
+    #[serde(default, rename = "taxRateInfoByRegionCode")]
+    pub tax_rate_info_by_region_code: ::core::option::Option<serde_json::Value>,
+}
+
+/// Data related to the recovery action at bundle level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteInAppUpdateDataPerBundle {
+    /// Total number of devices which have been rescued.
+    #[serde(default, rename = "recoveredDeviceCount")]
+    pub recovered_device_count: ::core::option::Option<String>,
+    /// Total number of devices affected by this recovery action associated with bundle of the app.
+    #[serde(default, rename = "totalDeviceCount")]
+    pub total_device_count: ::core::option::Option<String>,
+    /// Version Code corresponding to the target bundle.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<String>,
+}
+
+/// Object representation to describe all set of users.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AllUsers {
+    /// Required. Set to true if all set of users are needed.
+    #[serde(default, rename = "isAllUsersRequested")]
+    pub is_all_users_requested: ::core::option::Option<bool>,
+}
+
+/// Android api level targeting data for app recovery action targeting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidSdks {
+    /// Android api levels of devices targeted by recovery action. See https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels for different api levels in android.
+    #[serde(default, rename = "sdkLevels")]
+    pub sdk_levels: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Region targeting data for app recovery action targeting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Regions {
+    /// Regions targeted by the recovery action. Region codes are ISO 3166 Alpha-2 country codes. For example, US stands for United States of America. See https://www.iso.org/iso-3166-country-codes.html for the complete list of country codes.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Data format for a list of app versions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppVersionList {
+    /// List of app version codes.
+    #[serde(default, rename = "versionCodes")]
+    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Data format for a continuous range of app versions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppVersionRange {
+    /// Highest app version in the range, inclusive.
+    #[serde(default, rename = "versionCodeEnd")]
+    pub version_code_end: ::core::option::Option<String>,
+    /// Lowest app version in the range, inclusive.
+    #[serde(default, rename = "versionCodeStart")]
+    pub version_code_start: ::core::option::Option<String>,
+}
+
+/// Selector for a device group. A selector consists of a set of conditions on the device that should all match (logical AND) to determine a device group eligibility. For instance, if a selector specifies RAM conditions, device model inclusion and device model exclusion, a device is considered to match if: device matches RAM conditions AND device matches one of the included device models AND device doesn''t match excluded device models
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceSelector {
+    /// Conditions on the device''s RAM.
+    #[serde(default, rename = "deviceRam")]
+    pub device_ram: ::core::option::Option<DeviceRam>,
+    /// Device models excluded by this selector, even if they match all other conditions.
+    #[serde(default, rename = "excludedDeviceIds")]
+    pub excluded_device_ids: ::core::option::Option<::std::vec::Vec<DeviceId>>,
+    /// A device that has any of these system features is excluded by this selector, even if it matches all other conditions.
+    #[serde(default, rename = "forbiddenSystemFeatures")]
+    pub forbidden_system_features: ::core::option::Option<::std::vec::Vec<SystemFeature>>,
+    /// Device models included by this selector.
+    #[serde(default, rename = "includedDeviceIds")]
+    pub included_device_ids: ::core::option::Option<::std::vec::Vec<DeviceId>>,
+    /// A device needs to have all these system features to be included by the selector.
+    #[serde(default, rename = "requiredSystemFeatures")]
+    pub required_system_features: ::core::option::Option<::std::vec::Vec<SystemFeature>>,
+    /// Optional. The SoCs included by this selector. Only works for Android S+ devices.
+    #[serde(default, rename = "systemOnChips")]
+    pub system_on_chips: ::core::option::Option<::std::vec::Vec<SystemOnChip>>,
+}
+
+/// A single device tier. Devices matching any of the device groups in device_group_names are considered to match the tier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceTier {
+    /// Groups of devices included in this tier. These groups must be defined explicitly under device_groups in this configuration.
+    #[serde(default, rename = "deviceGroupNames")]
+    pub device_group_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The priority level of the tier. Tiers are evaluated in descending order of level: the highest level tier has the highest priority. The highest tier matching a given device is selected for that device. You should use a contiguous range of levels for your tiers in a tier set; tier levels in a tier set must be unique. For instance, if your tier set has 4 tiers (including the global fallback), you should define tiers 1, 2 and 3 in this configuration. Note: tier 0 is implicitly defined as a global fallback and selected for devices that don''t match any of the tiers explicitly defined here. You mustn''t define level 0 explicitly in this configuration.
+    #[serde(default)]
+    pub level: ::core::option::Option<i32>,
+}
+
+/// Offer details information related to a preorder line item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreorderOfferDetails {
+    /// The time when a preordered item is released for a preorder purchase.
+    #[serde(default, rename = "preorderReleaseTime")]
+    pub preorder_release_time: ::core::option::Option<String>,
+}
+
+/// Developer entry from conversation between user and developer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeveloperComment {
+    /// The last time at which this comment was updated.
+    #[serde(default, rename = "lastModified")]
+    pub last_modified: ::core::option::Option<Timestamp>,
+    /// The content of the comment, i.e. reply body.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
 }
 
 /// User entry from conversation between user and developer.
@@ -4130,48 +3471,71 @@ pub struct UserComment {
     pub thumbs_up_count: ::core::option::Option<i32>,
 }
 
-/// Describes an inclusive/exclusive list of country codes that module targets.
+/// Result of the cancel survey when the subscription was canceled by the user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserCountriesTargeting {
-    /// List of country codes in the two-letter CLDR territory format.
-    #[serde(default, rename = "countryCodes")]
-    pub country_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Indicates if the list above is exclusive.
+pub struct CancelSurveyResult {
+    /// The reason the user selected in the cancel survey. // TODO: enum values: ["CANCEL_SURVEY_REASON_UNSPECIFIED", "CANCEL_SURVEY_REASON_NOT_ENOUGH_USAGE", "CANCEL_SURVEY_REASON_TECHNICAL_ISSUES", "CANCEL_SURVEY_REASON_COST_RELATED", "CANCEL_SURVEY_REASON_FOUND_BETTER_APP", "CANCEL_SURVEY_REASON_OTHERS"]
     #[serde(default)]
-    pub exclude: ::core::option::Option<bool>,
+    pub reason: ::core::option::Option<String>,
+    /// Only set for CANCEL_SURVEY_REASON_OTHERS. This is the user''s freeform response to the survey.
+    #[serde(default, rename = "reasonUserInput")]
+    pub reason_user_input: ::core::option::Option<String>,
 }
 
-/// A set of user countries. A country set determines what variation of app content gets served to a specific location.
+/// Information to a installment plan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserCountrySet {
-    /// List of country codes representing countries. A Country code is represented in ISO 3166 alpha-2 format. For Example:- "IT" for Italy, "GE" for Georgia.
-    #[serde(default, rename = "countryCodes")]
-    pub country_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Country set name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+pub struct InstallmentPlan {
+    /// Total number of payments the user is initially committed for.
+    #[serde(default, rename = "initialCommittedPaymentsCount")]
+    pub initial_committed_payments_count: ::core::option::Option<i32>,
+    /// If present, this installment plan is pending to be canceled. The cancellation will happen only after the user finished all committed payments.
+    #[serde(default, rename = "pendingCancellation")]
+    pub pending_cancellation: ::core::option::Option<serde_json::Value>,
+    /// Total number of committed payments remaining to be paid for in this renewal cycle.
+    #[serde(default, rename = "remainingCommittedPaymentsCount")]
+    pub remaining_committed_payments_count: ::core::option::Option<i32>,
+    /// Total number of payments the user will be committed for after each commitment period. Empty means the installment plan will fall back to a normal auto-renew subscription after initial commitment.
+    #[serde(default, rename = "subsequentCommittedPaymentsCount")]
+    pub subsequent_committed_payments_count: ::core::option::Option<i32>,
 }
 
-/// Information specific to cancellations initiated by users.
+/// Price change related information of a subscription item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserInitiatedCancellation {
-    /// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
-    #[serde(default, rename = "cancelSurveyResult")]
-    pub cancel_survey_result: ::core::option::Option<CancelSurveyResult>,
-    /// The time at which the subscription was canceled by the user. The user might still have access to the subscription after this time. Use line_items.expiry_time to determine if a user still has access.
-    #[serde(default, rename = "cancelTime")]
-    pub cancel_time: ::core::option::Option<String>,
+pub struct SubscriptionItemPriceChangeDetails {
+    /// The renewal time at which the price change will become effective for the user. This is subject to change(to a future time) due to cases where the renewal time shifts like pause. This field is only populated if the price change has not taken effect.
+    #[serde(default, rename = "expectedNewPriceChargeTime")]
+    pub expected_new_price_charge_time: ::core::option::Option<String>,
+    /// New recurring price for the subscription item.
+    #[serde(default, rename = "newPrice")]
+    pub new_price: ::core::option::Option<Money>,
+    /// Price change mode specifies how the subscription item price is changing. // TODO: enum values: ["PRICE_CHANGE_MODE_UNSPECIFIED", "PRICE_DECREASE", "PRICE_INCREASE", "OPT_OUT_PRICE_INCREASE"]
+    #[serde(default, rename = "priceChangeMode")]
+    pub price_change_mode: ::core::option::Option<String>,
+    /// State the price change is currently in. // TODO: enum values: ["PRICE_CHANGE_STATE_UNSPECIFIED", "OUTSTANDING", "CONFIRMED", "APPLIED", "CANCELED"]
+    #[serde(default, rename = "priceChangeState")]
+    pub price_change_state: ::core::option::Option<String>,
 }
 
-/// A permission used by this APK.
+/// Information related to a price step-up that requires user consent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsesPermission {
-    /// Optionally, the maximum SDK version for which the permission is required.
-    #[serde(default, rename = "maxSdkVersion")]
-    pub max_sdk_version: ::core::option::Option<i32>,
-    /// The name of the permission requested.
+pub struct PriceStepUpConsentDetails {
+    /// The deadline by which the user must provide consent. If consent is not provided by this time, the subscription will be canceled.
+    #[serde(default, rename = "consentDeadlineTime")]
+    pub consent_deadline_time: ::core::option::Option<String>,
+    /// The new price which requires user consent.
+    #[serde(default, rename = "newPrice")]
+    pub new_price: ::core::option::Option<Money>,
+    /// Output only. The state of the price step-up consent. // TODO: enum values: ["CONSENT_STATE_UNSPECIFIED", "PENDING", "CONFIRMED", "COMPLETED"]
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub state: ::core::option::Option<String>,
+}
+
+/// Details about proration period offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProrationPeriodOfferPhase {
+    /// The original offer phase type before the proration period. Only set when the proration period is updated from an existing offer phase. // TODO: enum values: ["ORIGINAL_OFFER_PHASE_TYPE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
+    #[serde(default, rename = "originalOfferPhaseType")]
+    pub original_offer_phase_type: ::core::option::Option<String>,
 }
 
 /// A multiple use, predefined promotion code.
@@ -4182,18 +3546,309 @@ pub struct VanityCode {
     pub promotion_code: ::core::option::Option<String>,
 }
 
-/// APK that is suitable for inclusion in a system image. The resource of SystemApksService.
+/// Country targeting specification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Variant {
-    /// The device spec used to generate the APK.
-    #[serde(default, rename = "deviceSpec")]
-    pub device_spec: ::core::option::Option<DeviceSpec>,
-    /// Optional. Options applied to the generated APK.
+pub struct CountryTargeting {
+    /// Countries to target, specified as two letter [CLDR codes](https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html).
     #[serde(default)]
-    pub options: ::core::option::Option<SystemApkOptions>,
-    /// Output only. The ID of a previously created system APK variant.
-    #[serde(default, rename = "variantId")]
-    pub variant_id: ::core::option::Option<i64>,
+    pub countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Include "rest of world" as well as explicitly targeted countries.
+    #[serde(default, rename = "includeRestOfWorld")]
+    pub include_rest_of_world: ::core::option::Option<bool>,
+}
+
+/// Localized text in given language.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalizedText {
+    /// Language localization code (a BCP-47 language tag; for example, "de-AT" for Austrian German).
+    #[serde(default)]
+    pub language: ::core::option::Option<String>,
+    /// The text in the given language.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Details of a pricing phase for the entitlement period funded by this order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OfferPhaseDetails {
+    /// The order funds a base price period.
+    #[serde(default, rename = "baseDetails")]
+    pub base_details: ::core::option::Option<serde_json::Value>,
+    /// The order funds a free trial period.
+    #[serde(default, rename = "freeTrialDetails")]
+    pub free_trial_details: ::core::option::Option<serde_json::Value>,
+    /// The order funds an introductory pricing period.
+    #[serde(default, rename = "introductoryPriceDetails")]
+    pub introductory_price_details: ::core::option::Option<serde_json::Value>,
+    /// The order funds a proration period.
+    #[serde(default, rename = "prorationPeriodDetails")]
+    pub proration_period_details: ::core::option::Option<ProrationPeriodDetails>,
+}
+
+/// Details for a partial or full refund.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefundDetails {
+    /// The amount of tax refunded.
+    #[serde(default)]
+    pub tax: ::core::option::Option<Money>,
+    /// The total amount refunded, including tax.
+    #[serde(default)]
+    pub total: ::core::option::Option<Money>,
+}
+
+/// A purchase option that can be bought.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductBuyPurchaseOption {
+    /// Optional. Whether this purchase option will be available in legacy PBL flows that do not support one-time products model. Up to one "buy" purchase option can be marked as backwards compatible.
+    #[serde(default, rename = "legacyCompatible")]
+    pub legacy_compatible: ::core::option::Option<bool>,
+    /// Optional. Whether this purchase option allows multi-quantity. Multi-quantity allows buyer to purchase more than one item in a single checkout.
+    #[serde(default, rename = "multiQuantityEnabled")]
+    pub multi_quantity_enabled: ::core::option::Option<bool>,
+}
+
+/// Pricing information for any new regions Play may launch in the future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
+    /// Required. The regional availability for the new regions config. When set to AVAILABLE, the pricing information will be used for any new regions Play may launch in the future. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE"]
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// Required. Price in EUR to use for any new regions Play may launch in.
+    #[serde(default, rename = "eurPrice")]
+    pub eur_price: ::core::option::Option<Money>,
+    /// Required. Price in USD to use for any new regions Play may launch in.
+    #[serde(default, rename = "usdPrice")]
+    pub usd_price: ::core::option::Option<Money>,
+}
+
+/// Regional pricing and availability configuration for a purchase option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
+    /// The availability of the purchase option. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE", "AVAILABLE_IF_RELEASED", "AVAILABLE_FOR_OFFERS_ONLY"]
+    #[serde(default)]
+    pub availability: ::core::option::Option<String>,
+    /// The price of the purchase option in the specified region. Must be set in the currency that is linked to the specified region.
+    #[serde(default)]
+    pub price: ::core::option::Option<Money>,
+    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// A purchase option that can be rented.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductRentPurchaseOption {
+    /// Optional. The amount of time the user has after starting consuming the entitlement before it is revoked. Specified in ISO 8601 format.
+    #[serde(default, rename = "expirationPeriod")]
+    pub expiration_period: ::core::option::Option<String>,
+    /// Required. The amount of time a user has the entitlement for. Starts at purchase flow completion. Specified in ISO 8601 format.
+    #[serde(default, rename = "rentalPeriod")]
+    pub rental_period: ::core::option::Option<String>,
+}
+
+/// Details about taxation, Google Play policy and legal compliance for one-time product purchase options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PurchaseOptionTaxAndComplianceSettings {
+    /// Optional. Digital content or service classification for products distributed to users in eligible regions. If unset, it defaults to WITHDRAWAL_RIGHT_DIGITAL_CONTENT. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
+    #[serde(default, rename = "withdrawalRightType")]
+    pub withdrawal_right_type: ::core::option::Option<String>,
+}
+
+/// Details about taxation in a given geographical region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalTaxConfig {
+    /// You must tell us if your app contains streaming products to correctly charge US state and local sales tax. Field only supported in the United States.
+    #[serde(default, rename = "eligibleForStreamingServiceTaxRate")]
+    pub eligible_for_streaming_service_tax_rate: ::core::option::Option<bool>,
+    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// To collect communications or amusement taxes in the United States, choose the appropriate tax category. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498#streaming_tax). // TODO: enum values: ["STREAMING_TAX_TYPE_UNSPECIFIED", "STREAMING_TAX_TYPE_TELCO_VIDEO_RENTAL", "STREAMING_TAX_TYPE_TELCO_VIDEO_SALES", "STREAMING_TAX_TYPE_TELCO_VIDEO_MULTI_CHANNEL", "STREAMING_TAX_TYPE_TELCO_AUDIO_RENTAL", "STREAMING_TAX_TYPE_TELCO_AUDIO_SALES", "STREAMING_TAX_TYPE_TELCO_AUDIO_MULTI_CHANNEL"]
+    #[serde(default, rename = "streamingTaxType")]
+    pub streaming_tax_type: ::core::option::Option<String>,
+    /// Tax tier to specify reduced tax rate. Developers who sell digital news, magazines, newspapers, books, or audiobooks in various regions may be eligible for reduced tax rates. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498). // TODO: enum values: ["TAX_TIER_UNSPECIFIED", "TAX_TIER_BOOKS_1", "TAX_TIER_NEWS_1", "TAX_TIER_NEWS_2", "TAX_TIER_MUSIC_OR_AUDIO_1", "TAX_TIER_LIVE_OR_BROADCAST_1"]
+    #[serde(default, rename = "taxTier")]
+    pub tax_tier: ::core::option::Option<String>,
+}
+
+/// Configuration for any new locations Play may launch in for a single offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRegionsSubscriptionOfferPhaseConfig {
+    /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for any new locations Play may launch in.
+    #[serde(default, rename = "absoluteDiscounts")]
+    pub absolute_discounts: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
+    /// Set to specify this offer is free to obtain.
+    #[serde(default)]
+    pub free: ::core::option::Option<serde_json::Value>,
+    /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for any new locations Play may launch in.
+    #[serde(default, rename = "otherRegionsPrices")]
+    pub other_regions_prices: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
+    /// The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in any new locations Play may launch in.
+    #[serde(default, rename = "relativeDiscount")]
+    pub relative_discount: ::core::option::Option<f64>,
+}
+
+/// Configuration for a single phase of a subscription offer in a single region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalSubscriptionOfferPhaseConfig {
+    /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for this region.
+    #[serde(default, rename = "absoluteDiscount")]
+    pub absolute_discount: ::core::option::Option<Money>,
+    /// Set to specify this offer is free to obtain.
+    #[serde(default)]
+    pub free: ::core::option::Option<serde_json::Value>,
+    /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for this region.
+    #[serde(default)]
+    pub price: ::core::option::Option<Money>,
+    /// Required. Immutable. The region to which this config applies.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in this region.
+    #[serde(default, rename = "relativeDiscount")]
+    pub relative_discount: ::core::option::Option<f64>,
+}
+
+/// Represents a targeting rule of the form: User never had {scope} before.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcquisitionTargetingRule {
+    /// Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "any subscription in app".
+    #[serde(default)]
+    pub scope: ::core::option::Option<TargetingRuleScope>,
+}
+
+/// Represents a targeting rule of the form: User currently has {scope} [with billing period {billing_period}].
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeTargetingRule {
+    /// The specific billing period duration, specified in ISO 8601 format, that a user must be currently subscribed to to be eligible for this rule. If not specified, users subscribed to any billing period are matched.
+    #[serde(default, rename = "billingPeriodDuration")]
+    pub billing_period_duration: ::core::option::Option<String>,
+    /// Limit this offer to only once per user. If set to true, a user can never be eligible for this offer again if they ever subscribed to this offer.
+    #[serde(default, rename = "oncePerUser")]
+    pub once_per_user: ::core::option::Option<bool>,
+    /// Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "specific subscription in app".
+    #[serde(default)]
+    pub scope: ::core::option::Option<TargetingRuleScope>,
+}
+
+/// Represents a base plan that automatically renews at the end of its subscription period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoRenewingBasePlanType {
+    /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
+    #[serde(default, rename = "accountHoldDuration")]
+    pub account_hold_duration: ::core::option::Option<String>,
+    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
+    #[serde(default, rename = "billingPeriodDuration")]
+    pub billing_period_duration: ::core::option::Option<String>,
+    /// Grace period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and the lesser of 30D and base plan billing period. If not specified, a default value will be used based on the billing period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
+    #[serde(default, rename = "gracePeriodDuration")]
+    pub grace_period_duration: ::core::option::Option<String>,
+    /// Whether the renewing base plan is backward compatible. The backward compatible base plan is returned by the Google Play Billing Library deprecated method querySkuDetailsAsync(). Only one renewing base plan can be marked as legacy compatible for a given subscription.
+    #[serde(default, rename = "legacyCompatible")]
+    pub legacy_compatible: ::core::option::Option<bool>,
+    /// Subscription offer id which is legacy compatible. The backward compatible subscription offer is returned by the Google Play Billing Library deprecated method querySkuDetailsAsync(). Only one subscription offer can be marked as legacy compatible for a given renewing base plan. To have no Subscription offer as legacy compatible set this field as empty string.
+    #[serde(default, rename = "legacyCompatibleSubscriptionOfferId")]
+    pub legacy_compatible_subscription_offer_id: ::core::option::Option<String>,
+    /// The proration mode for the base plan determines what happens when a user switches to this plan from another base plan. If unspecified, defaults to CHARGE_ON_NEXT_BILLING_DATE. // TODO: enum values: ["SUBSCRIPTION_PRORATION_MODE_UNSPECIFIED", "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE", "SUBSCRIPTION_PRORATION_MODE_CHARGE_FULL_PRICE_IMMEDIATELY"]
+    #[serde(default, rename = "prorationMode")]
+    pub proration_mode: ::core::option::Option<String>,
+    /// Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified. // TODO: enum values: ["RESUBSCRIBE_STATE_UNSPECIFIED", "RESUBSCRIBE_STATE_ACTIVE", "RESUBSCRIBE_STATE_INACTIVE"]
+    #[serde(default, rename = "resubscribeState")]
+    pub resubscribe_state: ::core::option::Option<String>,
+}
+
+/// Represents an installments base plan where a user commits to a specified number of payments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallmentsBasePlanType {
+    /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
+    #[serde(default, rename = "accountHoldDuration")]
+    pub account_hold_duration: ::core::option::Option<String>,
+    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
+    #[serde(default, rename = "billingPeriodDuration")]
+    pub billing_period_duration: ::core::option::Option<String>,
+    /// Required. Immutable. The number of payments the user is committed to. It is immutable after the base plan is created.
+    #[serde(default, rename = "committedPaymentsCount")]
+    pub committed_payments_count: ::core::option::Option<i32>,
+    /// Grace period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and the lesser of 30D and base plan billing period. If not specified, a default value will be used based on the billing period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
+    #[serde(default, rename = "gracePeriodDuration")]
+    pub grace_period_duration: ::core::option::Option<String>,
+    /// The proration mode for the base plan determines what happens when a user switches to this plan from another base plan. If unspecified, defaults to CHARGE_ON_NEXT_BILLING_DATE. // TODO: enum values: ["SUBSCRIPTION_PRORATION_MODE_UNSPECIFIED", "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE", "SUBSCRIPTION_PRORATION_MODE_CHARGE_FULL_PRICE_IMMEDIATELY"]
+    #[serde(default, rename = "prorationMode")]
+    pub proration_mode: ::core::option::Option<String>,
+    /// Required. Immutable. Installments base plan renewal type. Determines the behavior at the end of the initial commitment. The renewal type is immutable after the base plan is created. // TODO: enum values: ["RENEWAL_TYPE_UNSPECIFIED", "RENEWAL_TYPE_RENEWS_WITHOUT_COMMITMENT", "RENEWAL_TYPE_RENEWS_WITH_COMMITMENT"]
+    #[serde(default, rename = "renewalType")]
+    pub renewal_type: ::core::option::Option<String>,
+    /// Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified. // TODO: enum values: ["RESUBSCRIBE_STATE_UNSPECIFIED", "RESUBSCRIBE_STATE_ACTIVE", "RESUBSCRIBE_STATE_INACTIVE"]
+    #[serde(default, rename = "resubscribeState")]
+    pub resubscribe_state: ::core::option::Option<String>,
+}
+
+/// Represents a custom tag specified for a product offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OfferTag {
+    /// Must conform with RFC-1034. That is, this string can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 20 characters.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+}
+
+/// Pricing information for any new locations Play may launch in.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRegionsBasePlanConfig {
+    /// Required. Price in EUR to use for any new locations Play may launch in.
+    #[serde(default, rename = "eurPrice")]
+    pub eur_price: ::core::option::Option<Money>,
+    /// Whether the base plan is available for new subscribers in any new locations Play may launch in. If not specified, this will default to false.
+    #[serde(default, rename = "newSubscriberAvailability")]
+    pub new_subscriber_availability: ::core::option::Option<bool>,
+    /// Required. Price in USD to use for any new locations Play may launch in.
+    #[serde(default, rename = "usdPrice")]
+    pub usd_price: ::core::option::Option<Money>,
+}
+
+/// Represents a base plan that does not automatically renew at the end of the base plan, and must be manually renewed by the user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrepaidBasePlanType {
+    /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
+    #[serde(default, rename = "billingPeriodDuration")]
+    pub billing_period_duration: ::core::option::Option<String>,
+    /// Whether users should be able to extend this prepaid base plan in Google Play surfaces. Defaults to TIME_EXTENSION_ACTIVE if not specified. // TODO: enum values: ["TIME_EXTENSION_UNSPECIFIED", "TIME_EXTENSION_ACTIVE", "TIME_EXTENSION_INACTIVE"]
+    #[serde(default, rename = "timeExtension")]
+    pub time_extension: ::core::option::Option<String>,
+}
+
+/// Configuration for a base plan specific to a region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalBasePlanConfig {
+    /// Whether the base plan in the specified region is available for new subscribers. Existing subscribers will not have their subscription canceled if this value is set to false. If not specified, this will default to false.
+    #[serde(default, rename = "newSubscriberAvailability")]
+    pub new_subscriber_availability: ::core::option::Option<bool>,
+    /// The price of the base plan in the specified region. Must be set if the base plan is available to new subscribers. Must be set in the currency that is linked to the specified region.
+    #[serde(default)]
+    pub price: ::core::option::Option<Money>,
+    /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Metadata of an asset module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetModuleMetadata {
+    /// Indicates the delivery type for persistent install. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
+    #[serde(default, rename = "deliveryType")]
+    pub delivery_type: ::core::option::Option<String>,
+    /// Module name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A set of apks representing a module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkSet {
+    /// Description of the generated apks.
+    #[serde(default, rename = "apkDescription")]
+    pub apk_description: ::core::option::Option<::std::vec::Vec<ApkDescription>>,
+    /// Metadata about the module represented by this ApkSet
+    #[serde(default, rename = "moduleMetadata")]
+    pub module_metadata: ::core::option::Option<ModuleMetadata>,
 }
 
 /// Targeting on the level of variants.
@@ -4217,44 +3872,389 @@ pub struct VariantTargeting {
         ::core::option::Option<TextureCompressionFormatTargeting>,
 }
 
-/// A VoidedPurchase resource indicates a purchase that was either canceled/refunded/charged-back.
+/// Details about the age rating for a specific geographic region.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VoidedPurchase {
-    /// This kind represents a voided purchase object in the androidpublisher service.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The order id which uniquely identifies a one-time purchase, subscription purchase, or subscription renewal.
-    #[serde(default, rename = "orderId")]
-    pub order_id: ::core::option::Option<String>,
-    /// The time at which the purchase was made, in milliseconds since the epoch (Jan 1, 1970).
-    #[serde(default, rename = "purchaseTimeMillis")]
-    pub purchase_time_millis: ::core::option::Option<String>,
-    /// The token which uniquely identifies a one-time purchase or subscription. To uniquely identify subscription renewals use order_id (available starting from version 3 of the API).
-    #[serde(default, rename = "purchaseToken")]
-    pub purchase_token: ::core::option::Option<String>,
-    /// The voided quantity as the result of a quantity-based partial refund. Voided purchases of quantity-based partial refunds may only be returned when includeQuantityBasedPartialRefund is set to true.
-    #[serde(default, rename = "voidedQuantity")]
-    pub voided_quantity: ::core::option::Option<i32>,
-    /// The reason why the purchase was voided, possible values are: 0. Other 1. Remorse 2. Not_received 3. Defective 4. Accidental_purchase 5. Fraud 6. Friendly_fraud 7. Chargeback 8. Unacknowledged_purchase
-    #[serde(default, rename = "voidedReason")]
-    pub voided_reason: ::core::option::Option<i32>,
-    /// The initiator of voided purchase, possible values are: 0. User 1. Developer 2. Google
-    #[serde(default, rename = "voidedSource")]
-    pub voided_source: ::core::option::Option<i32>,
-    /// The time at which the purchase was canceled/refunded/charged-back, in milliseconds since the epoch (Jan 1, 1970).
-    #[serde(default, rename = "voidedTimeMillis")]
-    pub voided_time_millis: ::core::option::Option<String>,
+pub struct RegionalProductAgeRatingInfo {
+    /// The age rating tier of a product for the given region. // TODO: enum values: ["PRODUCT_AGE_RATING_TIER_UNKNOWN", "PRODUCT_AGE_RATING_TIER_EVERYONE", "PRODUCT_AGE_RATING_TIER_THIRTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_SIXTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_EIGHTEEN_AND_ABOVE"]
+    #[serde(default, rename = "productAgeRatingTier")]
+    pub product_age_rating_tier: ::core::option::Option<String>,
+    /// Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
 }
 
-/// Response for the voidedpurchases.list API.
+/// Conditions about a device''s RAM capabilities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VoidedPurchasesListResponse {
-    /// General pagination information.
-    #[serde(default, rename = "pageInfo")]
-    pub page_info: ::core::option::Option<PageInfo>,
-    /// Pagination information for token pagination.
-    #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<TokenPagination>,
-    #[serde(default, rename = "voidedPurchases")]
-    pub voided_purchases: ::core::option::Option<::std::vec::Vec<VoidedPurchase>>,
+pub struct DeviceRam {
+    /// Maximum RAM in bytes (bound excluded).
+    #[serde(default, rename = "maxBytes")]
+    pub max_bytes: ::core::option::Option<String>,
+    /// Minimum RAM in bytes (bound included).
+    #[serde(default, rename = "minBytes")]
+    pub min_bytes: ::core::option::Option<String>,
+}
+
+/// Identifier of a device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceId {
+    /// Value of Build.BRAND.
+    #[serde(default, rename = "buildBrand")]
+    pub build_brand: ::core::option::Option<String>,
+    /// Value of Build.DEVICE.
+    #[serde(default, rename = "buildDevice")]
+    pub build_device: ::core::option::Option<String>,
+}
+
+/// Representation of a system feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemFeature {
+    /// The name of the feature.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Representation of a System-on-Chip (SoC) of an Android device. Can be used to target S+ devices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemOnChip {
+    /// Required. The designer of the SoC, eg. "Google" Value of build property "ro.soc.manufacturer" https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER Required.
+    #[serde(default)]
+    pub manufacturer: ::core::option::Option<String>,
+    /// Required. The model of the SoC, eg. "Tensor" Value of build property "ro.soc.model" https://developer.android.com/reference/android/os/Build#SOC_MODEL Required.
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+}
+
+/// Characteristics of the user''s device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceMetadata {
+    /// Device CPU make, e.g. "Qualcomm"
+    #[serde(default, rename = "cpuMake")]
+    pub cpu_make: ::core::option::Option<String>,
+    /// Device CPU model, e.g. "MSM8974"
+    #[serde(default, rename = "cpuModel")]
+    pub cpu_model: ::core::option::Option<String>,
+    /// Device class (e.g. tablet)
+    #[serde(default, rename = "deviceClass")]
+    pub device_class: ::core::option::Option<String>,
+    /// OpenGL version
+    #[serde(default, rename = "glEsVersion")]
+    pub gl_es_version: ::core::option::Option<i32>,
+    /// Device manufacturer (e.g. Motorola)
+    #[serde(default)]
+    pub manufacturer: ::core::option::Option<String>,
+    /// Comma separated list of native platforms (e.g. "arm", "arm7")
+    #[serde(default, rename = "nativePlatform")]
+    pub native_platform: ::core::option::Option<String>,
+    /// Device model name (e.g. Droid)
+    #[serde(default, rename = "productName")]
+    pub product_name: ::core::option::Option<String>,
+    /// Device RAM in Megabytes, e.g. "2048"
+    #[serde(default, rename = "ramMb")]
+    pub ram_mb: ::core::option::Option<i32>,
+    /// Screen density in DPI
+    #[serde(default, rename = "screenDensityDpi")]
+    pub screen_density_dpi: ::core::option::Option<i32>,
+    /// Screen height in pixels
+    #[serde(default, rename = "screenHeightPx")]
+    pub screen_height_px: ::core::option::Option<i32>,
+    /// Screen width in pixels
+    #[serde(default, rename = "screenWidthPx")]
+    pub screen_width_px: ::core::option::Option<i32>,
+}
+
+/// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Timestamp {
+    /// Non-negative fractions of a second at nanosecond resolution. Must be from 0 to 999,999,999 inclusive.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Represents seconds of UTC time since Unix epoch.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<String>,
+}
+
+/// Details of a proration period. A proration period can be a period calculated during a plan change to cover existing entitlements (For more information, see [Allow users to upgrade, downgrade, or change their subscription](https://developer.android.com/google/play/billing/subscriptions#allow-users-change), or a prorated period to align add-on renewal dates with the base (For more information, see [Rules applicable for items in the purchase](https://developer.android.com/google/play/billing/subscription-with-addons#rules-base-addons)).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProrationPeriodDetails {
+    /// Represent the original offer phase from the purchased the line item if the proration period contains any of them. For example, a proration period from CHARGE_FULL_PRICE plan change may merge the 1st offer phase of the subscription offer of the new product user purchased. In this case, the original offer phase will be set here. // TODO: enum values: ["OFFER_PHASE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
+    #[serde(default, rename = "originalOfferPhase")]
+    pub original_offer_phase: ::core::option::Option<String>,
+}
+
+/// Pricing information for any new locations Play may launch in.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRegionsSubscriptionOfferPhasePrices {
+    /// Required. Price in EUR to use for any new locations Play may launch in.
+    #[serde(default, rename = "eurPrice")]
+    pub eur_price: ::core::option::Option<Money>,
+    /// Required. Price in USD to use for any new locations Play may launch in.
+    #[serde(default, rename = "usdPrice")]
+    pub usd_price: ::core::option::Option<Money>,
+}
+
+/// Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetingRuleScope {
+    /// The scope of the current targeting rule is any subscription in the parent app.
+    #[serde(default, rename = "anySubscriptionInApp")]
+    pub any_subscription_in_app: ::core::option::Option<serde_json::Value>,
+    /// The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.
+    #[serde(default, rename = "specificSubscriptionInApp")]
+    pub specific_subscription_in_app: ::core::option::Option<String>,
+    /// The scope of the current targeting rule is the subscription in which this offer is defined.
+    #[serde(default, rename = "thisSubscription")]
+    pub this_subscription: ::core::option::Option<serde_json::Value>,
+}
+
+/// Description of the created apks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkDescription {
+    /// Set only for asset slices.
+    #[serde(default, rename = "assetSliceMetadata")]
+    pub asset_slice_metadata: ::core::option::Option<SplitApkMetadata>,
+    /// Set only for Instant split APKs.
+    #[serde(default, rename = "instantApkMetadata")]
+    pub instant_apk_metadata: ::core::option::Option<SplitApkMetadata>,
+    /// Path of the Apk, will be in the following format: .apk where DownloadId is the ID used to download the apk using GeneratedApks.Download API.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Set only for Split APKs.
+    #[serde(default, rename = "splitApkMetadata")]
+    pub split_apk_metadata: ::core::option::Option<SplitApkMetadata>,
+    /// Set only for standalone APKs.
+    #[serde(default, rename = "standaloneApkMetadata")]
+    pub standalone_apk_metadata: ::core::option::Option<StandaloneApkMetadata>,
+    /// Apk-level targeting.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<ApkTargeting>,
+}
+
+/// Metadata of a module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleMetadata {
+    /// Indicates the delivery type (e.g. on-demand) of the module. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
+    #[serde(default, rename = "deliveryType")]
+    pub delivery_type: ::core::option::Option<String>,
+    /// Names of the modules that this module directly depends on. Each module implicitly depends on the base module.
+    #[serde(default)]
+    pub dependencies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Indicates the type of this feature module. // TODO: enum values: ["UNKNOWN_MODULE_TYPE", "FEATURE_MODULE"]
+    #[serde(default, rename = "moduleType")]
+    pub module_type: ::core::option::Option<String>,
+    /// Module name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The targeting that makes a conditional module installed. Relevant only for Split APKs.
+    #[serde(default)]
+    pub targeting: ::core::option::Option<ModuleTargeting>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Money {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
+}
+
+/// Holds data specific to Split APKs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SplitApkMetadata {
+    /// Indicates whether this APK is the main split of the module.
+    #[serde(default, rename = "isMasterSplit")]
+    pub is_master_split: ::core::option::Option<bool>,
+    /// Id of the split.
+    #[serde(default, rename = "splitId")]
+    pub split_id: ::core::option::Option<String>,
+}
+
+/// Holds data specific to Standalone APKs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StandaloneApkMetadata {
+    /// Names of the modules fused in this standalone APK.
+    #[serde(default, rename = "fusedModuleName")]
+    pub fused_module_name: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents a set of apk-level targetings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkTargeting {
+    /// The abi that the apk targets
+    #[serde(default, rename = "abiTargeting")]
+    pub abi_targeting: ::core::option::Option<AbiTargeting>,
+    /// The language that the apk targets
+    #[serde(default, rename = "languageTargeting")]
+    pub language_targeting: ::core::option::Option<LanguageTargeting>,
+    /// Multi-api-level targeting.
+    #[serde(default, rename = "multiAbiTargeting")]
+    pub multi_abi_targeting: ::core::option::Option<MultiAbiTargeting>,
+    /// The screen density that this apk supports.
+    #[serde(default, rename = "screenDensityTargeting")]
+    pub screen_density_targeting: ::core::option::Option<ScreenDensityTargeting>,
+    /// The sdk version that the apk targets
+    #[serde(default, rename = "sdkVersionTargeting")]
+    pub sdk_version_targeting: ::core::option::Option<SdkVersionTargeting>,
+    /// Texture-compression-format-level targeting
+    #[serde(default, rename = "textureCompressionFormatTargeting")]
+    pub texture_compression_format_targeting:
+        ::core::option::Option<TextureCompressionFormatTargeting>,
+}
+
+/// Targeting on the module level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModuleTargeting {
+    /// Targeting for device features.
+    #[serde(default, rename = "deviceFeatureTargeting")]
+    pub device_feature_targeting: ::core::option::Option<::std::vec::Vec<DeviceFeatureTargeting>>,
+    /// The sdk version that the variant targets
+    #[serde(default, rename = "sdkVersionTargeting")]
+    pub sdk_version_targeting: ::core::option::Option<SdkVersionTargeting>,
+    /// Countries-level targeting
+    #[serde(default, rename = "userCountriesTargeting")]
+    pub user_countries_targeting: ::core::option::Option<UserCountriesTargeting>,
+}
+
+/// Targeting based on Abi.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbiTargeting {
+    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<Abi>>,
+    /// Value of an abi.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<Abi>>,
+}
+
+/// Targeting based on language.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanguageTargeting {
+    /// Alternative languages.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<String>>,
+    /// ISO-639: 2 or 3 letter language code.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Targeting based on multiple abis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiAbiTargeting {
+    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<MultiAbi>>,
+    /// Value of a multi abi.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<MultiAbi>>,
+}
+
+/// Targeting based on screen density.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScreenDensityTargeting {
+    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<ScreenDensity>>,
+    /// Value of a screen density.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<ScreenDensity>>,
+}
+
+/// Targeting by a texture compression format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextureCompressionFormatTargeting {
+    /// List of alternative TCFs (TCFs targeted by the sibling splits).
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<TextureCompressionFormat>>,
+    /// The list of targeted TCFs. Should not be empty.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<TextureCompressionFormat>>,
+}
+
+/// Targeting for a device feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceFeatureTargeting {
+    /// Feature of the device.
+    #[serde(default, rename = "requiredFeature")]
+    pub required_feature: ::core::option::Option<DeviceFeature>,
+}
+
+/// Targeting based on sdk version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SdkVersionTargeting {
+    /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<SdkVersion>>,
+    /// Value of an sdk version.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<SdkVersion>>,
+}
+
+/// Describes an inclusive/exclusive list of country codes that module targets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserCountriesTargeting {
+    /// List of country codes in the two-letter CLDR territory format.
+    #[serde(default, rename = "countryCodes")]
+    pub country_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Indicates if the list above is exclusive.
+    #[serde(default)]
+    pub exclude: ::core::option::Option<bool>,
+}
+
+/// Represents a list of ABIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiAbi {
+    /// A list of targeted ABIs, as represented by the Android Platform
+    #[serde(default)]
+    pub abi: ::core::option::Option<::std::vec::Vec<Abi>>,
+}
+
+/// Represents a screen density.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScreenDensity {
+    /// Alias for a screen density. // TODO: enum values: ["DENSITY_UNSPECIFIED", "NODPI", "LDPI", "MDPI", "TVDPI", "HDPI", "XHDPI", "XXHDPI", "XXXHDPI"]
+    #[serde(default, rename = "densityAlias")]
+    pub density_alias: ::core::option::Option<String>,
+    /// Value for density dpi.
+    #[serde(default, rename = "densityDpi")]
+    pub density_dpi: ::core::option::Option<i32>,
+}
+
+/// Represents texture compression format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextureCompressionFormat {
+    /// Alias for texture compression format. // TODO: enum values: ["UNSPECIFIED_TEXTURE_COMPRESSION_FORMAT", "ETC1_RGB8", "PALETTED", "THREE_DC", "ATC", "LATC", "DXT1", "S3TC", "PVRTC", "ASTC", "ETC2"]
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+}
+
+/// Represents a device feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceFeature {
+    /// Name of the feature.
+    #[serde(default, rename = "featureName")]
+    pub feature_name: ::core::option::Option<String>,
+    /// The feature version specified by android:glEsVersion or android:version in in the AndroidManifest.
+    #[serde(default, rename = "featureVersion")]
+    pub feature_version: ::core::option::Option<i32>,
+}
+
+/// Represents an sdk version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SdkVersion {
+    /// Inclusive minimum value of an sdk version.
+    #[serde(default)]
+    pub min: ::core::option::Option<i32>,
+}
+
+/// Represents an Abi.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Abi {
+    /// Alias for an abi. // TODO: enum values: ["UNSPECIFIED_CPU_ARCHITECTURE", "ARMEABI", "ARMEABI_V7A", "ARM64_V8A", "X86", "X86_64", "RISCV64"]
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
 }

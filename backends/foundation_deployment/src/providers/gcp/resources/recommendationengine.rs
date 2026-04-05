@@ -40,107 +40,6 @@ pub struct GoogleCloudRecommendationengineV1alphaTuningMetadata {
     pub recommendation_model: ::core::option::Option<String>,
 }
 
-/// BigQuery source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1BigQuerySource {
-    /// Optional. The schema to use when parsing the data from the source. Supported values for catalog imports: 1: "catalog_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#json (Default for catalogItems.import) 2: "catalog_merchant_center" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#mc Supported values for user event imports: 1: "user_events_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/manage-user-events#import (Default for userEvents.import) 2. "user_events_ga360" using https://support.google.com/analytics/answer/3437719?hl=en
-    #[serde(default, rename = "dataSchema")]
-    pub data_schema: ::core::option::Option<String>,
-    /// Required. The BigQuery data set to copy the data from.
-    #[serde(default, rename = "datasetId")]
-    pub dataset_id: ::core::option::Option<String>,
-    /// Optional. Intermediate Cloud Storage directory used for the import. Can be specified if one wants to have the BigQuery export to a specific Cloud Storage directory.
-    #[serde(default, rename = "gcsStagingDir")]
-    pub gcs_staging_dir: ::core::option::Option<String>,
-    /// Optional. The project id (can be project # or id) that the BigQuery source is in. If not specified, inherits the project id from the parent request.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Required. The BigQuery table to copy the data from.
-    #[serde(default, rename = "tableId")]
-    pub table_id: ::core::option::Option<String>,
-}
-
-/// The catalog configuration. Next ID: 5.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1Catalog {
-    /// Required. The catalog item level configuration.
-    #[serde(default, rename = "catalogItemLevelConfig")]
-    pub catalog_item_level_config:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig>,
-    /// Required. The ID of the default event store.
-    #[serde(default, rename = "defaultEventStoreId")]
-    pub default_event_store_id: ::core::option::Option<String>,
-    /// Required. The catalog display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The fully qualified resource name of the catalog.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The inline source for the input config for ImportCatalogItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1CatalogInlineSource {
-    /// Optional. A list of catalog items to update/create. Recommended max of 10k items.
-    #[serde(default, rename = "catalogItems")]
-    pub catalog_items:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItem>>,
-}
-
-/// CatalogItem captures all metadata information of items to be recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1CatalogItem {
-    /// Required. Catalog item categories. This field is repeated for supporting one catalog item belonging to several parallel category hierarchies. For example, if a shoes product belongs to both ["Shoes & Accessories" -&gt; "Shoes"] and ["Sports & Fitness" -&gt; "Athletic Clothing" -&gt; "Shoes"], it could be represented as: "categoryHierarchies": [ { "categories": ["Shoes & Accessories", "Shoes"]}, { "categories": ["Sports & Fitness", "Athletic Clothing", "Shoes"] } ]
-    #[serde(default, rename = "categoryHierarchies")]
-    pub category_hierarchies: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy>,
-    >,
-    /// Optional. Catalog item description. UTF-8 encoded string with a length limit of 5 KiB.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Catalog item identifier. UTF-8 encoded string with a length limit of 128 bytes. This id must be unique among all catalog items within the same catalog. It should also be used when logging user events in order for the user events to be joined with the Catalog.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Highly encouraged. Extra catalog item attributes to be included in the recommendation model. For example, for retail products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the item attributes here.
-    #[serde(default, rename = "itemAttributes")]
-    pub item_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
-    /// Optional. Variant group identifier for prediction results. UTF-8 encoded string with a length limit of 128 bytes. This field must be enabled before it can be used. [Learn more](/recommendations-ai/docs/catalog#item-group-id).
-    #[serde(default, rename = "itemGroupId")]
-    pub item_group_id: ::core::option::Option<String>,
-    /// Optional. Deprecated. The model automatically detects the text language. Your catalog can include text in different languages, but duplicating catalog items to provide text in multiple languages can result in degraded model performance.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Metadata specific to retail products.
-    #[serde(default, rename = "productMetadata")]
-    pub product_metadata:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItem>,
-    /// Optional. Filtering tags associated with the catalog item. Each tag should be a UTF-8 encoded string with a length limit of 1 KiB. This tag can be used for filtering recommendation results by passing the tag as part of the predict request filter.
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Catalog item title. UTF-8 encoded string with a length limit of 1 KiB.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Category represents catalog item category hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy {
-    /// Required. Catalog item categories. Each category should be a UTF-8 encoded string with a length limit of 2 KiB. Note that the order in the list denotes the specificity (from least to most specific).
-    #[serde(default)]
-    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Configures the catalog level that users send events to, and the level at which predictions are made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig {
-    /// Optional. Level of the catalog at which events are uploaded. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details. // TODO: enum values: ["CATALOG_ITEM_LEVEL_UNSPECIFIED", "VARIANT", "MASTER"]
-    #[serde(default, rename = "eventItemLevel")]
-    pub event_item_level: ::core::option::Option<String>,
-    /// Optional. Level of the catalog at which predictions are made. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details. // TODO: enum values: ["CATALOG_ITEM_LEVEL_UNSPECIFIED", "VARIANT", "MASTER"]
-    #[serde(default, rename = "predictItemLevel")]
-    pub predict_item_level: ::core::option::Option<String>,
-}
-
 /// Request message for the CreatePredictionApiKeyRegistration method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrationRequest {
@@ -148,40 +47,6 @@ pub struct GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrat
     #[serde(default, rename = "predictionApiKeyRegistration")]
     pub prediction_api_key_registration:
         ::core::option::Option<GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration>,
-}
-
-/// User event details shared by all recommendation types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1EventDetail {
-    /// Optional. Extra user event features to include in the recommendation model. For product recommendation, an example of extra user information is traffic_channel, i.e. how user arrives at the site. Users can arrive at the site by coming to the site directly, or coming through Google search, and etc.
-    #[serde(default, rename = "eventAttributes")]
-    pub event_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
-    /// Optional. A list of identifiers for the independent experiment groups this user event belongs to. This is used to distinguish between user events associated with different experiment setups (e.g. using Recommendation Engine system, using different recommendation models).
-    #[serde(default, rename = "experimentIds")]
-    pub experiment_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A unique id of a web page view. This should be kept the same for all user events triggered from the same pageview. For example, an item detail page view could trigger multiple events as the user is browsing the page. The pageViewId property should be kept the same for all these events so that they can be grouped together properly. This pageViewId will be automatically generated if using the JavaScript pixel.
-    #[serde(default, rename = "pageViewId")]
-    pub page_view_id: ::core::option::Option<String>,
-    /// Optional. Recommendation token included in the recommendation prediction response. This field enables accurate attribution of recommendation model performance. This token enables us to accurately attribute page view or purchase back to the event and the particular predict response containing this clicked/purchased item. If user clicks on product K in the recommendation results, pass the PredictResponse.recommendationToken property as a url parameter to product K''s page. When recording events on product K''s page, log the PredictResponse.recommendation_token to this field. Optional, but highly encouraged for user events that are the result of a recommendation prediction query.
-    #[serde(default, rename = "recommendationToken")]
-    pub recommendation_token: ::core::option::Option<String>,
-    /// Optional. The referrer url of the current page. When using the JavaScript pixel, this value is filled in automatically.
-    #[serde(default, rename = "referrerUri")]
-    pub referrer_uri: ::core::option::Option<String>,
-    /// Optional. Complete url (window.location.href) of the user''s current page. When using the JavaScript pixel, this value is filled in automatically. Maximum length 5KB.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// FeatureMap represents extra features that customers want to include in the recommendation model for catalogs/user events as categorical/numerical features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1FeatureMap {
-    /// Categorical features that can take on one of a limited number of possible values. Some examples would be the brand/maker of a product, or country of a customer. Feature names and values must be UTF-8 encoded strings. For example: { "colors": {"value": ["yellow", "green"]}, "sizes": {"value":["S", "M"]}
-    #[serde(default, rename = "categoricalFeatures")]
-    pub categorical_features: ::core::option::Option<serde_json::Value>,
-    /// Numerical features. Some examples would be the height/weight of a product, or age of a customer. Feature names must be UTF-8 encoded strings. For example: { "lengths_cm": {"value":[2.3, 15.4]}, "heights_cm": {"value":[8.1, 6.4]} }
-    #[serde(default, rename = "numericalFeatures")]
-    pub numerical_features: ::core::option::Option<serde_json::Value>,
 }
 
 /// A list of float features.
@@ -198,31 +63,6 @@ pub struct GoogleCloudRecommendationengineV1beta1FeatureMapStringList {
     /// String feature value with a length limit of 128 bytes.
     #[serde(default)]
     pub value: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Google Cloud Storage location for input content. format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1GcsSource {
-    /// Required. Google Cloud Storage URIs to input files. URI can be up to 2000 characters long. URIs can match the full object path (for example, gs://bucket/directory/object.json) or a pattern matching one or more files, such as gs://bucket/directory/*.json. A request can contain at most 100 files, and each file can be up to 2 GB. See [Importing catalog information](/recommendations-ai/docs/upload-catalog) for the expected file format and setup instructions.
-    #[serde(default, rename = "inputUris")]
-    pub input_uris: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The schema to use when parsing the data from the source. Supported values for catalog imports: 1: "catalog_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#json (Default for catalogItems.import) 2: "catalog_merchant_center" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#mc Supported values for user events imports: 1: "user_events_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/manage-user-events#import (Default for userEvents.import) 2. "user_events_ga360" using https://support.google.com/analytics/answer/3437719?hl=en
-    #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<String>,
-}
-
-/// Catalog item thumbnail/detail image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1Image {
-    /// Optional. Height of the image in number of pixels.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Required. URL of the image with a length limit of 5 KiB.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-    /// Optional. Width of the image in number of pixels.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
 }
 
 /// Request message for Import methods.
@@ -253,14 +93,6 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportCatalogItemsResponse {
     #[serde(default, rename = "errorsConfig")]
     pub errors_config:
         ::core::option::Option<GoogleCloudRecommendationengineV1beta1ImportErrorsConfig>,
-}
-
-/// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ImportErrorsConfig {
-    /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Import errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
-    #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Import operation. This will be returned by the google.longrunning.Operation.metadata field.
@@ -315,26 +147,6 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportUserEventsResponse {
     #[serde(default, rename = "importSummary")]
     pub import_summary:
         ::core::option::Option<GoogleCloudRecommendationengineV1beta1UserEventImportSummary>,
-}
-
-/// The input config source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1InputConfig {
-    /// BigQuery input source.
-    #[serde(default, rename = "bigQuerySource")]
-    pub big_query_source:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1BigQuerySource>,
-    /// The Inline source for the input content for Catalog items.
-    #[serde(default, rename = "catalogInlineSource")]
-    pub catalog_inline_source:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1CatalogInlineSource>,
-    /// Google Cloud Storage location for the input content.
-    #[serde(default, rename = "gcsSource")]
-    pub gcs_source: ::core::option::Option<GoogleCloudRecommendationengineV1beta1GcsSource>,
-    /// The Inline source for the input content for UserEvents.
-    #[serde(default, rename = "userEventInlineSource")]
-    pub user_event_inline_source:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1UserEventInlineSource>,
 }
 
 /// Response message for ListCatalogItems method.
@@ -437,156 +249,6 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictResponse {
     >,
 }
 
-/// PredictionResult represents the recommendation prediction results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1PredictResponsePredictionResult {
-    /// ID of the recommended catalog item
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Additional item metadata / annotations. Possible values: * catalogItem: JSON representation of the catalogItem. Will be set if returnCatalogItem is set to true in PredictRequest.params. * score: Prediction score in double value. Will be set if returnItemScore is set to true in PredictRequest.params.
-    #[serde(default, rename = "itemMetadata")]
-    pub item_metadata: ::core::option::Option<serde_json::Value>,
-}
-
-/// Registered Api Key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration {
-    /// The API key.
-    #[serde(default, rename = "apiKey")]
-    pub api_key: ::core::option::Option<String>,
-}
-
-/// ProductCatalogItem captures item metadata specific to retail products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItem {
-    /// Optional. The available quantity of the item.
-    #[serde(default, rename = "availableQuantity")]
-    pub available_quantity: ::core::option::Option<String>,
-    /// Optional. Canonical URL directly linking to the item detail page with a length limit of 5 KiB..
-    #[serde(default, rename = "canonicalProductUri")]
-    pub canonical_product_uri: ::core::option::Option<String>,
-    /// Optional. A map to pass the costs associated with the product. For example: {"manufacturing": 45.5} The profit of selling this item is computed like so: * If ''exactPrice'' is provided, profit = displayPrice - sum(costs) * If ''priceRange'' is provided, profit = minPrice - sum(costs)
-    #[serde(default)]
-    pub costs: ::core::option::Option<serde_json::Value>,
-    /// Optional. Only required if the price is set. Currency code for price/costs. Use three-character ISO-4217 code.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Optional. The exact product price.
-    #[serde(default, rename = "exactPrice")]
-    pub exact_price:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice>,
-    /// Optional. Product images for the catalog item.
-    #[serde(default)]
-    pub images:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1Image>>,
-    /// Optional. The product price range.
-    #[serde(default, rename = "priceRange")]
-    pub price_range:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange>,
-    /// Optional. Online stock state of the catalog item. Default is IN_STOCK. // TODO: enum values: ["STOCK_STATE_UNSPECIFIED", "IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]
-    #[serde(default, rename = "stockState")]
-    pub stock_state: ::core::option::Option<String>,
-}
-
-/// Exact product price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice {
-    /// Optional. Display price of the product.
-    #[serde(default, rename = "displayPrice")]
-    pub display_price: ::core::option::Option<f32>,
-    /// Optional. Price of the product without any discount. If zero, by default set to be the ''displayPrice''.
-    #[serde(default, rename = "originalPrice")]
-    pub original_price: ::core::option::Option<f32>,
-}
-
-/// Product price range when there are a range of prices for different variations of the same product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange {
-    /// Required. The maximum product price.
-    #[serde(default)]
-    pub max: ::core::option::Option<f32>,
-    /// Required. The minimum product price.
-    #[serde(default)]
-    pub min: ::core::option::Option<f32>,
-}
-
-/// Detailed product information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ProductDetail {
-    /// Optional. Quantity of the products in stock when a user event happens. Optional. If provided, this overrides the available quantity in Catalog for this event. and can only be set if stock_status is set to IN_STOCK. Note that if an item is out of stock, you must set the stock_state field to be OUT_OF_STOCK. Leaving this field unspecified / as zero is not sufficient to mark the item out of stock.
-    #[serde(default, rename = "availableQuantity")]
-    pub available_quantity: ::core::option::Option<i32>,
-    /// Optional. Currency code for price/costs. Use three-character ISO-4217 code. Required only if originalPrice or displayPrice is set.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Optional. Display price of the product (e.g. discounted price). If provided, this will override the display price in Catalog for this product.
-    #[serde(default, rename = "displayPrice")]
-    pub display_price: ::core::option::Option<f32>,
-    /// Required. Catalog item ID. UTF-8 encoded string with a length limit of 128 characters.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Extra features associated with a product in the user event.
-    #[serde(default, rename = "itemAttributes")]
-    pub item_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
-    /// Optional. Original price of the product. If provided, this will override the original price in Catalog for this product.
-    #[serde(default, rename = "originalPrice")]
-    pub original_price: ::core::option::Option<f32>,
-    /// Optional. Quantity of the product associated with the user event. For example, this field will be 2 if two products are added to the shopping cart for add-to-cart event. Required for add-to-cart, add-to-list, remove-from-cart, checkout-start, purchase-complete, refund event types.
-    #[serde(default)]
-    pub quantity: ::core::option::Option<i32>,
-    /// Optional. Item stock state. If provided, this overrides the stock state in Catalog for items in this event. // TODO: enum values: ["STOCK_STATE_UNSPECIFIED", "IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]
-    #[serde(default, rename = "stockState")]
-    pub stock_state: ::core::option::Option<String>,
-}
-
-/// ProductEventDetail captures user event information specific to retail products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1ProductEventDetail {
-    /// Optional. The id or name of the associated shopping cart. This id is used to associate multiple items added or present in the cart before purchase. This can only be set for add-to-cart, remove-from-cart, checkout-start, purchase-complete, or shopping-cart-page-view events.
-    #[serde(default, rename = "cartId")]
-    pub cart_id: ::core::option::Option<String>,
-    /// Required for add-to-list and remove-from-list events. The id or name of the list that the item is being added to or removed from. Other event types should not set this field.
-    #[serde(default, rename = "listId")]
-    pub list_id: ::core::option::Option<String>,
-    /// Required for category-page-view events. At least one of search_query or page_categories is required for search events. Other event types should not set this field. The categories associated with a category page. Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: categories : ["Sales", "2017 Black Friday Deals"].
-    #[serde(default, rename = "pageCategories")]
-    pub page_categories: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy>,
-    >,
-    /// The main product details related to the event. This field is required for the following event types: * add-to-cart * add-to-list * checkout-start * detail-page-view * purchase-complete * refund * remove-from-cart * remove-from-list This field is optional for the following event types: * page-visit * shopping-cart-page-view - note that ''product_details'' should be set for this unless the shopping cart is empty. * search (highly encouraged) In a search event, this field represents the products returned to the end user on the current page (the end user may have not finished broswing the whole page yet). When a new page is returned to the end user, after pagination/filtering/ordering even for the same query, a new SEARCH event with different product_details is desired. The end user may have not finished broswing the whole page yet. This field is not allowed for the following event types: * category-page-view * home-page-view
-    #[serde(default, rename = "productDetails")]
-    pub product_details: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1ProductDetail>,
-    >,
-    /// Optional. A transaction represents the entire purchase transaction. Required for purchase-complete events. Optional for checkout-start events. Other event types should not set this field.
-    #[serde(default, rename = "purchaseTransaction")]
-    pub purchase_transaction:
-        ::core::option::Option<GoogleCloudRecommendationengineV1beta1PurchaseTransaction>,
-    /// At least one of search_query or page_categories is required for search events. Other event types should not set this field. The user''s search query as UTF-8 encoded text with a length limit of 5 KiB.
-    #[serde(default, rename = "searchQuery")]
-    pub search_query: ::core::option::Option<String>,
-}
-
-/// A transaction represents the entire purchase transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1PurchaseTransaction {
-    /// Optional. All the costs associated with the product. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs. Total product cost such that profit = revenue - (sum(taxes) + sum(costs)) If product_cost is not set, then profit = revenue - tax - shipping - sum(CatalogItem.costs). If CatalogItem.cost is not specified for one of the items, CatalogItem.cost based profit *cannot* be calculated for this Transaction.
-    #[serde(default)]
-    pub costs: ::core::option::Option<serde_json::Value>,
-    /// Required. Currency code. Use three-character ISO-4217 code. This field is not required if the event type is refund.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Optional. The transaction ID with a length limit of 128 bytes.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Required. Total revenue or grand total associated with the transaction. This value include shipping, tax, or other adjustments to total revenue that you want to include as part of your revenue calculations. This field is not required if the event type is refund.
-    #[serde(default)]
-    pub revenue: ::core::option::Option<f32>,
-    /// Optional. All the taxes associated with the transaction.
-    #[serde(default)]
-    pub taxes: ::core::option::Option<serde_json::Value>,
-}
-
 /// Metadata related to the progress of the PurgeUserEvents operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsMetadata {
@@ -637,6 +299,225 @@ pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsResponse {
     pub rejoined_user_events_count: ::core::option::Option<String>,
 }
 
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The input config source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1InputConfig {
+    /// BigQuery input source.
+    #[serde(default, rename = "bigQuerySource")]
+    pub big_query_source:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1BigQuerySource>,
+    /// The Inline source for the input content for Catalog items.
+    #[serde(default, rename = "catalogInlineSource")]
+    pub catalog_inline_source:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1CatalogInlineSource>,
+    /// Google Cloud Storage location for the input content.
+    #[serde(default, rename = "gcsSource")]
+    pub gcs_source: ::core::option::Option<GoogleCloudRecommendationengineV1beta1GcsSource>,
+    /// The Inline source for the input content for UserEvents.
+    #[serde(default, rename = "userEventInlineSource")]
+    pub user_event_inline_source:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1UserEventInlineSource>,
+}
+
+/// Configuration of destination for Import related errors.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1ImportErrorsConfig {
+    /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Import errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
+    #[serde(default, rename = "gcsPrefix")]
+    pub gcs_prefix: ::core::option::Option<String>,
+}
+
+/// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1UserEventImportSummary {
+    /// Count of user events imported with complete existing catalog information.
+    #[serde(default, rename = "joinedEventsCount")]
+    pub joined_events_count: ::core::option::Option<String>,
+    /// Count of user events imported, but with catalog information not found in the imported catalog.
+    #[serde(default, rename = "unjoinedEventsCount")]
+    pub unjoined_events_count: ::core::option::Option<String>,
+}
+
+/// The catalog configuration. Next ID: 5.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1Catalog {
+    /// Required. The catalog item level configuration.
+    #[serde(default, rename = "catalogItemLevelConfig")]
+    pub catalog_item_level_config:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig>,
+    /// Required. The ID of the default event store.
+    #[serde(default, rename = "defaultEventStoreId")]
+    pub default_event_store_id: ::core::option::Option<String>,
+    /// Required. The catalog display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The fully qualified resource name of the catalog.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Registered Api Key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration {
+    /// The API key.
+    #[serde(default, rename = "apiKey")]
+    pub api_key: ::core::option::Option<String>,
+}
+
+/// PredictionResult represents the recommendation prediction results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1PredictResponsePredictionResult {
+    /// ID of the recommended catalog item
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Additional item metadata / annotations. Possible values: * catalogItem: JSON representation of the catalogItem. Will be set if returnCatalogItem is set to true in PredictRequest.params. * score: Prediction score in double value. Will be set if returnItemScore is set to true in PredictRequest.params.
+    #[serde(default, rename = "itemMetadata")]
+    pub item_metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// BigQuery source import data from.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1BigQuerySource {
+    /// Optional. The schema to use when parsing the data from the source. Supported values for catalog imports: 1: "catalog_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#json (Default for catalogItems.import) 2: "catalog_merchant_center" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#mc Supported values for user event imports: 1: "user_events_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/manage-user-events#import (Default for userEvents.import) 2. "user_events_ga360" using https://support.google.com/analytics/answer/3437719?hl=en
+    #[serde(default, rename = "dataSchema")]
+    pub data_schema: ::core::option::Option<String>,
+    /// Required. The BigQuery data set to copy the data from.
+    #[serde(default, rename = "datasetId")]
+    pub dataset_id: ::core::option::Option<String>,
+    /// Optional. Intermediate Cloud Storage directory used for the import. Can be specified if one wants to have the BigQuery export to a specific Cloud Storage directory.
+    #[serde(default, rename = "gcsStagingDir")]
+    pub gcs_staging_dir: ::core::option::Option<String>,
+    /// Optional. The project id (can be project # or id) that the BigQuery source is in. If not specified, inherits the project id from the parent request.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Required. The BigQuery table to copy the data from.
+    #[serde(default, rename = "tableId")]
+    pub table_id: ::core::option::Option<String>,
+}
+
+/// The inline source for the input config for ImportCatalogItems method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1CatalogInlineSource {
+    /// Optional. A list of catalog items to update/create. Recommended max of 10k items.
+    #[serde(default, rename = "catalogItems")]
+    pub catalog_items:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItem>>,
+}
+
+/// Google Cloud Storage location for input content. format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1GcsSource {
+    /// Required. Google Cloud Storage URIs to input files. URI can be up to 2000 characters long. URIs can match the full object path (for example, gs://bucket/directory/object.json) or a pattern matching one or more files, such as gs://bucket/directory/*.json. A request can contain at most 100 files, and each file can be up to 2 GB. See [Importing catalog information](/recommendations-ai/docs/upload-catalog) for the expected file format and setup instructions.
+    #[serde(default, rename = "inputUris")]
+    pub input_uris: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The schema to use when parsing the data from the source. Supported values for catalog imports: 1: "catalog_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#json (Default for catalogItems.import) 2: "catalog_merchant_center" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#mc Supported values for user events imports: 1: "user_events_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/manage-user-events#import (Default for userEvents.import) 2. "user_events_ga360" using https://support.google.com/analytics/answer/3437719?hl=en
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<String>,
+}
+
+/// The inline source for the input config for ImportUserEvents method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1UserEventInlineSource {
+    /// Optional. A list of user events to import. Recommended max of 10k items.
+    #[serde(default, rename = "userEvents")]
+    pub user_events:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1UserEvent>>,
+}
+
+/// Configures the catalog level that users send events to, and the level at which predictions are made.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig {
+    /// Optional. Level of the catalog at which events are uploaded. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details. // TODO: enum values: ["CATALOG_ITEM_LEVEL_UNSPECIFIED", "VARIANT", "MASTER"]
+    #[serde(default, rename = "eventItemLevel")]
+    pub event_item_level: ::core::option::Option<String>,
+    /// Optional. Level of the catalog at which predictions are made. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details. // TODO: enum values: ["CATALOG_ITEM_LEVEL_UNSPECIFIED", "VARIANT", "MASTER"]
+    #[serde(default, rename = "predictItemLevel")]
+    pub predict_item_level: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// CatalogItem captures all metadata information of items to be recommended.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1CatalogItem {
+    /// Required. Catalog item categories. This field is repeated for supporting one catalog item belonging to several parallel category hierarchies. For example, if a shoes product belongs to both ["Shoes & Accessories" -&gt; "Shoes"] and ["Sports & Fitness" -&gt; "Athletic Clothing" -&gt; "Shoes"], it could be represented as: "categoryHierarchies": [ { "categories": ["Shoes & Accessories", "Shoes"]}, { "categories": ["Sports & Fitness", "Athletic Clothing", "Shoes"] } ]
+    #[serde(default, rename = "categoryHierarchies")]
+    pub category_hierarchies: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy>,
+    >,
+    /// Optional. Catalog item description. UTF-8 encoded string with a length limit of 5 KiB.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Catalog item identifier. UTF-8 encoded string with a length limit of 128 bytes. This id must be unique among all catalog items within the same catalog. It should also be used when logging user events in order for the user events to be joined with the Catalog.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Highly encouraged. Extra catalog item attributes to be included in the recommendation model. For example, for retail products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the item attributes here.
+    #[serde(default, rename = "itemAttributes")]
+    pub item_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
+    /// Optional. Variant group identifier for prediction results. UTF-8 encoded string with a length limit of 128 bytes. This field must be enabled before it can be used. [Learn more](/recommendations-ai/docs/catalog#item-group-id).
+    #[serde(default, rename = "itemGroupId")]
+    pub item_group_id: ::core::option::Option<String>,
+    /// Optional. Deprecated. The model automatically detects the text language. Your catalog can include text in different languages, but duplicating catalog items to provide text in multiple languages can result in degraded model performance.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Metadata specific to retail products.
+    #[serde(default, rename = "productMetadata")]
+    pub product_metadata:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItem>,
+    /// Optional. Filtering tags associated with the catalog item. Each tag should be a UTF-8 encoded string with a length limit of 1 KiB. This tag can be used for filtering recommendation results by passing the tag as part of the predict request filter.
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Catalog item title. UTF-8 encoded string with a length limit of 1 KiB.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
 /// UserEvent captures all metadata information recommendation engine needs to know about how end users interact with customers'' website.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommendationengineV1beta1UserEvent {
@@ -661,24 +542,87 @@ pub struct GoogleCloudRecommendationengineV1beta1UserEvent {
     pub user_info: ::core::option::Option<GoogleCloudRecommendationengineV1beta1UserInfo>,
 }
 
-/// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
+/// ProductCatalogItem captures item metadata specific to retail products.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1UserEventImportSummary {
-    /// Count of user events imported with complete existing catalog information.
-    #[serde(default, rename = "joinedEventsCount")]
-    pub joined_events_count: ::core::option::Option<String>,
-    /// Count of user events imported, but with catalog information not found in the imported catalog.
-    #[serde(default, rename = "unjoinedEventsCount")]
-    pub unjoined_events_count: ::core::option::Option<String>,
+pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItem {
+    /// Optional. The available quantity of the item.
+    #[serde(default, rename = "availableQuantity")]
+    pub available_quantity: ::core::option::Option<String>,
+    /// Optional. Canonical URL directly linking to the item detail page with a length limit of 5 KiB..
+    #[serde(default, rename = "canonicalProductUri")]
+    pub canonical_product_uri: ::core::option::Option<String>,
+    /// Optional. A map to pass the costs associated with the product. For example: {"manufacturing": 45.5} The profit of selling this item is computed like so: * If ''exactPrice'' is provided, profit = displayPrice - sum(costs) * If ''priceRange'' is provided, profit = minPrice - sum(costs)
+    #[serde(default)]
+    pub costs: ::core::option::Option<serde_json::Value>,
+    /// Optional. Only required if the price is set. Currency code for price/costs. Use three-character ISO-4217 code.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Optional. The exact product price.
+    #[serde(default, rename = "exactPrice")]
+    pub exact_price:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice>,
+    /// Optional. Product images for the catalog item.
+    #[serde(default)]
+    pub images:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1Image>>,
+    /// Optional. The product price range.
+    #[serde(default, rename = "priceRange")]
+    pub price_range:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange>,
+    /// Optional. Online stock state of the catalog item. Default is IN_STOCK. // TODO: enum values: ["STOCK_STATE_UNSPECIFIED", "IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]
+    #[serde(default, rename = "stockState")]
+    pub stock_state: ::core::option::Option<String>,
 }
 
-/// The inline source for the input config for ImportUserEvents method.
+/// User event details shared by all recommendation types.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRecommendationengineV1beta1UserEventInlineSource {
-    /// Optional. A list of user events to import. Recommended max of 10k items.
-    #[serde(default, rename = "userEvents")]
-    pub user_events:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1UserEvent>>,
+pub struct GoogleCloudRecommendationengineV1beta1EventDetail {
+    /// Optional. Extra user event features to include in the recommendation model. For product recommendation, an example of extra user information is traffic_channel, i.e. how user arrives at the site. Users can arrive at the site by coming to the site directly, or coming through Google search, and etc.
+    #[serde(default, rename = "eventAttributes")]
+    pub event_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
+    /// Optional. A list of identifiers for the independent experiment groups this user event belongs to. This is used to distinguish between user events associated with different experiment setups (e.g. using Recommendation Engine system, using different recommendation models).
+    #[serde(default, rename = "experimentIds")]
+    pub experiment_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A unique id of a web page view. This should be kept the same for all user events triggered from the same pageview. For example, an item detail page view could trigger multiple events as the user is browsing the page. The pageViewId property should be kept the same for all these events so that they can be grouped together properly. This pageViewId will be automatically generated if using the JavaScript pixel.
+    #[serde(default, rename = "pageViewId")]
+    pub page_view_id: ::core::option::Option<String>,
+    /// Optional. Recommendation token included in the recommendation prediction response. This field enables accurate attribution of recommendation model performance. This token enables us to accurately attribute page view or purchase back to the event and the particular predict response containing this clicked/purchased item. If user clicks on product K in the recommendation results, pass the PredictResponse.recommendationToken property as a url parameter to product K''s page. When recording events on product K''s page, log the PredictResponse.recommendation_token to this field. Optional, but highly encouraged for user events that are the result of a recommendation prediction query.
+    #[serde(default, rename = "recommendationToken")]
+    pub recommendation_token: ::core::option::Option<String>,
+    /// Optional. The referrer url of the current page. When using the JavaScript pixel, this value is filled in automatically.
+    #[serde(default, rename = "referrerUri")]
+    pub referrer_uri: ::core::option::Option<String>,
+    /// Optional. Complete url (window.location.href) of the user''s current page. When using the JavaScript pixel, this value is filled in automatically. Maximum length 5KB.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// ProductEventDetail captures user event information specific to retail products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1ProductEventDetail {
+    /// Optional. The id or name of the associated shopping cart. This id is used to associate multiple items added or present in the cart before purchase. This can only be set for add-to-cart, remove-from-cart, checkout-start, purchase-complete, or shopping-cart-page-view events.
+    #[serde(default, rename = "cartId")]
+    pub cart_id: ::core::option::Option<String>,
+    /// Required for add-to-list and remove-from-list events. The id or name of the list that the item is being added to or removed from. Other event types should not set this field.
+    #[serde(default, rename = "listId")]
+    pub list_id: ::core::option::Option<String>,
+    /// Required for category-page-view events. At least one of search_query or page_categories is required for search events. Other event types should not set this field. The categories associated with a category page. Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: categories : ["Sales", "2017 Black Friday Deals"].
+    #[serde(default, rename = "pageCategories")]
+    pub page_categories: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy>,
+    >,
+    /// The main product details related to the event. This field is required for the following event types: * add-to-cart * add-to-list * checkout-start * detail-page-view * purchase-complete * refund * remove-from-cart * remove-from-list This field is optional for the following event types: * page-visit * shopping-cart-page-view - note that ''product_details'' should be set for this unless the shopping cart is empty. * search (highly encouraged) In a search event, this field represents the products returned to the end user on the current page (the end user may have not finished broswing the whole page yet). When a new page is returned to the end user, after pagination/filtering/ordering even for the same query, a new SEARCH event with different product_details is desired. The end user may have not finished broswing the whole page yet. This field is not allowed for the following event types: * category-page-view * home-page-view
+    #[serde(default, rename = "productDetails")]
+    pub product_details: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudRecommendationengineV1beta1ProductDetail>,
+    >,
+    /// Optional. A transaction represents the entire purchase transaction. Required for purchase-complete events. Optional for checkout-start events. Other event types should not set this field.
+    #[serde(default, rename = "purchaseTransaction")]
+    pub purchase_transaction:
+        ::core::option::Option<GoogleCloudRecommendationengineV1beta1PurchaseTransaction>,
+    /// At least one of search_query or page_categories is required for search events. Other event types should not set this field. The user''s search query as UTF-8 encoded text with a length limit of 5 KiB.
+    #[serde(default, rename = "searchQuery")]
+    pub search_query: ::core::option::Option<String>,
 }
 
 /// Information of end users.
@@ -701,50 +645,106 @@ pub struct GoogleCloudRecommendationengineV1beta1UserInfo {
     pub visitor_id: ::core::option::Option<String>,
 }
 
-/// The response message for Operations.ListOperations.
+/// Exact product price.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice {
+    /// Optional. Display price of the product.
+    #[serde(default, rename = "displayPrice")]
+    pub display_price: ::core::option::Option<f32>,
+    /// Optional. Price of the product without any discount. If zero, by default set to be the ''displayPrice''.
+    #[serde(default, rename = "originalPrice")]
+    pub original_price: ::core::option::Option<f32>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
+/// Catalog item thumbnail/detail image.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+pub struct GoogleCloudRecommendationengineV1beta1Image {
+    /// Optional. Height of the image in number of pixels.
     #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
+    pub height: ::core::option::Option<i32>,
+    /// Required. URL of the image with a length limit of 5 KiB.
     #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    pub uri: ::core::option::Option<String>,
+    /// Optional. Width of the image in number of pixels.
     #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
+    pub width: ::core::option::Option<i32>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Product price range when there are a range of prices for different variations of the same product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange {
+    /// Required. The maximum product price.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub max: ::core::option::Option<f32>,
+    /// Required. The minimum product price.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub min: ::core::option::Option<f32>,
+}
+
+/// Category represents catalog item category hierarchy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy {
+    /// Required. Catalog item categories. Each category should be a UTF-8 encoded string with a length limit of 2 KiB. Note that the order in the list denotes the specificity (from least to most specific).
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Detailed product information associated with a user event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1ProductDetail {
+    /// Optional. Quantity of the products in stock when a user event happens. Optional. If provided, this overrides the available quantity in Catalog for this event. and can only be set if stock_status is set to IN_STOCK. Note that if an item is out of stock, you must set the stock_state field to be OUT_OF_STOCK. Leaving this field unspecified / as zero is not sufficient to mark the item out of stock.
+    #[serde(default, rename = "availableQuantity")]
+    pub available_quantity: ::core::option::Option<i32>,
+    /// Optional. Currency code for price/costs. Use three-character ISO-4217 code. Required only if originalPrice or displayPrice is set.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Optional. Display price of the product (e.g. discounted price). If provided, this will override the display price in Catalog for this product.
+    #[serde(default, rename = "displayPrice")]
+    pub display_price: ::core::option::Option<f32>,
+    /// Required. Catalog item ID. UTF-8 encoded string with a length limit of 128 characters.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Extra features associated with a product in the user event.
+    #[serde(default, rename = "itemAttributes")]
+    pub item_attributes: ::core::option::Option<GoogleCloudRecommendationengineV1beta1FeatureMap>,
+    /// Optional. Original price of the product. If provided, this will override the original price in Catalog for this product.
+    #[serde(default, rename = "originalPrice")]
+    pub original_price: ::core::option::Option<f32>,
+    /// Optional. Quantity of the product associated with the user event. For example, this field will be 2 if two products are added to the shopping cart for add-to-cart event. Required for add-to-cart, add-to-list, remove-from-cart, checkout-start, purchase-complete, refund event types.
+    #[serde(default)]
+    pub quantity: ::core::option::Option<i32>,
+    /// Optional. Item stock state. If provided, this overrides the stock state in Catalog for items in this event. // TODO: enum values: ["STOCK_STATE_UNSPECIFIED", "IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]
+    #[serde(default, rename = "stockState")]
+    pub stock_state: ::core::option::Option<String>,
+}
+
+/// A transaction represents the entire purchase transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1PurchaseTransaction {
+    /// Optional. All the costs associated with the product. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs. Total product cost such that profit = revenue - (sum(taxes) + sum(costs)) If product_cost is not set, then profit = revenue - tax - shipping - sum(CatalogItem.costs). If CatalogItem.cost is not specified for one of the items, CatalogItem.cost based profit *cannot* be calculated for this Transaction.
+    #[serde(default)]
+    pub costs: ::core::option::Option<serde_json::Value>,
+    /// Required. Currency code. Use three-character ISO-4217 code. This field is not required if the event type is refund.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Optional. The transaction ID with a length limit of 128 bytes.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Required. Total revenue or grand total associated with the transaction. This value include shipping, tax, or other adjustments to total revenue that you want to include as part of your revenue calculations. This field is not required if the event type is refund.
+    #[serde(default)]
+    pub revenue: ::core::option::Option<f32>,
+    /// Optional. All the taxes associated with the transaction.
+    #[serde(default)]
+    pub taxes: ::core::option::Option<serde_json::Value>,
+}
+
+/// FeatureMap represents extra features that customers want to include in the recommendation model for catalogs/user events as categorical/numerical features.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1FeatureMap {
+    /// Categorical features that can take on one of a limited number of possible values. Some examples would be the brand/maker of a product, or country of a customer. Feature names and values must be UTF-8 encoded strings. For example: { "colors": {"value": ["yellow", "green"]}, "sizes": {"value":["S", "M"]}
+    #[serde(default, rename = "categoricalFeatures")]
+    pub categorical_features: ::core::option::Option<serde_json::Value>,
+    /// Numerical features. Some examples would be the height/weight of a product, or age of a customer. Feature names must be UTF-8 encoded strings. For example: { "lengths_cm": {"value":[2.3, 15.4]}, "heights_cm": {"value":[8.1, 6.4]} }
+    #[serde(default, rename = "numericalFeatures")]
+    pub numerical_features: ::core::option::Option<serde_json::Value>,
 }

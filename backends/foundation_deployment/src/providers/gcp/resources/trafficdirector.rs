@@ -10,46 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Addresses specify either a logical or physical address and port, which are used to tell Envoy where to bind/listen, connect to upstream and find management servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Address {
-    /// Specifies a user-space address handled by :ref:internal listeners .
-    #[serde(default, rename = "envoyInternalAddress")]
-    pub envoy_internal_address: ::core::option::Option<EnvoyInternalAddress>,
-    #[serde(default)]
-    pub pipe: ::core::option::Option<Pipe>,
-    #[serde(default, rename = "socketAddress")]
-    pub socket_address: ::core::option::Option<SocketAddress>,
-}
-
-/// BuildVersion combines SemVer version of extension with free-form build information (i.e. ''alpha'', ''private-build'') as a set of strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BuildVersion {
-    /// Free-form build information. Envoy defines several well known keys in the source/common/version/version.h file
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// SemVer version of extension.
-    #[serde(default)]
-    pub version: ::core::option::Option<SemanticVersion>,
-}
-
-/// All xds configs for a particular client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientConfig {
-    /// For xDS clients, the scope in which the data is used. For example, gRPC indicates the data plane target or that the data is associated with gRPC server(s).
-    #[serde(default, rename = "clientScope")]
-    pub client_scope: ::core::option::Option<String>,
-    /// Represents generic xDS config and the exact config structure depends on the type URL (like Cluster if it is CDS)
-    #[serde(default, rename = "genericXdsConfigs")]
-    pub generic_xds_configs: ::core::option::Option<::std::vec::Vec<GenericXdsConfig>>,
-    /// Node for a particular client.
-    #[serde(default)]
-    pub node: ::core::option::Option<Node>,
-    /// This field is deprecated in favor of generic_xds_configs which is much simpler and uniform in structure.
-    #[serde(default, rename = "xdsConfig")]
-    pub xds_config: ::core::option::Option<::std::vec::Vec<PerXdsConfig>>,
-}
-
 /// Request for client status of clients identified by a list of NodeMatchers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientStatusRequest {
@@ -72,208 +32,91 @@ pub struct ClientStatusResponse {
     pub config: ::core::option::Option<::std::vec::Vec<ClientConfig>>,
 }
 
-/// Envoy''s cluster manager fills this message with all currently known clusters. Cluster configuration information can be used to recreate an Envoy configuration by populating all clusters as static clusters or by returning them in a CDS response.
+/// Specifies the way to match a string. [#next-free-field: 9]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClustersConfigDump {
-    /// The dynamically loaded active clusters. These are clusters that are available to service data plane traffic.
-    #[serde(default, rename = "dynamicActiveClusters")]
-    pub dynamic_active_clusters: ::core::option::Option<::std::vec::Vec<DynamicCluster>>,
-    /// The dynamically loaded warming clusters. These are clusters that are currently undergoing warming in preparation to service data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the warming clusters should generally be discarded.
-    #[serde(default, rename = "dynamicWarmingClusters")]
-    pub dynamic_warming_clusters: ::core::option::Option<::std::vec::Vec<DynamicCluster>>,
-    /// The statically loaded cluster configs.
-    #[serde(default, rename = "staticClusters")]
-    pub static_clusters: ::core::option::Option<::std::vec::Vec<StaticCluster>>,
-    /// This is the :ref:version_info  in the last processed CDS discovery response. If there are only static bootstrap clusters, this field will be "".
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
+pub struct StringMatcher {
+    /// The input string must have the substring specified here. .. note:: Empty contains match is not allowed, please use safe_regex instead. Examples: * abc matches the value xyz.abc.def
+    #[serde(default)]
+    pub contains: ::core::option::Option<String>,
+    /// Use an extension as the matcher type. [#extension-category: envoy.string_matcher]
+    #[serde(default)]
+    pub custom: ::core::option::Option<TypedExtensionConfig>,
+    /// The input string must match exactly the string specified here. Examples: * abc only matches the value abc.
+    #[serde(default)]
+    pub exact: ::core::option::Option<String>,
+    /// If true, indicates the exact/prefix/suffix/contains matching should be case insensitive. This has no effect for the safe_regex match. For example, the matcher data will match both input string Data and data if this option is set to true.
+    #[serde(default, rename = "ignoreCase")]
+    pub ignore_case: ::core::option::Option<bool>,
+    /// The input string must have the prefix specified here. .. note:: Empty prefix match is not allowed, please use safe_regex instead. Examples: * abc matches the value abc.xyz
+    #[serde(default)]
+    pub prefix: ::core::option::Option<String>,
+    /// The input string must match the regular expression specified here.
+    #[serde(default, rename = "safeRegex")]
+    pub safe_regex: ::core::option::Option<RegexMatcher>,
+    /// The input string must have the suffix specified here. .. note:: Empty suffix match is not allowed, please use safe_regex instead. Examples: * abc matches the value xyz.abc
+    #[serde(default)]
+    pub suffix: ::core::option::Option<String>,
 }
 
-/// Specifies the way to match a double value.
+/// Specifies the way to match a Node. The match follows AND semantics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DoubleMatcher {
-    /// If specified, the input double value must be equal to the value specified here.
-    #[serde(default)]
-    pub exact: ::core::option::Option<f64>,
-    /// If specified, the input double value must be in the range specified here. Note: The range is using half-open interval semantics [start, end).
-    #[serde(default)]
-    pub range: ::core::option::Option<DoubleRange>,
+pub struct NodeMatcher {
+    /// Specifies match criteria on the node id.
+    #[serde(default, rename = "nodeId")]
+    pub node_id: ::core::option::Option<StringMatcher>,
+    /// Specifies match criteria on the node metadata.
+    #[serde(default, rename = "nodeMetadatas")]
+    pub node_metadatas: ::core::option::Option<::std::vec::Vec<StructMatcher>>,
 }
 
-/// Specifies the double start and end of the range using half-open interval semantics [start, end).
+/// All xds configs for a particular client.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DoubleRange {
-    /// end of the range (exclusive)
+pub struct ClientConfig {
+    /// For xDS clients, the scope in which the data is used. For example, gRPC indicates the data plane target or that the data is associated with gRPC server(s).
+    #[serde(default, rename = "clientScope")]
+    pub client_scope: ::core::option::Option<String>,
+    /// Represents generic xDS config and the exact config structure depends on the type URL (like Cluster if it is CDS)
+    #[serde(default, rename = "genericXdsConfigs")]
+    pub generic_xds_configs: ::core::option::Option<::std::vec::Vec<GenericXdsConfig>>,
+    /// Node for a particular client.
     #[serde(default)]
-    pub end: ::core::option::Option<f64>,
-    /// start of the range (inclusive)
-    #[serde(default)]
-    pub start: ::core::option::Option<f64>,
+    pub node: ::core::option::Option<Node>,
+    /// This field is deprecated in favor of generic_xds_configs which is much simpler and uniform in structure.
+    #[serde(default, rename = "xdsConfig")]
+    pub xds_config: ::core::option::Option<::std::vec::Vec<PerXdsConfig>>,
 }
 
-/// Describes a dynamically loaded cluster via the CDS API. [#next-free-field: 6]
+/// Message type for extension configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicCluster {
-    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
-    #[serde(default, rename = "clientStatus")]
-    pub client_status: ::core::option::Option<String>,
-    /// The cluster config.
-    #[serde(default)]
-    pub cluster: ::core::option::Option<serde_json::Value>,
-    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
-    #[serde(default, rename = "errorState")]
-    pub error_state: ::core::option::Option<UpdateFailureState>,
-    /// The timestamp when the Cluster was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the cluster was loaded. In the future, discrete per-cluster versions may be supported by the API.
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
-}
-
-/// [#next-free-field: 6]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicEndpointConfig {
-    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
-    #[serde(default, rename = "clientStatus")]
-    pub client_status: ::core::option::Option<String>,
-    /// The endpoint config.
-    #[serde(default, rename = "endpointConfig")]
-    pub endpoint_config: ::core::option::Option<serde_json::Value>,
-    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
-    #[serde(default, rename = "errorState")]
-    pub error_state: ::core::option::Option<UpdateFailureState>,
-    /// [#not-implemented-hide:] The timestamp when the Endpoint was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// [#not-implemented-hide:] This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the endpoint configuration was loaded.
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
-}
-
-/// Describes a dynamically loaded listener via the LDS API. [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicListener {
-    /// The listener state for any active listener by this name. These are listeners that are available to service data plane traffic.
-    #[serde(default, rename = "activeState")]
-    pub active_state: ::core::option::Option<DynamicListenerState>,
-    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
-    #[serde(default, rename = "clientStatus")]
-    pub client_status: ::core::option::Option<String>,
-    /// The listener state for any draining listener by this name. These are listeners that are currently undergoing draining in preparation to stop servicing data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the draining listeners should generally be discarded.
-    #[serde(default, rename = "drainingState")]
-    pub draining_state: ::core::option::Option<DynamicListenerState>,
-    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty.
-    #[serde(default, rename = "errorState")]
-    pub error_state: ::core::option::Option<UpdateFailureState>,
-    /// The name or unique id of this listener, pulled from the DynamicListenerState config.
+pub struct TypedExtensionConfig {
+    /// The name of an extension. This is not used to select the extension, instead it serves the role of an opaque identifier.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The listener state for any warming listener by this name. These are listeners that are currently undergoing warming in preparation to service data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the warming listeners should generally be discarded.
-    #[serde(default, rename = "warmingState")]
-    pub warming_state: ::core::option::Option<DynamicListenerState>,
+    /// The typed config for the extension. The type URL will be used to identify the extension. In the case that the type URL is *xds.type.v3.TypedStruct* (or, for historical reasons, *udpa.type.v1.TypedStruct*), the inner type URL of *TypedStruct* will be utilized. See the :ref:extension configuration overview  for further details.
+    #[serde(default, rename = "typedConfig")]
+    pub typed_config: ::core::option::Option<serde_json::Value>,
 }
 
-/// DynamicListenerState resource type.
+/// A regex matcher designed for safety when used with untrusted input.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicListenerState {
-    /// The timestamp when the Listener was last successfully updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// The listener config.
+pub struct RegexMatcher {
+    /// Google''s RE2 regex engine.
+    #[serde(default, rename = "googleRe2")]
+    pub google_re2: ::core::option::Option<GoogleRE2>,
+    /// The regex match string. The string must be supported by the configured engine. The regex is matched against the full string, not as a partial match.
     #[serde(default)]
-    pub listener: ::core::option::Option<serde_json::Value>,
-    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the listener was loaded. In the future, discrete per-listener versions may be supported by the API.
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
+    pub regex: ::core::option::Option<String>,
 }
 
-/// [#next-free-field: 6]
+/// StructMatcher provides a general interface to check if a given value is matched in google.protobuf.Struct. It uses path to retrieve the value from the struct and then check if it''s matched to the specified value. For example, for the following Struct: .. code-block:: yaml fields: a: struct_value: fields: b: struct_value: fields: c: string_value: pro t: list_value: values: - string_value: m - string_value: n The following MetadataMatcher is matched as the path [a, b, c] will retrieve a string value "pro" from the Metadata which is matched to the specified prefix match. .. code-block:: yaml path: - key: a - key: b - key: c value: string_match: prefix: pr The following StructMatcher is matched as the code will match one of the string values in the list at the path [a, t]. .. code-block:: yaml path: - key: a - key: t value: list_match: one_of: string_match: exact: m An example use of StructMatcher is to match metadata in envoy.v*.core.Node.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicRouteConfig {
-    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
-    #[serde(default, rename = "clientStatus")]
-    pub client_status: ::core::option::Option<String>,
-    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
-    #[serde(default, rename = "errorState")]
-    pub error_state: ::core::option::Option<UpdateFailureState>,
-    /// The timestamp when the Route was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// The route config.
-    #[serde(default, rename = "routeConfig")]
-    pub route_config: ::core::option::Option<serde_json::Value>,
-    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the route configuration was loaded.
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
-}
-
-/// [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicScopedRouteConfigs {
-    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
-    #[serde(default, rename = "clientStatus")]
-    pub client_status: ::core::option::Option<String>,
-    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
-    #[serde(default, rename = "errorState")]
-    pub error_state: ::core::option::Option<UpdateFailureState>,
-    /// The timestamp when the scoped route config set was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// The name assigned to the scoped route configurations.
+pub struct StructMatcher {
+    /// The path to retrieve the Value from the Struct.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The scoped route configurations.
-    #[serde(default, rename = "scopedRouteConfigs")]
-    pub scoped_route_configs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the scoped routes configuration was loaded.
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
-}
-
-/// Envoy''s admin fill this message with all currently known endpoints. Endpoint configuration information can be used to recreate an Envoy configuration by populating all endpoints as static endpoints or by returning them in an EDS response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointsConfigDump {
-    /// The dynamically loaded endpoint configs.
-    #[serde(default, rename = "dynamicEndpointConfigs")]
-    pub dynamic_endpoint_configs: ::core::option::Option<::std::vec::Vec<DynamicEndpointConfig>>,
-    /// The statically loaded endpoint configs.
-    #[serde(default, rename = "staticEndpointConfigs")]
-    pub static_endpoint_configs: ::core::option::Option<::std::vec::Vec<StaticEndpointConfig>>,
-}
-
-/// The address represents an envoy internal listener. [#comment:
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvoyInternalAddress {
-    /// Specifies an endpoint identifier to distinguish between multiple endpoints for the same internal listener in a single upstream pool. Only used in the upstream addresses for tracking changes to individual endpoints. This, for example, may be set to the final destination IP for the target internal listener.
-    #[serde(default, rename = "endpointId")]
-    pub endpoint_id: ::core::option::Option<String>,
-    /// Specifies the :ref:name  of the internal listener.
-    #[serde(default, rename = "serverListenerName")]
-    pub server_listener_name: ::core::option::Option<String>,
-}
-
-/// Version and identification for an Envoy extension. [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Extension {
-    /// Category of the extension. Extension category names use reverse DNS notation. For instance "envoy.filters.listener" for Envoy''s built-in listener filters or "com.acme.filters.http" for HTTP filters from acme.com vendor. [#comment:
+    pub path: ::core::option::Option<::std::vec::Vec<PathSegment>>,
+    /// The StructMatcher is matched if the value retrieved by path is matched to this value.
     #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Indicates that the extension is present but was disabled via dynamic configuration.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// This is the name of the Envoy filter as specified in the Envoy configuration, e.g. envoy.filters.http.router, com.acme.widget.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// [#not-implemented-hide:] Type descriptor of extension configuration proto. [#comment:
-    #[serde(default, rename = "typeDescriptor")]
-    pub type_descriptor: ::core::option::Option<String>,
-    /// Type URLs of extension configuration protos.
-    #[serde(default, rename = "typeUrls")]
-    pub type_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The version is a property of the extension and maintained independently of other extensions and the Envoy API. This field is not set when extension did not provide version information.
-    #[serde(default)]
-    pub version: ::core::option::Option<BuildVersion>,
+    pub value: ::core::option::Option<ValueMatcher>,
 }
 
 /// GenericXdsConfig is used to specify the config status and the dump of any xDS resource identified by their type URL. It is the generalized version of the now deprecated ListenersConfigDump, ClustersConfigDump etc [#next-free-field: 10]
@@ -306,64 +149,6 @@ pub struct GenericXdsConfig {
     /// The xDS resource config. Actual content depends on the type
     #[serde(default, rename = "xdsConfig")]
     pub xds_config: ::core::option::Option<serde_json::Value>,
-}
-
-/// Google''s RE2 _ regex engine. The regex string must adhere to the documented syntax _. The engine is designed to complete execution in linear time as well as limit the amount of memory used. Envoy supports program size checking via runtime. The runtime keys re2.max_program_size.error_level and re2.max_program_size.warn_level can be set to integers as the maximum program size or complexity that a compiled regex can have before an exception is thrown or a warning is logged, respectively. re2.max_program_size.error_level defaults to 100, and re2.max_program_size.warn_level has no default if unset (will not check/log a warning). Envoy emits two stats for tracking the program size of regexes: the histogram re2.program_size, which records the program size, and the counter re2.exceeded_warn_level, which is incremented each time the program size exceeds the warn level threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRE2 {
-    /// This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile. In this case, the configured max program size can be increased or the regex can be simplified. If not specified, the default is 100. This field is deprecated; regexp validation should be performed on the management server instead of being done by each individual client. .. note:: Although this field is deprecated, the program size will still be checked against the global re2.max_program_size.error_level runtime value.
-    #[serde(default, rename = "maxProgramSize")]
-    pub max_program_size: ::core::option::Option<i64>,
-}
-
-/// InlineScopedRouteConfigs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InlineScopedRouteConfigs {
-    /// The timestamp when the scoped route config set was last updated.
-    #[serde(default, rename = "lastUpdated")]
-    pub last_updated: ::core::option::Option<String>,
-    /// The name assigned to the scoped route configurations.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The scoped route configurations.
-    #[serde(default, rename = "scopedRouteConfigs")]
-    pub scoped_route_configs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// Specifies the way to match a list value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMatcher {
-    /// If specified, at least one of the values in the list must match the value specified.
-    #[serde(default, rename = "oneOf")]
-    pub one_of: ::core::option::Option<ValueMatcher>,
-}
-
-/// Envoy''s listener manager fills this message with all currently known listeners. Listener configuration information can be used to recreate an Envoy configuration by populating all listeners as static listeners or by returning them in a LDS response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListenersConfigDump {
-    /// State for any warming, active, or draining listeners.
-    #[serde(default, rename = "dynamicListeners")]
-    pub dynamic_listeners: ::core::option::Option<::std::vec::Vec<DynamicListener>>,
-    /// The statically loaded listener configs.
-    #[serde(default, rename = "staticListeners")]
-    pub static_listeners: ::core::option::Option<::std::vec::Vec<StaticListener>>,
-    /// This is the :ref:version_info  in the last processed LDS discovery response. If there are only static bootstrap listeners, this field will be "".
-    #[serde(default, rename = "versionInfo")]
-    pub version_info: ::core::option::Option<String>,
-}
-
-/// Identifies location of where either Envoy runs or where upstream hosts run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Locality {
-    /// Region this :ref:zone  belongs to.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// When used for locality of upstream hosts, this field further splits zone into smaller chunks of sub-zones so they can be load balanced independently.
-    #[serde(default, rename = "subZone")]
-    pub sub_zone: ::core::option::Option<String>,
-    /// Defines the local service zone where Envoy is running. Though optional, it should be set if discovery service routing is used and the discovery service exposes :ref:zone data , either in this message or via :option:--service-zone. The meaning of zone is context dependent, e.g. Availability Zone (AZ) _ on AWS, Zone _ on GCP, etc.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
 }
 
 /// Identifies a specific Envoy instance. The node identifier is presented to the management server, which may use this identifier to distinguish per Envoy configuration for serving. [#next-free-field: 13]
@@ -404,32 +189,6 @@ pub struct Node {
     pub user_agent_version: ::core::option::Option<String>,
 }
 
-/// Specifies the way to match a Node. The match follows AND semantics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeMatcher {
-    /// Specifies match criteria on the node id.
-    #[serde(default, rename = "nodeId")]
-    pub node_id: ::core::option::Option<StringMatcher>,
-    /// Specifies match criteria on the node metadata.
-    #[serde(default, rename = "nodeMetadatas")]
-    pub node_metadatas: ::core::option::Option<::std::vec::Vec<StructMatcher>>,
-}
-
-/// Specifies a list of alternatives for the match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrMatcher {
-    #[serde(default, rename = "valueMatchers")]
-    pub value_matchers: ::core::option::Option<::std::vec::Vec<ValueMatcher>>,
-}
-
-/// Specifies the segment in a path to retrieve value from Struct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PathSegment {
-    /// If specified, use the key to retrieve the value in a Struct.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-}
-
 /// Detailed config (per xDS) with status. [#next-free-field: 8]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PerXdsConfig {
@@ -451,26 +210,111 @@ pub struct PerXdsConfig {
     pub status: ::core::option::Option<String>,
 }
 
-/// Pipe resource type.
+/// Google''s RE2 _ regex engine. The regex string must adhere to the documented syntax _. The engine is designed to complete execution in linear time as well as limit the amount of memory used. Envoy supports program size checking via runtime. The runtime keys re2.max_program_size.error_level and re2.max_program_size.warn_level can be set to integers as the maximum program size or complexity that a compiled regex can have before an exception is thrown or a warning is logged, respectively. re2.max_program_size.error_level defaults to 100, and re2.max_program_size.warn_level has no default if unset (will not check/log a warning). Envoy emits two stats for tracking the program size of regexes: the histogram re2.program_size, which records the program size, and the counter re2.exceeded_warn_level, which is incremented each time the program size exceeds the warn level threshold.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Pipe {
-    /// The mode for the Pipe. Not applicable for abstract sockets.
-    #[serde(default)]
-    pub mode: ::core::option::Option<i64>,
-    /// Unix Domain Socket path. On Linux, paths starting with ''@'' will use the abstract namespace. The starting ''@'' is replaced by a null byte by Envoy. Paths starting with ''@'' will result in an error in environments other than Linux.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
+pub struct GoogleRE2 {
+    /// This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile. In this case, the configured max program size can be increased or the regex can be simplified. If not specified, the default is 100. This field is deprecated; regexp validation should be performed on the management server instead of being done by each individual client. .. note:: Although this field is deprecated, the program size will still be checked against the global re2.max_program_size.error_level runtime value.
+    #[serde(default, rename = "maxProgramSize")]
+    pub max_program_size: ::core::option::Option<i64>,
 }
 
-/// A regex matcher designed for safety when used with untrusted input.
+/// Specifies the segment in a path to retrieve value from Struct.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegexMatcher {
-    /// Google''s RE2 regex engine.
-    #[serde(default, rename = "googleRe2")]
-    pub google_re2: ::core::option::Option<GoogleRE2>,
-    /// The regex match string. The string must be supported by the configured engine. The regex is matched against the full string, not as a partial match.
+pub struct PathSegment {
+    /// If specified, use the key to retrieve the value in a Struct.
     #[serde(default)]
-    pub regex: ::core::option::Option<String>,
+    pub key: ::core::option::Option<String>,
+}
+
+/// Version and identification for an Envoy extension. [#next-free-field: 7]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Extension {
+    /// Category of the extension. Extension category names use reverse DNS notation. For instance "envoy.filters.listener" for Envoy''s built-in listener filters or "com.acme.filters.http" for HTTP filters from acme.com vendor. [#comment:
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Indicates that the extension is present but was disabled via dynamic configuration.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// This is the name of the Envoy filter as specified in the Envoy configuration, e.g. envoy.filters.http.router, com.acme.widget.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// [#not-implemented-hide:] Type descriptor of extension configuration proto. [#comment:
+    #[serde(default, rename = "typeDescriptor")]
+    pub type_descriptor: ::core::option::Option<String>,
+    /// Type URLs of extension configuration protos.
+    #[serde(default, rename = "typeUrls")]
+    pub type_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The version is a property of the extension and maintained independently of other extensions and the Envoy API. This field is not set when extension did not provide version information.
+    #[serde(default)]
+    pub version: ::core::option::Option<BuildVersion>,
+}
+
+/// Addresses specify either a logical or physical address and port, which are used to tell Envoy where to bind/listen, connect to upstream and find management servers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Address {
+    /// Specifies a user-space address handled by :ref:internal listeners .
+    #[serde(default, rename = "envoyInternalAddress")]
+    pub envoy_internal_address: ::core::option::Option<EnvoyInternalAddress>,
+    #[serde(default)]
+    pub pipe: ::core::option::Option<Pipe>,
+    #[serde(default, rename = "socketAddress")]
+    pub socket_address: ::core::option::Option<SocketAddress>,
+}
+
+/// Identifies location of where either Envoy runs or where upstream hosts run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Locality {
+    /// Region this :ref:zone  belongs to.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// When used for locality of upstream hosts, this field further splits zone into smaller chunks of sub-zones so they can be load balanced independently.
+    #[serde(default, rename = "subZone")]
+    pub sub_zone: ::core::option::Option<String>,
+    /// Defines the local service zone where Envoy is running. Though optional, it should be set if discovery service routing is used and the discovery service exposes :ref:zone data , either in this message or via :option:--service-zone. The meaning of zone is context dependent, e.g. Availability Zone (AZ) _ on AWS, Zone _ on GCP, etc.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// Envoy''s cluster manager fills this message with all currently known clusters. Cluster configuration information can be used to recreate an Envoy configuration by populating all clusters as static clusters or by returning them in a CDS response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClustersConfigDump {
+    /// The dynamically loaded active clusters. These are clusters that are available to service data plane traffic.
+    #[serde(default, rename = "dynamicActiveClusters")]
+    pub dynamic_active_clusters: ::core::option::Option<::std::vec::Vec<DynamicCluster>>,
+    /// The dynamically loaded warming clusters. These are clusters that are currently undergoing warming in preparation to service data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the warming clusters should generally be discarded.
+    #[serde(default, rename = "dynamicWarmingClusters")]
+    pub dynamic_warming_clusters: ::core::option::Option<::std::vec::Vec<DynamicCluster>>,
+    /// The statically loaded cluster configs.
+    #[serde(default, rename = "staticClusters")]
+    pub static_clusters: ::core::option::Option<::std::vec::Vec<StaticCluster>>,
+    /// This is the :ref:version_info  in the last processed CDS discovery response. If there are only static bootstrap clusters, this field will be "".
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
+}
+
+/// Envoy''s admin fill this message with all currently known endpoints. Endpoint configuration information can be used to recreate an Envoy configuration by populating all endpoints as static endpoints or by returning them in an EDS response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointsConfigDump {
+    /// The dynamically loaded endpoint configs.
+    #[serde(default, rename = "dynamicEndpointConfigs")]
+    pub dynamic_endpoint_configs: ::core::option::Option<::std::vec::Vec<DynamicEndpointConfig>>,
+    /// The statically loaded endpoint configs.
+    #[serde(default, rename = "staticEndpointConfigs")]
+    pub static_endpoint_configs: ::core::option::Option<::std::vec::Vec<StaticEndpointConfig>>,
+}
+
+/// Envoy''s listener manager fills this message with all currently known listeners. Listener configuration information can be used to recreate an Envoy configuration by populating all listeners as static listeners or by returning them in a LDS response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListenersConfigDump {
+    /// State for any warming, active, or draining listeners.
+    #[serde(default, rename = "dynamicListeners")]
+    pub dynamic_listeners: ::core::option::Option<::std::vec::Vec<DynamicListener>>,
+    /// The statically loaded listener configs.
+    #[serde(default, rename = "staticListeners")]
+    pub static_listeners: ::core::option::Option<::std::vec::Vec<StaticListener>>,
+    /// This is the :ref:version_info  in the last processed LDS discovery response. If there are only static bootstrap listeners, this field will be "".
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
 }
 
 /// Envoy''s RDS implementation fills this message with all currently loaded routes, as described by their RouteConfiguration objects. Static routes that are either defined in the bootstrap configuration or defined inline while configuring listeners are separated from those configured dynamically via RDS. Route configuration information can be used to recreate an Envoy configuration by populating all routes as static routes or by returning them in RDS responses.
@@ -497,15 +341,37 @@ pub struct ScopedRoutesConfigDump {
         ::core::option::Option<::std::vec::Vec<InlineScopedRouteConfigs>>,
 }
 
-/// Envoy uses SemVer (https://semver.org/). Major/minor versions indicate expected behaviors and APIs, the patch version field is used only for security fixes and can be generally ignored.
+/// BuildVersion combines SemVer version of extension with free-form build information (i.e. ''alpha'', ''private-build'') as a set of strings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SemanticVersion {
-    #[serde(default, rename = "majorNumber")]
-    pub major_number: ::core::option::Option<i64>,
-    #[serde(default, rename = "minorNumber")]
-    pub minor_number: ::core::option::Option<i64>,
+pub struct BuildVersion {
+    /// Free-form build information. Envoy defines several well known keys in the source/common/version/version.h file
     #[serde(default)]
-    pub patch: ::core::option::Option<i64>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// SemVer version of extension.
+    #[serde(default)]
+    pub version: ::core::option::Option<SemanticVersion>,
+}
+
+/// The address represents an envoy internal listener. [#comment:
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvoyInternalAddress {
+    /// Specifies an endpoint identifier to distinguish between multiple endpoints for the same internal listener in a single upstream pool. Only used in the upstream addresses for tracking changes to individual endpoints. This, for example, may be set to the final destination IP for the target internal listener.
+    #[serde(default, rename = "endpointId")]
+    pub endpoint_id: ::core::option::Option<String>,
+    /// Specifies the :ref:name  of the internal listener.
+    #[serde(default, rename = "serverListenerName")]
+    pub server_listener_name: ::core::option::Option<String>,
+}
+
+/// Pipe resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pipe {
+    /// The mode for the Pipe. Not applicable for abstract sockets.
+    #[serde(default)]
+    pub mode: ::core::option::Option<i64>,
+    /// Unix Domain Socket path. On Linux, paths starting with ''@'' will use the abstract namespace. The starting ''@'' is replaced by a null byte by Envoy. Paths starting with ''@'' will result in an error in environments other than Linux.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
 }
 
 /// [#next-free-field: 8]
@@ -533,6 +399,26 @@ pub struct SocketAddress {
     pub resolver_name: ::core::option::Option<String>,
 }
 
+/// Describes a dynamically loaded cluster via the CDS API. [#next-free-field: 6]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicCluster {
+    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
+    #[serde(default, rename = "clientStatus")]
+    pub client_status: ::core::option::Option<String>,
+    /// The cluster config.
+    #[serde(default)]
+    pub cluster: ::core::option::Option<serde_json::Value>,
+    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
+    #[serde(default, rename = "errorState")]
+    pub error_state: ::core::option::Option<UpdateFailureState>,
+    /// The timestamp when the Cluster was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the cluster was loaded. In the future, discrete per-cluster versions may be supported by the API.
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
+}
+
 /// Describes a statically loaded cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StaticCluster {
@@ -542,6 +428,26 @@ pub struct StaticCluster {
     /// The timestamp when the Cluster was last updated.
     #[serde(default, rename = "lastUpdated")]
     pub last_updated: ::core::option::Option<String>,
+}
+
+/// [#next-free-field: 6]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicEndpointConfig {
+    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
+    #[serde(default, rename = "clientStatus")]
+    pub client_status: ::core::option::Option<String>,
+    /// The endpoint config.
+    #[serde(default, rename = "endpointConfig")]
+    pub endpoint_config: ::core::option::Option<serde_json::Value>,
+    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
+    #[serde(default, rename = "errorState")]
+    pub error_state: ::core::option::Option<UpdateFailureState>,
+    /// [#not-implemented-hide:] The timestamp when the Endpoint was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// [#not-implemented-hide:] This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the endpoint configuration was loaded.
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
 }
 
 /// StaticEndpointConfig resource type.
@@ -555,6 +461,29 @@ pub struct StaticEndpointConfig {
     pub last_updated: ::core::option::Option<String>,
 }
 
+/// Describes a dynamically loaded listener via the LDS API. [#next-free-field: 7]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicListener {
+    /// The listener state for any active listener by this name. These are listeners that are available to service data plane traffic.
+    #[serde(default, rename = "activeState")]
+    pub active_state: ::core::option::Option<DynamicListenerState>,
+    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
+    #[serde(default, rename = "clientStatus")]
+    pub client_status: ::core::option::Option<String>,
+    /// The listener state for any draining listener by this name. These are listeners that are currently undergoing draining in preparation to stop servicing data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the draining listeners should generally be discarded.
+    #[serde(default, rename = "drainingState")]
+    pub draining_state: ::core::option::Option<DynamicListenerState>,
+    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty.
+    #[serde(default, rename = "errorState")]
+    pub error_state: ::core::option::Option<UpdateFailureState>,
+    /// The name or unique id of this listener, pulled from the DynamicListenerState config.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The listener state for any warming listener by this name. These are listeners that are currently undergoing warming in preparation to service data plane traffic. Note that if attempting to recreate an Envoy configuration from a configuration dump, the warming listeners should generally be discarded.
+    #[serde(default, rename = "warmingState")]
+    pub warming_state: ::core::option::Option<DynamicListenerState>,
+}
+
 /// Describes a statically loaded listener.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StaticListener {
@@ -564,6 +493,26 @@ pub struct StaticListener {
     /// The listener config.
     #[serde(default)]
     pub listener: ::core::option::Option<serde_json::Value>,
+}
+
+/// [#next-free-field: 6]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicRouteConfig {
+    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
+    #[serde(default, rename = "clientStatus")]
+    pub client_status: ::core::option::Option<String>,
+    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
+    #[serde(default, rename = "errorState")]
+    pub error_state: ::core::option::Option<UpdateFailureState>,
+    /// The timestamp when the Route was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// The route config.
+    #[serde(default, rename = "routeConfig")]
+    pub route_config: ::core::option::Option<serde_json::Value>,
+    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the route configuration was loaded.
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
 }
 
 /// StaticRouteConfig resource type.
@@ -577,52 +526,66 @@ pub struct StaticRouteConfig {
     pub route_config: ::core::option::Option<serde_json::Value>,
 }
 
-/// Specifies the way to match a string. [#next-free-field: 9]
+/// [#next-free-field: 7]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringMatcher {
-    /// The input string must have the substring specified here. .. note:: Empty contains match is not allowed, please use safe_regex instead. Examples: * abc matches the value xyz.abc.def
-    #[serde(default)]
-    pub contains: ::core::option::Option<String>,
-    /// Use an extension as the matcher type. [#extension-category: envoy.string_matcher]
-    #[serde(default)]
-    pub custom: ::core::option::Option<TypedExtensionConfig>,
-    /// The input string must match exactly the string specified here. Examples: * abc only matches the value abc.
-    #[serde(default)]
-    pub exact: ::core::option::Option<String>,
-    /// If true, indicates the exact/prefix/suffix/contains matching should be case insensitive. This has no effect for the safe_regex match. For example, the matcher data will match both input string Data and data if this option is set to true.
-    #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: ::core::option::Option<bool>,
-    /// The input string must have the prefix specified here. .. note:: Empty prefix match is not allowed, please use safe_regex instead. Examples: * abc matches the value abc.xyz
-    #[serde(default)]
-    pub prefix: ::core::option::Option<String>,
-    /// The input string must match the regular expression specified here.
-    #[serde(default, rename = "safeRegex")]
-    pub safe_regex: ::core::option::Option<RegexMatcher>,
-    /// The input string must have the suffix specified here. .. note:: Empty suffix match is not allowed, please use safe_regex instead. Examples: * abc matches the value xyz.abc
-    #[serde(default)]
-    pub suffix: ::core::option::Option<String>,
-}
-
-/// StructMatcher provides a general interface to check if a given value is matched in google.protobuf.Struct. It uses path to retrieve the value from the struct and then check if it''s matched to the specified value. For example, for the following Struct: .. code-block:: yaml fields: a: struct_value: fields: b: struct_value: fields: c: string_value: pro t: list_value: values: - string_value: m - string_value: n The following MetadataMatcher is matched as the path [a, b, c] will retrieve a string value "pro" from the Metadata which is matched to the specified prefix match. .. code-block:: yaml path: - key: a - key: b - key: c value: string_match: prefix: pr The following StructMatcher is matched as the code will match one of the string values in the list at the path [a, t]. .. code-block:: yaml path: - key: a - key: t value: list_match: one_of: string_match: exact: m An example use of StructMatcher is to match metadata in envoy.v*.core.Node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StructMatcher {
-    /// The path to retrieve the Value from the Struct.
-    #[serde(default)]
-    pub path: ::core::option::Option<::std::vec::Vec<PathSegment>>,
-    /// The StructMatcher is matched if the value retrieved by path is matched to this value.
-    #[serde(default)]
-    pub value: ::core::option::Option<ValueMatcher>,
-}
-
-/// Message type for extension configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TypedExtensionConfig {
-    /// The name of an extension. This is not used to select the extension, instead it serves the role of an opaque identifier.
+pub struct DynamicScopedRouteConfigs {
+    /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
+    #[serde(default, rename = "clientStatus")]
+    pub client_status: ::core::option::Option<String>,
+    /// Set if the last update failed, cleared after the next successful update. The error_state field contains the rejected version of this particular resource along with the reason and timestamp. For successfully updated or acknowledged resource, this field should be empty. [#not-implemented-hide:]
+    #[serde(default, rename = "errorState")]
+    pub error_state: ::core::option::Option<UpdateFailureState>,
+    /// The timestamp when the scoped route config set was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// The name assigned to the scoped route configurations.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The typed config for the extension. The type URL will be used to identify the extension. In the case that the type URL is *xds.type.v3.TypedStruct* (or, for historical reasons, *udpa.type.v1.TypedStruct*), the inner type URL of *TypedStruct* will be utilized. See the :ref:extension configuration overview  for further details.
-    #[serde(default, rename = "typedConfig")]
-    pub typed_config: ::core::option::Option<serde_json::Value>,
+    /// The scoped route configurations.
+    #[serde(default, rename = "scopedRouteConfigs")]
+    pub scoped_route_configs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the scoped routes configuration was loaded.
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
+}
+
+/// InlineScopedRouteConfigs resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InlineScopedRouteConfigs {
+    /// The timestamp when the scoped route config set was last updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// The name assigned to the scoped route configurations.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The scoped route configurations.
+    #[serde(default, rename = "scopedRouteConfigs")]
+    pub scoped_route_configs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Envoy uses SemVer (https://semver.org/). Major/minor versions indicate expected behaviors and APIs, the patch version field is used only for security fixes and can be generally ignored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SemanticVersion {
+    #[serde(default, rename = "majorNumber")]
+    pub major_number: ::core::option::Option<i64>,
+    #[serde(default, rename = "minorNumber")]
+    pub minor_number: ::core::option::Option<i64>,
+    #[serde(default)]
+    pub patch: ::core::option::Option<i64>,
+}
+
+/// DynamicListenerState resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicListenerState {
+    /// The timestamp when the Listener was last successfully updated.
+    #[serde(default, rename = "lastUpdated")]
+    pub last_updated: ::core::option::Option<String>,
+    /// The listener config.
+    #[serde(default)]
+    pub listener: ::core::option::Option<serde_json::Value>,
+    /// This is the per-resource version information. This version is currently taken from the :ref:version_info  field at the time that the listener was loaded. In the future, discrete per-listener versions may be supported by the API.
+    #[serde(default, rename = "versionInfo")]
+    pub version_info: ::core::option::Option<String>,
 }
 
 /// UpdateFailureState resource type.
@@ -640,6 +603,43 @@ pub struct UpdateFailureState {
     /// This is the version of the rejected resource. [#not-implemented-hide:]
     #[serde(default, rename = "versionInfo")]
     pub version_info: ::core::option::Option<String>,
+}
+
+/// Specifies the way to match a double value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoubleMatcher {
+    /// If specified, the input double value must be equal to the value specified here.
+    #[serde(default)]
+    pub exact: ::core::option::Option<f64>,
+    /// If specified, the input double value must be in the range specified here. Note: The range is using half-open interval semantics [start, end).
+    #[serde(default)]
+    pub range: ::core::option::Option<DoubleRange>,
+}
+
+/// Specifies the double start and end of the range using half-open interval semantics [start, end).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoubleRange {
+    /// end of the range (exclusive)
+    #[serde(default)]
+    pub end: ::core::option::Option<f64>,
+    /// start of the range (inclusive)
+    #[serde(default)]
+    pub start: ::core::option::Option<f64>,
+}
+
+/// Specifies the way to match a list value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMatcher {
+    /// If specified, at least one of the values in the list must match the value specified.
+    #[serde(default, rename = "oneOf")]
+    pub one_of: ::core::option::Option<ValueMatcher>,
+}
+
+/// Specifies a list of alternatives for the match.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrMatcher {
+    #[serde(default, rename = "valueMatchers")]
+    pub value_matchers: ::core::option::Option<::std::vec::Vec<ValueMatcher>>,
 }
 
 /// Specifies the way to match a Protobuf::Value. Primitive values and ListValue are supported. StructValue is not supported and is always not matched. [#next-free-field: 8]

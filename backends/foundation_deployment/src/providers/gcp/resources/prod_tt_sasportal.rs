@@ -10,28 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Associates members with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalAssignment {
-    /// The identities the role is assigned to. It can have the following values: * {user_email}: An email address that represents a specific Google account. For example: alice@gmail.com. * {group_email}: An email address that represents a Google group. For example, viewers@gmail.com.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Role that is assigned to members.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// The channel with score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalChannelWithScore {
-    /// The frequency range of the channel.
-    #[serde(default, rename = "frequencyRange")]
-    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
-    /// The channel score, normalized to be in the range [0,100].
-    #[serde(default)]
-    pub score: ::core::option::Option<f64>,
-}
-
 /// Request for CreateSignedDevice.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SasPortalCreateSignedDeviceRequest {
@@ -41,237 +19,6 @@ pub struct SasPortalCreateSignedDeviceRequest {
     /// Required. Unique installer id (CPI ID) from the Certified Professional Installers database.
     #[serde(default, rename = "installerId")]
     pub installer_id: ::core::option::Option<String>,
-}
-
-/// Entity representing a SAS customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalCustomer {
-    /// Required. Name of the organization that the customer entity represents.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Resource name of the customer.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// User IDs used by the devices belonging to this customer.
-    #[serde(default, rename = "sasUserIds")]
-    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The Deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeployment {
-    /// The deployment''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The FCC Registration Numbers (FRNs) copied from its direct parent.
-    #[serde(default)]
-    pub frns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// User ID used by the devices belonging to this deployment. Each deployment should be associated with one unique user ID.
-    #[serde(default, rename = "sasUserIds")]
-    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Association between a gcp project and a SAS user id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeploymentAssociation {
-    /// GCP project id of the associated project.
-    #[serde(default, rename = "gcpProjectId")]
-    pub gcp_project_id: ::core::option::Option<String>,
-    /// User id of the deployment.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
-}
-
-/// SasPortalDevice resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDevice {
-    /// Output only. Current configuration of the device as registered to the SAS.
-    #[serde(default, rename = "activeConfig")]
-    pub active_config: ::core::option::Option<SasPortalDeviceConfig>,
-    /// Output only. Current channels with scores.
-    #[serde(default, rename = "currentChannels")]
-    pub current_channels: ::core::option::Option<::std::vec::Vec<SasPortalChannelWithScore>>,
-    /// Device parameters that can be overridden by both SAS Portal and SAS registration requests.
-    #[serde(default, rename = "deviceMetadata")]
-    pub device_metadata: ::core::option::Option<SasPortalDeviceMetadata>,
-    /// Device display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The FCC identifier of the device. Refer to https://www.fcc.gov/oet/ea/fccid for FccID format. Accept underscores and periods because some test-SAS customers use them.
-    #[serde(default, rename = "fccId")]
-    pub fcc_id: ::core::option::Option<String>,
-    /// Only ranges that are within the allowlists are available for new grants.
-    #[serde(default, rename = "grantRangeAllowlists")]
-    pub grant_range_allowlists: ::core::option::Option<::std::vec::Vec<SasPortalFrequencyRange>>,
-    /// Output only. Grants held by the device.
-    #[serde(default)]
-    pub grants: ::core::option::Option<::std::vec::Vec<SasPortalDeviceGrant>>,
-    /// Output only. The resource path name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Configuration of the device, as specified via SAS Portal API.
-    #[serde(default, rename = "preloadedConfig")]
-    pub preloaded_config: ::core::option::Option<SasPortalDeviceConfig>,
-    /// A serial number assigned to the device by the device manufacturer.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-    /// Output only. Device state. // TODO: enum values: ["DEVICE_STATE_UNSPECIFIED", "RESERVED", "REGISTERED", "DEREGISTERED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Information about the device''s air interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeviceAirInterface {
-    /// Conditional. This field specifies the radio access technology that is used for the CBSD. // TODO: enum values: ["RADIO_TECHNOLOGY_UNSPECIFIED", "E_UTRA", "CAMBIUM_NETWORKS", "FOUR_G_BBW_SAA_1", "NR", "DOODLE_CBRS", "CW", "REDLINE", "TARANA_WIRELESS", "FAROS"]
-    #[serde(default, rename = "radioTechnology")]
-    pub radio_technology: ::core::option::Option<String>,
-    /// Optional. This field is related to the radioTechnology and provides the air interface specification that the CBSD is compliant with at the time of registration.
-    #[serde(default, rename = "supportedSpec")]
-    pub supported_spec: ::core::option::Option<String>,
-}
-
-/// Information about the device configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeviceConfig {
-    /// Information about this device''s air interface.
-    #[serde(default, rename = "airInterface")]
-    pub air_interface: ::core::option::Option<SasPortalDeviceAirInterface>,
-    /// The call sign of the device operator.
-    #[serde(default, rename = "callSign")]
-    pub call_sign: ::core::option::Option<String>,
-    /// FCC category of the device. // TODO: enum values: ["DEVICE_CATEGORY_UNSPECIFIED", "DEVICE_CATEGORY_A", "DEVICE_CATEGORY_B"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Installation parameters for the device.
-    #[serde(default, rename = "installationParams")]
-    pub installation_params: ::core::option::Option<SasPortalInstallationParams>,
-    /// Output only. Whether the configuration has been signed by a CPI.
-    #[serde(default, rename = "isSigned")]
-    pub is_signed: ::core::option::Option<bool>,
-    /// Measurement reporting capabilities of the device.
-    #[serde(default, rename = "measurementCapabilities")]
-    pub measurement_capabilities: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Information about this device model.
-    #[serde(default)]
-    pub model: ::core::option::Option<SasPortalDeviceModel>,
-    /// State of the configuration. // TODO: enum values: ["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The last time the device configuration was edited.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The identifier of a device user.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
-}
-
-/// Device grant. It is an authorization provided by the Spectrum Access System to a device to transmit using specified operating parameters after a successful heartbeat by the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeviceGrant {
-    /// Type of channel used. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "CHANNEL_TYPE_GAA", "CHANNEL_TYPE_PAL"]
-    #[serde(default, rename = "channelType")]
-    pub channel_type: ::core::option::Option<String>,
-    /// The expiration time of the grant.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// The transmission frequency range.
-    #[serde(default, rename = "frequencyRange")]
-    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
-    /// Grant Id.
-    #[serde(default, rename = "grantId")]
-    pub grant_id: ::core::option::Option<String>,
-    /// The transmit expiration time of the last heartbeat.
-    #[serde(default, rename = "lastHeartbeatTransmitExpireTime")]
-    pub last_heartbeat_transmit_expire_time: ::core::option::Option<String>,
-    /// Maximum Equivalent Isotropically Radiated Power (EIRP) permitted by the grant. The maximum EIRP is in units of dBm/MHz. The value of maxEirp represents the average (RMS) EIRP that would be measured by the procedure defined in FCC part 96.41(e)(3).
-    #[serde(default, rename = "maxEirp")]
-    pub max_eirp: ::core::option::Option<f64>,
-    /// The DPA move lists on which this grant appears.
-    #[serde(default, rename = "moveList")]
-    pub move_list: ::core::option::Option<::std::vec::Vec<SasPortalDpaMoveList>>,
-    /// State of the grant. // TODO: enum values: ["GRANT_STATE_UNSPECIFIED", "GRANT_STATE_GRANTED", "GRANT_STATE_TERMINATED", "GRANT_STATE_SUSPENDED", "GRANT_STATE_AUTHORIZED", "GRANT_STATE_EXPIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// If the grant is suspended, the reason(s) for suspension.
-    #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Device data overridable by both SAS Portal and registration requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeviceMetadata {
-    /// If populated, the Antenna Model Pattern to use. Format is: RecordCreatorId:PatternId
-    #[serde(default, rename = "antennaModel")]
-    pub antenna_model: ::core::option::Option<String>,
-    /// Common Channel Group (CCG). A group of CBSDs in the same ICG requesting a common primary channel assignment. For more details, see [CBRSA-TS-2001 V3.0.0](https://ongoalliance.org/wp-content/uploads/2020/02/CBRSA-TS-2001-V3.0.0_Approved-for-publication.pdf).
-    #[serde(default, rename = "commonChannelGroup")]
-    pub common_channel_group: ::core::option::Option<String>,
-    /// Interference Coordination Group (ICG). A group of CBSDs that manage their own interference with the group. For more details, see [CBRSA-TS-2001 V3.0.0](https://ongoalliance.org/wp-content/uploads/2020/02/CBRSA-TS-2001-V3.0.0_Approved-for-publication.pdf).
-    #[serde(default, rename = "interferenceCoordinationGroup")]
-    pub interference_coordination_group: ::core::option::Option<String>,
-    /// Output only. Set to true if a CPI has validated that they have coordinated with the National Quiet Zone office.
-    #[serde(default, rename = "nrqzValidated")]
-    pub nrqz_validated: ::core::option::Option<bool>,
-    /// Output only. National Radio Quiet Zone validation info.
-    #[serde(default, rename = "nrqzValidation")]
-    pub nrqz_validation: ::core::option::Option<SasPortalNrqzValidation>,
-}
-
-/// Information about the model of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDeviceModel {
-    /// The firmware version of the device.
-    #[serde(default, rename = "firmwareVersion")]
-    pub firmware_version: ::core::option::Option<String>,
-    /// The hardware version of the device.
-    #[serde(default, rename = "hardwareVersion")]
-    pub hardware_version: ::core::option::Option<String>,
-    /// The name of the device model.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The software version of the device.
-    #[serde(default, rename = "softwareVersion")]
-    pub software_version: ::core::option::Option<String>,
-    /// The name of the device vendor.
-    #[serde(default)]
-    pub vendor: ::core::option::Option<String>,
-}
-
-/// An entry in a DPA''s move list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalDpaMoveList {
-    /// The ID of the DPA.
-    #[serde(default, rename = "dpaId")]
-    pub dpa_id: ::core::option::Option<String>,
-    /// The frequency range that the move list affects.
-    #[serde(default, rename = "frequencyRange")]
-    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
-}
-
-/// Frequency range from low_frequency to high_frequency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalFrequencyRange {
-    /// The highest frequency of the frequency range in MHz.
-    #[serde(default, rename = "highFrequencyMhz")]
-    pub high_frequency_mhz: ::core::option::Option<f64>,
-    /// The lowest frequency of the frequency range in MHz.
-    #[serde(default, rename = "lowFrequencyMhz")]
-    pub low_frequency_mhz: ::core::option::Option<f64>,
-}
-
-/// Deployment associated with the GCP project. Includes whether SAS analytics has been enabled or not.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalGcpProjectDeployment {
-    /// Deployment associated with the GCP project.
-    #[serde(default)]
-    pub deployment: ::core::option::Option<SasPortalDeployment>,
-    /// Whether SAS analytics has been enabled.
-    #[serde(default, rename = "hasEnabledAnalytics")]
-    pub has_enabled_analytics: ::core::option::Option<bool>,
 }
 
 /// Response for GenerateSecret.
@@ -288,53 +35,6 @@ pub struct SasPortalGetPolicyRequest {
     /// Required. The resource for which the policy is being requested.
     #[serde(default)]
     pub resource: ::core::option::Option<String>,
-}
-
-/// Information about the device installation parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalInstallationParams {
-    /// Boresight direction of the horizontal plane of the antenna in degrees with respect to true north. The value of this parameter is an integer with a value between 0 and 359 inclusive. A value of 0 degrees means true north; a value of 90 degrees means east. This parameter is optional for Category A devices and conditional for Category B devices.
-    #[serde(default, rename = "antennaAzimuth")]
-    pub antenna_azimuth: ::core::option::Option<i32>,
-    /// 3-dB antenna beamwidth of the antenna in the horizontal-plane in degrees. This parameter is an unsigned integer having a value between 0 and 360 (degrees) inclusive; it is optional for Category A devices and conditional for Category B devices.
-    #[serde(default, rename = "antennaBeamwidth")]
-    pub antenna_beamwidth: ::core::option::Option<i32>,
-    /// Antenna downtilt in degrees and is an integer with a value between -90 and +90 inclusive; a negative value means the antenna is tilted up (above horizontal). This parameter is optional for Category A devices and conditional for Category B devices.
-    #[serde(default, rename = "antennaDowntilt")]
-    pub antenna_downtilt: ::core::option::Option<i32>,
-    /// Peak antenna gain in dBi. This parameter is a double with a value between -127 and +128 (dBi) inclusive. Part of Release 2 to support floating-point value
-    #[serde(default, rename = "antennaGain")]
-    pub antenna_gain: ::core::option::Option<f64>,
-    /// If an external antenna is used, the antenna model is optionally provided in this field. The string has a maximum length of 128 octets.
-    #[serde(default, rename = "antennaModel")]
-    pub antenna_model: ::core::option::Option<String>,
-    /// If present, this parameter specifies whether the CBSD is a CPE-CBSD or not.
-    #[serde(default, rename = "cpeCbsdIndication")]
-    pub cpe_cbsd_indication: ::core::option::Option<bool>,
-    /// This parameter is the maximum device EIRP in units of dBm/10MHz and is an integer with a value between -127 and +47 (dBm/10 MHz) inclusive. If not included, SAS interprets it as maximum allowable EIRP in units of dBm/10MHz for device category.
-    #[serde(default, rename = "eirpCapability")]
-    pub eirp_capability: ::core::option::Option<i32>,
-    /// Device antenna height in meters. When the heightType parameter value is "AGL", the antenna height should be given relative to ground level. When the heightType parameter value is "AMSL", it is given with respect to WGS84 datum.
-    #[serde(default)]
-    pub height: ::core::option::Option<f64>,
-    /// Specifies how the height is measured. // TODO: enum values: ["HEIGHT_TYPE_UNSPECIFIED", "HEIGHT_TYPE_AGL", "HEIGHT_TYPE_AMSL"]
-    #[serde(default, rename = "heightType")]
-    pub height_type: ::core::option::Option<String>,
-    /// A positive number in meters to indicate accuracy of the device antenna horizontal location. This optional parameter should only be present if its value is less than the FCC requirement of 50 meters.
-    #[serde(default, rename = "horizontalAccuracy")]
-    pub horizontal_accuracy: ::core::option::Option<f64>,
-    /// Whether the device antenna is indoor or not. true: indoor. false: outdoor.
-    #[serde(default, rename = "indoorDeployment")]
-    pub indoor_deployment: ::core::option::Option<bool>,
-    /// Latitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -90.000000 to +90.000000. Positive values represent latitudes north of the equator; negative values south of the equator.
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// Longitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -180.000000 to +180.000000. Positive values represent longitudes east of the prime meridian; negative values west of the prime meridian.
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-    /// A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.
-    #[serde(default, rename = "verticalAccuracy")]
-    pub vertical_accuracy: ::core::option::Option<f64>,
 }
 
 /// Response for ListCustomers.
@@ -446,40 +146,6 @@ pub struct SasPortalMoveNodeRequest {
     pub destination: ::core::option::Option<String>,
 }
 
-/// The Node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalNode {
-    /// The node''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// User ids used by the devices belonging to this node.
-    #[serde(default, rename = "sasUserIds")]
-    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information about National Radio Quiet Zone validation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalNrqzValidation {
-    /// Validation case ID.
-    #[serde(default, rename = "caseId")]
-    pub case_id: ::core::option::Option<String>,
-    /// CPI who signed the validation.
-    #[serde(default, rename = "cpiId")]
-    pub cpi_id: ::core::option::Option<String>,
-    /// Device latitude that''s associated with the validation.
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// Device longitude that''s associated with the validation.
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-    /// State of the NRQZ validation info. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "FINAL"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SasPortalOperation {
@@ -498,28 +164,6 @@ pub struct SasPortalOperation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Organization details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalOrganization {
-    /// Name of organization
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Id of organization
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Defines an access control policy to the resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalPolicy {
-    /// List of assignments
-    #[serde(default)]
-    pub assignments: ::core::option::Option<::std::vec::Vec<SasPortalAssignment>>,
-    /// The etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to GetPolicy, and systems are expected to put that etag in the request to SetPolicy to ensure that their change will be applied to the same version of the policy. If no etag is provided in the call to GetPolicy, then the existing policy is overwritten blindly.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
 }
 
 /// Request for [ProvisionDeployment]. [spectrum.sas.portal.v1alpha1.Provisioning.ProvisionDeployment]. GCP Project, Organization Info, and caller’s GAIA ID should be retrieved from the RPC handler, and used as inputs to create a new SAS organization (if not exists) and a new SAS deployment.
@@ -574,20 +218,6 @@ pub struct SasPortalSignDeviceRequest {
     pub device: ::core::option::Option<SasPortalDevice>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SasPortalStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// Request message for TestPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SasPortalTestPermissionsRequest {
@@ -630,4 +260,374 @@ pub struct SasPortalValidateInstallerRequest {
     /// Required. Secret returned by the GenerateSecret.
     #[serde(default)]
     pub secret: ::core::option::Option<String>,
+}
+
+/// Entity representing a SAS customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalCustomer {
+    /// Required. Name of the organization that the customer entity represents.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Resource name of the customer.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// User IDs used by the devices belonging to this customer.
+    #[serde(default, rename = "sasUserIds")]
+    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Deployment associated with the GCP project. Includes whether SAS analytics has been enabled or not.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalGcpProjectDeployment {
+    /// Deployment associated with the GCP project.
+    #[serde(default)]
+    pub deployment: ::core::option::Option<SasPortalDeployment>,
+    /// Whether SAS analytics has been enabled.
+    #[serde(default, rename = "hasEnabledAnalytics")]
+    pub has_enabled_analytics: ::core::option::Option<bool>,
+}
+
+/// Organization details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalOrganization {
+    /// Name of organization
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Id of organization
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// The Node.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalNode {
+    /// The node''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// User ids used by the devices belonging to this node.
+    #[serde(default, rename = "sasUserIds")]
+    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Association between a gcp project and a SAS user id.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeploymentAssociation {
+    /// GCP project id of the associated project.
+    #[serde(default, rename = "gcpProjectId")]
+    pub gcp_project_id: ::core::option::Option<String>,
+    /// User id of the deployment.
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Defines an access control policy to the resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalPolicy {
+    /// List of assignments
+    #[serde(default)]
+    pub assignments: ::core::option::Option<::std::vec::Vec<SasPortalAssignment>>,
+    /// The etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to GetPolicy, and systems are expected to put that etag in the request to SetPolicy to ensure that their change will be applied to the same version of the policy. If no etag is provided in the call to GetPolicy, then the existing policy is overwritten blindly.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+}
+
+/// SasPortalDevice resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDevice {
+    /// Output only. Current configuration of the device as registered to the SAS.
+    #[serde(default, rename = "activeConfig")]
+    pub active_config: ::core::option::Option<SasPortalDeviceConfig>,
+    /// Output only. Current channels with scores.
+    #[serde(default, rename = "currentChannels")]
+    pub current_channels: ::core::option::Option<::std::vec::Vec<SasPortalChannelWithScore>>,
+    /// Device parameters that can be overridden by both SAS Portal and SAS registration requests.
+    #[serde(default, rename = "deviceMetadata")]
+    pub device_metadata: ::core::option::Option<SasPortalDeviceMetadata>,
+    /// Device display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The FCC identifier of the device. Refer to https://www.fcc.gov/oet/ea/fccid for FccID format. Accept underscores and periods because some test-SAS customers use them.
+    #[serde(default, rename = "fccId")]
+    pub fcc_id: ::core::option::Option<String>,
+    /// Only ranges that are within the allowlists are available for new grants.
+    #[serde(default, rename = "grantRangeAllowlists")]
+    pub grant_range_allowlists: ::core::option::Option<::std::vec::Vec<SasPortalFrequencyRange>>,
+    /// Output only. Grants held by the device.
+    #[serde(default)]
+    pub grants: ::core::option::Option<::std::vec::Vec<SasPortalDeviceGrant>>,
+    /// Output only. The resource path name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Configuration of the device, as specified via SAS Portal API.
+    #[serde(default, rename = "preloadedConfig")]
+    pub preloaded_config: ::core::option::Option<SasPortalDeviceConfig>,
+    /// A serial number assigned to the device by the device manufacturer.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+    /// Output only. Device state. // TODO: enum values: ["DEVICE_STATE_UNSPECIFIED", "RESERVED", "REGISTERED", "DEREGISTERED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The Deployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeployment {
+    /// The deployment''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The FCC Registration Numbers (FRNs) copied from its direct parent.
+    #[serde(default)]
+    pub frns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// User ID used by the devices belonging to this deployment. Each deployment should be associated with one unique user ID.
+    #[serde(default, rename = "sasUserIds")]
+    pub sas_user_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Associates members with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalAssignment {
+    /// The identities the role is assigned to. It can have the following values: * {user_email}: An email address that represents a specific Google account. For example: alice@gmail.com. * {group_email}: An email address that represents a Google group. For example, viewers@gmail.com.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Role that is assigned to members.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Information about the device configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeviceConfig {
+    /// Information about this device''s air interface.
+    #[serde(default, rename = "airInterface")]
+    pub air_interface: ::core::option::Option<SasPortalDeviceAirInterface>,
+    /// The call sign of the device operator.
+    #[serde(default, rename = "callSign")]
+    pub call_sign: ::core::option::Option<String>,
+    /// FCC category of the device. // TODO: enum values: ["DEVICE_CATEGORY_UNSPECIFIED", "DEVICE_CATEGORY_A", "DEVICE_CATEGORY_B"]
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Installation parameters for the device.
+    #[serde(default, rename = "installationParams")]
+    pub installation_params: ::core::option::Option<SasPortalInstallationParams>,
+    /// Output only. Whether the configuration has been signed by a CPI.
+    #[serde(default, rename = "isSigned")]
+    pub is_signed: ::core::option::Option<bool>,
+    /// Measurement reporting capabilities of the device.
+    #[serde(default, rename = "measurementCapabilities")]
+    pub measurement_capabilities: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Information about this device model.
+    #[serde(default)]
+    pub model: ::core::option::Option<SasPortalDeviceModel>,
+    /// State of the configuration. // TODO: enum values: ["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The last time the device configuration was edited.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The identifier of a device user.
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
+}
+
+/// The channel with score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalChannelWithScore {
+    /// The frequency range of the channel.
+    #[serde(default, rename = "frequencyRange")]
+    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
+    /// The channel score, normalized to be in the range [0,100].
+    #[serde(default)]
+    pub score: ::core::option::Option<f64>,
+}
+
+/// Device data overridable by both SAS Portal and registration requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeviceMetadata {
+    /// If populated, the Antenna Model Pattern to use. Format is: RecordCreatorId:PatternId
+    #[serde(default, rename = "antennaModel")]
+    pub antenna_model: ::core::option::Option<String>,
+    /// Common Channel Group (CCG). A group of CBSDs in the same ICG requesting a common primary channel assignment. For more details, see [CBRSA-TS-2001 V3.0.0](https://ongoalliance.org/wp-content/uploads/2020/02/CBRSA-TS-2001-V3.0.0_Approved-for-publication.pdf).
+    #[serde(default, rename = "commonChannelGroup")]
+    pub common_channel_group: ::core::option::Option<String>,
+    /// Interference Coordination Group (ICG). A group of CBSDs that manage their own interference with the group. For more details, see [CBRSA-TS-2001 V3.0.0](https://ongoalliance.org/wp-content/uploads/2020/02/CBRSA-TS-2001-V3.0.0_Approved-for-publication.pdf).
+    #[serde(default, rename = "interferenceCoordinationGroup")]
+    pub interference_coordination_group: ::core::option::Option<String>,
+    /// Output only. Set to true if a CPI has validated that they have coordinated with the National Quiet Zone office.
+    #[serde(default, rename = "nrqzValidated")]
+    pub nrqz_validated: ::core::option::Option<bool>,
+    /// Output only. National Radio Quiet Zone validation info.
+    #[serde(default, rename = "nrqzValidation")]
+    pub nrqz_validation: ::core::option::Option<SasPortalNrqzValidation>,
+}
+
+/// Device grant. It is an authorization provided by the Spectrum Access System to a device to transmit using specified operating parameters after a successful heartbeat by the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeviceGrant {
+    /// Type of channel used. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "CHANNEL_TYPE_GAA", "CHANNEL_TYPE_PAL"]
+    #[serde(default, rename = "channelType")]
+    pub channel_type: ::core::option::Option<String>,
+    /// The expiration time of the grant.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// The transmission frequency range.
+    #[serde(default, rename = "frequencyRange")]
+    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
+    /// Grant Id.
+    #[serde(default, rename = "grantId")]
+    pub grant_id: ::core::option::Option<String>,
+    /// The transmit expiration time of the last heartbeat.
+    #[serde(default, rename = "lastHeartbeatTransmitExpireTime")]
+    pub last_heartbeat_transmit_expire_time: ::core::option::Option<String>,
+    /// Maximum Equivalent Isotropically Radiated Power (EIRP) permitted by the grant. The maximum EIRP is in units of dBm/MHz. The value of maxEirp represents the average (RMS) EIRP that would be measured by the procedure defined in FCC part 96.41(e)(3).
+    #[serde(default, rename = "maxEirp")]
+    pub max_eirp: ::core::option::Option<f64>,
+    /// The DPA move lists on which this grant appears.
+    #[serde(default, rename = "moveList")]
+    pub move_list: ::core::option::Option<::std::vec::Vec<SasPortalDpaMoveList>>,
+    /// State of the grant. // TODO: enum values: ["GRANT_STATE_UNSPECIFIED", "GRANT_STATE_GRANTED", "GRANT_STATE_TERMINATED", "GRANT_STATE_SUSPENDED", "GRANT_STATE_AUTHORIZED", "GRANT_STATE_EXPIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// If the grant is suspended, the reason(s) for suspension.
+    #[serde(default, rename = "suspensionReason")]
+    pub suspension_reason: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Information about the device''s air interface.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeviceAirInterface {
+    /// Conditional. This field specifies the radio access technology that is used for the CBSD. // TODO: enum values: ["RADIO_TECHNOLOGY_UNSPECIFIED", "E_UTRA", "CAMBIUM_NETWORKS", "FOUR_G_BBW_SAA_1", "NR", "DOODLE_CBRS", "CW", "REDLINE", "TARANA_WIRELESS", "FAROS"]
+    #[serde(default, rename = "radioTechnology")]
+    pub radio_technology: ::core::option::Option<String>,
+    /// Optional. This field is related to the radioTechnology and provides the air interface specification that the CBSD is compliant with at the time of registration.
+    #[serde(default, rename = "supportedSpec")]
+    pub supported_spec: ::core::option::Option<String>,
+}
+
+/// Information about the device installation parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalInstallationParams {
+    /// Boresight direction of the horizontal plane of the antenna in degrees with respect to true north. The value of this parameter is an integer with a value between 0 and 359 inclusive. A value of 0 degrees means true north; a value of 90 degrees means east. This parameter is optional for Category A devices and conditional for Category B devices.
+    #[serde(default, rename = "antennaAzimuth")]
+    pub antenna_azimuth: ::core::option::Option<i32>,
+    /// 3-dB antenna beamwidth of the antenna in the horizontal-plane in degrees. This parameter is an unsigned integer having a value between 0 and 360 (degrees) inclusive; it is optional for Category A devices and conditional for Category B devices.
+    #[serde(default, rename = "antennaBeamwidth")]
+    pub antenna_beamwidth: ::core::option::Option<i32>,
+    /// Antenna downtilt in degrees and is an integer with a value between -90 and +90 inclusive; a negative value means the antenna is tilted up (above horizontal). This parameter is optional for Category A devices and conditional for Category B devices.
+    #[serde(default, rename = "antennaDowntilt")]
+    pub antenna_downtilt: ::core::option::Option<i32>,
+    /// Peak antenna gain in dBi. This parameter is a double with a value between -127 and +128 (dBi) inclusive. Part of Release 2 to support floating-point value
+    #[serde(default, rename = "antennaGain")]
+    pub antenna_gain: ::core::option::Option<f64>,
+    /// If an external antenna is used, the antenna model is optionally provided in this field. The string has a maximum length of 128 octets.
+    #[serde(default, rename = "antennaModel")]
+    pub antenna_model: ::core::option::Option<String>,
+    /// If present, this parameter specifies whether the CBSD is a CPE-CBSD or not.
+    #[serde(default, rename = "cpeCbsdIndication")]
+    pub cpe_cbsd_indication: ::core::option::Option<bool>,
+    /// This parameter is the maximum device EIRP in units of dBm/10MHz and is an integer with a value between -127 and +47 (dBm/10 MHz) inclusive. If not included, SAS interprets it as maximum allowable EIRP in units of dBm/10MHz for device category.
+    #[serde(default, rename = "eirpCapability")]
+    pub eirp_capability: ::core::option::Option<i32>,
+    /// Device antenna height in meters. When the heightType parameter value is "AGL", the antenna height should be given relative to ground level. When the heightType parameter value is "AMSL", it is given with respect to WGS84 datum.
+    #[serde(default)]
+    pub height: ::core::option::Option<f64>,
+    /// Specifies how the height is measured. // TODO: enum values: ["HEIGHT_TYPE_UNSPECIFIED", "HEIGHT_TYPE_AGL", "HEIGHT_TYPE_AMSL"]
+    #[serde(default, rename = "heightType")]
+    pub height_type: ::core::option::Option<String>,
+    /// A positive number in meters to indicate accuracy of the device antenna horizontal location. This optional parameter should only be present if its value is less than the FCC requirement of 50 meters.
+    #[serde(default, rename = "horizontalAccuracy")]
+    pub horizontal_accuracy: ::core::option::Option<f64>,
+    /// Whether the device antenna is indoor or not. true: indoor. false: outdoor.
+    #[serde(default, rename = "indoorDeployment")]
+    pub indoor_deployment: ::core::option::Option<bool>,
+    /// Latitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -90.000000 to +90.000000. Positive values represent latitudes north of the equator; negative values south of the equator.
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// Longitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -180.000000 to +180.000000. Positive values represent longitudes east of the prime meridian; negative values west of the prime meridian.
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+    /// A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.
+    #[serde(default, rename = "verticalAccuracy")]
+    pub vertical_accuracy: ::core::option::Option<f64>,
+}
+
+/// Information about the model of the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDeviceModel {
+    /// The firmware version of the device.
+    #[serde(default, rename = "firmwareVersion")]
+    pub firmware_version: ::core::option::Option<String>,
+    /// The hardware version of the device.
+    #[serde(default, rename = "hardwareVersion")]
+    pub hardware_version: ::core::option::Option<String>,
+    /// The name of the device model.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The software version of the device.
+    #[serde(default, rename = "softwareVersion")]
+    pub software_version: ::core::option::Option<String>,
+    /// The name of the device vendor.
+    #[serde(default)]
+    pub vendor: ::core::option::Option<String>,
+}
+
+/// Information about National Radio Quiet Zone validation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalNrqzValidation {
+    /// Validation case ID.
+    #[serde(default, rename = "caseId")]
+    pub case_id: ::core::option::Option<String>,
+    /// CPI who signed the validation.
+    #[serde(default, rename = "cpiId")]
+    pub cpi_id: ::core::option::Option<String>,
+    /// Device latitude that''s associated with the validation.
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// Device longitude that''s associated with the validation.
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+    /// State of the NRQZ validation info. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "FINAL"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// An entry in a DPA''s move list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalDpaMoveList {
+    /// The ID of the DPA.
+    #[serde(default, rename = "dpaId")]
+    pub dpa_id: ::core::option::Option<String>,
+    /// The frequency range that the move list affects.
+    #[serde(default, rename = "frequencyRange")]
+    pub frequency_range: ::core::option::Option<SasPortalFrequencyRange>,
+}
+
+/// Frequency range from low_frequency to high_frequency.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalFrequencyRange {
+    /// The highest frequency of the frequency range in MHz.
+    #[serde(default, rename = "highFrequencyMhz")]
+    pub high_frequency_mhz: ::core::option::Option<f64>,
+    /// The lowest frequency of the frequency range in MHz.
+    #[serde(default, rename = "lowFrequencyMhz")]
+    pub low_frequency_mhz: ::core::option::Option<f64>,
 }

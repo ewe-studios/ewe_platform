@@ -10,27 +10,33 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Promotion result.
+/// Response to a custom search request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Promotion {
-    /// An array of block objects for this promotion.
-    #[serde(default, rename = "bodyLines")]
-    pub body_lines: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// An abridged version of this search''s result URL, e.g. www.example.com.
-    #[serde(default, rename = "displayLink")]
-    pub display_link: ::core::option::Option<String>,
-    /// The title of the promotion, in HTML.
-    #[serde(default, rename = "htmlTitle")]
-    pub html_title: ::core::option::Option<String>,
-    /// Image belonging to a promotion.
+pub struct Search {
+    /// Metadata and refinements associated with the given search engine, including: * The name of the search engine that was used for the query. * A set of [facet objects](https://developers.google.com/custom-search/docs/refinements#create) (refinements) you can use for refining a search.
     #[serde(default)]
-    pub image: ::core::option::Option<serde_json::Value>,
-    /// The URL of the promotion.
+    pub context: ::core::option::Option<serde_json::Value>,
+    /// The current set of custom search results.
     #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// The title of the promotion.
+    pub items: ::core::option::Option<::std::vec::Vec<ApiResult>>,
+    /// Unique identifier for the type of current object. For this API, it is customsearch#search.
     #[serde(default)]
-    pub title: ::core::option::Option<String>,
+    pub kind: ::core::option::Option<String>,
+    /// The set of [promotions](https://developers.google.com/custom-search/docs/promotions). Present only if the custom search engine''s configuration files define any promotions for the given query.
+    #[serde(default)]
+    pub promotions: ::core::option::Option<::std::vec::Vec<Promotion>>,
+    /// Query metadata for the previous, current, and next pages of results.
+    #[serde(default)]
+    pub queries: ::core::option::Option<serde_json::Value>,
+    /// Metadata about a search operation.
+    #[serde(default, rename = "searchInformation")]
+    pub search_information: ::core::option::Option<serde_json::Value>,
+    /// Spell correction information for a query.
+    #[serde(default)]
+    pub spelling: ::core::option::Option<serde_json::Value>,
+    /// OpenSearch template and URL.
+    #[serde(default)]
+    pub url: ::core::option::Option<serde_json::Value>,
 }
 
 /// A custom search result.
@@ -83,31 +89,25 @@ pub struct ApiResult {
     pub title: ::core::option::Option<String>,
 }
 
-/// Response to a custom search request.
+/// Promotion result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Search {
-    /// Metadata and refinements associated with the given search engine, including: * The name of the search engine that was used for the query. * A set of [facet objects](https://developers.google.com/custom-search/docs/refinements#create) (refinements) you can use for refining a search.
+pub struct Promotion {
+    /// An array of block objects for this promotion.
+    #[serde(default, rename = "bodyLines")]
+    pub body_lines: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// An abridged version of this search''s result URL, e.g. www.example.com.
+    #[serde(default, rename = "displayLink")]
+    pub display_link: ::core::option::Option<String>,
+    /// The title of the promotion, in HTML.
+    #[serde(default, rename = "htmlTitle")]
+    pub html_title: ::core::option::Option<String>,
+    /// Image belonging to a promotion.
     #[serde(default)]
-    pub context: ::core::option::Option<serde_json::Value>,
-    /// The current set of custom search results.
+    pub image: ::core::option::Option<serde_json::Value>,
+    /// The URL of the promotion.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ApiResult>>,
-    /// Unique identifier for the type of current object. For this API, it is customsearch#search.
+    pub link: ::core::option::Option<String>,
+    /// The title of the promotion.
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The set of [promotions](https://developers.google.com/custom-search/docs/promotions). Present only if the custom search engine''s configuration files define any promotions for the given query.
-    #[serde(default)]
-    pub promotions: ::core::option::Option<::std::vec::Vec<Promotion>>,
-    /// Query metadata for the previous, current, and next pages of results.
-    #[serde(default)]
-    pub queries: ::core::option::Option<serde_json::Value>,
-    /// Metadata about a search operation.
-    #[serde(default, rename = "searchInformation")]
-    pub search_information: ::core::option::Option<serde_json::Value>,
-    /// Spell correction information for a query.
-    #[serde(default)]
-    pub spelling: ::core::option::Option<serde_json::Value>,
-    /// OpenSearch template and URL.
-    #[serde(default)]
-    pub url: ::core::option::Option<serde_json::Value>,
+    pub title: ::core::option::Option<String>,
 }

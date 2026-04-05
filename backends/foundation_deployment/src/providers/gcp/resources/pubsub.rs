@@ -10,20 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Configuration for making inference requests against Vertex AI models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AIInference {
-    /// Required. An endpoint to a Vertex AI model of the form projects/{project}/locations/{location}/endpoints/{endpoint} or projects/{project}/locations/{location}/publishers/{publisher}/models/{model}. Vertex AI API requests will be sent to this endpoint.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<String>,
-    /// Optional. The service account to use to make prediction requests against endpoints. The resource creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Optional. Requests and responses can be any arbitrary JSON object.
-    #[serde(default, rename = "unstructuredInference")]
-    pub unstructured_inference: ::core::option::Option<UnstructuredInference>,
-}
-
 /// Request for the Acknowledge method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcknowledgeRequest {
@@ -32,250 +18,12 @@ pub struct AcknowledgeRequest {
     pub ack_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalyticsHubSubscriptionInfo {
-    /// Optional. The name of the associated Analytics Hub listing resource. Pattern: "projects/{project}/locations/{location}/dataExchanges/{data_exchange}/listings/{listing}"
-    #[serde(default)]
-    pub listing: ::core::option::Option<String>,
-    /// Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"
-    #[serde(default)]
-    pub subscription: ::core::option::Option<String>,
-}
-
-/// Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AvroConfig {
-    /// Optional. When true, the output Cloud Storage file will be serialized using the topic schema, if it exists.
-    #[serde(default, rename = "useTopicSchema")]
-    pub use_topic_schema: ::core::option::Option<bool>,
-    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.
-    #[serde(default, rename = "writeMetadata")]
-    pub write_metadata: ::core::option::Option<bool>,
-}
-
-/// Ingestion settings for Amazon Kinesis Data Streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsKinesis {
-    /// Required. AWS role ARN to be used for Federated Identity authentication with Kinesis. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
-    #[serde(default, rename = "awsRoleArn")]
-    pub aws_role_arn: ::core::option::Option<String>,
-    /// Required. The Kinesis consumer ARN to used for ingestion in Enhanced Fan-Out mode. The consumer must be already created and ready to be used.
-    #[serde(default, rename = "consumerArn")]
-    pub consumer_arn: ::core::option::Option<String>,
-    /// Required. The GCP service account to be used for Federated Identity authentication with Kinesis (via a AssumeRoleWithWebIdentity call for the provided role). The aws_role_arn must be set up with accounts.google.com:sub equals to this service account number.
-    #[serde(default, rename = "gcpServiceAccount")]
-    pub gcp_service_account: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates the state of the Kinesis ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "KINESIS_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "STREAM_NOT_FOUND", "CONSUMER_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. The Kinesis stream ARN to ingest data from.
-    #[serde(default, rename = "streamArn")]
-    pub stream_arn: ::core::option::Option<String>,
-}
-
-/// Ingestion settings for Amazon MSK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsMsk {
-    /// Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
-    #[serde(default, rename = "awsRoleArn")]
-    pub aws_role_arn: ::core::option::Option<String>,
-    /// Required. The Amazon Resource Name (ARN) that uniquely identifies the cluster.
-    #[serde(default, rename = "clusterArn")]
-    pub cluster_arn: ::core::option::Option<String>,
-    /// Required. The GCP service account to be used for Federated Identity authentication with Amazon MSK (via a AssumeRoleWithWebIdentity call for the provided role). The aws_role_arn must be set up with accounts.google.com:sub equals to this service account number.
-    #[serde(default, rename = "gcpServiceAccount")]
-    pub gcp_service_account: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates the state of the Amazon MSK ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "MSK_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "CLUSTER_NOT_FOUND", "TOPIC_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-}
-
-/// Ingestion settings for Azure Event Hubs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureEventHubs {
-    /// Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Optional. The name of the Event Hub.
-    #[serde(default, rename = "eventHub")]
-    pub event_hub: ::core::option::Option<String>,
-    /// Optional. The GCP service account to be used for Federated Identity authentication.
-    #[serde(default, rename = "gcpServiceAccount")]
-    pub gcp_service_account: ::core::option::Option<String>,
-    /// Optional. The name of the Event Hubs namespace.
-    #[serde(default)]
-    pub namespace: ::core::option::Option<String>,
-    /// Optional. Name of the resource group within the azure subscription.
-    #[serde(default, rename = "resourceGroup")]
-    pub resource_group: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates the state of the Event Hubs ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EVENT_HUBS_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "NAMESPACE_NOT_FOUND", "EVENT_HUB_NOT_FOUND", "SUBSCRIPTION_NOT_FOUND", "RESOURCE_GROUP_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. The Azure subscription id.
-    #[serde(default, rename = "subscriptionId")]
-    pub subscription_id: ::core::option::Option<String>,
-    /// Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.
-    #[serde(default, rename = "tenantId")]
-    pub tenant_id: ::core::option::Option<String>,
-}
-
-/// Configuration for a BigQuery subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryConfig {
-    /// Optional. When true and use_topic_schema is true, any fields that are a part of the topic schema that are not part of the BigQuery table schema are dropped when writing to BigQuery. Otherwise, the schemas must be kept in sync and any messages with extra fields are not written and remain in the subscription''s backlog.
-    #[serde(default, rename = "dropUnknownFields")]
-    pub drop_unknown_fields: ::core::option::Option<bool>,
-    /// Optional. The service account to use to write to BigQuery. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PERMISSION_DENIED", "NOT_FOUND", "SCHEMA_MISMATCH", "IN_TRANSIT_LOCATION_RESTRICTION", "VERTEX_AI_LOCATION_RESTRICTION"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. The name of the table to which to write data, of the form {projectId}.{datasetId}.{tableId}
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-    /// Optional. When true, use the BigQuery table''s schema as the columns to write to in BigQuery. use_table_schema and use_topic_schema cannot be enabled at the same time.
-    #[serde(default, rename = "useTableSchema")]
-    pub use_table_schema: ::core::option::Option<bool>,
-    /// Optional. When true, use the topic''s schema as the columns to write to in BigQuery, if it exists. use_topic_schema and use_table_schema cannot be enabled at the same time.
-    #[serde(default, rename = "useTopicSchema")]
-    pub use_topic_schema: ::core::option::Option<bool>,
-    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.
-    #[serde(default, rename = "writeMetadata")]
-    pub write_metadata: ::core::option::Option<bool>,
-}
-
-/// Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigtableConfig {
-    /// Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.
-    #[serde(default, rename = "appProfileId")]
-    pub app_profile_id: ::core::option::Option<String>,
-    /// Optional. The service account to use to write to Bigtable. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "NOT_FOUND", "APP_PROFILE_MISCONFIGURED", "PERMISSION_DENIED", "SCHEMA_MISMATCH", "IN_TRANSIT_LOCATION_RESTRICTION", "VERTEX_AI_LOCATION_RESTRICTION"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. The unique name of the table to write messages to. Values are of the form projects//instances//tables/.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.
-    #[serde(default, rename = "writeMetadata")]
-    pub write_metadata: ::core::option::Option<bool>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Ingestion settings for Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudStorage {
-    /// Optional. Data from Cloud Storage will be interpreted in Avro format.
-    #[serde(default, rename = "avroFormat")]
-    pub avro_format: ::core::option::Option<serde_json::Value>,
-    /// Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. Glob pattern used to match objects that will be ingested. If unset, all objects will be ingested. See the [supported patterns](https://cloud.google.com/storage/docs/json_api/v1/objects/list#list-objects-and-prefixes-using-glob).
-    #[serde(default, rename = "matchGlob")]
-    pub match_glob: ::core::option::Option<String>,
-    /// Optional. Only objects with a larger or equal creation timestamp will be ingested.
-    #[serde(default, rename = "minimumObjectCreateTime")]
-    pub minimum_object_create_time: ::core::option::Option<String>,
-    /// Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).
-    #[serde(default, rename = "pubsubAvroFormat")]
-    pub pubsub_avro_format: ::core::option::Option<serde_json::Value>,
-    /// Output only. An output-only field that indicates the state of the Cloud Storage ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLOUD_STORAGE_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "BUCKET_NOT_FOUND", "TOO_MANY_OBJECTS", "CONFLICTING_REGION_CONSTRAINTS"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Data from Cloud Storage will be interpreted as text.
-    #[serde(default, rename = "textFormat")]
-    pub text_format: ::core::option::Option<TextFormat>,
-}
-
-/// Configuration for a Cloud Storage subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudStorageConfig {
-    /// Optional. If set, message data will be written to Cloud Storage in Avro format.
-    #[serde(default, rename = "avroConfig")]
-    pub avro_config: ::core::option::Option<AvroConfig>,
-    /// Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. User-provided format string specifying how to represent datetimes in Cloud Storage filenames. See the [datetime format guidance](https://cloud.google.com/pubsub/docs/create-cloudstorage-subscription#file_names).
-    #[serde(default, rename = "filenameDatetimeFormat")]
-    pub filename_datetime_format: ::core::option::Option<String>,
-    /// Optional. User-provided prefix for Cloud Storage filename. See the [object naming requirements](https://cloud.google.com/storage/docs/objects#naming).
-    #[serde(default, rename = "filenamePrefix")]
-    pub filename_prefix: ::core::option::Option<String>,
-    /// Optional. User-provided suffix for Cloud Storage filename. See the [object naming requirements](https://cloud.google.com/storage/docs/objects#naming). Must not end in "/".
-    #[serde(default, rename = "filenameSuffix")]
-    pub filename_suffix: ::core::option::Option<String>,
-    /// Optional. The maximum bytes that can be written to a Cloud Storage file before a new file is created. Min 1 KB, max 10 GiB. The max_bytes limit may be exceeded in cases where messages are larger than the limit.
-    #[serde(default, rename = "maxBytes")]
-    pub max_bytes: ::core::option::Option<String>,
-    /// Optional. The maximum duration that can elapse before a new Cloud Storage file is created. Min 1 minute, max 10 minutes, default 5 minutes. May not exceed the subscription''s acknowledgment deadline.
-    #[serde(default, rename = "maxDuration")]
-    pub max_duration: ::core::option::Option<String>,
-    /// Optional. The maximum number of messages that can be written to a Cloud Storage file before a new file is created. Min 1000 messages.
-    #[serde(default, rename = "maxMessages")]
-    pub max_messages: ::core::option::Option<String>,
-    /// Optional. The service account to use to write to Cloud Storage. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PERMISSION_DENIED", "NOT_FOUND", "IN_TRANSIT_LOCATION_RESTRICTION", "SCHEMA_MISMATCH", "VERTEX_AI_LOCATION_RESTRICTION"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. If set, message data will be written to Cloud Storage in text format.
-    #[serde(default, rename = "textConfig")]
-    pub text_config: ::core::option::Option<serde_json::Value>,
-}
-
 /// Request for CommitSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitSchemaRequest {
     /// Required. The schema revision to commit.
     #[serde(default)]
     pub schema: ::core::option::Option<Schema>,
-}
-
-/// Ingestion settings for Confluent Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfluentCloud {
-    /// Required. The address of the bootstrap server. The format is url:port.
-    #[serde(default, rename = "bootstrapServer")]
-    pub bootstrap_server: ::core::option::Option<String>,
-    /// Required. The id of the cluster.
-    #[serde(default, rename = "clusterId")]
-    pub cluster_id: ::core::option::Option<String>,
-    /// Required. The GCP service account to be used for Federated Identity authentication with identity_pool_id.
-    #[serde(default, rename = "gcpServiceAccount")]
-    pub gcp_service_account: ::core::option::Option<String>,
-    /// Required. The id of the identity pool to be used for Federated Identity authentication with Confluent Cloud. See https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/identity-providers/oauth/identity-pools.html#add-oauth-identity-pools.
-    #[serde(default, rename = "identityPoolId")]
-    pub identity_pool_id: ::core::option::Option<String>,
-    /// Output only. An output-only field that indicates the state of the Confluent Cloud ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CONFLUENT_CLOUD_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "UNREACHABLE_BOOTSTRAP_SERVER", "CLUSTER_NOT_FOUND", "TOPIC_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
 }
 
 /// Request for the CreateSnapshot method.
@@ -290,76 +38,6 @@ pub struct CreateSnapshotRequest {
     /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
-}
-
-/// Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeadLetterPolicy {
-    /// Optional. The name of the topic to which dead letter messages should be published. Format is projects/{project}/topics/{topic}.The Pub/Sub service account associated with the enclosing subscription''s parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.
-    #[serde(default, rename = "deadLetterTopic")]
-    pub dead_letter_topic: ::core::option::Option<String>,
-    /// Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.
-    #[serde(default, rename = "maxDeliveryAttempts")]
-    pub max_delivery_attempts: ::core::option::Option<i32>,
-}
-
-/// A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExpirationPolicy {
-    /// Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of ttl. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for ttl depend on the type of the associated resource, as well. If ttl is not set, the associated resource never expires.
-    #[serde(default)]
-    pub ttl: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Settings for an ingestion data source on a topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IngestionDataSourceSettings {
-    /// Optional. Amazon Kinesis Data Streams.
-    #[serde(default, rename = "awsKinesis")]
-    pub aws_kinesis: ::core::option::Option<AwsKinesis>,
-    /// Optional. Amazon MSK.
-    #[serde(default, rename = "awsMsk")]
-    pub aws_msk: ::core::option::Option<AwsMsk>,
-    /// Optional. Azure Event Hubs.
-    #[serde(default, rename = "azureEventHubs")]
-    pub azure_event_hubs: ::core::option::Option<AzureEventHubs>,
-    /// Optional. Cloud Storage.
-    #[serde(default, rename = "cloudStorage")]
-    pub cloud_storage: ::core::option::Option<CloudStorage>,
-    /// Optional. Confluent Cloud.
-    #[serde(default, rename = "confluentCloud")]
-    pub confluent_cloud: ::core::option::Option<ConfluentCloud>,
-    /// Optional. Platform Logs settings. If unset, no Platform Logs will be generated.
-    #[serde(default, rename = "platformLogsSettings")]
-    pub platform_logs_settings: ::core::option::Option<PlatformLogsSettings>,
-}
-
-/// User-defined JavaScript function that can transform or filter a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JavaScriptUDF {
-    /// Required. JavaScript code that contains a function function_name with the below signature:  /** * Transforms a Pub/Sub message. * @return {(Object)&gt;|null)} - To * filter a message, return null. To transform a message return a map * with the following keys: * - (required) ''data'' : {string} * - (optional) ''attributes'' : {Object} * Returning empty attributes will remove all attributes from the * message. * * @param {(Object)&gt;} Pub/Sub * message. Keys: * - (required) ''data'' : {string} * - (required) ''attributes'' : {Object} * * @param {Object} metadata - Pub/Sub message metadata. * Keys: * - (optional) ''message_id'' : {string} * - (optional) ''publish_time'': {string} YYYY-MM-DDTHH:MM:SSZ format * - (optional) ''ordering_key'': {string} */ function (message, metadata) { }
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Required. Name of the JavasScript function that should applied to Pub/Sub messages.
-    #[serde(default, rename = "functionName")]
-    pub function_name: ::core::option::Option<String>,
 }
 
 /// Response for the ListSchemaRevisions method.
@@ -439,34 +117,6 @@ pub struct ListTopicsResponse {
     pub topics: ::core::option::Option<::std::vec::Vec<Topic>>,
 }
 
-/// A policy constraining the storage of messages published to the topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageStoragePolicy {
-    /// Optional. A list of IDs of Google Cloud regions where messages that are published to the topic may be persisted in storage. Messages published by publishers running in non-allowed Google Cloud regions (or running outside of Google Cloud altogether) are routed for storage in one of the allowed regions. An empty list means that no regions are allowed, and is not a valid configuration.
-    #[serde(default, rename = "allowedPersistenceRegions")]
-    pub allowed_persistence_regions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. If true, allowed_persistence_regions is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in allowed_persistence_regions.
-    #[serde(default, rename = "enforceInTransit")]
-    pub enforce_in_transit: ::core::option::Option<bool>,
-}
-
-/// All supported message transforms types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageTransform {
-    /// Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.
-    #[serde(default, rename = "aiInference")]
-    pub ai_inference: ::core::option::Option<AIInference>,
-    /// Optional. If true, the transform is disabled and will not be applied to messages. Defaults to false.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. This field is deprecated, use the disabled field to disable transforms.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. JavaScript User Defined Function. If multiple JavaScriptUDF''s are specified on a resource, each must have a unique function_name.
-    #[serde(default, rename = "javascriptUdf")]
-    pub javascript_udf: ::core::option::Option<JavaScriptUDF>,
-}
-
 /// Request for the ModifyAckDeadline method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModifyAckDeadlineRequest {
@@ -486,47 +136,6 @@ pub struct ModifyPushConfigRequest {
     pub push_config: ::core::option::Option<PushConfig>,
 }
 
-/// Sets the data field as the HTTP body for delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NoWrapper {
-    /// Optional. When true, writes the Pub/Sub message metadata to x-goog-pubsub-: headers of the HTTP request. Writes the Pub/Sub message attributes to : headers of the HTTP request.
-    #[serde(default, rename = "writeMetadata")]
-    pub write_metadata: ::core::option::Option<bool>,
-}
-
-/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OidcToken {
-    /// Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.
-    #[serde(default)]
-    pub audience: ::core::option::Option<String>,
-    /// Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-}
-
-/// Settings for Platform Logs produced by Pub/Sub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlatformLogsSettings {
-    /// Optional. The minimum severity level of Platform Logs that will be written. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "DISABLED", "DEBUG", "INFO", "WARNING", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
 /// Request for the Publish method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishRequest {
@@ -541,26 +150,6 @@ pub struct PublishResponse {
     /// Optional. The server-assigned ID of each published message, in the same order as the messages in the request. IDs are guaranteed to be unique within the topic.
     #[serde(default, rename = "messageIds")]
     pub message_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PubsubMessage {
-    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
-    #[serde(default, rename = "orderingKey")]
-    pub ordering_key: ::core::option::Option<String>,
-    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
 }
 
 /// Request for the Pull method.
@@ -582,94 +171,12 @@ pub struct PullResponse {
     pub received_messages: ::core::option::Option<::std::vec::Vec<ReceivedMessage>>,
 }
 
-/// Configuration for a push delivery endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PushConfig {
-    /// Optional. Endpoint configuration attributes that can be used to control different aspects of the message delivery. The only currently supported attribute is x-goog-version, which you can use to change the format of the pushed message. This attribute indicates the version of the data expected by the endpoint. This controls the shape of the pushed message (i.e., its fields and metadata). If not present during the CreateSubscription call, it will default to the version of the Pub/Sub API used to make such call. If not present in a ModifyPushConfig call, its value will not be changed. GetSubscription calls will always return a valid version, even if the subscription was created without this attribute. The only supported values for the x-goog-version attribute are: * v1beta1: uses the push format defined in the v1beta1 Pub/Sub API. * v1 or v1beta2: uses the push format defined in the v1 Pub/Sub API. For example: attributes { "x-goog-version": "v1" }
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Optional. When set, the payload to the push endpoint is not wrapped.
-    #[serde(default, rename = "noWrapper")]
-    pub no_wrapper: ::core::option::Option<NoWrapper>,
-    /// Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an Authorization header in the HTTP request for every pushed message.
-    #[serde(default, rename = "oidcToken")]
-    pub oidc_token: ::core::option::Option<OidcToken>,
-    /// Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
-    #[serde(default, rename = "pubsubWrapper")]
-    pub pubsub_wrapper: ::core::option::Option<serde_json::Value>,
-    /// Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use https://example.com/push.
-    #[serde(default, rename = "pushEndpoint")]
-    pub push_endpoint: ::core::option::Option<String>,
-}
-
-/// A message and its corresponding acknowledgment ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReceivedMessage {
-    /// Optional. This ID can be used to acknowledge the received message.
-    #[serde(default, rename = "ackId")]
-    pub ack_id: ::core::option::Option<String>,
-    /// Optional. The approximate number of times that Pub/Sub has attempted to deliver the associated message to a subscriber. More precisely, this is 1 + (number of NACKs) + (number of ack_deadline exceeds) for this message. A NACK is any call to ModifyAckDeadline with a 0 deadline. An ack_deadline exceeds event is whenever a message is not acknowledged within ack_deadline. Note that ack_deadline is initially Subscription.ackDeadlineSeconds, but may get extended automatically by the client library. Upon the first delivery of a given message, delivery_attempt will have a value of 1. The value is calculated at best effort and is approximate. If a DeadLetterPolicy is not set on the subscription, this will be 0.
-    #[serde(default, rename = "deliveryAttempt")]
-    pub delivery_attempt: ::core::option::Option<i32>,
-    /// Optional. The message.
-    #[serde(default)]
-    pub message: ::core::option::Option<PubsubMessage>,
-}
-
-/// A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetryPolicy {
-    /// Optional. The maximum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 600 seconds.
-    #[serde(default, rename = "maximumBackoff")]
-    pub maximum_backoff: ::core::option::Option<String>,
-    /// Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.
-    #[serde(default, rename = "minimumBackoff")]
-    pub minimum_backoff: ::core::option::Option<String>,
-}
-
 /// Request for the RollbackSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RollbackSchemaRequest {
     /// Required. The revision ID to roll back to. It must be a revision of the same schema. Example: c7cfa2a8
     #[serde(default, rename = "revisionId")]
     pub revision_id: ::core::option::Option<String>,
-}
-
-/// A schema resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schema {
-    /// The definition of the schema. This should contain a string representing the full definition of the schema that is a valid schema definition of the type specified in type.
-    #[serde(default)]
-    pub definition: ::core::option::Option<String>,
-    /// Required. Name of the schema. Format is projects/{project}/schemas/{schema}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The timestamp that the revision was created.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Output only. Immutable. The revision ID of the schema.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// The type of the schema definition. // TODO: enum values: ["TYPE_UNSPECIFIED", "PROTOCOL_BUFFER", "AVRO"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Settings for validating messages published against a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchemaSettings {
-    /// Optional. The encoding of messages validated against schema. // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Optional. The minimum (inclusive) revision allowed for validating messages. If empty or not present, allow any revision to be validated against last_revision or any revision created before.
-    #[serde(default, rename = "firstRevisionId")]
-    pub first_revision_id: ::core::option::Option<String>,
-    /// Optional. The maximum (inclusive) revision allowed for validating messages. If empty or not present, allow any revision to be validated against first_revision or any revision created after.
-    #[serde(default, rename = "lastRevisionId")]
-    pub last_revision_id: ::core::option::Option<String>,
-    /// Required. The name of the schema that messages published should be validated against. Format is projects/{project}/schemas/{schema}. The value of this field will be _deleted-schema_ if the schema has been deleted.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
 }
 
 /// Request for the Seek method.
@@ -689,6 +196,108 @@ pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Request for the UpdateSnapshot method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSnapshotRequest {
+    /// Required. The updated snapshot object.
+    #[serde(default)]
+    pub snapshot: ::core::option::Option<Snapshot>,
+    /// Required. Indicates which fields in the provided snapshot to update. Must be specified and non-empty.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request for the UpdateSubscription method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSubscriptionRequest {
+    /// Required. The updated subscription object.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<Subscription>,
+    /// Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request for the UpdateTopic method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTopicRequest {
+    /// Required. The updated topic object.
+    #[serde(default)]
+    pub topic: ::core::option::Option<Topic>,
+    /// Required. Indicates which fields in the provided topic to update. Must be specified and non-empty. Note that if update_mask contains "message_storage_policy" but the message_storage_policy is not set in the topic provided above, then the updated value is determined by the policy configured at the project or organization level.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request for the ValidateMessage method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateMessageRequest {
+    /// The encoding expected for messages // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Message to validate against the provided schema_spec.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Name of the schema against which to validate. Format is projects/{project}/schemas/{schema}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Ad-hoc schema against which to validate
+    #[serde(default)]
+    pub schema: ::core::option::Option<Schema>,
+}
+
+/// Request for the ValidateSchema method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateSchemaRequest {
+    /// Required. The schema object to validate.
+    #[serde(default)]
+    pub schema: ::core::option::Option<Schema>,
+}
+
+/// A message and its corresponding acknowledgment ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceivedMessage {
+    /// Optional. This ID can be used to acknowledge the received message.
+    #[serde(default, rename = "ackId")]
+    pub ack_id: ::core::option::Option<String>,
+    /// Optional. The approximate number of times that Pub/Sub has attempted to deliver the associated message to a subscriber. More precisely, this is 1 + (number of NACKs) + (number of ack_deadline exceeds) for this message. A NACK is any call to ModifyAckDeadline with a 0 deadline. An ack_deadline exceeds event is whenever a message is not acknowledged within ack_deadline. Note that ack_deadline is initially Subscription.ackDeadlineSeconds, but may get extended automatically by the client library. Upon the first delivery of a given message, delivery_attempt will have a value of 1. The value is calculated at best effort and is approximate. If a DeadLetterPolicy is not set on the subscription, this will be 0.
+    #[serde(default, rename = "deliveryAttempt")]
+    pub delivery_attempt: ::core::option::Option<i32>,
+    /// Optional. The message.
+    #[serde(default)]
+    pub message: ::core::option::Option<PubsubMessage>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
 }
 
 /// A snapshot resource. Snapshots are used in [Seek](https://cloud.google.com/pubsub/docs/replay-overview) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
@@ -779,30 +388,6 @@ pub struct Subscription {
     pub topic_message_retention_duration: ::core::option::Option<String>,
 }
 
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the data field of a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextFormat {
-    /// Optional. When unset, ''\n'' is used.
-    #[serde(default)]
-    pub delimiter: ::core::option::Option<String>,
-}
-
 /// A topic resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Topic {
@@ -841,60 +426,475 @@ pub struct Topic {
     pub tags: ::core::option::Option<serde_json::Value>,
 }
 
-/// Request for the UpdateSnapshot method.
+/// A schema resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSnapshotRequest {
-    /// Required. The updated snapshot object.
+pub struct Schema {
+    /// The definition of the schema. This should contain a string representing the full definition of the schema that is a valid schema definition of the type specified in type.
     #[serde(default)]
-    pub snapshot: ::core::option::Option<Snapshot>,
-    /// Required. Indicates which fields in the provided snapshot to update. Must be specified and non-empty.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request for the UpdateSubscription method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSubscriptionRequest {
-    /// Required. The updated subscription object.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<Subscription>,
-    /// Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request for the UpdateTopic method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateTopicRequest {
-    /// Required. The updated topic object.
-    #[serde(default)]
-    pub topic: ::core::option::Option<Topic>,
-    /// Required. Indicates which fields in the provided topic to update. Must be specified and non-empty. Note that if update_mask contains "message_storage_policy" but the message_storage_policy is not set in the topic provided above, then the updated value is determined by the policy configured at the project or organization level.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request for the ValidateMessage method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateMessageRequest {
-    /// The encoding expected for messages // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Message to validate against the provided schema_spec.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Name of the schema against which to validate. Format is projects/{project}/schemas/{schema}.
+    pub definition: ::core::option::Option<String>,
+    /// Required. Name of the schema. Format is projects/{project}/schemas/{schema}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Ad-hoc schema against which to validate
-    #[serde(default)]
-    pub schema: ::core::option::Option<Schema>,
+    /// Output only. The timestamp that the revision was created.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Output only. Immutable. The revision ID of the schema.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// The type of the schema definition. // TODO: enum values: ["TYPE_UNSPECIFIED", "PROTOCOL_BUFFER", "AVRO"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// Request for the ValidateSchema method.
+/// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateSchemaRequest {
-    /// Required. The schema object to validate.
+pub struct PubsubMessage {
+    /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
     #[serde(default)]
-    pub schema: ::core::option::Option<Schema>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
+    #[serde(default, rename = "orderingKey")]
+    pub ordering_key: ::core::option::Option<String>,
+    /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyticsHubSubscriptionInfo {
+    /// Optional. The name of the associated Analytics Hub listing resource. Pattern: "projects/{project}/locations/{location}/dataExchanges/{data_exchange}/listings/{listing}"
+    #[serde(default)]
+    pub listing: ::core::option::Option<String>,
+    /// Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"
+    #[serde(default)]
+    pub subscription: ::core::option::Option<String>,
+}
+
+/// Configuration for a BigQuery subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryConfig {
+    /// Optional. When true and use_topic_schema is true, any fields that are a part of the topic schema that are not part of the BigQuery table schema are dropped when writing to BigQuery. Otherwise, the schemas must be kept in sync and any messages with extra fields are not written and remain in the subscription''s backlog.
+    #[serde(default, rename = "dropUnknownFields")]
+    pub drop_unknown_fields: ::core::option::Option<bool>,
+    /// Optional. The service account to use to write to BigQuery. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PERMISSION_DENIED", "NOT_FOUND", "SCHEMA_MISMATCH", "IN_TRANSIT_LOCATION_RESTRICTION", "VERTEX_AI_LOCATION_RESTRICTION"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. The name of the table to which to write data, of the form {projectId}.{datasetId}.{tableId}
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+    /// Optional. When true, use the BigQuery table''s schema as the columns to write to in BigQuery. use_table_schema and use_topic_schema cannot be enabled at the same time.
+    #[serde(default, rename = "useTableSchema")]
+    pub use_table_schema: ::core::option::Option<bool>,
+    /// Optional. When true, use the topic''s schema as the columns to write to in BigQuery, if it exists. use_topic_schema and use_table_schema cannot be enabled at the same time.
+    #[serde(default, rename = "useTopicSchema")]
+    pub use_topic_schema: ::core::option::Option<bool>,
+    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.
+    #[serde(default, rename = "writeMetadata")]
+    pub write_metadata: ::core::option::Option<bool>,
+}
+
+/// Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigtableConfig {
+    /// Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.
+    #[serde(default, rename = "appProfileId")]
+    pub app_profile_id: ::core::option::Option<String>,
+    /// Optional. The service account to use to write to Bigtable. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "NOT_FOUND", "APP_PROFILE_MISCONFIGURED", "PERMISSION_DENIED", "SCHEMA_MISMATCH", "IN_TRANSIT_LOCATION_RESTRICTION", "VERTEX_AI_LOCATION_RESTRICTION"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. The unique name of the table to write messages to. Values are of the form projects//instances//tables/.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.
+    #[serde(default, rename = "writeMetadata")]
+    pub write_metadata: ::core::option::Option<bool>,
+}
+
+/// Configuration for a Cloud Storage subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudStorageConfig {
+    /// Optional. If set, message data will be written to Cloud Storage in Avro format.
+    #[serde(default, rename = "avroConfig")]
+    pub avro_config: ::core::option::Option<AvroConfig>,
+    /// Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. User-provided format string specifying how to represent datetimes in Cloud Storage filenames. See the [datetime format guidance](https://cloud.google.com/pubsub/docs/create-cloudstorage-subscription#file_names).
+    #[serde(default, rename = "filenameDatetimeFormat")]
+    pub filename_datetime_format: ::core::option::Option<String>,
+    /// Optional. User-provided prefix for Cloud Storage filename. See the [object naming requirements](https://cloud.google.com/storage/docs/objects#naming).
+    #[serde(default, rename = "filenamePrefix")]
+    pub filename_prefix: ::core::option::Option<String>,
+    /// Optional. User-provided suffix for Cloud Storage filename. See the [object naming requirements](https://cloud.google.com/storage/docs/objects#naming). Must not end in "/".
+    #[serde(default, rename = "filenameSuffix")]
+    pub filename_suffix: ::core::option::Option<String>,
+    /// Optional. The maximum bytes that can be written to a Cloud Storage file before a new file is created. Min 1 KB, max 10 GiB. The max_bytes limit may be exceeded in cases where messages are larger than the limit.
+    #[serde(default, rename = "maxBytes")]
+    pub max_bytes: ::core::option::Option<String>,
+    /// Optional. The maximum duration that can elapse before a new Cloud Storage file is created. Min 1 minute, max 10 minutes, default 5 minutes. May not exceed the subscription''s acknowledgment deadline.
+    #[serde(default, rename = "maxDuration")]
+    pub max_duration: ::core::option::Option<String>,
+    /// Optional. The maximum number of messages that can be written to a Cloud Storage file before a new file is created. Min 1000 messages.
+    #[serde(default, rename = "maxMessages")]
+    pub max_messages: ::core::option::Option<String>,
+    /// Optional. The service account to use to write to Cloud Storage. The subscription creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates whether or not the subscription can receive messages. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PERMISSION_DENIED", "NOT_FOUND", "IN_TRANSIT_LOCATION_RESTRICTION", "SCHEMA_MISMATCH", "VERTEX_AI_LOCATION_RESTRICTION"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. If set, message data will be written to Cloud Storage in text format.
+    #[serde(default, rename = "textConfig")]
+    pub text_config: ::core::option::Option<serde_json::Value>,
+}
+
+/// Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeadLetterPolicy {
+    /// Optional. The name of the topic to which dead letter messages should be published. Format is projects/{project}/topics/{topic}.The Pub/Sub service account associated with the enclosing subscription''s parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.
+    #[serde(default, rename = "deadLetterTopic")]
+    pub dead_letter_topic: ::core::option::Option<String>,
+    /// Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.
+    #[serde(default, rename = "maxDeliveryAttempts")]
+    pub max_delivery_attempts: ::core::option::Option<i32>,
+}
+
+/// A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpirationPolicy {
+    /// Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of ttl. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for ttl depend on the type of the associated resource, as well. If ttl is not set, the associated resource never expires.
+    #[serde(default)]
+    pub ttl: ::core::option::Option<String>,
+}
+
+/// Configuration for a push delivery endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PushConfig {
+    /// Optional. Endpoint configuration attributes that can be used to control different aspects of the message delivery. The only currently supported attribute is x-goog-version, which you can use to change the format of the pushed message. This attribute indicates the version of the data expected by the endpoint. This controls the shape of the pushed message (i.e., its fields and metadata). If not present during the CreateSubscription call, it will default to the version of the Pub/Sub API used to make such call. If not present in a ModifyPushConfig call, its value will not be changed. GetSubscription calls will always return a valid version, even if the subscription was created without this attribute. The only supported values for the x-goog-version attribute are: * v1beta1: uses the push format defined in the v1beta1 Pub/Sub API. * v1 or v1beta2: uses the push format defined in the v1 Pub/Sub API. For example: attributes { "x-goog-version": "v1" }
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Optional. When set, the payload to the push endpoint is not wrapped.
+    #[serde(default, rename = "noWrapper")]
+    pub no_wrapper: ::core::option::Option<NoWrapper>,
+    /// Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an Authorization header in the HTTP request for every pushed message.
+    #[serde(default, rename = "oidcToken")]
+    pub oidc_token: ::core::option::Option<OidcToken>,
+    /// Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
+    #[serde(default, rename = "pubsubWrapper")]
+    pub pubsub_wrapper: ::core::option::Option<serde_json::Value>,
+    /// Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use https://example.com/push.
+    #[serde(default, rename = "pushEndpoint")]
+    pub push_endpoint: ::core::option::Option<String>,
+}
+
+/// A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryPolicy {
+    /// Optional. The maximum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 600 seconds.
+    #[serde(default, rename = "maximumBackoff")]
+    pub maximum_backoff: ::core::option::Option<String>,
+    /// Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.
+    #[serde(default, rename = "minimumBackoff")]
+    pub minimum_backoff: ::core::option::Option<String>,
+}
+
+/// Settings for an ingestion data source on a topic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngestionDataSourceSettings {
+    /// Optional. Amazon Kinesis Data Streams.
+    #[serde(default, rename = "awsKinesis")]
+    pub aws_kinesis: ::core::option::Option<AwsKinesis>,
+    /// Optional. Amazon MSK.
+    #[serde(default, rename = "awsMsk")]
+    pub aws_msk: ::core::option::Option<AwsMsk>,
+    /// Optional. Azure Event Hubs.
+    #[serde(default, rename = "azureEventHubs")]
+    pub azure_event_hubs: ::core::option::Option<AzureEventHubs>,
+    /// Optional. Cloud Storage.
+    #[serde(default, rename = "cloudStorage")]
+    pub cloud_storage: ::core::option::Option<CloudStorage>,
+    /// Optional. Confluent Cloud.
+    #[serde(default, rename = "confluentCloud")]
+    pub confluent_cloud: ::core::option::Option<ConfluentCloud>,
+    /// Optional. Platform Logs settings. If unset, no Platform Logs will be generated.
+    #[serde(default, rename = "platformLogsSettings")]
+    pub platform_logs_settings: ::core::option::Option<PlatformLogsSettings>,
+}
+
+/// A policy constraining the storage of messages published to the topic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageStoragePolicy {
+    /// Optional. A list of IDs of Google Cloud regions where messages that are published to the topic may be persisted in storage. Messages published by publishers running in non-allowed Google Cloud regions (or running outside of Google Cloud altogether) are routed for storage in one of the allowed regions. An empty list means that no regions are allowed, and is not a valid configuration.
+    #[serde(default, rename = "allowedPersistenceRegions")]
+    pub allowed_persistence_regions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. If true, allowed_persistence_regions is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in allowed_persistence_regions.
+    #[serde(default, rename = "enforceInTransit")]
+    pub enforce_in_transit: ::core::option::Option<bool>,
+}
+
+/// All supported message transforms types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageTransform {
+    /// Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.
+    #[serde(default, rename = "aiInference")]
+    pub ai_inference: ::core::option::Option<AIInference>,
+    /// Optional. If true, the transform is disabled and will not be applied to messages. Defaults to false.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. This field is deprecated, use the disabled field to disable transforms.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. JavaScript User Defined Function. If multiple JavaScriptUDF''s are specified on a resource, each must have a unique function_name.
+    #[serde(default, rename = "javascriptUdf")]
+    pub javascript_udf: ::core::option::Option<JavaScriptUDF>,
+}
+
+/// Settings for validating messages published against a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaSettings {
+    /// Optional. The encoding of messages validated against schema. // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Optional. The minimum (inclusive) revision allowed for validating messages. If empty or not present, allow any revision to be validated against last_revision or any revision created before.
+    #[serde(default, rename = "firstRevisionId")]
+    pub first_revision_id: ::core::option::Option<String>,
+    /// Optional. The maximum (inclusive) revision allowed for validating messages. If empty or not present, allow any revision to be validated against first_revision or any revision created after.
+    #[serde(default, rename = "lastRevisionId")]
+    pub last_revision_id: ::core::option::Option<String>,
+    /// Required. The name of the schema that messages published should be validated against. Format is projects/{project}/schemas/{schema}. The value of this field will be _deleted-schema_ if the schema has been deleted.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvroConfig {
+    /// Optional. When true, the output Cloud Storage file will be serialized using the topic schema, if it exists.
+    #[serde(default, rename = "useTopicSchema")]
+    pub use_topic_schema: ::core::option::Option<bool>,
+    /// Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.
+    #[serde(default, rename = "writeMetadata")]
+    pub write_metadata: ::core::option::Option<bool>,
+}
+
+/// Sets the data field as the HTTP body for delivery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoWrapper {
+    /// Optional. When true, writes the Pub/Sub message metadata to x-goog-pubsub-: headers of the HTTP request. Writes the Pub/Sub message attributes to : headers of the HTTP request.
+    #[serde(default, rename = "writeMetadata")]
+    pub write_metadata: ::core::option::Option<bool>,
+}
+
+/// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OidcToken {
+    /// Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.
+    #[serde(default)]
+    pub audience: ::core::option::Option<String>,
+    /// Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+}
+
+/// Ingestion settings for Amazon Kinesis Data Streams.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsKinesis {
+    /// Required. AWS role ARN to be used for Federated Identity authentication with Kinesis. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
+    #[serde(default, rename = "awsRoleArn")]
+    pub aws_role_arn: ::core::option::Option<String>,
+    /// Required. The Kinesis consumer ARN to used for ingestion in Enhanced Fan-Out mode. The consumer must be already created and ready to be used.
+    #[serde(default, rename = "consumerArn")]
+    pub consumer_arn: ::core::option::Option<String>,
+    /// Required. The GCP service account to be used for Federated Identity authentication with Kinesis (via a AssumeRoleWithWebIdentity call for the provided role). The aws_role_arn must be set up with accounts.google.com:sub equals to this service account number.
+    #[serde(default, rename = "gcpServiceAccount")]
+    pub gcp_service_account: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates the state of the Kinesis ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "KINESIS_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "STREAM_NOT_FOUND", "CONSUMER_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. The Kinesis stream ARN to ingest data from.
+    #[serde(default, rename = "streamArn")]
+    pub stream_arn: ::core::option::Option<String>,
+}
+
+/// Ingestion settings for Amazon MSK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsMsk {
+    /// Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
+    #[serde(default, rename = "awsRoleArn")]
+    pub aws_role_arn: ::core::option::Option<String>,
+    /// Required. The Amazon Resource Name (ARN) that uniquely identifies the cluster.
+    #[serde(default, rename = "clusterArn")]
+    pub cluster_arn: ::core::option::Option<String>,
+    /// Required. The GCP service account to be used for Federated Identity authentication with Amazon MSK (via a AssumeRoleWithWebIdentity call for the provided role). The aws_role_arn must be set up with accounts.google.com:sub equals to this service account number.
+    #[serde(default, rename = "gcpServiceAccount")]
+    pub gcp_service_account: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates the state of the Amazon MSK ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "MSK_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "CLUSTER_NOT_FOUND", "TOPIC_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// Ingestion settings for Azure Event Hubs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureEventHubs {
+    /// Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Optional. The name of the Event Hub.
+    #[serde(default, rename = "eventHub")]
+    pub event_hub: ::core::option::Option<String>,
+    /// Optional. The GCP service account to be used for Federated Identity authentication.
+    #[serde(default, rename = "gcpServiceAccount")]
+    pub gcp_service_account: ::core::option::Option<String>,
+    /// Optional. The name of the Event Hubs namespace.
+    #[serde(default)]
+    pub namespace: ::core::option::Option<String>,
+    /// Optional. Name of the resource group within the azure subscription.
+    #[serde(default, rename = "resourceGroup")]
+    pub resource_group: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates the state of the Event Hubs ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EVENT_HUBS_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "NAMESPACE_NOT_FOUND", "EVENT_HUB_NOT_FOUND", "SUBSCRIPTION_NOT_FOUND", "RESOURCE_GROUP_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. The Azure subscription id.
+    #[serde(default, rename = "subscriptionId")]
+    pub subscription_id: ::core::option::Option<String>,
+    /// Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.
+    #[serde(default, rename = "tenantId")]
+    pub tenant_id: ::core::option::Option<String>,
+}
+
+/// Ingestion settings for Cloud Storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudStorage {
+    /// Optional. Data from Cloud Storage will be interpreted in Avro format.
+    #[serde(default, rename = "avroFormat")]
+    pub avro_format: ::core::option::Option<serde_json::Value>,
+    /// Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. Glob pattern used to match objects that will be ingested. If unset, all objects will be ingested. See the [supported patterns](https://cloud.google.com/storage/docs/json_api/v1/objects/list#list-objects-and-prefixes-using-glob).
+    #[serde(default, rename = "matchGlob")]
+    pub match_glob: ::core::option::Option<String>,
+    /// Optional. Only objects with a larger or equal creation timestamp will be ingested.
+    #[serde(default, rename = "minimumObjectCreateTime")]
+    pub minimum_object_create_time: ::core::option::Option<String>,
+    /// Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).
+    #[serde(default, rename = "pubsubAvroFormat")]
+    pub pubsub_avro_format: ::core::option::Option<serde_json::Value>,
+    /// Output only. An output-only field that indicates the state of the Cloud Storage ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLOUD_STORAGE_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "BUCKET_NOT_FOUND", "TOO_MANY_OBJECTS", "CONFLICTING_REGION_CONSTRAINTS"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Data from Cloud Storage will be interpreted as text.
+    #[serde(default, rename = "textFormat")]
+    pub text_format: ::core::option::Option<TextFormat>,
+}
+
+/// Ingestion settings for Confluent Cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfluentCloud {
+    /// Required. The address of the bootstrap server. The format is url:port.
+    #[serde(default, rename = "bootstrapServer")]
+    pub bootstrap_server: ::core::option::Option<String>,
+    /// Required. The id of the cluster.
+    #[serde(default, rename = "clusterId")]
+    pub cluster_id: ::core::option::Option<String>,
+    /// Required. The GCP service account to be used for Federated Identity authentication with identity_pool_id.
+    #[serde(default, rename = "gcpServiceAccount")]
+    pub gcp_service_account: ::core::option::Option<String>,
+    /// Required. The id of the identity pool to be used for Federated Identity authentication with Confluent Cloud. See https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/identity-providers/oauth/identity-pools.html#add-oauth-identity-pools.
+    #[serde(default, rename = "identityPoolId")]
+    pub identity_pool_id: ::core::option::Option<String>,
+    /// Output only. An output-only field that indicates the state of the Confluent Cloud ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CONFLUENT_CLOUD_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "UNREACHABLE_BOOTSTRAP_SERVER", "CLUSTER_NOT_FOUND", "TOPIC_NOT_FOUND", "CONFLICTING_REGION_CONSTRAINTS"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// Settings for Platform Logs produced by Pub/Sub.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlatformLogsSettings {
+    /// Optional. The minimum severity level of Platform Logs that will be written. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "DISABLED", "DEBUG", "INFO", "WARNING", "ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Configuration for making inference requests against Vertex AI models.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AIInference {
+    /// Required. An endpoint to a Vertex AI model of the form projects/{project}/locations/{location}/endpoints/{endpoint} or projects/{project}/locations/{location}/publishers/{publisher}/models/{model}. Vertex AI API requests will be sent to this endpoint.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<String>,
+    /// Optional. The service account to use to make prediction requests against endpoints. The resource creator or updater that specifies this field must have iam.serviceAccounts.actAs permission on the service account. If not specified, the Pub/Sub [service agent](https://cloud.google.com/iam/docs/service-agents), service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com, is used.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Optional. Requests and responses can be any arbitrary JSON object.
+    #[serde(default, rename = "unstructuredInference")]
+    pub unstructured_inference: ::core::option::Option<UnstructuredInference>,
+}
+
+/// User-defined JavaScript function that can transform or filter a Pub/Sub message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JavaScriptUDF {
+    /// Required. JavaScript code that contains a function function_name with the below signature:  /** * Transforms a Pub/Sub message. * @return {(Object)&gt;|null)} - To * filter a message, return null. To transform a message return a map * with the following keys: * - (required) ''data'' : {string} * - (optional) ''attributes'' : {Object} * Returning empty attributes will remove all attributes from the * message. * * @param {(Object)&gt;} Pub/Sub * message. Keys: * - (required) ''data'' : {string} * - (required) ''attributes'' : {Object} * * @param {Object} metadata - Pub/Sub message metadata. * Keys: * - (optional) ''message_id'' : {string} * - (optional) ''publish_time'': {string} YYYY-MM-DDTHH:MM:SSZ format * - (optional) ''ordering_key'': {string} */ function (message, metadata) { }
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Required. Name of the JavasScript function that should applied to Pub/Sub messages.
+    #[serde(default, rename = "functionName")]
+    pub function_name: ::core::option::Option<String>,
+}
+
+/// Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the data field of a Pub/Sub message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextFormat {
+    /// Optional. When unset, ''\n'' is used.
+    #[serde(default)]
+    pub delimiter: ::core::option::Option<String>,
 }

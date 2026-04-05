@@ -10,31 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The color derived from BadgeConfig and changed to the closest recommended supported color.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2BadgeColors {
-    /// Output only. Badge background that pairs with the foreground.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<GoogleTypeColor>,
-    /// Output only. Badge foreground that pairs with the background.
-    #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: ::core::option::Option<GoogleTypeColor>,
-    /// Output only. Color that can be used for text without a background.
-    #[serde(default, rename = "soloColor")]
-    pub solo_color: ::core::option::Option<GoogleTypeColor>,
-}
-
-/// Badge status of the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2BadgeConfig {
-    /// The color of the badge. When not specified, no badge is rendered. The background, foreground, and solo (light and dark mode) colors set here are changed in the Drive UI into the closest recommended supported color.
-    #[serde(default)]
-    pub color: ::core::option::Option<GoogleTypeColor>,
-    /// Override the default global priority of this badge. When set to 0, the default priority heuristic is used.
-    #[serde(default, rename = "priorityOverride")]
-    pub priority_override: ::core::option::Option<String>,
-}
-
 /// Deletes one or more label permissions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest {
@@ -70,28 +45,6 @@ pub struct GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse {
         ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2LabelPermission>>,
 }
 
-/// Limits for date field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DateLimits {
-    /// Maximum value for the date field type.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<GoogleTypeDate>,
-    /// Minimum value for the date field type.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<GoogleTypeDate>,
-}
-
-/// Deletes a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DeleteLabelPermissionRequest {
-    /// Required. Label permission resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-}
-
 /// The set of requests for updating aspects of a label. If any request isn''t valid, no requests will be applied.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest {
@@ -112,6 +65,485 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest {
     /// Provides control over how write requests are executed.
     #[serde(default, rename = "writeControl")]
     pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+}
+
+/// Response for label update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
+    /// The reply of the updates. This maps 1:1 with the updates, although responses to some requests may be empty.
+    #[serde(default)]
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse>,
+    >,
+    /// The label after updates were applied. This is only set if include_label_in_response is true and there were no errors.
+    #[serde(default, rename = "updatedLabel")]
+    pub updated_label: ::core::option::Option<GoogleAppsDriveLabelsV2Label>,
+}
+
+/// Request to deprecate a published label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
+    /// Disabled policy to use.
+    #[serde(default, rename = "disabledPolicy")]
+    pub disabled_policy: ::core::option::Option<GoogleAppsDriveLabelsV2LifecycleDisabledPolicy>,
+    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// The fields that should be updated. At least one field must be specified. The root disabled_policy is implied and should not be specified. A single * can be used as a short-hand for updating every field.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
+    #[serde(default, rename = "writeControl")]
+    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+}
+
+/// Request to enable a label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2EnableLabelRequest {
+    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
+    #[serde(default, rename = "writeControl")]
+    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+}
+
+/// Label constraints governing the structure of a label; such as, the maximum number of fields allowed and maximum length of the label title.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelLimits {
+    /// The limits for fields.
+    #[serde(default, rename = "fieldLimits")]
+    pub field_limits: ::core::option::Option<GoogleAppsDriveLabelsV2FieldLimits>,
+    /// The maximum number of published fields that can be deleted.
+    #[serde(default, rename = "maxDeletedFields")]
+    pub max_deleted_fields: ::core::option::Option<i32>,
+    /// The maximum number of characters allowed for the description.
+    #[serde(default, rename = "maxDescriptionLength")]
+    pub max_description_length: ::core::option::Option<i32>,
+    /// The maximum number of draft revisions that will be kept before deleting old drafts.
+    #[serde(default, rename = "maxDraftRevisions")]
+    pub max_draft_revisions: ::core::option::Option<i32>,
+    /// The maximum number of fields allowed within the label.
+    #[serde(default, rename = "maxFields")]
+    pub max_fields: ::core::option::Option<i32>,
+    /// The maximum number of characters allowed for the title.
+    #[serde(default, rename = "maxTitleLength")]
+    pub max_title_length: ::core::option::Option<i32>,
+    /// Resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The response to a ListLabelLocksRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2ListLabelLocksResponse {
+    /// Label locks.
+    #[serde(default, rename = "labelLocks")]
+    pub label_locks: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2LabelLock>>,
+    /// The token of the next page in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for listing the permissions on a label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2ListLabelPermissionsResponse {
+    /// Label permissions.
+    #[serde(default, rename = "labelPermissions")]
+    pub label_permissions:
+        ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2LabelPermission>>,
+    /// The token of the next page in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for listing labels.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
+    /// Labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2Label>>,
+    /// The token of the next page in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request to publish a label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2PublishLabelRequest {
+    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
+    #[serde(default, rename = "writeControl")]
+    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+}
+
+/// Request to update the CopyMode of the given label. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately. \
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest {
+    /// Required. Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
+    #[serde(default, rename = "copyMode")]
+    pub copy_mode: ::core::option::Option<String>,
+    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+    /// When specified, only certain fields belonging to the indicated view will be returned. // TODO: enum values: ["LABEL_VIEW_BASIC", "LABEL_VIEW_FULL"]
+    #[serde(default)]
+    pub view: ::core::option::Option<String>,
+}
+
+/// Request to update the EnabledAppSettings of the given label. This change is not revisioned, doesn''t require publishing, and takes effect immediately. \
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest {
+    /// Required. The new EnabledAppSettings value for the label.
+    #[serde(default, rename = "enabledAppSettings")]
+    pub enabled_app_settings:
+        ::core::option::Option<GoogleAppsDriveLabelsV2LabelEnabledAppSettings>,
+    /// Optional. The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+    /// Optional. When specified, only certain fields belonging to the indicated view will be returned. // TODO: enum values: ["LABEL_VIEW_BASIC", "LABEL_VIEW_FULL"]
+    #[serde(default)]
+    pub view: ::core::option::Option<String>,
+}
+
+/// The capabilities of a user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UserCapabilities {
+    /// Output only. Whether the user is allowed access to the label manager.
+    #[serde(default, rename = "canAccessLabelManager")]
+    pub can_access_label_manager: ::core::option::Option<bool>,
+    /// Output only. Whether the user is an administrator for the shared labels feature.
+    #[serde(default, rename = "canAdministrateLabels")]
+    pub can_administrate_labels: ::core::option::Option<bool>,
+    /// Output only. Whether the user is allowed to create admin labels.
+    #[serde(default, rename = "canCreateAdminLabels")]
+    pub can_create_admin_labels: ::core::option::Option<bool>,
+    /// Output only. Whether the user is allowed to create shared labels.
+    #[serde(default, rename = "canCreateSharedLabels")]
+    pub can_create_shared_labels: ::core::option::Option<bool>,
+    /// Output only. Resource name for the user capabilities.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Deletes a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeleteLabelPermissionRequest {
+    /// Required. Label permission resource name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+}
+
+/// Updates a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UpdateLabelPermissionRequest {
+    /// Required. The permission to create or update on the label.
+    #[serde(default, rename = "labelPermission")]
+    pub label_permission: ::core::option::Option<GoogleAppsDriveLabelsV2LabelPermission>,
+    /// Required. The parent label resource name.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
+    #[serde(default, rename = "useAdminAccess")]
+    pub use_admin_access: ::core::option::Option<bool>,
+}
+
+/// A single kind of update to apply to a label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestRequest {
+    /// Creates a field.
+    #[serde(default, rename = "createField")]
+    pub create_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateFieldRequest>,
+    /// Create a choice within a selection field.
+    #[serde(default, rename = "createSelectionChoice")]
+    pub create_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateSelectionChoiceRequest,
+    >,
+    /// Deletes a field from the label.
+    #[serde(default, rename = "deleteField")]
+    pub delete_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteFieldRequest>,
+    /// Delete a choice within a selection field.
+    #[serde(default, rename = "deleteSelectionChoice")]
+    pub delete_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteSelectionChoiceRequest,
+    >,
+    /// Disables the field.
+    #[serde(default, rename = "disableField")]
+    pub disable_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableFieldRequest>,
+    /// Disable a choice within a selection field.
+    #[serde(default, rename = "disableSelectionChoice")]
+    pub disable_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableSelectionChoiceRequest,
+    >,
+    /// Enables the field.
+    #[serde(default, rename = "enableField")]
+    pub enable_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableFieldRequest>,
+    /// Enable a choice within a selection field.
+    #[serde(default, rename = "enableSelectionChoice")]
+    pub enable_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableSelectionChoiceRequest,
+    >,
+    /// Updates basic properties of a field.
+    #[serde(default, rename = "updateField")]
+    pub update_field: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldPropertiesRequest,
+    >,
+    /// Update field type and/or type options.
+    #[serde(default, rename = "updateFieldType")]
+    pub update_field_type: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldTypeRequest,
+    >,
+    /// Updates the label properties.
+    #[serde(default, rename = "updateLabel")]
+    pub update_label: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateLabelPropertiesRequest,
+    >,
+    /// Update a choice property within a selection field.
+    #[serde(default, rename = "updateSelectionChoiceProperties")]
+    pub update_selection_choice_properties: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateSelectionChoicePropertiesRequest,
+    >,
+}
+
+/// A single response from an update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
+    /// Creates a field.
+    #[serde(default, rename = "createField")]
+    pub create_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse>,
+    /// Creates a selection list option to add to a selection field.
+    #[serde(default, rename = "createSelectionChoice")]
+    pub create_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse,
+    >,
+    /// Deletes a field from the label.
+    #[serde(default, rename = "deleteField")]
+    pub delete_field: ::core::option::Option<serde_json::Value>,
+    /// Deletes a choice from a selection field.
+    #[serde(default, rename = "deleteSelectionChoice")]
+    pub delete_selection_choice: ::core::option::Option<serde_json::Value>,
+    /// Disables field.
+    #[serde(default, rename = "disableField")]
+    pub disable_field: ::core::option::Option<serde_json::Value>,
+    /// Disables a choice within a selection field.
+    #[serde(default, rename = "disableSelectionChoice")]
+    pub disable_selection_choice: ::core::option::Option<serde_json::Value>,
+    /// Enables field.
+    #[serde(default, rename = "enableField")]
+    pub enable_field: ::core::option::Option<serde_json::Value>,
+    /// Enables a choice within a selection field.
+    #[serde(default, rename = "enableSelectionChoice")]
+    pub enable_selection_choice: ::core::option::Option<serde_json::Value>,
+    /// Updates basic properties of a field.
+    #[serde(default, rename = "updateField")]
+    pub update_field: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse,
+    >,
+    /// Updates field type and/or type options.
+    #[serde(default, rename = "updateFieldType")]
+    pub update_field_type: ::core::option::Option<serde_json::Value>,
+    /// Updates basic properties of a label.
+    #[serde(default, rename = "updateLabel")]
+    pub update_label: ::core::option::Option<serde_json::Value>,
+    /// Updates a choice within a selection field.
+    #[serde(default, rename = "updateSelectionChoiceProperties")]
+    pub update_selection_choice_properties: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse,
+    >,
+}
+
+/// Field constants governing the structure of a field; such as, the maximum title length, minimum and maximum field values or length, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2FieldLimits {
+    /// Date field limits.
+    #[serde(default, rename = "dateLimits")]
+    pub date_limits: ::core::option::Option<GoogleAppsDriveLabelsV2DateLimits>,
+    /// Integer field limits.
+    #[serde(default, rename = "integerLimits")]
+    pub integer_limits: ::core::option::Option<GoogleAppsDriveLabelsV2IntegerLimits>,
+    /// Long text field limits.
+    #[serde(default, rename = "longTextLimits")]
+    pub long_text_limits: ::core::option::Option<GoogleAppsDriveLabelsV2LongTextLimits>,
+    /// Limits for field description, also called help text.
+    #[serde(default, rename = "maxDescriptionLength")]
+    pub max_description_length: ::core::option::Option<i32>,
+    /// Limits for field title.
+    #[serde(default, rename = "maxDisplayNameLength")]
+    pub max_display_name_length: ::core::option::Option<i32>,
+    /// Maximum length for the id.
+    #[serde(default, rename = "maxIdLength")]
+    pub max_id_length: ::core::option::Option<i32>,
+    /// Selection field limits.
+    #[serde(default, rename = "selectionLimits")]
+    pub selection_limits: ::core::option::Option<GoogleAppsDriveLabelsV2SelectionLimits>,
+    /// The relevant limits for the specified Field.Type. Text field limits.
+    #[serde(default, rename = "textLimits")]
+    pub text_limits: ::core::option::Option<GoogleAppsDriveLabelsV2TextLimits>,
+    /// User field limits.
+    #[serde(default, rename = "userLimits")]
+    pub user_limits: ::core::option::Option<GoogleAppsDriveLabelsV2UserLimits>,
+}
+
+/// A lock that can be applied to a label, field, or choice.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelLock {
+    /// Output only. The user''s capabilities on this label lock.
+    #[serde(default)]
+    pub capabilities: ::core::option::Option<GoogleAppsDriveLabelsV2LabelLockCapabilities>,
+    /// The ID of the selection field choice that should be locked. If present, field_id must also be present.
+    #[serde(default, rename = "choiceId")]
+    pub choice_id: ::core::option::Option<String>,
+    /// Output only. The time this label lock was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The user whose credentials were used to create the label lock. Not present if no user was responsible for creating the label lock.
+    #[serde(default)]
+    pub creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// Output only. A timestamp indicating when this label lock was scheduled for deletion. Present only if this label lock is in the DELETING state.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// The ID of the field that should be locked. Empty if the whole label should be locked.
+    #[serde(default, rename = "fieldId")]
+    pub field_id: ::core::option::Option<String>,
+    /// Output only. Resource name of this label lock.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. This label lock''s state. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A label defines a taxonomy that can be applied to Drive items in order to organize and search across items. Labels can be simple strings, or can contain fields that describe additional metadata that can be further used to organize and search Drive items.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2Label {
+    /// Output only. The capabilities related to this label on applied metadata.
+    #[serde(default, rename = "appliedCapabilities")]
+    pub applied_capabilities:
+        ::core::option::Option<GoogleAppsDriveLabelsV2LabelAppliedCapabilities>,
+    /// Output only. Behavior of this label when it''s applied to Drive items.
+    #[serde(default, rename = "appliedLabelPolicy")]
+    pub applied_label_policy:
+        ::core::option::Option<GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy>,
+    /// Output only. The time this label was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The user who created this label.
+    #[serde(default)]
+    pub creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// Output only. The customer this label belongs to. For example: customers/123abc789.
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+    /// Output only. The time this label was disabled. This value has no meaning when the label isn''t disabled.
+    #[serde(default, rename = "disableTime")]
+    pub disable_time: ::core::option::Option<String>,
+    /// Output only. The user who disabled this label. This value has no meaning when the label isn''t disabled.
+    #[serde(default)]
+    pub disabler: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// Output only. UI display hints for rendering the label.
+    #[serde(default, rename = "displayHints")]
+    pub display_hints: ::core::option::Option<GoogleAppsDriveLabelsV2LabelDisplayHints>,
+    /// Optional. The EnabledAppSettings for this Label.
+    #[serde(default, rename = "enabledAppSettings")]
+    pub enabled_app_settings:
+        ::core::option::Option<GoogleAppsDriveLabelsV2LabelEnabledAppSettings>,
+    /// List of fields in descending priority order.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2Field>>,
+    /// Output only. Globally unique identifier of this label. ID makes up part of the label name, but unlike name, ID is consistent between revisions. Matches the regex: ([a-zA-Z0-9])+.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Required. The type of label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "SHARED", "ADMIN", "GOOGLE_APP"]
+    #[serde(default, rename = "labelType")]
+    pub label_type: ::core::option::Option<String>,
+    /// Custom URL to present to users to allow them to learn more about this label and how it should be used.
+    #[serde(default, rename = "learnMoreUri")]
+    pub learn_more_uri: ::core::option::Option<String>,
+    /// Output only. The lifecycle state of the label including whether it''s published, deprecated, and has draft changes.
+    #[serde(default)]
+    pub lifecycle: ::core::option::Option<GoogleAppsDriveLabelsV2Lifecycle>,
+    /// Output only. The LockStatus of this label.
+    #[serde(default, rename = "lockStatus")]
+    pub lock_status: ::core::option::Option<GoogleAppsDriveLabelsV2LockStatus>,
+    /// Output only. Resource name of the label. Will be in the form of either: labels/{id} or labels/{id}@{revision_id} depending on the request. See id and revision_id below.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The basic properties of the label.
+    #[serde(default)]
+    pub properties: ::core::option::Option<GoogleAppsDriveLabelsV2LabelProperties>,
+    /// Output only. The time this label was published. This value has no meaning when the label isn''t published.
+    #[serde(default, rename = "publishTime")]
+    pub publish_time: ::core::option::Option<String>,
+    /// Output only. The user who published this label. This value has no meaning when the label isn''t published.&gt;&gt;
+    #[serde(default)]
+    pub publisher: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// Output only. The time this label revision was created.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Output only. The user who created this label revision.
+    #[serde(default, rename = "revisionCreator")]
+    pub revision_creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
+    /// Output only. Revision ID of the label. Revision ID might be part of the label name depending on the request issued. A new revision is created whenever revisioned properties of a label are changed. Matches the regex: ([a-zA-Z0-9])+.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. The capabilities the user has on this label.
+    #[serde(default, rename = "schemaCapabilities")]
+    pub schema_capabilities: ::core::option::Option<GoogleAppsDriveLabelsV2LabelSchemaCapabilities>,
+}
+
+/// Provides control over how write requests are executed. When not specified, the last write wins.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2WriteControl {
+    /// The revision ID of the label that the write request will be applied to. If this isn''t the latest revision of the label, the request will not be processed and will return a 400 Bad Request error.
+    #[serde(default, rename = "requiredRevisionId")]
+    pub required_revision_id: ::core::option::Option<String>,
+}
+
+/// The permission that applies to a principal (user, group, audience) on a label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelPermission {
+    /// Audience to grant a role to. The magic value of audiences/default may be used to apply the role to the default audience in the context of the organization that owns the label.
+    #[serde(default)]
+    pub audience: ::core::option::Option<String>,
+    /// Specifies the email address for a user or group principal. Not populated for audience principals. User and group permissions may only be inserted using an email address. On update requests, if email address is specified, no principal should be specified.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Group resource name.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// Resource name of this permission.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Person resource name.
+    #[serde(default)]
+    pub person: ::core::option::Option<String>,
+    /// The role the principal should have. // TODO: enum values: ["LABEL_ROLE_UNSPECIFIED", "READER", "APPLIER", "ORGANIZER", "EDITOR"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
 }
 
 /// Request to create a field within a label.
@@ -202,67 +634,6 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableSelectionChoiceRe
     pub id: ::core::option::Option<String>,
 }
 
-/// A single kind of update to apply to a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestRequest {
-    /// Creates a field.
-    #[serde(default, rename = "createField")]
-    pub create_field:
-        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateFieldRequest>,
-    /// Create a choice within a selection field.
-    #[serde(default, rename = "createSelectionChoice")]
-    pub create_selection_choice: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateSelectionChoiceRequest,
-    >,
-    /// Deletes a field from the label.
-    #[serde(default, rename = "deleteField")]
-    pub delete_field:
-        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteFieldRequest>,
-    /// Delete a choice within a selection field.
-    #[serde(default, rename = "deleteSelectionChoice")]
-    pub delete_selection_choice: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteSelectionChoiceRequest,
-    >,
-    /// Disables the field.
-    #[serde(default, rename = "disableField")]
-    pub disable_field:
-        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableFieldRequest>,
-    /// Disable a choice within a selection field.
-    #[serde(default, rename = "disableSelectionChoice")]
-    pub disable_selection_choice: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableSelectionChoiceRequest,
-    >,
-    /// Enables the field.
-    #[serde(default, rename = "enableField")]
-    pub enable_field:
-        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableFieldRequest>,
-    /// Enable a choice within a selection field.
-    #[serde(default, rename = "enableSelectionChoice")]
-    pub enable_selection_choice: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableSelectionChoiceRequest,
-    >,
-    /// Updates basic properties of a field.
-    #[serde(default, rename = "updateField")]
-    pub update_field: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldPropertiesRequest,
-    >,
-    /// Update field type and/or type options.
-    #[serde(default, rename = "updateFieldType")]
-    pub update_field_type: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldTypeRequest,
-    >,
-    /// Updates the label properties.
-    #[serde(default, rename = "updateLabel")]
-    pub update_label: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateLabelPropertiesRequest,
-    >,
-    /// Update a choice property within a selection field.
-    #[serde(default, rename = "updateSelectionChoiceProperties")]
-    pub update_selection_choice_properties: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateSelectionChoicePropertiesRequest,
-    >,
-}
-
 /// Request to update field properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldPropertiesRequest {
@@ -332,19 +703,6 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateSelectionChoicePr
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// Response for label update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
-    /// The reply of the updates. This maps 1:1 with the updates, although responses to some requests may be empty.
-    #[serde(default)]
-    pub responses: ::core::option::Option<
-        ::std::vec::Vec<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse>,
-    >,
-    /// The label after updates were applied. This is only set if include_label_in_response is true and there were no errors.
-    #[serde(default, rename = "updatedLabel")]
-    pub updated_label: ::core::option::Option<GoogleAppsDriveLabelsV2Label>,
-}
-
 /// Response following field create.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse {
@@ -367,54 +725,6 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceR
     pub id: ::core::option::Option<String>,
 }
 
-/// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
-    /// Creates a field.
-    #[serde(default, rename = "createField")]
-    pub create_field:
-        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse>,
-    /// Creates a selection list option to add to a selection field.
-    #[serde(default, rename = "createSelectionChoice")]
-    pub create_selection_choice: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse,
-    >,
-    /// Deletes a field from the label.
-    #[serde(default, rename = "deleteField")]
-    pub delete_field: ::core::option::Option<serde_json::Value>,
-    /// Deletes a choice from a selection field.
-    #[serde(default, rename = "deleteSelectionChoice")]
-    pub delete_selection_choice: ::core::option::Option<serde_json::Value>,
-    /// Disables field.
-    #[serde(default, rename = "disableField")]
-    pub disable_field: ::core::option::Option<serde_json::Value>,
-    /// Disables a choice within a selection field.
-    #[serde(default, rename = "disableSelectionChoice")]
-    pub disable_selection_choice: ::core::option::Option<serde_json::Value>,
-    /// Enables field.
-    #[serde(default, rename = "enableField")]
-    pub enable_field: ::core::option::Option<serde_json::Value>,
-    /// Enables a choice within a selection field.
-    #[serde(default, rename = "enableSelectionChoice")]
-    pub enable_selection_choice: ::core::option::Option<serde_json::Value>,
-    /// Updates basic properties of a field.
-    #[serde(default, rename = "updateField")]
-    pub update_field: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse,
-    >,
-    /// Updates field type and/or type options.
-    #[serde(default, rename = "updateFieldType")]
-    pub update_field_type: ::core::option::Option<serde_json::Value>,
-    /// Updates basic properties of a label.
-    #[serde(default, rename = "updateLabel")]
-    pub update_label: ::core::option::Option<serde_json::Value>,
-    /// Updates a choice within a selection field.
-    #[serde(default, rename = "updateSelectionChoiceProperties")]
-    pub update_selection_choice_properties: ::core::option::Option<
-        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse,
-    >,
-}
-
 /// Response following update to field properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse {
@@ -431,38 +741,150 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoiceP
     pub priority: ::core::option::Option<i32>,
 }
 
-/// Request to deprecate a published label.
+/// Limits for date field type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
-    /// Disabled policy to use.
-    #[serde(default, rename = "disabledPolicy")]
-    pub disabled_policy: ::core::option::Option<GoogleAppsDriveLabelsV2LifecycleDisabledPolicy>,
-    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// The fields that should be updated. At least one field must be specified. The root disabled_policy is implied and should not be specified. A single * can be used as a short-hand for updating every field.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
-    #[serde(default, rename = "writeControl")]
-    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+pub struct GoogleAppsDriveLabelsV2DateLimits {
+    /// Maximum value for the date field type.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<GoogleTypeDate>,
+    /// Minimum value for the date field type.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<GoogleTypeDate>,
 }
 
-/// Request to enable a label.
+/// Limits for integer field type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2EnableLabelRequest {
-    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
-    #[serde(default, rename = "writeControl")]
-    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
+pub struct GoogleAppsDriveLabelsV2IntegerLimits {
+    /// Maximum value for an integer field type.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// Minimum value for an integer field type.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+}
+
+/// Limits for long text field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LongTextLimits {
+    /// Maximum length allowed for a long text field type.
+    #[serde(default, rename = "maxLength")]
+    pub max_length: ::core::option::Option<i32>,
+    /// Minimum length allowed for a long text field type.
+    #[serde(default, rename = "minLength")]
+    pub min_length: ::core::option::Option<i32>,
+}
+
+/// Limits for selection field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2SelectionLimits {
+    /// Limits for list-variant of a field type.
+    #[serde(default, rename = "listLimits")]
+    pub list_limits: ::core::option::Option<GoogleAppsDriveLabelsV2ListLimits>,
+    /// Maximum number of choices.
+    #[serde(default, rename = "maxChoices")]
+    pub max_choices: ::core::option::Option<i32>,
+    /// Maximum number of deleted choices.
+    #[serde(default, rename = "maxDeletedChoices")]
+    pub max_deleted_choices: ::core::option::Option<i32>,
+    /// Maximum length for display name.
+    #[serde(default, rename = "maxDisplayNameLength")]
+    pub max_display_name_length: ::core::option::Option<i32>,
+    /// Maximum ID length for a selection option.
+    #[serde(default, rename = "maxIdLength")]
+    pub max_id_length: ::core::option::Option<i32>,
+}
+
+/// Limits for text field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2TextLimits {
+    /// Maximum length allowed for a text field type.
+    #[serde(default, rename = "maxLength")]
+    pub max_length: ::core::option::Option<i32>,
+    /// Minimum length allowed for a text field type.
+    #[serde(default, rename = "minLength")]
+    pub min_length: ::core::option::Option<i32>,
+}
+
+/// Limits for Field.Type.USER.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UserLimits {
+    /// Limits for list-variant of a field type.
+    #[serde(default, rename = "listLimits")]
+    pub list_limits: ::core::option::Option<GoogleAppsDriveLabelsV2ListLimits>,
+}
+
+/// A description of a user''s capabilities on a label lock.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelLockCapabilities {
+    /// True if the user is authorized to view the policy.
+    #[serde(default, rename = "canViewPolicy")]
+    pub can_view_policy: ::core::option::Option<bool>,
+}
+
+/// The capabilities a user has on this label''s applied metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
+    /// Whether the user can apply this label to items.
+    #[serde(default, rename = "canApply")]
+    pub can_apply: ::core::option::Option<bool>,
+    /// Whether the user can read applied metadata related to this label.
+    #[serde(default, rename = "canRead")]
+    pub can_read: ::core::option::Option<bool>,
+    /// Whether the user can remove this label from items.
+    #[serde(default, rename = "canRemove")]
+    pub can_remove: ::core::option::Option<bool>,
+}
+
+/// Behavior of this label when it''s applied to Drive items.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
+    /// Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
+    #[serde(default, rename = "copyMode")]
+    pub copy_mode: ::core::option::Option<String>,
+}
+
+/// The UI display hints for rendering the label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
+    /// Whether the label should be shown in the UI as disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// This label should be hidden in the search menu when searching for Drive items.
+    #[serde(default, rename = "hiddenInSearch")]
+    pub hidden_in_search: ::core::option::Option<bool>,
+    /// The order to display labels in a list.
+    #[serde(default)]
+    pub priority: ::core::option::Option<String>,
+    /// This label should be shown in the apply menu when applying values to a Drive item.
+    #[serde(default, rename = "shownInApply")]
+    pub shown_in_apply: ::core::option::Option<bool>,
+}
+
+/// Describes the Google Workspace apps in which the label can be used.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
+    /// Optional. The list of apps where the label can be used.
+    #[serde(default, rename = "enabledApps")]
+    pub enabled_apps: ::core::option::Option<
+        ::std::vec::Vec<GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp>,
+    >,
+}
+
+/// The capabilities related to this label when editing the label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelSchemaCapabilities {
+    /// Whether the user can delete this label. The user must have permission and the label must be disabled.
+    #[serde(default, rename = "canDelete")]
+    pub can_delete: ::core::option::Option<bool>,
+    /// Whether the user can disable this label. The user must have permission and this label must not already be disabled.
+    #[serde(default, rename = "canDisable")]
+    pub can_disable: ::core::option::Option<bool>,
+    /// Whether the user can enable this label. The user must have permission and this label must be disabled.
+    #[serde(default, rename = "canEnable")]
+    pub can_enable: ::core::option::Option<bool>,
+    /// Whether the user can change this label.
+    #[serde(default, rename = "canUpdate")]
+    pub can_update: ::core::option::Option<bool>,
 }
 
 /// Defines a field that has a display name, data type, and other configuration options. This field defines the kind of metadata that may be set on a Drive item.
@@ -531,6 +953,33 @@ pub struct GoogleAppsDriveLabelsV2Field {
     pub user_options: ::core::option::Option<GoogleAppsDriveLabelsV2FieldUserOptions>,
 }
 
+/// Basic properties of the label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelProperties {
+    /// The description of the label.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Title of the label.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Limits for list-variant of a field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2ListLimits {
+    /// Maximum number of values allowed for the field type.
+    #[serde(default, rename = "maxEntries")]
+    pub max_entries: ::core::option::Option<i32>,
+}
+
+/// An app where the label can be used.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
+    /// Optional. The name of the app. // TODO: enum values: ["APP_UNSPECIFIED", "DRIVE", "GMAIL"]
+    #[serde(default)]
+    pub app: ::core::option::Option<String>,
+}
+
 /// The capabilities related to this field on applied metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2FieldAppliedCapabilities {
@@ -590,46 +1039,6 @@ pub struct GoogleAppsDriveLabelsV2FieldIntegerOptions {
     pub min_value: ::core::option::Option<String>,
 }
 
-/// Field constants governing the structure of a field; such as, the maximum title length, minimum and maximum field values or length, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2FieldLimits {
-    /// Date field limits.
-    #[serde(default, rename = "dateLimits")]
-    pub date_limits: ::core::option::Option<GoogleAppsDriveLabelsV2DateLimits>,
-    /// Integer field limits.
-    #[serde(default, rename = "integerLimits")]
-    pub integer_limits: ::core::option::Option<GoogleAppsDriveLabelsV2IntegerLimits>,
-    /// Long text field limits.
-    #[serde(default, rename = "longTextLimits")]
-    pub long_text_limits: ::core::option::Option<GoogleAppsDriveLabelsV2LongTextLimits>,
-    /// Limits for field description, also called help text.
-    #[serde(default, rename = "maxDescriptionLength")]
-    pub max_description_length: ::core::option::Option<i32>,
-    /// Limits for field title.
-    #[serde(default, rename = "maxDisplayNameLength")]
-    pub max_display_name_length: ::core::option::Option<i32>,
-    /// Maximum length for the id.
-    #[serde(default, rename = "maxIdLength")]
-    pub max_id_length: ::core::option::Option<i32>,
-    /// Selection field limits.
-    #[serde(default, rename = "selectionLimits")]
-    pub selection_limits: ::core::option::Option<GoogleAppsDriveLabelsV2SelectionLimits>,
-    /// The relevant limits for the specified Field.Type. Text field limits.
-    #[serde(default, rename = "textLimits")]
-    pub text_limits: ::core::option::Option<GoogleAppsDriveLabelsV2TextLimits>,
-    /// User field limits.
-    #[serde(default, rename = "userLimits")]
-    pub user_limits: ::core::option::Option<GoogleAppsDriveLabelsV2UserLimits>,
-}
-
-/// Options for a multi-valued variant of an associated field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2FieldListOptions {
-    /// Maximum number of entries permitted.
-    #[serde(default, rename = "maxEntries")]
-    pub max_entries: ::core::option::Option<i32>,
-}
-
 /// The basic properties of the field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2FieldProperties {
@@ -671,6 +1080,39 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptions {
     /// When specified, indicates this field supports a list of values. Once the field is published, this cannot be changed.
     #[serde(default, rename = "listOptions")]
     pub list_options: ::core::option::Option<GoogleAppsDriveLabelsV2FieldListOptions>,
+}
+
+/// Options for the Text field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
+    /// Output only. The maximum valid length of values for the text field.
+    #[serde(default, rename = "maxLength")]
+    pub max_length: ::core::option::Option<i32>,
+    /// Output only. The minimum valid length of values for the text field.
+    #[serde(default, rename = "minLength")]
+    pub min_length: ::core::option::Option<i32>,
+}
+
+/// Options for the user field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
+    /// When specified, indicates that this field supports a list of values. Once the field is published, this cannot be changed.
+    #[serde(default, rename = "listOptions")]
+    pub list_options: ::core::option::Option<GoogleAppsDriveLabelsV2FieldListOptions>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Selection field choice.
@@ -729,6 +1171,14 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice {
     pub updater: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
 }
 
+/// Options for a multi-valued variant of an associated field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2FieldListOptions {
+    /// Maximum number of entries permitted.
+    #[serde(default, rename = "maxEntries")]
+    pub max_entries: ::core::option::Option<i32>,
+}
+
 /// The capabilities related to this choice on applied metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities {
@@ -741,6 +1191,14 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities
     /// Whether the user can select this choice on an item.
     #[serde(default, rename = "canSelect")]
     pub can_select: ::core::option::Option<bool>,
+}
+
+/// Information about a user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2UserInfo {
+    /// The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, people/12345678.
+    #[serde(default)]
+    pub person: ::core::option::Option<String>,
 }
 
 /// UI display hints for rendering an option.
@@ -764,6 +1222,28 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints {
     /// This option should be shown in the apply menu when applying values to a Drive item.
     #[serde(default, rename = "shownInApply")]
     pub shown_in_apply: ::core::option::Option<bool>,
+}
+
+/// The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * UNPUBLISHED_DRAFT (starting state) * UNPUBLISHED_DRAFT -&gt; PUBLISHED * UNPUBLISHED_DRAFT -&gt; (Deleted) * PUBLISHED -&gt; DISABLED * DISABLED -&gt; PUBLISHED * DISABLED -&gt; (Deleted) The published and disabled states have some distinct characteristics: * Published: Some kinds of changes might be made to an object in this state, in which case has_unpublished_changes will be true. Also, some kinds of changes aren''t permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * Disabled: When disabled, the configured DisabledPolicy takes effect.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2Lifecycle {
+    /// The policy that governs how to show a disabled label, field, or selection choice.
+    #[serde(default, rename = "disabledPolicy")]
+    pub disabled_policy: ::core::option::Option<GoogleAppsDriveLabelsV2LifecycleDisabledPolicy>,
+    /// Output only. Whether the object associated with this lifecycle has unpublished changes.
+    #[serde(default, rename = "hasUnpublishedChanges")]
+    pub has_unpublished_changes: ::core::option::Option<bool>,
+    /// Output only. The state of the object associated with this lifecycle. // TODO: enum values: ["STATE_UNSPECIFIED", "UNPUBLISHED_DRAFT", "PUBLISHED", "DISABLED", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Contains information about whether a label component should be considered locked.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2LockStatus {
+    /// Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it''s not the direct target of a label lock, in which case this field is set to false.
+    #[serde(default)]
+    pub locked: ::core::option::Option<bool>,
 }
 
 /// Basic properties of the choice.
@@ -800,296 +1280,18 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities 
     pub can_update: ::core::option::Option<bool>,
 }
 
-/// Options for the Text field type.
+/// The color derived from BadgeConfig and changed to the closest recommended supported color.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
-    /// Output only. The maximum valid length of values for the text field.
-    #[serde(default, rename = "maxLength")]
-    pub max_length: ::core::option::Option<i32>,
-    /// Output only. The minimum valid length of values for the text field.
-    #[serde(default, rename = "minLength")]
-    pub min_length: ::core::option::Option<i32>,
-}
-
-/// Options for the user field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
-    /// When specified, indicates that this field supports a list of values. Once the field is published, this cannot be changed.
-    #[serde(default, rename = "listOptions")]
-    pub list_options: ::core::option::Option<GoogleAppsDriveLabelsV2FieldListOptions>,
-}
-
-/// Limits for integer field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2IntegerLimits {
-    /// Maximum value for an integer field type.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// Minimum value for an integer field type.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-}
-
-/// A label defines a taxonomy that can be applied to Drive items in order to organize and search across items. Labels can be simple strings, or can contain fields that describe additional metadata that can be further used to organize and search Drive items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2Label {
-    /// Output only. The capabilities related to this label on applied metadata.
-    #[serde(default, rename = "appliedCapabilities")]
-    pub applied_capabilities:
-        ::core::option::Option<GoogleAppsDriveLabelsV2LabelAppliedCapabilities>,
-    /// Output only. Behavior of this label when it''s applied to Drive items.
-    #[serde(default, rename = "appliedLabelPolicy")]
-    pub applied_label_policy:
-        ::core::option::Option<GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy>,
-    /// Output only. The time this label was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The user who created this label.
-    #[serde(default)]
-    pub creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// Output only. The customer this label belongs to. For example: customers/123abc789.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// Output only. The time this label was disabled. This value has no meaning when the label isn''t disabled.
-    #[serde(default, rename = "disableTime")]
-    pub disable_time: ::core::option::Option<String>,
-    /// Output only. The user who disabled this label. This value has no meaning when the label isn''t disabled.
-    #[serde(default)]
-    pub disabler: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// Output only. UI display hints for rendering the label.
-    #[serde(default, rename = "displayHints")]
-    pub display_hints: ::core::option::Option<GoogleAppsDriveLabelsV2LabelDisplayHints>,
-    /// Optional. The EnabledAppSettings for this Label.
-    #[serde(default, rename = "enabledAppSettings")]
-    pub enabled_app_settings:
-        ::core::option::Option<GoogleAppsDriveLabelsV2LabelEnabledAppSettings>,
-    /// List of fields in descending priority order.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2Field>>,
-    /// Output only. Globally unique identifier of this label. ID makes up part of the label name, but unlike name, ID is consistent between revisions. Matches the regex: ([a-zA-Z0-9])+.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Required. The type of label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "SHARED", "ADMIN", "GOOGLE_APP"]
-    #[serde(default, rename = "labelType")]
-    pub label_type: ::core::option::Option<String>,
-    /// Custom URL to present to users to allow them to learn more about this label and how it should be used.
-    #[serde(default, rename = "learnMoreUri")]
-    pub learn_more_uri: ::core::option::Option<String>,
-    /// Output only. The lifecycle state of the label including whether it''s published, deprecated, and has draft changes.
-    #[serde(default)]
-    pub lifecycle: ::core::option::Option<GoogleAppsDriveLabelsV2Lifecycle>,
-    /// Output only. The LockStatus of this label.
-    #[serde(default, rename = "lockStatus")]
-    pub lock_status: ::core::option::Option<GoogleAppsDriveLabelsV2LockStatus>,
-    /// Output only. Resource name of the label. Will be in the form of either: labels/{id} or labels/{id}@{revision_id} depending on the request. See id and revision_id below.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The basic properties of the label.
-    #[serde(default)]
-    pub properties: ::core::option::Option<GoogleAppsDriveLabelsV2LabelProperties>,
-    /// Output only. The time this label was published. This value has no meaning when the label isn''t published.
-    #[serde(default, rename = "publishTime")]
-    pub publish_time: ::core::option::Option<String>,
-    /// Output only. The user who published this label. This value has no meaning when the label isn''t published.&gt;&gt;
-    #[serde(default)]
-    pub publisher: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// Output only. The time this label revision was created.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Output only. The user who created this label revision.
-    #[serde(default, rename = "revisionCreator")]
-    pub revision_creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// Output only. Revision ID of the label. Revision ID might be part of the label name depending on the request issued. A new revision is created whenever revisioned properties of a label are changed. Matches the regex: ([a-zA-Z0-9])+.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. The capabilities the user has on this label.
-    #[serde(default, rename = "schemaCapabilities")]
-    pub schema_capabilities: ::core::option::Option<GoogleAppsDriveLabelsV2LabelSchemaCapabilities>,
-}
-
-/// The capabilities a user has on this label''s applied metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
-    /// Whether the user can apply this label to items.
-    #[serde(default, rename = "canApply")]
-    pub can_apply: ::core::option::Option<bool>,
-    /// Whether the user can read applied metadata related to this label.
-    #[serde(default, rename = "canRead")]
-    pub can_read: ::core::option::Option<bool>,
-    /// Whether the user can remove this label from items.
-    #[serde(default, rename = "canRemove")]
-    pub can_remove: ::core::option::Option<bool>,
-}
-
-/// Behavior of this label when it''s applied to Drive items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
-    /// Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
-    #[serde(default, rename = "copyMode")]
-    pub copy_mode: ::core::option::Option<String>,
-}
-
-/// The UI display hints for rendering the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
-    /// Whether the label should be shown in the UI as disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// This label should be hidden in the search menu when searching for Drive items.
-    #[serde(default, rename = "hiddenInSearch")]
-    pub hidden_in_search: ::core::option::Option<bool>,
-    /// The order to display labels in a list.
-    #[serde(default)]
-    pub priority: ::core::option::Option<String>,
-    /// This label should be shown in the apply menu when applying values to a Drive item.
-    #[serde(default, rename = "shownInApply")]
-    pub shown_in_apply: ::core::option::Option<bool>,
-}
-
-/// Describes the Google Workspace apps in which the label can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
-    /// Optional. The list of apps where the label can be used.
-    #[serde(default, rename = "enabledApps")]
-    pub enabled_apps: ::core::option::Option<
-        ::std::vec::Vec<GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp>,
-    >,
-}
-
-/// An app where the label can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
-    /// Optional. The name of the app. // TODO: enum values: ["APP_UNSPECIFIED", "DRIVE", "GMAIL"]
-    #[serde(default)]
-    pub app: ::core::option::Option<String>,
-}
-
-/// Label constraints governing the structure of a label; such as, the maximum number of fields allowed and maximum length of the label title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelLimits {
-    /// The limits for fields.
-    #[serde(default, rename = "fieldLimits")]
-    pub field_limits: ::core::option::Option<GoogleAppsDriveLabelsV2FieldLimits>,
-    /// The maximum number of published fields that can be deleted.
-    #[serde(default, rename = "maxDeletedFields")]
-    pub max_deleted_fields: ::core::option::Option<i32>,
-    /// The maximum number of characters allowed for the description.
-    #[serde(default, rename = "maxDescriptionLength")]
-    pub max_description_length: ::core::option::Option<i32>,
-    /// The maximum number of draft revisions that will be kept before deleting old drafts.
-    #[serde(default, rename = "maxDraftRevisions")]
-    pub max_draft_revisions: ::core::option::Option<i32>,
-    /// The maximum number of fields allowed within the label.
-    #[serde(default, rename = "maxFields")]
-    pub max_fields: ::core::option::Option<i32>,
-    /// The maximum number of characters allowed for the title.
-    #[serde(default, rename = "maxTitleLength")]
-    pub max_title_length: ::core::option::Option<i32>,
-    /// Resource name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A lock that can be applied to a label, field, or choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelLock {
-    /// Output only. The user''s capabilities on this label lock.
-    #[serde(default)]
-    pub capabilities: ::core::option::Option<GoogleAppsDriveLabelsV2LabelLockCapabilities>,
-    /// The ID of the selection field choice that should be locked. If present, field_id must also be present.
-    #[serde(default, rename = "choiceId")]
-    pub choice_id: ::core::option::Option<String>,
-    /// Output only. The time this label lock was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The user whose credentials were used to create the label lock. Not present if no user was responsible for creating the label lock.
-    #[serde(default)]
-    pub creator: ::core::option::Option<GoogleAppsDriveLabelsV2UserInfo>,
-    /// Output only. A timestamp indicating when this label lock was scheduled for deletion. Present only if this label lock is in the DELETING state.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// The ID of the field that should be locked. Empty if the whole label should be locked.
-    #[serde(default, rename = "fieldId")]
-    pub field_id: ::core::option::Option<String>,
-    /// Output only. Resource name of this label lock.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. This label lock''s state. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A description of a user''s capabilities on a label lock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelLockCapabilities {
-    /// True if the user is authorized to view the policy.
-    #[serde(default, rename = "canViewPolicy")]
-    pub can_view_policy: ::core::option::Option<bool>,
-}
-
-/// The permission that applies to a principal (user, group, audience) on a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelPermission {
-    /// Audience to grant a role to. The magic value of audiences/default may be used to apply the role to the default audience in the context of the organization that owns the label.
-    #[serde(default)]
-    pub audience: ::core::option::Option<String>,
-    /// Specifies the email address for a user or group principal. Not populated for audience principals. User and group permissions may only be inserted using an email address. On update requests, if email address is specified, no principal should be specified.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Group resource name.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// Resource name of this permission.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Person resource name.
-    #[serde(default)]
-    pub person: ::core::option::Option<String>,
-    /// The role the principal should have. // TODO: enum values: ["LABEL_ROLE_UNSPECIFIED", "READER", "APPLIER", "ORGANIZER", "EDITOR"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Basic properties of the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelProperties {
-    /// The description of the label.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Title of the label.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// The capabilities related to this label when editing the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LabelSchemaCapabilities {
-    /// Whether the user can delete this label. The user must have permission and the label must be disabled.
-    #[serde(default, rename = "canDelete")]
-    pub can_delete: ::core::option::Option<bool>,
-    /// Whether the user can disable this label. The user must have permission and this label must not already be disabled.
-    #[serde(default, rename = "canDisable")]
-    pub can_disable: ::core::option::Option<bool>,
-    /// Whether the user can enable this label. The user must have permission and this label must be disabled.
-    #[serde(default, rename = "canEnable")]
-    pub can_enable: ::core::option::Option<bool>,
-    /// Whether the user can change this label.
-    #[serde(default, rename = "canUpdate")]
-    pub can_update: ::core::option::Option<bool>,
-}
-
-/// The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * UNPUBLISHED_DRAFT (starting state) * UNPUBLISHED_DRAFT -&gt; PUBLISHED * UNPUBLISHED_DRAFT -&gt; (Deleted) * PUBLISHED -&gt; DISABLED * DISABLED -&gt; PUBLISHED * DISABLED -&gt; (Deleted) The published and disabled states have some distinct characteristics: * Published: Some kinds of changes might be made to an object in this state, in which case has_unpublished_changes will be true. Also, some kinds of changes aren''t permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * Disabled: When disabled, the configured DisabledPolicy takes effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2Lifecycle {
-    /// The policy that governs how to show a disabled label, field, or selection choice.
-    #[serde(default, rename = "disabledPolicy")]
-    pub disabled_policy: ::core::option::Option<GoogleAppsDriveLabelsV2LifecycleDisabledPolicy>,
-    /// Output only. Whether the object associated with this lifecycle has unpublished changes.
-    #[serde(default, rename = "hasUnpublishedChanges")]
-    pub has_unpublished_changes: ::core::option::Option<bool>,
-    /// Output only. The state of the object associated with this lifecycle. // TODO: enum values: ["STATE_UNSPECIFIED", "UNPUBLISHED_DRAFT", "PUBLISHED", "DISABLED", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
+pub struct GoogleAppsDriveLabelsV2BadgeColors {
+    /// Output only. Badge background that pairs with the foreground.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<GoogleTypeColor>,
+    /// Output only. Badge foreground that pairs with the background.
+    #[serde(default, rename = "foregroundColor")]
+    pub foreground_color: ::core::option::Option<GoogleTypeColor>,
+    /// Output only. Color that can be used for text without a background.
+    #[serde(default, rename = "soloColor")]
+    pub solo_color: ::core::option::Option<GoogleTypeColor>,
 }
 
 /// The policy that governs how to treat a disabled label, field, or selection choice in different contexts.
@@ -1103,203 +1305,15 @@ pub struct GoogleAppsDriveLabelsV2LifecycleDisabledPolicy {
     pub show_in_apply: ::core::option::Option<bool>,
 }
 
-/// The response to a ListLabelLocksRequest.
+/// Badge status of the label.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2ListLabelLocksResponse {
-    /// Label locks.
-    #[serde(default, rename = "labelLocks")]
-    pub label_locks: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2LabelLock>>,
-    /// The token of the next page in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for listing the permissions on a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2ListLabelPermissionsResponse {
-    /// Label permissions.
-    #[serde(default, rename = "labelPermissions")]
-    pub label_permissions:
-        ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2LabelPermission>>,
-    /// The token of the next page in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for listing labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
-    /// Labels.
+pub struct GoogleAppsDriveLabelsV2BadgeConfig {
+    /// The color of the badge. When not specified, no badge is rendered. The background, foreground, and solo (light and dark mode) colors set here are changed in the Drive UI into the closest recommended supported color.
     #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<GoogleAppsDriveLabelsV2Label>>,
-    /// The token of the next page in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Limits for list-variant of a field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2ListLimits {
-    /// Maximum number of values allowed for the field type.
-    #[serde(default, rename = "maxEntries")]
-    pub max_entries: ::core::option::Option<i32>,
-}
-
-/// Contains information about whether a label component should be considered locked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LockStatus {
-    /// Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it''s not the direct target of a label lock, in which case this field is set to false.
-    #[serde(default)]
-    pub locked: ::core::option::Option<bool>,
-}
-
-/// Limits for long text field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2LongTextLimits {
-    /// Maximum length allowed for a long text field type.
-    #[serde(default, rename = "maxLength")]
-    pub max_length: ::core::option::Option<i32>,
-    /// Minimum length allowed for a long text field type.
-    #[serde(default, rename = "minLength")]
-    pub min_length: ::core::option::Option<i32>,
-}
-
-/// Request to publish a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2PublishLabelRequest {
-    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-    /// Provides control over how write requests are executed. Defaults to unset, which means the last write wins.
-    #[serde(default, rename = "writeControl")]
-    pub write_control: ::core::option::Option<GoogleAppsDriveLabelsV2WriteControl>,
-}
-
-/// Limits for selection field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2SelectionLimits {
-    /// Limits for list-variant of a field type.
-    #[serde(default, rename = "listLimits")]
-    pub list_limits: ::core::option::Option<GoogleAppsDriveLabelsV2ListLimits>,
-    /// Maximum number of choices.
-    #[serde(default, rename = "maxChoices")]
-    pub max_choices: ::core::option::Option<i32>,
-    /// Maximum number of deleted choices.
-    #[serde(default, rename = "maxDeletedChoices")]
-    pub max_deleted_choices: ::core::option::Option<i32>,
-    /// Maximum length for display name.
-    #[serde(default, rename = "maxDisplayNameLength")]
-    pub max_display_name_length: ::core::option::Option<i32>,
-    /// Maximum ID length for a selection option.
-    #[serde(default, rename = "maxIdLength")]
-    pub max_id_length: ::core::option::Option<i32>,
-}
-
-/// Limits for text field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2TextLimits {
-    /// Maximum length allowed for a text field type.
-    #[serde(default, rename = "maxLength")]
-    pub max_length: ::core::option::Option<i32>,
-    /// Minimum length allowed for a text field type.
-    #[serde(default, rename = "minLength")]
-    pub min_length: ::core::option::Option<i32>,
-}
-
-/// Request to update the CopyMode of the given label. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately. \
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest {
-    /// Required. Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
-    #[serde(default, rename = "copyMode")]
-    pub copy_mode: ::core::option::Option<String>,
-    /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-    /// When specified, only certain fields belonging to the indicated view will be returned. // TODO: enum values: ["LABEL_VIEW_BASIC", "LABEL_VIEW_FULL"]
-    #[serde(default)]
-    pub view: ::core::option::Option<String>,
-}
-
-/// Request to update the EnabledAppSettings of the given label. This change is not revisioned, doesn''t require publishing, and takes effect immediately. \
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest {
-    /// Required. The new EnabledAppSettings value for the label.
-    #[serde(default, rename = "enabledAppSettings")]
-    pub enabled_app_settings:
-        ::core::option::Option<GoogleAppsDriveLabelsV2LabelEnabledAppSettings>,
-    /// Optional. The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-    /// Optional. When specified, only certain fields belonging to the indicated view will be returned. // TODO: enum values: ["LABEL_VIEW_BASIC", "LABEL_VIEW_FULL"]
-    #[serde(default)]
-    pub view: ::core::option::Option<String>,
-}
-
-/// Updates a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UpdateLabelPermissionRequest {
-    /// Required. The permission to create or update on the label.
-    #[serde(default, rename = "labelPermission")]
-    pub label_permission: ::core::option::Option<GoogleAppsDriveLabelsV2LabelPermission>,
-    /// Required. The parent label resource name.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Set to true in order to use the user''s admin credentials. The server will verify the user is an admin for the label before allowing access.
-    #[serde(default, rename = "useAdminAccess")]
-    pub use_admin_access: ::core::option::Option<bool>,
-}
-
-/// The capabilities of a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UserCapabilities {
-    /// Output only. Whether the user is allowed access to the label manager.
-    #[serde(default, rename = "canAccessLabelManager")]
-    pub can_access_label_manager: ::core::option::Option<bool>,
-    /// Output only. Whether the user is an administrator for the shared labels feature.
-    #[serde(default, rename = "canAdministrateLabels")]
-    pub can_administrate_labels: ::core::option::Option<bool>,
-    /// Output only. Whether the user is allowed to create admin labels.
-    #[serde(default, rename = "canCreateAdminLabels")]
-    pub can_create_admin_labels: ::core::option::Option<bool>,
-    /// Output only. Whether the user is allowed to create shared labels.
-    #[serde(default, rename = "canCreateSharedLabels")]
-    pub can_create_shared_labels: ::core::option::Option<bool>,
-    /// Output only. Resource name for the user capabilities.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Information about a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UserInfo {
-    /// The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, people/12345678.
-    #[serde(default)]
-    pub person: ::core::option::Option<String>,
-}
-
-/// Limits for Field.Type.USER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2UserLimits {
-    /// Limits for list-variant of a field type.
-    #[serde(default, rename = "listLimits")]
-    pub list_limits: ::core::option::Option<GoogleAppsDriveLabelsV2ListLimits>,
-}
-
-/// Provides control over how write requests are executed. When not specified, the last write wins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsDriveLabelsV2WriteControl {
-    /// The revision ID of the label that the write request will be applied to. If this isn''t the latest revision of the label, the request will not be processed and will return a 400 Bad Request error.
-    #[serde(default, rename = "requiredRevisionId")]
-    pub required_revision_id: ::core::option::Option<String>,
+    pub color: ::core::option::Option<GoogleTypeColor>,
+    /// Override the default global priority of this badge. When set to 0, the default priority heuristic is used.
+    #[serde(default, rename = "priorityOverride")]
+    pub priority_override: ::core::option::Option<String>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -1317,18 +1331,4 @@ pub struct GoogleTypeColor {
     /// The amount of red in the color as a value in the interval [0, 1].
     #[serde(default)]
     pub red: ::core::option::Option<f32>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
 }

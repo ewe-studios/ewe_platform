@@ -10,28 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Each Channel is owned by a Platform and owns a collection of versions. Possible Channels are listed in the Channel enum below. Not all Channels are available for every Platform (e.g. CANARY does not exist for LINUX).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Channel {
-    /// Type of channel. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "STABLE", "BETA", "DEV", "CANARY", "CANARY_ASAN", "ALL", "EXTENDED", "LTS", "LTC"]
-    #[serde(default, rename = "channelType")]
-    pub channel_type: ::core::option::Option<String>,
-    /// Channel name. Format is "{product}/platforms/{platform}/channels/{channel}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Interval {
-    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
 /// Response message for ListChannels.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListChannelsResponse {
@@ -76,6 +54,17 @@ pub struct ListVersionsResponse {
     pub versions: ::core::option::Option<::std::vec::Vec<Version>>,
 }
 
+/// Each Channel is owned by a Platform and owns a collection of versions. Possible Channels are listed in the Channel enum below. Not all Channels are available for every Platform (e.g. CANARY does not exist for LINUX).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Channel {
+    /// Type of channel. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "STABLE", "BETA", "DEV", "CANARY", "CANARY_ASAN", "ALL", "EXTENDED", "LTS", "LTC"]
+    #[serde(default, rename = "channelType")]
+    pub channel_type: ::core::option::Option<String>,
+    /// Channel name. Format is "{product}/platforms/{platform}/channels/{channel}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// Each Platform is owned by a Product and owns a collection of channels. Available platforms are listed in Platform enum below. Not all Channels are available for every Platform (e.g. CANARY does not exist for LINUX).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Platform {
@@ -113,6 +102,17 @@ pub struct Release {
     pub version: ::core::option::Option<String>,
 }
 
+/// Each Version is owned by a Channel. A Version only displays the Version number (e.g. 84.0.4147.38). A Version owns a collection of releases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Version {
+    /// Version name. Format is "{product}/platforms/{platform}/channels/{channel}/versions/{version}" e.g. "chrome/platforms/win/channels/beta/versions/84.0.4147.38"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// String containing just the version number. e.g. "84.0.4147.38"
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
 /// Rollout-related metadata for a release.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RolloutData {
@@ -124,13 +124,13 @@ pub struct RolloutData {
     pub tag: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Each Version is owned by a Channel. A Version only displays the Version number (e.g. 84.0.4147.38). A Version owns a collection of releases.
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Version {
-    /// Version name. Format is "{product}/platforms/{platform}/channels/{channel}/versions/{version}" e.g. "chrome/platforms/win/channels/beta/versions/84.0.4147.38"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// String containing just the version number. e.g. "84.0.4147.38"
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
+pub struct Interval {
+    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
 }

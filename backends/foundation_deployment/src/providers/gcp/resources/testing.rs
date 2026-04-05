@@ -10,21 +10,140 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A single Android device.
+/// Response containing the current state of the specified test matrix.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidDevice {
-    /// Required. The id of the Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "androidModelId")]
-    pub android_model_id: ::core::option::Option<String>,
-    /// Required. The id of the Android OS version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "androidVersionId")]
-    pub android_version_id: ::core::option::Option<String>,
-    /// Required. The locale the test device used for testing. Use the TestEnvironmentDiscoveryService to get supported options.
+pub struct CancelTestMatrixResponse {
+    /// The current rolled-up state of the test matrix. If this state is already final, then the cancelation request will have no effect. // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
+    #[serde(default, rename = "testState")]
+    pub test_state: ::core::option::Option<String>,
+}
+
+/// Response containing the details of the specified Android application.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetApkDetailsResponse {
+    /// Details of the Android App.
+    #[serde(default, rename = "apkDetail")]
+    pub apk_detail: ::core::option::Option<ApkDetail>,
+}
+
+/// A list of device sessions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDeviceSessionsResponse {
+    /// The sessions matching the specified filter in the given cloud project.
+    #[serde(default, rename = "deviceSessions")]
+    pub device_sessions: ::core::option::Option<::std::vec::Vec<DeviceSession>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A description of a test environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestEnvironmentCatalog {
+    /// Supported Android devices.
+    #[serde(default, rename = "androidDeviceCatalog")]
+    pub android_device_catalog: ::core::option::Option<AndroidDeviceCatalog>,
+    /// The IP blocks used by devices in the test environment.
+    #[serde(default, rename = "deviceIpBlockCatalog")]
+    pub device_ip_block_catalog: ::core::option::Option<DeviceIpBlockCatalog>,
+    /// Supported iOS devices.
+    #[serde(default, rename = "iosDeviceCatalog")]
+    pub ios_device_catalog: ::core::option::Option<IosDeviceCatalog>,
+    /// Supported network configurations.
+    #[serde(default, rename = "networkConfigurationCatalog")]
+    pub network_configuration_catalog: ::core::option::Option<NetworkConfigurationCatalog>,
+    /// The software test environment provided by TestExecutionService.
+    #[serde(default, rename = "softwareCatalog")]
+    pub software_catalog: ::core::option::Option<ProvidedSoftwareCatalog>,
+}
+
+/// TestMatrix captures all details about a test. It contains the environment configuration, test specification, test executions and overall state and outcome.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestMatrix {
+    /// Information about the client which invoked the test.
+    #[serde(default, rename = "clientInfo")]
+    pub client_info: ::core::option::Option<ClientInfo>,
+    /// Required. The devices the tests are being executed on.
+    #[serde(default, rename = "environmentMatrix")]
+    pub environment_matrix: ::core::option::Option<EnvironmentMatrix>,
+    /// Output only. Details about why a matrix was deemed invalid. If multiple checks can be safely performed, they will be reported but no assumptions should be made about the length of this list.
+    #[serde(default, rename = "extendedInvalidMatrixDetails")]
+    pub extended_invalid_matrix_details: ::core::option::Option<::std::vec::Vec<MatrixErrorDetail>>,
+    /// If true, only a single attempt at most will be made to run each execution/shard in the matrix. Flaky test attempts are not affected. Normally, 2 or more attempts are made if a potential infrastructure issue is detected. This feature is for latency sensitive workloads. The incidence of execution failures may be significantly greater for fail-fast matrices and support is more limited because of that expectation.
+    #[serde(default, rename = "failFast")]
+    pub fail_fast: ::core::option::Option<bool>,
+    /// The number of times a TestExecution should be re-attempted if one or more of its test cases fail for any reason. The maximum number of reruns allowed is 10. Default is 0, which implies no reruns.
+    #[serde(default, rename = "flakyTestAttempts")]
+    pub flaky_test_attempts: ::core::option::Option<i32>,
+    /// Output only. Describes why the matrix is considered invalid. Only useful for matrices in the INVALID state. // TODO: enum values: ["INVALID_MATRIX_DETAILS_UNSPECIFIED", "DETAILS_UNAVAILABLE", "MALFORMED_APK", "MALFORMED_TEST_APK", "NO_MANIFEST", "NO_PACKAGE_NAME", "INVALID_PACKAGE_NAME", "TEST_SAME_AS_APP", "NO_INSTRUMENTATION", "NO_SIGNATURE", "INSTRUMENTATION_ORCHESTRATOR_INCOMPATIBLE", "NO_TEST_RUNNER_CLASS", "NO_LAUNCHER_ACTIVITY", "FORBIDDEN_PERMISSIONS", "INVALID_ROBO_DIRECTIVES", "INVALID_RESOURCE_NAME", "INVALID_DIRECTIVE_ACTION", "TEST_LOOP_INTENT_FILTER_NOT_FOUND", "SCENARIO_LABEL_NOT_DECLARED", "SCENARIO_LABEL_MALFORMED", "SCENARIO_NOT_DECLARED", "DEVICE_ADMIN_RECEIVER", "MALFORMED_XC_TEST_ZIP", "BUILT_FOR_IOS_SIMULATOR", "NO_TESTS_IN_XC_TEST_ZIP", "USE_DESTINATION_ARTIFACTS", "TEST_NOT_APP_HOSTED", "PLIST_CANNOT_BE_PARSED", "TEST_ONLY_APK", "MALFORMED_IPA", "MISSING_URL_SCHEME", "MALFORMED_APP_BUNDLE", "NO_CODE_APK", "INVALID_INPUT_APK", "INVALID_APK_PREVIEW_SDK", "MATRIX_TOO_LARGE", "TEST_QUOTA_EXCEEDED", "SERVICE_NOT_ACTIVATED", "UNKNOWN_PERMISSION_ERROR"]
+    #[serde(default, rename = "invalidMatrixDetails")]
+    pub invalid_matrix_details: ::core::option::Option<String>,
+    /// Output Only. The overall outcome of the test. Only set when the test matrix state is FINISHED. // TODO: enum values: ["OUTCOME_SUMMARY_UNSPECIFIED", "SUCCESS", "FAILURE", "INCONCLUSIVE", "SKIPPED"]
+    #[serde(default, rename = "outcomeSummary")]
+    pub outcome_summary: ::core::option::Option<String>,
+    /// The cloud project that owns the test matrix.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Required. Where the results for the matrix are written.
+    #[serde(default, rename = "resultStorage")]
+    pub result_storage: ::core::option::Option<ResultStorage>,
+    /// Output only. Indicates the current progress of the test matrix. // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
     #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.
+    pub state: ::core::option::Option<String>,
+    /// Output only. The list of test executions that the service creates for this matrix.
+    #[serde(default, rename = "testExecutions")]
+    pub test_executions: ::core::option::Option<::std::vec::Vec<TestExecution>>,
+    /// Output only. Unique id set by the service.
+    #[serde(default, rename = "testMatrixId")]
+    pub test_matrix_id: ::core::option::Option<String>,
+    /// Required. How to run the test.
+    #[serde(default, rename = "testSpecification")]
+    pub test_specification: ::core::option::Option<TestSpecification>,
+    /// Output only. The time this test matrix was initially created.
     #[serde(default)]
-    pub orientation: ::core::option::Option<String>,
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// Android application details based on application manifest and archive contents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkDetail {
+    #[serde(default, rename = "apkManifest")]
+    pub apk_manifest: ::core::option::Option<ApkManifest>,
+}
+
+/// Protobuf message describing the device message, used from several RPCs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceSession {
+    /// Output only. The timestamp that the session first became ACTIVE.
+    #[serde(default, rename = "activeStartTime")]
+    pub active_start_time: ::core::option::Option<String>,
+    /// Required. The requested device
+    #[serde(default, rename = "androidDevice")]
+    pub android_device: ::core::option::Option<AndroidDevice>,
+    /// Output only. The time that the Session was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The title of the DeviceSession to be presented in the UI.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. If the device is still in use at this time, any connections will be ended and the SessionState will transition from ACTIVE to FINISHED.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Output only. The interval of time that this device must be interacted with before it transitions from ACTIVE to TIMEOUT_INACTIVITY.
+    #[serde(default, rename = "inactivityTimeout")]
+    pub inactivity_timeout: ::core::option::Option<String>,
+    /// Optional. Name of the DeviceSession, e.g. "projects/{project_id}/deviceSessions/{session_id}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Current state of the DeviceSession. // TODO: enum values: ["SESSION_STATE_UNSPECIFIED", "REQUESTED", "PENDING", "ACTIVE", "EXPIRED", "FINISHED", "UNAVAILABLE", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The historical state transitions of the session_state message including the current session state.
+    #[serde(default, rename = "stateHistories")]
+    pub state_histories: ::core::option::Option<::std::vec::Vec<SessionStateEvent>>,
+    /// Optional. The amount of time that a device will be initially allocated for. This can eventually be extended with the UpdateDeviceSession RPC. Default: 15 minutes.
+    #[serde(default)]
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// The currently supported Android devices.
@@ -41,61 +160,191 @@ pub struct AndroidDeviceCatalog {
     pub versions: ::core::option::Option<::std::vec::Vec<AndroidVersion>>,
 }
 
-/// A list of Android device configurations in which the test is to be executed.
+/// List of IP blocks used by the Firebase Test Lab
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidDeviceList {
-    /// Required. A list of Android devices.
-    #[serde(default, rename = "androidDevices")]
-    pub android_devices: ::core::option::Option<::std::vec::Vec<AndroidDevice>>,
+pub struct DeviceIpBlockCatalog {
+    /// The device IP blocks used by Firebase Test Lab
+    #[serde(default, rename = "ipBlocks")]
+    pub ip_blocks: ::core::option::Option<::std::vec::Vec<DeviceIpBlock>>,
 }
 
-/// A test of an Android application that can control an Android component independently of its normal lifecycle. Android instrumentation tests run an application APK and test APK inside the same process on a virtual or physical AndroidDevice. They also specify a test runner class, such as com.google.GoogleTestRunner, which can vary on the specific instrumentation framework chosen. See for more information on types of Android tests.
+/// The currently supported iOS devices.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidInstrumentationTest {
-    /// The APK for the application under test.
-    #[serde(default, rename = "appApk")]
-    pub app_apk: ::core::option::Option<FileReference>,
-    /// A multi-apk app bundle for the application under test.
-    #[serde(default, rename = "appBundle")]
-    pub app_bundle: ::core::option::Option<AppBundle>,
-    /// The java package for the application under test. The default value is determined by examining the application''s manifest.
-    #[serde(default, rename = "appPackageId")]
-    pub app_package_id: ::core::option::Option<String>,
-    /// The option of whether running each test within its own invocation of instrumentation with Android Test Orchestrator or not. ** Orchestrator is only compatible with AndroidJUnitRunner version 1.1 or higher! ** Orchestrator offers the following benefits: - No shared state - Crashes are isolated - Logs are scoped per test See for more information about Android Test Orchestrator. If not set, the test will be run without the orchestrator. // TODO: enum values: ["ORCHESTRATOR_OPTION_UNSPECIFIED", "USE_ORCHESTRATOR", "DO_NOT_USE_ORCHESTRATOR"]
-    #[serde(default, rename = "orchestratorOption")]
-    pub orchestrator_option: ::core::option::Option<String>,
-    /// The option to run tests in multiple shards in parallel.
-    #[serde(default, rename = "shardingOption")]
-    pub sharding_option: ::core::option::Option<ShardingOption>,
-    /// Required. The APK containing the test code to be executed.
-    #[serde(default, rename = "testApk")]
-    pub test_apk: ::core::option::Option<FileReference>,
-    /// The java package for the test to be executed. The default value is determined by examining the application''s manifest.
-    #[serde(default, rename = "testPackageId")]
-    pub test_package_id: ::core::option::Option<String>,
-    /// The InstrumentationTestRunner class. The default value is determined by examining the application''s manifest.
-    #[serde(default, rename = "testRunnerClass")]
-    pub test_runner_class: ::core::option::Option<String>,
-    /// Each target must be fully qualified with the package name or class name, in one of these formats: - "package package_name" - "class package_name.class_name" - "class package_name.class_name#method_name" If empty, all targets in the module will be run.
-    #[serde(default, rename = "testTargets")]
-    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct IosDeviceCatalog {
+    /// The set of supported iOS device models.
+    #[serde(default)]
+    pub models: ::core::option::Option<::std::vec::Vec<IosModel>>,
+    /// The set of supported runtime configurations.
+    #[serde(default, rename = "runtimeConfiguration")]
+    pub runtime_configuration: ::core::option::Option<IosRuntimeConfiguration>,
+    /// The set of supported iOS software versions.
+    #[serde(default)]
+    pub versions: ::core::option::Option<::std::vec::Vec<IosVersion>>,
+    /// The set of supported Xcode versions.
+    #[serde(default, rename = "xcodeVersions")]
+    pub xcode_versions: ::core::option::Option<::std::vec::Vec<XcodeVersion>>,
 }
 
-/// A set of Android device configuration permutations is defined by the the cross-product of the given axes. Internally, the given AndroidMatrix will be expanded into a set of AndroidDevices. Only supported permutations will be instantiated. Invalid permutations (e.g., incompatible models/versions) are ignored.
+/// NetworkConfigurationCatalog resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidMatrix {
-    /// Required. The ids of the set of Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "androidModelIds")]
-    pub android_model_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The ids of the set of Android OS version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "androidVersionIds")]
-    pub android_version_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The set of locales the test device will enable for testing. Use the TestEnvironmentDiscoveryService to get supported options.
+pub struct NetworkConfigurationCatalog {
     #[serde(default)]
-    pub locales: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The set of orientations to test with. Use the TestEnvironmentDiscoveryService to get supported options.
+    pub configurations: ::core::option::Option<::std::vec::Vec<NetworkConfiguration>>,
+}
+
+/// The currently provided software environment on the devices under test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvidedSoftwareCatalog {
+    /// A string representing the current version of AndroidX Test Orchestrator that is used in the environment. The package is available at https://maven.google.com/web/index.html#androidx.test:orchestrator.
+    #[serde(default, rename = "androidxOrchestratorVersion")]
+    pub androidx_orchestrator_version: ::core::option::Option<String>,
+    /// Deprecated: Use AndroidX Test Orchestrator going forward. A string representing the current version of Android Test Orchestrator that is used in the environment. The package is available at https://maven.google.com/web/index.html#com.android.support.test:orchestrator.
+    #[serde(default, rename = "orchestratorVersion")]
+    pub orchestrator_version: ::core::option::Option<String>,
+}
+
+/// Information about the client which invoked the test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientInfo {
+    /// The list of detailed information about client.
+    #[serde(default, rename = "clientInfoDetails")]
+    pub client_info_details: ::core::option::Option<::std::vec::Vec<ClientInfoDetail>>,
+    /// Required. Client name, such as gcloud.
     #[serde(default)]
-    pub orientations: ::core::option::Option<::std::vec::Vec<String>>,
+    pub name: ::core::option::Option<String>,
+}
+
+/// The matrix of environments in which the test is to be executed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentMatrix {
+    /// A list of Android devices; the test will be run only on the specified devices.
+    #[serde(default, rename = "androidDeviceList")]
+    pub android_device_list: ::core::option::Option<AndroidDeviceList>,
+    /// A matrix of Android devices.
+    #[serde(default, rename = "androidMatrix")]
+    pub android_matrix: ::core::option::Option<AndroidMatrix>,
+    /// A list of iOS devices.
+    #[serde(default, rename = "iosDeviceList")]
+    pub ios_device_list: ::core::option::Option<IosDeviceList>,
+}
+
+/// Describes a single error or issue with a matrix.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatrixErrorDetail {
+    /// Output only. A human-readable message about how the error in the TestMatrix. Expands on the reason field with additional details and possible options to fix the issue.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. The reason for the error. This is a constant value in UPPER_SNAKE_CASE that identifies the cause of the error.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Locations where the results of running the test are stored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResultStorage {
+    /// Required.
+    #[serde(default, rename = "googleCloudStorage")]
+    pub google_cloud_storage: ::core::option::Option<GoogleCloudStorage>,
+    /// Output only. URL to the results in the Firebase Web Console.
+    #[serde(default, rename = "resultsUrl")]
+    pub results_url: ::core::option::Option<String>,
+    /// Output only. The tool results execution that results are written to.
+    #[serde(default, rename = "toolResultsExecution")]
+    pub tool_results_execution: ::core::option::Option<ToolResultsExecution>,
+    /// The tool results history that contains the tool results execution that results are written to. If not provided, the service will choose an appropriate value.
+    #[serde(default, rename = "toolResultsHistory")]
+    pub tool_results_history: ::core::option::Option<ToolResultsHistory>,
+}
+
+/// A single test executed in a single environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestExecution {
+    /// Output only. How the host machine(s) are configured.
+    #[serde(default)]
+    pub environment: ::core::option::Option<Environment>,
+    /// Output only. Unique id set by the service.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. Id of the containing TestMatrix.
+    #[serde(default, rename = "matrixId")]
+    pub matrix_id: ::core::option::Option<String>,
+    /// Output only. The cloud project that owns the test execution.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Output only. Details about the shard.
+    #[serde(default)]
+    pub shard: ::core::option::Option<Shard>,
+    /// Output only. Indicates the current progress of the test execution (e.g., FINISHED). // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Additional details about the running test.
+    #[serde(default, rename = "testDetails")]
+    pub test_details: ::core::option::Option<TestDetails>,
+    /// Output only. How to run the test.
+    #[serde(default, rename = "testSpecification")]
+    pub test_specification: ::core::option::Option<TestSpecification>,
+    /// Output only. The time this test execution was initially created.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+    /// Output only. Where the results for this execution are written.
+    #[serde(default, rename = "toolResultsStep")]
+    pub tool_results_step: ::core::option::Option<ToolResultsStep>,
+}
+
+/// An Android app manifest. See http://developer.android.com/guide/topics/manifest/manifest-intro.html
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkManifest {
+    /// User-readable name for the application.
+    #[serde(default, rename = "applicationLabel")]
+    pub application_label: ::core::option::Option<String>,
+    #[serde(default, rename = "intentFilters")]
+    pub intent_filters: ::core::option::Option<::std::vec::Vec<IntentFilter>>,
+    /// Maximum API level on which the application is designed to run.
+    #[serde(default, rename = "maxSdkVersion")]
+    pub max_sdk_version: ::core::option::Option<i32>,
+    /// Meta-data tags defined in the manifest.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<::std::vec::Vec<Metadata>>,
+    /// Minimum API level required for the application to run.
+    #[serde(default, rename = "minSdkVersion")]
+    pub min_sdk_version: ::core::option::Option<i32>,
+    /// Full Java-style package name for this application, e.g. "com.example.foo".
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Services contained in the tag.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<Service>>,
+    /// Specifies the API Level on which the application is designed to run.
+    #[serde(default, rename = "targetSdkVersion")]
+    pub target_sdk_version: ::core::option::Option<i32>,
+    /// Feature usage tags defined in the manifest.
+    #[serde(default, rename = "usesFeature")]
+    pub uses_feature: ::core::option::Option<::std::vec::Vec<UsesFeature>>,
+    #[serde(default, rename = "usesPermission")]
+    pub uses_permission: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Permissions declared to be used by the application
+    #[serde(default, rename = "usesPermissionTags")]
+    pub uses_permission_tags: ::core::option::Option<::std::vec::Vec<UsesPermissionTag>>,
+    /// Version number used internally by the app.
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<String>,
+    /// Version number shown to users.
+    #[serde(default, rename = "versionName")]
+    pub version_name: ::core::option::Option<String>,
+}
+
+/// A message encapsulating a series of Session states and the time that the DeviceSession first entered those states.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionStateEvent {
+    /// Output only. The time that the session_state first encountered that state.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Output only. The session_state tracked by this event // TODO: enum values: ["SESSION_STATE_UNSPECIFIED", "REQUESTED", "PENDING", "ACTIVE", "EXPIRED", "FINISHED", "UNAVAILABLE", "ERROR"]
+    #[serde(default, rename = "sessionState")]
+    pub session_state: ::core::option::Option<String>,
+    /// Output only. A human-readable message to explain the state.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
 }
 
 /// A description of an Android device tests may be run on.
@@ -157,41 +406,6 @@ pub struct AndroidModel {
     pub thumbnail_url: ::core::option::Option<String>,
 }
 
-/// A test of an android application that explores the application on a virtual or physical Android Device, finding culprits and crashes as it goes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidRoboTest {
-    /// The APK for the application under test.
-    #[serde(default, rename = "appApk")]
-    pub app_apk: ::core::option::Option<FileReference>,
-    /// A multi-apk app bundle for the application under test.
-    #[serde(default, rename = "appBundle")]
-    pub app_bundle: ::core::option::Option<AppBundle>,
-    /// The initial activity that should be used to start the app.
-    #[serde(default, rename = "appInitialActivity")]
-    pub app_initial_activity: ::core::option::Option<String>,
-    /// The java package for the application under test. The default value is determined by examining the application''s manifest.
-    #[serde(default, rename = "appPackageId")]
-    pub app_package_id: ::core::option::Option<String>,
-    /// The max depth of the traversal stack Robo can explore. Needs to be at least 2 to make Robo explore the app beyond the first activity. Default is 50.
-    #[serde(default, rename = "maxDepth")]
-    pub max_depth: ::core::option::Option<i32>,
-    /// The max number of steps Robo can execute. Default is no limit.
-    #[serde(default, rename = "maxSteps")]
-    pub max_steps: ::core::option::Option<i32>,
-    /// A set of directives Robo should apply during the crawl. This allows users to customize the crawl. For example, the username and password for a test account can be provided.
-    #[serde(default, rename = "roboDirectives")]
-    pub robo_directives: ::core::option::Option<::std::vec::Vec<RoboDirective>>,
-    /// The mode in which Robo should run. Most clients should allow the server to populate this field automatically. // TODO: enum values: ["ROBO_MODE_UNSPECIFIED", "ROBO_VERSION_1", "ROBO_VERSION_2"]
-    #[serde(default, rename = "roboMode")]
-    pub robo_mode: ::core::option::Option<String>,
-    /// A JSON file with a sequence of actions Robo should perform as a prologue for the crawl.
-    #[serde(default, rename = "roboScript")]
-    pub robo_script: ::core::option::Option<FileReference>,
-    /// The intents used to launch the app for the crawl. If none are provided, then the main launcher activity is launched. If some are provided, then only those provided are launched (the main launcher activity must be provided explicitly).
-    #[serde(default, rename = "startingIntents")]
-    pub starting_intents: ::core::option::Option<::std::vec::Vec<RoboStartingIntent>>,
-}
-
 /// Android configuration that can be selected at the time a test is run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AndroidRuntimeConfiguration {
@@ -201,26 +415,6 @@ pub struct AndroidRuntimeConfiguration {
     /// The set of available orientations.
     #[serde(default)]
     pub orientations: ::core::option::Option<::std::vec::Vec<Orientation>>,
-}
-
-/// A test of an Android Application with a Test Loop. The intent \ will be implicitly added, since Games is the only user of this api, for the time being.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AndroidTestLoop {
-    /// The APK for the application under test.
-    #[serde(default, rename = "appApk")]
-    pub app_apk: ::core::option::Option<FileReference>,
-    /// A multi-apk app bundle for the application under test.
-    #[serde(default, rename = "appBundle")]
-    pub app_bundle: ::core::option::Option<AppBundle>,
-    /// The java package for the application under test. The default is determined by examining the application''s manifest.
-    #[serde(default, rename = "appPackageId")]
-    pub app_package_id: ::core::option::Option<String>,
-    /// The list of scenario labels that should be run during the test. The scenario labels should map to labels defined in the application''s manifest. For example, player_experience and com.google.test.loops.player_experience add all of the loops labeled in the manifest with the com.google.test.loops.player_experience name to the execution. Scenarios can also be specified in the scenarios field.
-    #[serde(default, rename = "scenarioLabels")]
-    pub scenario_labels: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The list of scenarios that should be run during the test. The default is all test loops, derived from the application''s manifest.
-    #[serde(default)]
-    pub scenarios: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A version of the Android OS.
@@ -249,140 +443,6 @@ pub struct AndroidVersion {
     pub version_string: ::core::option::Option<String>,
 }
 
-/// An Android package file to install.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Apk {
-    /// The path to an APK to be installed on the device before the test begins.
-    #[serde(default)]
-    pub location: ::core::option::Option<FileReference>,
-    /// The java package for the APK to be installed. Value is determined by examining the application''s manifest.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Android application details based on application manifest and archive contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkDetail {
-    #[serde(default, rename = "apkManifest")]
-    pub apk_manifest: ::core::option::Option<ApkManifest>,
-}
-
-/// An Android app manifest. See http://developer.android.com/guide/topics/manifest/manifest-intro.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkManifest {
-    /// User-readable name for the application.
-    #[serde(default, rename = "applicationLabel")]
-    pub application_label: ::core::option::Option<String>,
-    #[serde(default, rename = "intentFilters")]
-    pub intent_filters: ::core::option::Option<::std::vec::Vec<IntentFilter>>,
-    /// Maximum API level on which the application is designed to run.
-    #[serde(default, rename = "maxSdkVersion")]
-    pub max_sdk_version: ::core::option::Option<i32>,
-    /// Meta-data tags defined in the manifest.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<::std::vec::Vec<Metadata>>,
-    /// Minimum API level required for the application to run.
-    #[serde(default, rename = "minSdkVersion")]
-    pub min_sdk_version: ::core::option::Option<i32>,
-    /// Full Java-style package name for this application, e.g. "com.example.foo".
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Services contained in the tag.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<Service>>,
-    /// Specifies the API Level on which the application is designed to run.
-    #[serde(default, rename = "targetSdkVersion")]
-    pub target_sdk_version: ::core::option::Option<i32>,
-    /// Feature usage tags defined in the manifest.
-    #[serde(default, rename = "usesFeature")]
-    pub uses_feature: ::core::option::Option<::std::vec::Vec<UsesFeature>>,
-    #[serde(default, rename = "usesPermission")]
-    pub uses_permission: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Permissions declared to be used by the application
-    #[serde(default, rename = "usesPermissionTags")]
-    pub uses_permission_tags: ::core::option::Option<::std::vec::Vec<UsesPermissionTag>>,
-    /// Version number used internally by the app.
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<String>,
-    /// Version number shown to users.
-    #[serde(default, rename = "versionName")]
-    pub version_name: ::core::option::Option<String>,
-}
-
-/// A single dynamic feature apk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApkSplits {
-    /// A list of .apk files generated by bundletool to install to the device under test as a single android app with adb install-multiple. If specified, requires one or more bundle_splits. The first split specified represents the base APK, while subsequent splits represent feature apks.
-    #[serde(default, rename = "bundleSplits")]
-    pub bundle_splits: ::core::option::Option<::std::vec::Vec<FileReference>>,
-}
-
-/// An Android App Bundle file format, containing a BundleConfig.pb file, a base module directory, zero or more dynamic feature module directories. See https://developer.android.com/guide/app-bundle/build for guidance on building App Bundles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppBundle {
-    /// .apk files generated by bundletool to install as a single android app.
-    #[serde(default)]
-    pub apks: ::core::option::Option<ApkSplits>,
-    /// .aab file representing the app bundle under test.
-    #[serde(default, rename = "bundleLocation")]
-    pub bundle_location: ::core::option::Option<FileReference>,
-}
-
-/// Response containing the current state of the specified test matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CancelTestMatrixResponse {
-    /// The current rolled-up state of the test matrix. If this state is already final, then the cancelation request will have no effect. // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
-    #[serde(default, rename = "testState")]
-    pub test_state: ::core::option::Option<String>,
-}
-
-/// Information about the client which invoked the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientInfo {
-    /// The list of detailed information about client.
-    #[serde(default, rename = "clientInfoDetails")]
-    pub client_info_details: ::core::option::Option<::std::vec::Vec<ClientInfoDetail>>,
-    /// Required. Client name, such as gcloud.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Key-value pair of detailed information about the client which invoked the test. Examples: {''Version'', ''1.0''}, {''Release Track'', ''BETA''}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientInfoDetail {
-    /// Required. The key of detailed client information.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Required. The value of detailed client information.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// A single device file description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceFile {
-    /// A reference to an opaque binary blob file.
-    #[serde(default, rename = "obbFile")]
-    pub obb_file: ::core::option::Option<ObbFile>,
-    /// A reference to a regular file.
-    #[serde(default, rename = "regularFile")]
-    pub regular_file: ::core::option::Option<RegularFile>,
-}
-
 /// A single device IP block
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeviceIpBlock {
@@ -395,201 +455,6 @@ pub struct DeviceIpBlock {
     /// Whether this block is used by physical or virtual devices // TODO: enum values: ["DEVICE_FORM_UNSPECIFIED", "VIRTUAL", "PHYSICAL", "EMULATOR"]
     #[serde(default)]
     pub form: ::core::option::Option<String>,
-}
-
-/// List of IP blocks used by the Firebase Test Lab
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceIpBlockCatalog {
-    /// The device IP blocks used by Firebase Test Lab
-    #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: ::core::option::Option<::std::vec::Vec<DeviceIpBlock>>,
-}
-
-/// Protobuf message describing the device message, used from several RPCs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceSession {
-    /// Output only. The timestamp that the session first became ACTIVE.
-    #[serde(default, rename = "activeStartTime")]
-    pub active_start_time: ::core::option::Option<String>,
-    /// Required. The requested device
-    #[serde(default, rename = "androidDevice")]
-    pub android_device: ::core::option::Option<AndroidDevice>,
-    /// Output only. The time that the Session was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The title of the DeviceSession to be presented in the UI.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. If the device is still in use at this time, any connections will be ended and the SessionState will transition from ACTIVE to FINISHED.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Output only. The interval of time that this device must be interacted with before it transitions from ACTIVE to TIMEOUT_INACTIVITY.
-    #[serde(default, rename = "inactivityTimeout")]
-    pub inactivity_timeout: ::core::option::Option<String>,
-    /// Optional. Name of the DeviceSession, e.g. "projects/{project_id}/deviceSessions/{session_id}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Current state of the DeviceSession. // TODO: enum values: ["SESSION_STATE_UNSPECIFIED", "REQUESTED", "PENDING", "ACTIVE", "EXPIRED", "FINISHED", "UNAVAILABLE", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The historical state transitions of the session_state message including the current session state.
-    #[serde(default, rename = "stateHistories")]
-    pub state_histories: ::core::option::Option<::std::vec::Vec<SessionStateEvent>>,
-    /// Optional. The amount of time that a device will be initially allocated for. This can eventually be extended with the UpdateDeviceSession RPC. Default: 15 minutes.
-    #[serde(default)]
-    pub ttl: ::core::option::Option<String>,
-}
-
-/// Denotes whether Direct Access is supported, and by which client versions. DirectAccessService is currently available as a preview to select developers. You can register today on behalf of you and your team at https://developer.android.com/studio/preview/android-device-streaming
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DirectAccessVersionInfo {
-    /// Whether direct access is supported at all. Clients are expected to filter down the device list to only android models and versions which support Direct Access when that is the user intent.
-    #[serde(default, rename = "directAccessSupported")]
-    pub direct_access_supported: ::core::option::Option<bool>,
-    /// Output only. Indicates client-device compatibility, where a device is known to work only with certain workarounds implemented in the Android Studio client. Expected format "major.minor.micro.patch", e.g. "5921.22.2211.8881706".
-    #[serde(default, rename = "minimumAndroidStudioVersion")]
-    pub minimum_android_studio_version: ::core::option::Option<String>,
-}
-
-/// Data about the relative number of devices running a given configuration of the Android platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Distribution {
-    /// Output only. The estimated fraction (0-1) of the total market with this configuration.
-    #[serde(default, rename = "marketShare")]
-    pub market_share: ::core::option::Option<f64>,
-    /// Output only. The time this distribution was measured.
-    #[serde(default, rename = "measurementTime")]
-    pub measurement_time: ::core::option::Option<String>,
-}
-
-/// The environment in which the test is run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Environment {
-    /// An Android device which must be used with an Android test.
-    #[serde(default, rename = "androidDevice")]
-    pub android_device: ::core::option::Option<AndroidDevice>,
-    /// An iOS device which must be used with an iOS test.
-    #[serde(default, rename = "iosDevice")]
-    pub ios_device: ::core::option::Option<IosDevice>,
-}
-
-/// The matrix of environments in which the test is to be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentMatrix {
-    /// A list of Android devices; the test will be run only on the specified devices.
-    #[serde(default, rename = "androidDeviceList")]
-    pub android_device_list: ::core::option::Option<AndroidDeviceList>,
-    /// A matrix of Android devices.
-    #[serde(default, rename = "androidMatrix")]
-    pub android_matrix: ::core::option::Option<AndroidMatrix>,
-    /// A list of iOS devices.
-    #[serde(default, rename = "iosDeviceList")]
-    pub ios_device_list: ::core::option::Option<IosDeviceList>,
-}
-
-/// A key-value pair passed as an environment variable to the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentVariable {
-    /// Key for the environment variable.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Value for the environment variable.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// A reference to a file, used for user inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileReference {
-    /// A path to a file in Google Cloud Storage. Example: gs://build-app-1414623860166/app%40debug-unaligned.apk These paths are expected to be url encoded (percent encoding)
-    #[serde(default, rename = "gcsPath")]
-    pub gcs_path: ::core::option::Option<String>,
-}
-
-/// Response containing the details of the specified Android application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetApkDetailsResponse {
-    /// Details of the Android App.
-    #[serde(default, rename = "apkDetail")]
-    pub apk_detail: ::core::option::Option<ApkDetail>,
-}
-
-/// A storage location within Google cloud storage (GCS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudStorage {
-    /// Required. The path to a directory in GCS that will eventually contain the results for this test. The requesting user must have write access on the bucket in the supplied path.
-    #[serde(default, rename = "gcsPath")]
-    pub gcs_path: ::core::option::Option<String>,
-}
-
-/// The section of an tag. https://developer.android.com/guide/topics/manifest/intent-filter-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntentFilter {
-    /// The android:name value of the tag.
-    #[serde(default, rename = "actionNames")]
-    pub action_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The android:name value of the tag.
-    #[serde(default, rename = "categoryNames")]
-    pub category_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The android:mimeType value of the tag.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// A single iOS device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosDevice {
-    /// Required. The id of the iOS device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "iosModelId")]
-    pub ios_model_id: ::core::option::Option<String>,
-    /// Required. The id of the iOS major software version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default, rename = "iosVersionId")]
-    pub ios_version_id: ::core::option::Option<String>,
-    /// Required. The locale the test device used for testing. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.
-    #[serde(default)]
-    pub orientation: ::core::option::Option<String>,
-}
-
-/// The currently supported iOS devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosDeviceCatalog {
-    /// The set of supported iOS device models.
-    #[serde(default)]
-    pub models: ::core::option::Option<::std::vec::Vec<IosModel>>,
-    /// The set of supported runtime configurations.
-    #[serde(default, rename = "runtimeConfiguration")]
-    pub runtime_configuration: ::core::option::Option<IosRuntimeConfiguration>,
-    /// The set of supported iOS software versions.
-    #[serde(default)]
-    pub versions: ::core::option::Option<::std::vec::Vec<IosVersion>>,
-    /// The set of supported Xcode versions.
-    #[serde(default, rename = "xcodeVersions")]
-    pub xcode_versions: ::core::option::Option<::std::vec::Vec<XcodeVersion>>,
-}
-
-/// A file or directory to install on the device before the test starts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosDeviceFile {
-    /// The bundle id of the app where this file lives. iOS apps sandbox their own filesystem, so app files must specify which app installed on the device.
-    #[serde(default, rename = "bundleId")]
-    pub bundle_id: ::core::option::Option<String>,
-    /// The source file
-    #[serde(default)]
-    pub content: ::core::option::Option<FileReference>,
-    /// Location of the file on the device, inside the app''s sandboxed filesystem
-    #[serde(default, rename = "devicePath")]
-    pub device_path: ::core::option::Option<String>,
-}
-
-/// A list of iOS device configurations in which the test is to be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosDeviceList {
-    /// Required. A list of iOS devices.
-    #[serde(default, rename = "iosDevices")]
-    pub ios_devices: ::core::option::Option<::std::vec::Vec<IosDevice>>,
 }
 
 /// A description of an iOS device tests may be run on.
@@ -627,20 +492,6 @@ pub struct IosModel {
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A test that explores an iOS application on an iOS device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosRoboTest {
-    /// The bundle ID for the app-under-test. This is determined by examining the application''s "Info.plist" file.
-    #[serde(default, rename = "appBundleId")]
-    pub app_bundle_id: ::core::option::Option<String>,
-    /// Required. The ipa stored at this file should be used to run the test.
-    #[serde(default, rename = "appIpa")]
-    pub app_ipa: ::core::option::Option<FileReference>,
-    /// An optional Roboscript to customize the crawl. See https://firebase.google.com/docs/test-lab/android/robo-scripts-reference for more information about Roboscripts. The maximum allowed file size of the roboscript is 10MiB.
-    #[serde(default, rename = "roboScript")]
-    pub robo_script: ::core::option::Option<FileReference>,
-}
-
 /// iOS configuration that can be selected at the time a test is run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IosRuntimeConfiguration {
@@ -650,37 +501,6 @@ pub struct IosRuntimeConfiguration {
     /// The set of available orientations.
     #[serde(default)]
     pub orientations: ::core::option::Option<::std::vec::Vec<Orientation>>,
-}
-
-/// A test of an iOS application that implements one or more game loop scenarios. This test type accepts an archived application (.ipa file) and a list of integer scenarios that will be executed on the app sequentially.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosTestLoop {
-    /// Output only. The bundle id for the application under test.
-    #[serde(default, rename = "appBundleId")]
-    pub app_bundle_id: ::core::option::Option<String>,
-    /// Required. The .ipa of the application to test.
-    #[serde(default, rename = "appIpa")]
-    pub app_ipa: ::core::option::Option<FileReference>,
-    /// The list of scenarios that should be run during the test. Defaults to the single scenario 0 if unspecified.
-    #[serde(default)]
-    pub scenarios: ::core::option::Option<::std::vec::Vec<i32>>,
-}
-
-/// A description of how to set up an iOS device prior to running the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosTestSetup {
-    /// iOS apps to install in addition to those being directly tested.
-    #[serde(default, rename = "additionalIpas")]
-    pub additional_ipas: ::core::option::Option<::std::vec::Vec<FileReference>>,
-    /// The network traffic profile used for running the test. Available network profiles can be queried by using the NETWORK_CONFIGURATION environment type when calling TestEnvironmentDiscoveryService.GetTestEnvironmentCatalog.
-    #[serde(default, rename = "networkProfile")]
-    pub network_profile: ::core::option::Option<String>,
-    /// List of directories on the device to upload to Cloud Storage at the end of the test. Directories should either be in a shared directory (such as /private/var/mobile/Media) or within an accessible directory inside the app''s filesystem (such as /Documents) by specifying the bundle ID.
-    #[serde(default, rename = "pullDirectories")]
-    pub pull_directories: ::core::option::Option<::std::vec::Vec<IosDeviceFile>>,
-    /// List of files to push to the device before starting the test.
-    #[serde(default, rename = "pushFiles")]
-    pub push_files: ::core::option::Option<::std::vec::Vec<IosDeviceFile>>,
 }
 
 /// An iOS version.
@@ -703,93 +523,15 @@ pub struct IosVersion {
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A test of an iOS application that uses the XCTest framework. Xcode supports the option to "build for testing", which generates an .xctestrun file that contains a test specification (arguments, test methods, etc). This test type accepts a zip file containing the .xctestrun file and the corresponding contents of the Build/Products directory that contains all the binaries needed to run the tests.
+/// An Xcode version that an iOS version is compatible with.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IosXcTest {
-    /// Output only. The bundle id for the application under test.
-    #[serde(default, rename = "appBundleId")]
-    pub app_bundle_id: ::core::option::Option<String>,
-    /// The option to test special app entitlements. Setting this would re-sign the app having special entitlements with an explicit application-identifier. Currently supports testing aps-environment entitlement.
-    #[serde(default, rename = "testSpecialEntitlements")]
-    pub test_special_entitlements: ::core::option::Option<bool>,
-    /// Required. The .zip containing the .xctestrun file and the contents of the DerivedData/Build/Products directory. The .xctestrun file in this zip is ignored if the xctestrun field is specified.
-    #[serde(default, rename = "testsZip")]
-    pub tests_zip: ::core::option::Option<FileReference>,
-    /// The Xcode version that should be used for the test. Use the TestEnvironmentDiscoveryService to get supported options. Defaults to the latest Xcode version Firebase Test Lab supports.
-    #[serde(default, rename = "xcodeVersion")]
-    pub xcode_version: ::core::option::Option<String>,
-    /// An .xctestrun file that will override the .xctestrun file in the tests zip. Because the .xctestrun file contains environment variables along with test methods to run and/or ignore, this can be useful for sharding tests. Default is taken from the tests zip.
-    #[serde(default)]
-    pub xctestrun: ::core::option::Option<FileReference>,
-}
-
-/// Lab specific information for a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LabInfo {
-    /// Lab name where the device is hosted. If empty, the device is hosted in a Google owned lab.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The Unicode country/region code (CLDR) of the lab where the device is hosted. E.g. "US" for United States, "CH" for Switzerland.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// A list of device sessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDeviceSessionsResponse {
-    /// The sessions matching the specified filter in the given cloud project.
-    #[serde(default, rename = "deviceSessions")]
-    pub device_sessions: ::core::option::Option<::std::vec::Vec<DeviceSession>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A location/region designation for language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Locale {
-    /// The id for this locale. Example: "en_US".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A human-friendly name for this language/locale. Example: "English".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A human-friendly string representing the region for this locale. Example: "United States". Not present for every locale.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// Tags for this dimension. Example: "default".
+pub struct XcodeVersion {
+    /// Tags for this Xcode version. Example: "default".
     #[serde(default)]
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Shards test cases into the specified groups of packages, classes, and/or methods. With manual sharding enabled, specifying test targets via environment_variables or in InstrumentationTest is invalid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManualSharding {
-    /// Required. Group of packages, classes, and/or test methods to be run for each manually-created shard. You must specify at least one shard if this field is present. When you select one or more physical devices, the number of repeated test_targets_for_shard must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
-    #[serde(default, rename = "testTargetsForShard")]
-    pub test_targets_for_shard: ::core::option::Option<::std::vec::Vec<TestTargetsForShard>>,
-}
-
-/// Describes a single error or issue with a matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MatrixErrorDetail {
-    /// Output only. A human-readable message about how the error in the TestMatrix. Expands on the reason field with additional details and possible options to fix the issue.
+    /// The id for this version. Example: "9.2".
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. The reason for the error. This is a constant value in UPPER_SNAKE_CASE that identifies the cause of the error.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// A tag within a manifest. https://developer.android.com/guide/topics/manifest/meta-data-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Metadata {
-    /// The android:name value
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The android:value value
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// NetworkConfiguration resource type.
@@ -806,159 +548,92 @@ pub struct NetworkConfiguration {
     pub up_rule: ::core::option::Option<TrafficRule>,
 }
 
-/// NetworkConfigurationCatalog resource type.
+/// Key-value pair of detailed information about the client which invoked the test. Examples: {''Version'', ''1.0''}, {''Release Track'', ''BETA''}.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfigurationCatalog {
+pub struct ClientInfoDetail {
+    /// Required. The key of detailed client information.
     #[serde(default)]
-    pub configurations: ::core::option::Option<::std::vec::Vec<NetworkConfiguration>>,
-}
-
-/// An opaque binary blob file to install on the device before the test starts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObbFile {
-    /// Required. Opaque Binary Blob (OBB) file(s) to install on the device.
+    pub key: ::core::option::Option<String>,
+    /// Required. The value of detailed client information.
     #[serde(default)]
-    pub obb: ::core::option::Option<FileReference>,
-    /// Required. OBB file name which must conform to the format as specified by Android e.g. [main|patch].0300110.com.example.android.obb which will be installed into \/Android/obb/\/ on the device.
-    #[serde(default, rename = "obbFileName")]
-    pub obb_file_name: ::core::option::Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
-/// Screen orientation of the device.
+/// A list of Android device configurations in which the test is to be executed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Orientation {
-    /// The id for this orientation. Example: "portrait".
+pub struct AndroidDeviceList {
+    /// Required. A list of Android devices.
+    #[serde(default, rename = "androidDevices")]
+    pub android_devices: ::core::option::Option<::std::vec::Vec<AndroidDevice>>,
+}
+
+/// A set of Android device configuration permutations is defined by the the cross-product of the given axes. Internally, the given AndroidMatrix will be expanded into a set of AndroidDevices. Only supported permutations will be instantiated. Invalid permutations (e.g., incompatible models/versions) are ignored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidMatrix {
+    /// Required. The ids of the set of Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "androidModelIds")]
+    pub android_model_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The ids of the set of Android OS version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "androidVersionIds")]
+    pub android_version_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The set of locales the test device will enable for testing. Use the TestEnvironmentDiscoveryService to get supported options.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// A human-friendly name for this orientation. Example: "portrait".
+    pub locales: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The set of orientations to test with. Use the TestEnvironmentDiscoveryService to get supported options.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Tags for this dimension. Example: "default".
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    pub orientations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A version-specific information of an Android model.
+/// A list of iOS device configurations in which the test is to be executed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerAndroidVersionInfo {
-    /// The number of online devices for an Android version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
-    #[serde(default, rename = "deviceCapacity")]
-    pub device_capacity: ::core::option::Option<String>,
-    /// Output only. Identifies supported clients for DirectAccess for this Android version.
-    #[serde(default, rename = "directAccessVersionInfo")]
-    pub direct_access_version_info: ::core::option::Option<DirectAccessVersionInfo>,
-    /// Output only. The estimated wait time for a single interactive device session using Direct Access.
-    #[serde(default, rename = "interactiveDeviceAvailabilityEstimate")]
-    pub interactive_device_availability_estimate: ::core::option::Option<String>,
-    /// An Android version.
-    #[serde(default, rename = "versionId")]
-    pub version_id: ::core::option::Option<String>,
+pub struct IosDeviceList {
+    /// Required. A list of iOS devices.
+    #[serde(default, rename = "iosDevices")]
+    pub ios_devices: ::core::option::Option<::std::vec::Vec<IosDevice>>,
 }
 
-/// A version-specific information of an iOS model.
+/// A storage location within Google cloud storage (GCS).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerIosVersionInfo {
-    /// The number of online devices for an iOS version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
-    #[serde(default, rename = "deviceCapacity")]
-    pub device_capacity: ::core::option::Option<String>,
-    /// An iOS version.
-    #[serde(default, rename = "versionId")]
-    pub version_id: ::core::option::Option<String>,
+pub struct GoogleCloudStorage {
+    /// Required. The path to a directory in GCS that will eventually contain the results for this test. The requesting user must have write access on the bucket in the supplied path.
+    #[serde(default, rename = "gcsPath")]
+    pub gcs_path: ::core::option::Option<String>,
 }
 
-/// The currently provided software environment on the devices under test.
+/// Represents a tool results execution resource. This has the results of a TestMatrix.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProvidedSoftwareCatalog {
-    /// A string representing the current version of AndroidX Test Orchestrator that is used in the environment. The package is available at https://maven.google.com/web/index.html#androidx.test:orchestrator.
-    #[serde(default, rename = "androidxOrchestratorVersion")]
-    pub androidx_orchestrator_version: ::core::option::Option<String>,
-    /// Deprecated: Use AndroidX Test Orchestrator going forward. A string representing the current version of Android Test Orchestrator that is used in the environment. The package is available at https://maven.google.com/web/index.html#com.android.support.test:orchestrator.
-    #[serde(default, rename = "orchestratorVersion")]
-    pub orchestrator_version: ::core::option::Option<String>,
+pub struct ToolResultsExecution {
+    /// Output only. A tool results execution ID.
+    #[serde(default, rename = "executionId")]
+    pub execution_id: ::core::option::Option<String>,
+    /// Output only. A tool results history ID.
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// Output only. The cloud project that owns the tool results execution.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
 }
 
-/// A file or directory to install on the device before the test starts.
+/// Represents a tool results history resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegularFile {
-    /// Required. The source file.
-    #[serde(default)]
-    pub content: ::core::option::Option<FileReference>,
-    /// Required. Where to put the content on the device. Must be an absolute, allowlisted path. If the file exists, it will be replaced. The following device-side directories and any of their subdirectories are allowlisted: ${EXTERNAL_STORAGE}, /sdcard ${ANDROID_DATA}/local/tmp, or /data/local/tmp Specifying a path outside of these directory trees is invalid. The paths /sdcard and /data will be made available and treated as implicit path substitutions. E.g. if /sdcard on a particular device does not map to external storage, the system will replace it with the external storage path prefix for that device and copy the file there. It is strongly advised to use the Environment API in app and test code to access files on the device in a portable way.
-    #[serde(default, rename = "devicePath")]
-    pub device_path: ::core::option::Option<String>,
+pub struct ToolResultsHistory {
+    /// Required. A tool results history ID.
+    #[serde(default, rename = "historyId")]
+    pub history_id: ::core::option::Option<String>,
+    /// Required. The cloud project that owns the tool results history.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
 }
 
-/// Locations where the results of running the test are stored.
+/// The environment in which the test is run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResultStorage {
-    /// Required.
-    #[serde(default, rename = "googleCloudStorage")]
-    pub google_cloud_storage: ::core::option::Option<GoogleCloudStorage>,
-    /// Output only. URL to the results in the Firebase Web Console.
-    #[serde(default, rename = "resultsUrl")]
-    pub results_url: ::core::option::Option<String>,
-    /// Output only. The tool results execution that results are written to.
-    #[serde(default, rename = "toolResultsExecution")]
-    pub tool_results_execution: ::core::option::Option<ToolResultsExecution>,
-    /// The tool results history that contains the tool results execution that results are written to. If not provided, the service will choose an appropriate value.
-    #[serde(default, rename = "toolResultsHistory")]
-    pub tool_results_history: ::core::option::Option<ToolResultsHistory>,
-}
-
-/// Directs Robo to interact with a specific UI element if it is encountered during the crawl. Currently, Robo can perform text entry or element click.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoboDirective {
-    /// Required. The type of action that Robo should perform on the specified element. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "SINGLE_CLICK", "ENTER_TEXT", "IGNORE"]
-    #[serde(default, rename = "actionType")]
-    pub action_type: ::core::option::Option<String>,
-    /// The text that Robo is directed to set. If left empty, the directive will be treated as a CLICK on the element matching the resource_name.
-    #[serde(default, rename = "inputText")]
-    pub input_text: ::core::option::Option<String>,
-    /// Required. The android resource name of the target UI element. For example, in Java: R.string.foo in xml: @string/foo Only the "foo" part is needed. Reference doc: https://developer.android.com/guide/topics/resources/accessing-resources.html
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// Message for specifying the start activities to crawl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoboStartingIntent {
-    /// An intent that starts the main launcher activity.
-    #[serde(default, rename = "launcherActivity")]
-    pub launcher_activity: ::core::option::Option<serde_json::Value>,
-    /// Skips the starting activity
-    #[serde(default, rename = "noActivity")]
-    pub no_activity: ::core::option::Option<serde_json::Value>,
-    /// An intent that starts an activity with specific details.
-    #[serde(default, rename = "startActivity")]
-    pub start_activity: ::core::option::Option<StartActivityIntent>,
-    /// Timeout in seconds for each intent.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// The section of an tag. https://developer.android.com/guide/topics/manifest/service-element
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Service {
-    /// Intent filters in the service
-    #[serde(default, rename = "intentFilter")]
-    pub intent_filter: ::core::option::Option<::std::vec::Vec<IntentFilter>>,
-    /// The android:name value
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A message encapsulating a series of Session states and the time that the DeviceSession first entered those states.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionStateEvent {
-    /// Output only. The time that the session_state first encountered that state.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Output only. The session_state tracked by this event // TODO: enum values: ["SESSION_STATE_UNSPECIFIED", "REQUESTED", "PENDING", "ACTIVE", "EXPIRED", "FINISHED", "UNAVAILABLE", "ERROR"]
-    #[serde(default, rename = "sessionState")]
-    pub session_state: ::core::option::Option<String>,
-    /// Output only. A human-readable message to explain the state.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
+pub struct Environment {
+    /// An Android device which must be used with an Android test.
+    #[serde(default, rename = "androidDevice")]
+    pub android_device: ::core::option::Option<AndroidDevice>,
+    /// An iOS device which must be used with an iOS test.
+    #[serde(default, rename = "iosDevice")]
+    pub ios_device: ::core::option::Option<IosDevice>,
 }
 
 /// Output only. Details about the shard.
@@ -978,50 +653,6 @@ pub struct Shard {
     pub test_targets_for_shard: ::core::option::Option<TestTargetsForShard>,
 }
 
-/// Options for enabling sharding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShardingOption {
-    /// Shards test cases into the specified groups of packages, classes, and/or methods.
-    #[serde(default, rename = "manualSharding")]
-    pub manual_sharding: ::core::option::Option<ManualSharding>,
-    /// Shards test based on previous test case timing records.
-    #[serde(default, rename = "smartSharding")]
-    pub smart_sharding: ::core::option::Option<SmartSharding>,
-    /// Uniformly shards test cases given a total number of shards.
-    #[serde(default, rename = "uniformSharding")]
-    pub uniform_sharding: ::core::option::Option<UniformSharding>,
-}
-
-/// Shards test based on previous test case timing records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SmartSharding {
-    /// The amount of time tests within a shard should take. Default: 300 seconds (5 minutes). The minimum allowed: 120 seconds (2 minutes). The shard count is dynamically set based on time, up to the maximum shard limit (described below). To guarantee at least one test case for each shard, the number of shards will not exceed the number of test cases. Shard duration will be exceeded if: - The maximum shard limit is reached and there is more calculated test time remaining to allocate into shards. - Any individual test is estimated to be longer than the targeted shard duration. Shard duration is not guaranteed because smart sharding uses test case history and default durations which may not be accurate. The rules for finding the test case timing records are: - If the service has processed a test case in the last 30 days, the record of the latest successful test case will be used. - For new test cases, the average duration of other known test cases will be used. - If there are no previous test case timing records available, the default test case duration is 15 seconds. Because the actual shard duration can exceed the targeted shard duration, we recommend that you set the targeted value at least 5 minutes less than the maximum allowed test timeout (45 minutes for physical devices and 60 minutes for virtual), or that you use the custom test timeout value that you set. This approach avoids cancelling the shard before all tests can finish. Note that there is a limit for maximum number of shards. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500. To guarantee at least one test case for per shard, the number of shards will not exceed the number of test cases. Each shard created counts toward daily test quota.
-    #[serde(default, rename = "targetedShardDuration")]
-    pub targeted_shard_duration: ::core::option::Option<String>,
-}
-
-/// A starting intent specified by an action, uri, and categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartActivityIntent {
-    /// Action name. Required for START_ACTIVITY.
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Intent categories to set on the intent.
-    #[serde(default)]
-    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
-    /// URI for the action.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// SystraceSetup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystraceSetup {
-    /// Systrace duration in seconds. Should be between 1 and 30 seconds. 0 disables systrace.
-    #[serde(default, rename = "durationSeconds")]
-    pub duration_seconds: ::core::option::Option<i32>,
-}
-
 /// Additional details about the progress of the running test.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestDetails {
@@ -1031,140 +662,6 @@ pub struct TestDetails {
     /// Output only. Human-readable, detailed descriptions of the test''s progress. For example: "Provisioning a device", "Starting Test". During the course of execution new data may be appended to the end of progress_messages.
     #[serde(default, rename = "progressMessages")]
     pub progress_messages: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A description of a test environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestEnvironmentCatalog {
-    /// Supported Android devices.
-    #[serde(default, rename = "androidDeviceCatalog")]
-    pub android_device_catalog: ::core::option::Option<AndroidDeviceCatalog>,
-    /// The IP blocks used by devices in the test environment.
-    #[serde(default, rename = "deviceIpBlockCatalog")]
-    pub device_ip_block_catalog: ::core::option::Option<DeviceIpBlockCatalog>,
-    /// Supported iOS devices.
-    #[serde(default, rename = "iosDeviceCatalog")]
-    pub ios_device_catalog: ::core::option::Option<IosDeviceCatalog>,
-    /// Supported network configurations.
-    #[serde(default, rename = "networkConfigurationCatalog")]
-    pub network_configuration_catalog: ::core::option::Option<NetworkConfigurationCatalog>,
-    /// The software test environment provided by TestExecutionService.
-    #[serde(default, rename = "softwareCatalog")]
-    pub software_catalog: ::core::option::Option<ProvidedSoftwareCatalog>,
-}
-
-/// A single test executed in a single environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestExecution {
-    /// Output only. How the host machine(s) are configured.
-    #[serde(default)]
-    pub environment: ::core::option::Option<Environment>,
-    /// Output only. Unique id set by the service.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Id of the containing TestMatrix.
-    #[serde(default, rename = "matrixId")]
-    pub matrix_id: ::core::option::Option<String>,
-    /// Output only. The cloud project that owns the test execution.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Output only. Details about the shard.
-    #[serde(default)]
-    pub shard: ::core::option::Option<Shard>,
-    /// Output only. Indicates the current progress of the test execution (e.g., FINISHED). // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Additional details about the running test.
-    #[serde(default, rename = "testDetails")]
-    pub test_details: ::core::option::Option<TestDetails>,
-    /// Output only. How to run the test.
-    #[serde(default, rename = "testSpecification")]
-    pub test_specification: ::core::option::Option<TestSpecification>,
-    /// Output only. The time this test execution was initially created.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-    /// Output only. Where the results for this execution are written.
-    #[serde(default, rename = "toolResultsStep")]
-    pub tool_results_step: ::core::option::Option<ToolResultsStep>,
-}
-
-/// TestMatrix captures all details about a test. It contains the environment configuration, test specification, test executions and overall state and outcome.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestMatrix {
-    /// Information about the client which invoked the test.
-    #[serde(default, rename = "clientInfo")]
-    pub client_info: ::core::option::Option<ClientInfo>,
-    /// Required. The devices the tests are being executed on.
-    #[serde(default, rename = "environmentMatrix")]
-    pub environment_matrix: ::core::option::Option<EnvironmentMatrix>,
-    /// Output only. Details about why a matrix was deemed invalid. If multiple checks can be safely performed, they will be reported but no assumptions should be made about the length of this list.
-    #[serde(default, rename = "extendedInvalidMatrixDetails")]
-    pub extended_invalid_matrix_details: ::core::option::Option<::std::vec::Vec<MatrixErrorDetail>>,
-    /// If true, only a single attempt at most will be made to run each execution/shard in the matrix. Flaky test attempts are not affected. Normally, 2 or more attempts are made if a potential infrastructure issue is detected. This feature is for latency sensitive workloads. The incidence of execution failures may be significantly greater for fail-fast matrices and support is more limited because of that expectation.
-    #[serde(default, rename = "failFast")]
-    pub fail_fast: ::core::option::Option<bool>,
-    /// The number of times a TestExecution should be re-attempted if one or more of its test cases fail for any reason. The maximum number of reruns allowed is 10. Default is 0, which implies no reruns.
-    #[serde(default, rename = "flakyTestAttempts")]
-    pub flaky_test_attempts: ::core::option::Option<i32>,
-    /// Output only. Describes why the matrix is considered invalid. Only useful for matrices in the INVALID state. // TODO: enum values: ["INVALID_MATRIX_DETAILS_UNSPECIFIED", "DETAILS_UNAVAILABLE", "MALFORMED_APK", "MALFORMED_TEST_APK", "NO_MANIFEST", "NO_PACKAGE_NAME", "INVALID_PACKAGE_NAME", "TEST_SAME_AS_APP", "NO_INSTRUMENTATION", "NO_SIGNATURE", "INSTRUMENTATION_ORCHESTRATOR_INCOMPATIBLE", "NO_TEST_RUNNER_CLASS", "NO_LAUNCHER_ACTIVITY", "FORBIDDEN_PERMISSIONS", "INVALID_ROBO_DIRECTIVES", "INVALID_RESOURCE_NAME", "INVALID_DIRECTIVE_ACTION", "TEST_LOOP_INTENT_FILTER_NOT_FOUND", "SCENARIO_LABEL_NOT_DECLARED", "SCENARIO_LABEL_MALFORMED", "SCENARIO_NOT_DECLARED", "DEVICE_ADMIN_RECEIVER", "MALFORMED_XC_TEST_ZIP", "BUILT_FOR_IOS_SIMULATOR", "NO_TESTS_IN_XC_TEST_ZIP", "USE_DESTINATION_ARTIFACTS", "TEST_NOT_APP_HOSTED", "PLIST_CANNOT_BE_PARSED", "TEST_ONLY_APK", "MALFORMED_IPA", "MISSING_URL_SCHEME", "MALFORMED_APP_BUNDLE", "NO_CODE_APK", "INVALID_INPUT_APK", "INVALID_APK_PREVIEW_SDK", "MATRIX_TOO_LARGE", "TEST_QUOTA_EXCEEDED", "SERVICE_NOT_ACTIVATED", "UNKNOWN_PERMISSION_ERROR"]
-    #[serde(default, rename = "invalidMatrixDetails")]
-    pub invalid_matrix_details: ::core::option::Option<String>,
-    /// Output Only. The overall outcome of the test. Only set when the test matrix state is FINISHED. // TODO: enum values: ["OUTCOME_SUMMARY_UNSPECIFIED", "SUCCESS", "FAILURE", "INCONCLUSIVE", "SKIPPED"]
-    #[serde(default, rename = "outcomeSummary")]
-    pub outcome_summary: ::core::option::Option<String>,
-    /// The cloud project that owns the test matrix.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Required. Where the results for the matrix are written.
-    #[serde(default, rename = "resultStorage")]
-    pub result_storage: ::core::option::Option<ResultStorage>,
-    /// Output only. Indicates the current progress of the test matrix. // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The list of test executions that the service creates for this matrix.
-    #[serde(default, rename = "testExecutions")]
-    pub test_executions: ::core::option::Option<::std::vec::Vec<TestExecution>>,
-    /// Output only. Unique id set by the service.
-    #[serde(default, rename = "testMatrixId")]
-    pub test_matrix_id: ::core::option::Option<String>,
-    /// Required. How to run the test.
-    #[serde(default, rename = "testSpecification")]
-    pub test_specification: ::core::option::Option<TestSpecification>,
-    /// Output only. The time this test matrix was initially created.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// A description of how to set up the Android device prior to running the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestSetup {
-    /// The device will be logged in on this account for the duration of the test.
-    #[serde(default)]
-    pub account: ::core::option::Option<Account>,
-    /// APKs to install in addition to those being directly tested. These will be installed after the app under test. Limited to a combined total of 100 initial setup and additional files.
-    #[serde(default, rename = "additionalApks")]
-    pub additional_apks: ::core::option::Option<::std::vec::Vec<Apk>>,
-    /// List of directories on the device to upload to GCS at the end of the test; they must be absolute paths under /sdcard, /storage or /data/local/tmp. Path names are restricted to characters a-z A-Z 0-9 _ - . + and / Note: The paths /sdcard and /data will be made available and treated as implicit path substitutions. E.g. if /sdcard on a particular device does not map to external storage, the system will replace it with the external storage path prefix for that device.
-    #[serde(default, rename = "directoriesToPull")]
-    pub directories_to_pull: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether to prevent all runtime permissions to be granted at app install
-    #[serde(default, rename = "dontAutograntPermissions")]
-    pub dont_autogrant_permissions: ::core::option::Option<bool>,
-    /// Environment variables to set for the test (only applicable for instrumentation tests).
-    #[serde(default, rename = "environmentVariables")]
-    pub environment_variables: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
-    /// List of files to push to the device before starting the test.
-    #[serde(default, rename = "filesToPush")]
-    pub files_to_push: ::core::option::Option<::std::vec::Vec<DeviceFile>>,
-    /// Optional. Initial setup APKs to install before the app under test is installed. Limited to a combined total of 100 initial setup and additional files.
-    #[serde(default, rename = "initialSetupApks")]
-    pub initial_setup_apks: ::core::option::Option<::std::vec::Vec<Apk>>,
-    /// The network traffic profile used for running the test. Available network profiles can be queried by using the NETWORK_CONFIGURATION environment type when calling TestEnvironmentDiscoveryService.GetTestEnvironmentCatalog.
-    #[serde(default, rename = "networkProfile")]
-    pub network_profile: ::core::option::Option<String>,
-    /// Systrace configuration for the run. Deprecated: Systrace used Python 2 which was sunsetted on 2020-01-01. Systrace is no longer supported in the Cloud Testing API, and no Systrace file will be provided in the results.
-    #[serde(default)]
-    pub systrace: ::core::option::Option<SystraceSetup>,
 }
 
 /// A description of how to run the test.
@@ -1205,39 +702,6 @@ pub struct TestSpecification {
     pub test_timeout: ::core::option::Option<String>,
 }
 
-/// Test targets for a shard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestTargetsForShard {
-    /// Group of packages, classes, and/or test methods to be run for each shard. The targets need to be specified in AndroidJUnitRunner argument format. For example, "package com.my.packages" "class com.my.package.MyClass". The number of test_targets must be greater than 0.
-    #[serde(default, rename = "testTargets")]
-    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents a tool results execution resource. This has the results of a TestMatrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolResultsExecution {
-    /// Output only. A tool results execution ID.
-    #[serde(default, rename = "executionId")]
-    pub execution_id: ::core::option::Option<String>,
-    /// Output only. A tool results history ID.
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// Output only. The cloud project that owns the tool results execution.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// Represents a tool results history resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolResultsHistory {
-    /// Required. A tool results history ID.
-    #[serde(default, rename = "historyId")]
-    pub history_id: ::core::option::Option<String>,
-    /// Required. The cloud project that owns the tool results history.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
 /// Represents a tool results step resource. This has the results of a TestExecution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolResultsStep {
@@ -1255,32 +719,26 @@ pub struct ToolResultsStep {
     pub step_id: ::core::option::Option<String>,
 }
 
-/// Network emulation parameters.
+/// A tag within a manifest. https://developer.android.com/guide/topics/manifest/meta-data-element.html
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrafficRule {
-    /// Bandwidth in kbits/second.
+pub struct Metadata {
+    /// The android:name value
     #[serde(default)]
-    pub bandwidth: ::core::option::Option<f32>,
-    /// Burst size in kbits.
+    pub name: ::core::option::Option<String>,
+    /// The android:value value
     #[serde(default)]
-    pub burst: ::core::option::Option<f32>,
-    /// Packet delay, must be &gt;= 0.
-    #[serde(default)]
-    pub delay: ::core::option::Option<String>,
-    /// Packet duplication ratio (0.0 - 1.0).
-    #[serde(default, rename = "packetDuplicationRatio")]
-    pub packet_duplication_ratio: ::core::option::Option<f32>,
-    /// Packet loss ratio (0.0 - 1.0).
-    #[serde(default, rename = "packetLossRatio")]
-    pub packet_loss_ratio: ::core::option::Option<f32>,
+    pub value: ::core::option::Option<String>,
 }
 
-/// Uniformly shards test cases given a total number of shards. For instrumentation tests, it will be translated to "-e numShard" and "-e shardIndex" AndroidJUnitRunner arguments. With uniform sharding enabled, specifying either of these sharding arguments via environment_variables is invalid. Based on the sharding mechanism AndroidJUnitRunner uses, there is no guarantee that test cases will be distributed uniformly across all shards.
+/// The section of an tag. https://developer.android.com/guide/topics/manifest/service-element
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UniformSharding {
-    /// Required. The total number of shards to create. This must always be a positive number that is no greater than the total number of test cases. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
-    #[serde(default, rename = "numShards")]
-    pub num_shards: ::core::option::Option<i32>,
+pub struct Service {
+    /// Intent filters in the service
+    #[serde(default, rename = "intentFilter")]
+    pub intent_filter: ::core::option::Option<::std::vec::Vec<IntentFilter>>,
+    /// The android:name value
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A tag within a manifest. https://developer.android.com/guide/topics/manifest/uses-feature-element.html
@@ -1305,13 +763,555 @@ pub struct UsesPermissionTag {
     pub name: ::core::option::Option<String>,
 }
 
-/// An Xcode version that an iOS version is compatible with.
+/// Lab specific information for a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct XcodeVersion {
-    /// Tags for this Xcode version. Example: "default".
+pub struct LabInfo {
+    /// Lab name where the device is hosted. If empty, the device is hosted in a Google owned lab.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The Unicode country/region code (CLDR) of the lab where the device is hosted. E.g. "US" for United States, "CH" for Switzerland.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// A version-specific information of an Android model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerAndroidVersionInfo {
+    /// The number of online devices for an Android version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
+    #[serde(default, rename = "deviceCapacity")]
+    pub device_capacity: ::core::option::Option<String>,
+    /// Output only. Identifies supported clients for DirectAccess for this Android version.
+    #[serde(default, rename = "directAccessVersionInfo")]
+    pub direct_access_version_info: ::core::option::Option<DirectAccessVersionInfo>,
+    /// Output only. The estimated wait time for a single interactive device session using Direct Access.
+    #[serde(default, rename = "interactiveDeviceAvailabilityEstimate")]
+    pub interactive_device_availability_estimate: ::core::option::Option<String>,
+    /// An Android version.
+    #[serde(default, rename = "versionId")]
+    pub version_id: ::core::option::Option<String>,
+}
+
+/// Data about the relative number of devices running a given configuration of the Android platform.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Distribution {
+    /// Output only. The estimated fraction (0-1) of the total market with this configuration.
+    #[serde(default, rename = "marketShare")]
+    pub market_share: ::core::option::Option<f64>,
+    /// Output only. The time this distribution was measured.
+    #[serde(default, rename = "measurementTime")]
+    pub measurement_time: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// A version-specific information of an iOS model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerIosVersionInfo {
+    /// The number of online devices for an iOS version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
+    #[serde(default, rename = "deviceCapacity")]
+    pub device_capacity: ::core::option::Option<String>,
+    /// An iOS version.
+    #[serde(default, rename = "versionId")]
+    pub version_id: ::core::option::Option<String>,
+}
+
+/// A location/region designation for language.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Locale {
+    /// The id for this locale. Example: "en_US".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A human-friendly name for this language/locale. Example: "English".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A human-friendly string representing the region for this locale. Example: "United States". Not present for every locale.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Tags for this dimension. Example: "default".
     #[serde(default)]
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The id for this version. Example: "9.2".
+}
+
+/// Screen orientation of the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Orientation {
+    /// The id for this orientation. Example: "portrait".
     #[serde(default)]
-    pub version: ::core::option::Option<String>,
+    pub id: ::core::option::Option<String>,
+    /// A human-friendly name for this orientation. Example: "portrait".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Tags for this dimension. Example: "default".
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Network emulation parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficRule {
+    /// Bandwidth in kbits/second.
+    #[serde(default)]
+    pub bandwidth: ::core::option::Option<f32>,
+    /// Burst size in kbits.
+    #[serde(default)]
+    pub burst: ::core::option::Option<f32>,
+    /// Packet delay, must be &gt;= 0.
+    #[serde(default)]
+    pub delay: ::core::option::Option<String>,
+    /// Packet duplication ratio (0.0 - 1.0).
+    #[serde(default, rename = "packetDuplicationRatio")]
+    pub packet_duplication_ratio: ::core::option::Option<f32>,
+    /// Packet loss ratio (0.0 - 1.0).
+    #[serde(default, rename = "packetLossRatio")]
+    pub packet_loss_ratio: ::core::option::Option<f32>,
+}
+
+/// A single Android device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidDevice {
+    /// Required. The id of the Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "androidModelId")]
+    pub android_model_id: ::core::option::Option<String>,
+    /// Required. The id of the Android OS version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "androidVersionId")]
+    pub android_version_id: ::core::option::Option<String>,
+    /// Required. The locale the test device used for testing. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default)]
+    pub locale: ::core::option::Option<String>,
+    /// Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default)]
+    pub orientation: ::core::option::Option<String>,
+}
+
+/// A single iOS device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosDevice {
+    /// Required. The id of the iOS device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "iosModelId")]
+    pub ios_model_id: ::core::option::Option<String>,
+    /// Required. The id of the iOS major software version to be used. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default, rename = "iosVersionId")]
+    pub ios_version_id: ::core::option::Option<String>,
+    /// Required. The locale the test device used for testing. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default)]
+    pub locale: ::core::option::Option<String>,
+    /// Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.
+    #[serde(default)]
+    pub orientation: ::core::option::Option<String>,
+}
+
+/// A test of an Android application that can control an Android component independently of its normal lifecycle. Android instrumentation tests run an application APK and test APK inside the same process on a virtual or physical AndroidDevice. They also specify a test runner class, such as com.google.GoogleTestRunner, which can vary on the specific instrumentation framework chosen. See for more information on types of Android tests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidInstrumentationTest {
+    /// The APK for the application under test.
+    #[serde(default, rename = "appApk")]
+    pub app_apk: ::core::option::Option<FileReference>,
+    /// A multi-apk app bundle for the application under test.
+    #[serde(default, rename = "appBundle")]
+    pub app_bundle: ::core::option::Option<AppBundle>,
+    /// The java package for the application under test. The default value is determined by examining the application''s manifest.
+    #[serde(default, rename = "appPackageId")]
+    pub app_package_id: ::core::option::Option<String>,
+    /// The option of whether running each test within its own invocation of instrumentation with Android Test Orchestrator or not. ** Orchestrator is only compatible with AndroidJUnitRunner version 1.1 or higher! ** Orchestrator offers the following benefits: - No shared state - Crashes are isolated - Logs are scoped per test See for more information about Android Test Orchestrator. If not set, the test will be run without the orchestrator. // TODO: enum values: ["ORCHESTRATOR_OPTION_UNSPECIFIED", "USE_ORCHESTRATOR", "DO_NOT_USE_ORCHESTRATOR"]
+    #[serde(default, rename = "orchestratorOption")]
+    pub orchestrator_option: ::core::option::Option<String>,
+    /// The option to run tests in multiple shards in parallel.
+    #[serde(default, rename = "shardingOption")]
+    pub sharding_option: ::core::option::Option<ShardingOption>,
+    /// Required. The APK containing the test code to be executed.
+    #[serde(default, rename = "testApk")]
+    pub test_apk: ::core::option::Option<FileReference>,
+    /// The java package for the test to be executed. The default value is determined by examining the application''s manifest.
+    #[serde(default, rename = "testPackageId")]
+    pub test_package_id: ::core::option::Option<String>,
+    /// The InstrumentationTestRunner class. The default value is determined by examining the application''s manifest.
+    #[serde(default, rename = "testRunnerClass")]
+    pub test_runner_class: ::core::option::Option<String>,
+    /// Each target must be fully qualified with the package name or class name, in one of these formats: - "package package_name" - "class package_name.class_name" - "class package_name.class_name#method_name" If empty, all targets in the module will be run.
+    #[serde(default, rename = "testTargets")]
+    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A test of an android application that explores the application on a virtual or physical Android Device, finding culprits and crashes as it goes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidRoboTest {
+    /// The APK for the application under test.
+    #[serde(default, rename = "appApk")]
+    pub app_apk: ::core::option::Option<FileReference>,
+    /// A multi-apk app bundle for the application under test.
+    #[serde(default, rename = "appBundle")]
+    pub app_bundle: ::core::option::Option<AppBundle>,
+    /// The initial activity that should be used to start the app.
+    #[serde(default, rename = "appInitialActivity")]
+    pub app_initial_activity: ::core::option::Option<String>,
+    /// The java package for the application under test. The default value is determined by examining the application''s manifest.
+    #[serde(default, rename = "appPackageId")]
+    pub app_package_id: ::core::option::Option<String>,
+    /// The max depth of the traversal stack Robo can explore. Needs to be at least 2 to make Robo explore the app beyond the first activity. Default is 50.
+    #[serde(default, rename = "maxDepth")]
+    pub max_depth: ::core::option::Option<i32>,
+    /// The max number of steps Robo can execute. Default is no limit.
+    #[serde(default, rename = "maxSteps")]
+    pub max_steps: ::core::option::Option<i32>,
+    /// A set of directives Robo should apply during the crawl. This allows users to customize the crawl. For example, the username and password for a test account can be provided.
+    #[serde(default, rename = "roboDirectives")]
+    pub robo_directives: ::core::option::Option<::std::vec::Vec<RoboDirective>>,
+    /// The mode in which Robo should run. Most clients should allow the server to populate this field automatically. // TODO: enum values: ["ROBO_MODE_UNSPECIFIED", "ROBO_VERSION_1", "ROBO_VERSION_2"]
+    #[serde(default, rename = "roboMode")]
+    pub robo_mode: ::core::option::Option<String>,
+    /// A JSON file with a sequence of actions Robo should perform as a prologue for the crawl.
+    #[serde(default, rename = "roboScript")]
+    pub robo_script: ::core::option::Option<FileReference>,
+    /// The intents used to launch the app for the crawl. If none are provided, then the main launcher activity is launched. If some are provided, then only those provided are launched (the main launcher activity must be provided explicitly).
+    #[serde(default, rename = "startingIntents")]
+    pub starting_intents: ::core::option::Option<::std::vec::Vec<RoboStartingIntent>>,
+}
+
+/// A test of an Android Application with a Test Loop. The intent \ will be implicitly added, since Games is the only user of this api, for the time being.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidTestLoop {
+    /// The APK for the application under test.
+    #[serde(default, rename = "appApk")]
+    pub app_apk: ::core::option::Option<FileReference>,
+    /// A multi-apk app bundle for the application under test.
+    #[serde(default, rename = "appBundle")]
+    pub app_bundle: ::core::option::Option<AppBundle>,
+    /// The java package for the application under test. The default is determined by examining the application''s manifest.
+    #[serde(default, rename = "appPackageId")]
+    pub app_package_id: ::core::option::Option<String>,
+    /// The list of scenario labels that should be run during the test. The scenario labels should map to labels defined in the application''s manifest. For example, player_experience and com.google.test.loops.player_experience add all of the loops labeled in the manifest with the com.google.test.loops.player_experience name to the execution. Scenarios can also be specified in the scenarios field.
+    #[serde(default, rename = "scenarioLabels")]
+    pub scenario_labels: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The list of scenarios that should be run during the test. The default is all test loops, derived from the application''s manifest.
+    #[serde(default)]
+    pub scenarios: ::core::option::Option<::std::vec::Vec<i32>>,
+}
+
+/// A test that explores an iOS application on an iOS device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosRoboTest {
+    /// The bundle ID for the app-under-test. This is determined by examining the application''s "Info.plist" file.
+    #[serde(default, rename = "appBundleId")]
+    pub app_bundle_id: ::core::option::Option<String>,
+    /// Required. The ipa stored at this file should be used to run the test.
+    #[serde(default, rename = "appIpa")]
+    pub app_ipa: ::core::option::Option<FileReference>,
+    /// An optional Roboscript to customize the crawl. See https://firebase.google.com/docs/test-lab/android/robo-scripts-reference for more information about Roboscripts. The maximum allowed file size of the roboscript is 10MiB.
+    #[serde(default, rename = "roboScript")]
+    pub robo_script: ::core::option::Option<FileReference>,
+}
+
+/// A test of an iOS application that implements one or more game loop scenarios. This test type accepts an archived application (.ipa file) and a list of integer scenarios that will be executed on the app sequentially.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosTestLoop {
+    /// Output only. The bundle id for the application under test.
+    #[serde(default, rename = "appBundleId")]
+    pub app_bundle_id: ::core::option::Option<String>,
+    /// Required. The .ipa of the application to test.
+    #[serde(default, rename = "appIpa")]
+    pub app_ipa: ::core::option::Option<FileReference>,
+    /// The list of scenarios that should be run during the test. Defaults to the single scenario 0 if unspecified.
+    #[serde(default)]
+    pub scenarios: ::core::option::Option<::std::vec::Vec<i32>>,
+}
+
+/// A description of how to set up an iOS device prior to running the test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosTestSetup {
+    /// iOS apps to install in addition to those being directly tested.
+    #[serde(default, rename = "additionalIpas")]
+    pub additional_ipas: ::core::option::Option<::std::vec::Vec<FileReference>>,
+    /// The network traffic profile used for running the test. Available network profiles can be queried by using the NETWORK_CONFIGURATION environment type when calling TestEnvironmentDiscoveryService.GetTestEnvironmentCatalog.
+    #[serde(default, rename = "networkProfile")]
+    pub network_profile: ::core::option::Option<String>,
+    /// List of directories on the device to upload to Cloud Storage at the end of the test. Directories should either be in a shared directory (such as /private/var/mobile/Media) or within an accessible directory inside the app''s filesystem (such as /Documents) by specifying the bundle ID.
+    #[serde(default, rename = "pullDirectories")]
+    pub pull_directories: ::core::option::Option<::std::vec::Vec<IosDeviceFile>>,
+    /// List of files to push to the device before starting the test.
+    #[serde(default, rename = "pushFiles")]
+    pub push_files: ::core::option::Option<::std::vec::Vec<IosDeviceFile>>,
+}
+
+/// A test of an iOS application that uses the XCTest framework. Xcode supports the option to "build for testing", which generates an .xctestrun file that contains a test specification (arguments, test methods, etc). This test type accepts a zip file containing the .xctestrun file and the corresponding contents of the Build/Products directory that contains all the binaries needed to run the tests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosXcTest {
+    /// Output only. The bundle id for the application under test.
+    #[serde(default, rename = "appBundleId")]
+    pub app_bundle_id: ::core::option::Option<String>,
+    /// The option to test special app entitlements. Setting this would re-sign the app having special entitlements with an explicit application-identifier. Currently supports testing aps-environment entitlement.
+    #[serde(default, rename = "testSpecialEntitlements")]
+    pub test_special_entitlements: ::core::option::Option<bool>,
+    /// Required. The .zip containing the .xctestrun file and the contents of the DerivedData/Build/Products directory. The .xctestrun file in this zip is ignored if the xctestrun field is specified.
+    #[serde(default, rename = "testsZip")]
+    pub tests_zip: ::core::option::Option<FileReference>,
+    /// The Xcode version that should be used for the test. Use the TestEnvironmentDiscoveryService to get supported options. Defaults to the latest Xcode version Firebase Test Lab supports.
+    #[serde(default, rename = "xcodeVersion")]
+    pub xcode_version: ::core::option::Option<String>,
+    /// An .xctestrun file that will override the .xctestrun file in the tests zip. Because the .xctestrun file contains environment variables along with test methods to run and/or ignore, this can be useful for sharding tests. Default is taken from the tests zip.
+    #[serde(default)]
+    pub xctestrun: ::core::option::Option<FileReference>,
+}
+
+/// A description of how to set up the Android device prior to running the test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestSetup {
+    /// The device will be logged in on this account for the duration of the test.
+    #[serde(default)]
+    pub account: ::core::option::Option<Account>,
+    /// APKs to install in addition to those being directly tested. These will be installed after the app under test. Limited to a combined total of 100 initial setup and additional files.
+    #[serde(default, rename = "additionalApks")]
+    pub additional_apks: ::core::option::Option<::std::vec::Vec<Apk>>,
+    /// List of directories on the device to upload to GCS at the end of the test; they must be absolute paths under /sdcard, /storage or /data/local/tmp. Path names are restricted to characters a-z A-Z 0-9 _ - . + and / Note: The paths /sdcard and /data will be made available and treated as implicit path substitutions. E.g. if /sdcard on a particular device does not map to external storage, the system will replace it with the external storage path prefix for that device.
+    #[serde(default, rename = "directoriesToPull")]
+    pub directories_to_pull: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether to prevent all runtime permissions to be granted at app install
+    #[serde(default, rename = "dontAutograntPermissions")]
+    pub dont_autogrant_permissions: ::core::option::Option<bool>,
+    /// Environment variables to set for the test (only applicable for instrumentation tests).
+    #[serde(default, rename = "environmentVariables")]
+    pub environment_variables: ::core::option::Option<::std::vec::Vec<EnvironmentVariable>>,
+    /// List of files to push to the device before starting the test.
+    #[serde(default, rename = "filesToPush")]
+    pub files_to_push: ::core::option::Option<::std::vec::Vec<DeviceFile>>,
+    /// Optional. Initial setup APKs to install before the app under test is installed. Limited to a combined total of 100 initial setup and additional files.
+    #[serde(default, rename = "initialSetupApks")]
+    pub initial_setup_apks: ::core::option::Option<::std::vec::Vec<Apk>>,
+    /// The network traffic profile used for running the test. Available network profiles can be queried by using the NETWORK_CONFIGURATION environment type when calling TestEnvironmentDiscoveryService.GetTestEnvironmentCatalog.
+    #[serde(default, rename = "networkProfile")]
+    pub network_profile: ::core::option::Option<String>,
+    /// Systrace configuration for the run. Deprecated: Systrace used Python 2 which was sunsetted on 2020-01-01. Systrace is no longer supported in the Cloud Testing API, and no Systrace file will be provided in the results.
+    #[serde(default)]
+    pub systrace: ::core::option::Option<SystraceSetup>,
+}
+
+/// The section of an tag. https://developer.android.com/guide/topics/manifest/intent-filter-element.html
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntentFilter {
+    /// The android:name value of the tag.
+    #[serde(default, rename = "actionNames")]
+    pub action_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The android:name value of the tag.
+    #[serde(default, rename = "categoryNames")]
+    pub category_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The android:mimeType value of the tag.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Denotes whether Direct Access is supported, and by which client versions. DirectAccessService is currently available as a preview to select developers. You can register today on behalf of you and your team at https://developer.android.com/studio/preview/android-device-streaming
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectAccessVersionInfo {
+    /// Whether direct access is supported at all. Clients are expected to filter down the device list to only android models and versions which support Direct Access when that is the user intent.
+    #[serde(default, rename = "directAccessSupported")]
+    pub direct_access_supported: ::core::option::Option<bool>,
+    /// Output only. Indicates client-device compatibility, where a device is known to work only with certain workarounds implemented in the Android Studio client. Expected format "major.minor.micro.patch", e.g. "5921.22.2211.8881706".
+    #[serde(default, rename = "minimumAndroidStudioVersion")]
+    pub minimum_android_studio_version: ::core::option::Option<String>,
+}
+
+/// Options for enabling sharding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShardingOption {
+    /// Shards test cases into the specified groups of packages, classes, and/or methods.
+    #[serde(default, rename = "manualSharding")]
+    pub manual_sharding: ::core::option::Option<ManualSharding>,
+    /// Shards test based on previous test case timing records.
+    #[serde(default, rename = "smartSharding")]
+    pub smart_sharding: ::core::option::Option<SmartSharding>,
+    /// Uniformly shards test cases given a total number of shards.
+    #[serde(default, rename = "uniformSharding")]
+    pub uniform_sharding: ::core::option::Option<UniformSharding>,
+}
+
+/// Directs Robo to interact with a specific UI element if it is encountered during the crawl. Currently, Robo can perform text entry or element click.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoboDirective {
+    /// Required. The type of action that Robo should perform on the specified element. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "SINGLE_CLICK", "ENTER_TEXT", "IGNORE"]
+    #[serde(default, rename = "actionType")]
+    pub action_type: ::core::option::Option<String>,
+    /// The text that Robo is directed to set. If left empty, the directive will be treated as a CLICK on the element matching the resource_name.
+    #[serde(default, rename = "inputText")]
+    pub input_text: ::core::option::Option<String>,
+    /// Required. The android resource name of the target UI element. For example, in Java: R.string.foo in xml: @string/foo Only the "foo" part is needed. Reference doc: https://developer.android.com/guide/topics/resources/accessing-resources.html
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Message for specifying the start activities to crawl.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoboStartingIntent {
+    /// An intent that starts the main launcher activity.
+    #[serde(default, rename = "launcherActivity")]
+    pub launcher_activity: ::core::option::Option<serde_json::Value>,
+    /// Skips the starting activity
+    #[serde(default, rename = "noActivity")]
+    pub no_activity: ::core::option::Option<serde_json::Value>,
+    /// An intent that starts an activity with specific details.
+    #[serde(default, rename = "startActivity")]
+    pub start_activity: ::core::option::Option<StartActivityIntent>,
+    /// Timeout in seconds for each intent.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// An Android App Bundle file format, containing a BundleConfig.pb file, a base module directory, zero or more dynamic feature module directories. See https://developer.android.com/guide/app-bundle/build for guidance on building App Bundles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBundle {
+    /// .apk files generated by bundletool to install as a single android app.
+    #[serde(default)]
+    pub apks: ::core::option::Option<ApkSplits>,
+    /// .aab file representing the app bundle under test.
+    #[serde(default, rename = "bundleLocation")]
+    pub bundle_location: ::core::option::Option<FileReference>,
+}
+
+/// A file or directory to install on the device before the test starts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosDeviceFile {
+    /// The bundle id of the app where this file lives. iOS apps sandbox their own filesystem, so app files must specify which app installed on the device.
+    #[serde(default, rename = "bundleId")]
+    pub bundle_id: ::core::option::Option<String>,
+    /// The source file
+    #[serde(default)]
+    pub content: ::core::option::Option<FileReference>,
+    /// Location of the file on the device, inside the app''s sandboxed filesystem
+    #[serde(default, rename = "devicePath")]
+    pub device_path: ::core::option::Option<String>,
+}
+
+/// An Android package file to install.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Apk {
+    /// The path to an APK to be installed on the device before the test begins.
+    #[serde(default)]
+    pub location: ::core::option::Option<FileReference>,
+    /// The java package for the APK to be installed. Value is determined by examining the application''s manifest.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// A key-value pair passed as an environment variable to the test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentVariable {
+    /// Key for the environment variable.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Value for the environment variable.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A single device file description.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceFile {
+    /// A reference to an opaque binary blob file.
+    #[serde(default, rename = "obbFile")]
+    pub obb_file: ::core::option::Option<ObbFile>,
+    /// A reference to a regular file.
+    #[serde(default, rename = "regularFile")]
+    pub regular_file: ::core::option::Option<RegularFile>,
+}
+
+/// SystraceSetup resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystraceSetup {
+    /// Systrace duration in seconds. Should be between 1 and 30 seconds. 0 disables systrace.
+    #[serde(default, rename = "durationSeconds")]
+    pub duration_seconds: ::core::option::Option<i32>,
+}
+
+/// Shards test cases into the specified groups of packages, classes, and/or methods. With manual sharding enabled, specifying test targets via environment_variables or in InstrumentationTest is invalid.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManualSharding {
+    /// Required. Group of packages, classes, and/or test methods to be run for each manually-created shard. You must specify at least one shard if this field is present. When you select one or more physical devices, the number of repeated test_targets_for_shard must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
+    #[serde(default, rename = "testTargetsForShard")]
+    pub test_targets_for_shard: ::core::option::Option<::std::vec::Vec<TestTargetsForShard>>,
+}
+
+/// Shards test based on previous test case timing records.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmartSharding {
+    /// The amount of time tests within a shard should take. Default: 300 seconds (5 minutes). The minimum allowed: 120 seconds (2 minutes). The shard count is dynamically set based on time, up to the maximum shard limit (described below). To guarantee at least one test case for each shard, the number of shards will not exceed the number of test cases. Shard duration will be exceeded if: - The maximum shard limit is reached and there is more calculated test time remaining to allocate into shards. - Any individual test is estimated to be longer than the targeted shard duration. Shard duration is not guaranteed because smart sharding uses test case history and default durations which may not be accurate. The rules for finding the test case timing records are: - If the service has processed a test case in the last 30 days, the record of the latest successful test case will be used. - For new test cases, the average duration of other known test cases will be used. - If there are no previous test case timing records available, the default test case duration is 15 seconds. Because the actual shard duration can exceed the targeted shard duration, we recommend that you set the targeted value at least 5 minutes less than the maximum allowed test timeout (45 minutes for physical devices and 60 minutes for virtual), or that you use the custom test timeout value that you set. This approach avoids cancelling the shard before all tests can finish. Note that there is a limit for maximum number of shards. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500. To guarantee at least one test case for per shard, the number of shards will not exceed the number of test cases. Each shard created counts toward daily test quota.
+    #[serde(default, rename = "targetedShardDuration")]
+    pub targeted_shard_duration: ::core::option::Option<String>,
+}
+
+/// Uniformly shards test cases given a total number of shards. For instrumentation tests, it will be translated to "-e numShard" and "-e shardIndex" AndroidJUnitRunner arguments. With uniform sharding enabled, specifying either of these sharding arguments via environment_variables is invalid. Based on the sharding mechanism AndroidJUnitRunner uses, there is no guarantee that test cases will be distributed uniformly across all shards.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UniformSharding {
+    /// Required. The total number of shards to create. This must always be a positive number that is no greater than the total number of test cases. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
+    #[serde(default, rename = "numShards")]
+    pub num_shards: ::core::option::Option<i32>,
+}
+
+/// A starting intent specified by an action, uri, and categories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartActivityIntent {
+    /// Action name. Required for START_ACTIVITY.
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Intent categories to set on the intent.
+    #[serde(default)]
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
+    /// URI for the action.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A single dynamic feature apk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApkSplits {
+    /// A list of .apk files generated by bundletool to install to the device under test as a single android app with adb install-multiple. If specified, requires one or more bundle_splits. The first split specified represents the base APK, while subsequent splits represent feature apks.
+    #[serde(default, rename = "bundleSplits")]
+    pub bundle_splits: ::core::option::Option<::std::vec::Vec<FileReference>>,
+}
+
+/// An opaque binary blob file to install on the device before the test starts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObbFile {
+    /// Required. Opaque Binary Blob (OBB) file(s) to install on the device.
+    #[serde(default)]
+    pub obb: ::core::option::Option<FileReference>,
+    /// Required. OBB file name which must conform to the format as specified by Android e.g. [main|patch].0300110.com.example.android.obb which will be installed into \/Android/obb/\/ on the device.
+    #[serde(default, rename = "obbFileName")]
+    pub obb_file_name: ::core::option::Option<String>,
+}
+
+/// A file or directory to install on the device before the test starts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegularFile {
+    /// Required. The source file.
+    #[serde(default)]
+    pub content: ::core::option::Option<FileReference>,
+    /// Required. Where to put the content on the device. Must be an absolute, allowlisted path. If the file exists, it will be replaced. The following device-side directories and any of their subdirectories are allowlisted: ${EXTERNAL_STORAGE}, /sdcard ${ANDROID_DATA}/local/tmp, or /data/local/tmp Specifying a path outside of these directory trees is invalid. The paths /sdcard and /data will be made available and treated as implicit path substitutions. E.g. if /sdcard on a particular device does not map to external storage, the system will replace it with the external storage path prefix for that device and copy the file there. It is strongly advised to use the Environment API in app and test code to access files on the device in a portable way.
+    #[serde(default, rename = "devicePath")]
+    pub device_path: ::core::option::Option<String>,
+}
+
+/// Test targets for a shard.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestTargetsForShard {
+    /// Group of packages, classes, and/or test methods to be run for each shard. The targets need to be specified in AndroidJUnitRunner argument format. For example, "package com.my.packages" "class com.my.package.MyClass". The number of test_targets must be greater than 0.
+    #[serde(default, rename = "testTargets")]
+    pub test_targets: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A reference to a file, used for user inputs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileReference {
+    /// A path to a file in Google Cloud Storage. Example: gs://build-app-1414623860166/app%40debug-unaligned.apk These paths are expected to be url encoded (percent encoding)
+    #[serde(default, rename = "gcsPath")]
+    pub gcs_path: ::core::option::Option<String>,
 }

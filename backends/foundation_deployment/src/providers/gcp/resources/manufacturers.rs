@@ -10,6 +10,121 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response for ListProductCertifications method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListProductCertificationsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The product certifications from the specified certification body.
+    #[serde(default, rename = "productCertifications")]
+    pub product_certifications: ::core::option::Option<::std::vec::Vec<ProductCertification>>,
+}
+
+/// ListProductsResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListProductsResponse {
+    /// The token for the retrieval of the next page of product statuses.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of the products.
+    #[serde(default)]
+    pub products: ::core::option::Option<::std::vec::Vec<Product>>,
+}
+
+/// Product certification data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductCertification {
+    /// Required. This is the product''s brand name. The brand is used to help identify your product.
+    #[serde(default)]
+    pub brand: ::core::option::Option<String>,
+    /// Required. A list of certifications to link to the described product.
+    #[serde(default)]
+    pub certification: ::core::option::Option<::std::vec::Vec<Certification>>,
+    /// Optional. A 2-letter country code (ISO 3166-1 Alpha 2).
+    #[serde(default, rename = "countryCode")]
+    pub country_code: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The statuses of the destinations.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses: ::core::option::Option<::std::vec::Vec<DestinationStatus>>,
+    /// Output only. A server-generated list of issues associated with the product.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
+    /// Optional. These are the Manufacturer Part Numbers (MPN). MPNs are used to uniquely identify a specific product among all products from the same manufacturer
+    #[serde(default)]
+    pub mpn: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The unique name identifier of a product certification Format: accounts/{account}/languages/{language_code}/productCertifications/{id} Where id is a some unique identifier and language_code is a 2-letter ISO 639-1 code of a Shopping supported language according to https://support.google.com/merchants/answer/160637.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Another name for GTIN.
+    #[serde(default, rename = "productCode")]
+    pub product_code: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. These are your own product categorization system in your product data.
+    #[serde(default, rename = "productType")]
+    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. This is to clearly identify the product you are certifying.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Product data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Product {
+    /// Attributes of the product uploaded to the Manufacturer Center. Manually edited attributes are taken into account.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<Attributes>,
+    /// The content language of the product as a two-letter ISO 639-1 language code (for example, en).
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// The status of the destinations.
+    #[serde(default, rename = "destinationStatuses")]
+    pub destination_statuses: ::core::option::Option<::std::vec::Vec<DestinationStatus>>,
+    /// Optional. The feed label for the product.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// A server-generated list of issues associated with the product.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
+    /// Name in the format {target_country}:{content_language}:{product_id}. target_country - The target country of the product as a CLDR territory code (for example, US). content_language - The content language of the product as a two-letter ISO 639-1 language code (for example, en). product_id - The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Parent ID in the format accounts/{account_id}. account_id - The ID of the Manufacturer Center account.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// The target country of the product as a CLDR territory code (for example, US).
+    #[serde(default, rename = "targetCountry")]
+    pub target_country: ::core::option::Option<String>,
+}
+
+/// Description of a certification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Certification {
+    /// Required. Name of the certification body.
+    #[serde(default)]
+    pub authority: ::core::option::Option<String>,
+    /// Optional. A unique code to identify the certification.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Optional. A URL link to the certification.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Optional. A URL link to the certification logo.
+    #[serde(default)]
+    pub logo: ::core::option::Option<String>,
+    /// Required. Name of the certification.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The expiration date (UTC).
+    #[serde(default, rename = "validUntil")]
+    pub valid_until: ::core::option::Option<String>,
+    /// Optional. A custom value of the certification.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
 /// Attributes of the product. For more information, see https://support.google.com/manufacturers/answer/6124116.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attributes {
@@ -142,54 +257,6 @@ pub struct Attributes {
     pub virtual_model_link: ::core::option::Option<String>,
 }
 
-/// The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Capacity {
-    /// The unit of the capacity, i.e., MB, GB, or TB.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// The numeric value of the capacity.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Description of a certification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Certification {
-    /// Required. Name of the certification body.
-    #[serde(default)]
-    pub authority: ::core::option::Option<String>,
-    /// Optional. A unique code to identify the certification.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Optional. A URL link to the certification.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Optional. A URL link to the certification logo.
-    #[serde(default)]
-    pub logo: ::core::option::Option<String>,
-    /// Required. Name of the certification.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The expiration date (UTC).
-    #[serde(default, rename = "validUntil")]
-    pub valid_until: ::core::option::Option<String>,
-    /// Optional. A custom value of the certification.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Count {
-    /// The unit in which these products are counted.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// The numeric value of the number of products in a package.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// The destination status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DestinationStatus {
@@ -208,103 +275,6 @@ pub struct DestinationStatus {
     /// The status of the destination. // TODO: enum values: ["UNKNOWN", "ACTIVE", "PENDING", "DISAPPROVED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-}
-
-/// A feature description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#featuredesc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FeatureDescription {
-    /// A short description of the feature.
-    #[serde(default)]
-    pub headline: ::core::option::Option<String>,
-    /// An optional image describing the feature.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// A detailed description of the feature.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Combination of float amount and unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FloatUnit {
-    /// amount.
-    #[serde(default)]
-    pub amount: ::core::option::Option<f64>,
-    /// unit.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-}
-
-/// Description of a certification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleShoppingManufacturersV1ProductCertification {
-    /// Required. Name of the certification body.
-    #[serde(default)]
-    pub authority: ::core::option::Option<String>,
-    /// Optional. A unique code to identify the certification.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Optional. A URL link to the certification.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Optional. A URL link to the certification logo.
-    #[serde(default)]
-    pub logo: ::core::option::Option<String>,
-    /// Required. Name of the certification.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The expiration date (UTC).
-    #[serde(default, rename = "validUntil")]
-    pub valid_until: ::core::option::Option<String>,
-    /// Optional. A custom value of the certification.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Grocery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Grocery {
-    /// Active ingredients.
-    #[serde(default, rename = "activeIngredients")]
-    pub active_ingredients: ::core::option::Option<String>,
-    /// Alcohol by volume.
-    #[serde(default, rename = "alcoholByVolume")]
-    pub alcohol_by_volume: ::core::option::Option<f64>,
-    /// Allergens.
-    #[serde(default)]
-    pub allergens: ::core::option::Option<String>,
-    /// Derived nutrition claim.
-    #[serde(default, rename = "derivedNutritionClaim")]
-    pub derived_nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Directions.
-    #[serde(default)]
-    pub directions: ::core::option::Option<String>,
-    /// Indications.
-    #[serde(default)]
-    pub indications: ::core::option::Option<String>,
-    /// Ingredients.
-    #[serde(default)]
-    pub ingredients: ::core::option::Option<String>,
-    /// Nutrition claim.
-    #[serde(default, rename = "nutritionClaim")]
-    pub nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Storage instructions.
-    #[serde(default, rename = "storageInstructions")]
-    pub storage_instructions: ::core::option::Option<String>,
-}
-
-/// An image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// The URL of the image. For crawled images, this is the provided URL. For uploaded images, this is a serving URL from Google if the image has been processed successfully.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// The status of the image. @OutputOnly // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING_PROCESSING", "PENDING_CRAWL", "OK", "ROBOTED", "XROBOTED", "CRAWL_ERROR", "PROCESSING_ERROR", "DECODING_ERROR", "TOO_BIG", "CRAWL_SKIPPED", "HOSTLOADED", "HTTP_404"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The type of the image, i.e., crawled or uploaded. @OutputOnly // TODO: enum values: ["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Product issue.
@@ -339,26 +309,98 @@ pub struct Issue {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Response for ListProductCertifications method.
+/// The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListProductCertificationsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The product certifications from the specified certification body.
-    #[serde(default, rename = "productCertifications")]
-    pub product_certifications: ::core::option::Option<::std::vec::Vec<ProductCertification>>,
+pub struct Capacity {
+    /// The unit of the capacity, i.e., MB, GB, or TB.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// The numeric value of the capacity.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
-/// ListProductsResponse resource type.
+/// Description of a certification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListProductsResponse {
-    /// The token for the retrieval of the next page of product statuses.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// List of the products.
+pub struct GoogleShoppingManufacturersV1ProductCertification {
+    /// Required. Name of the certification body.
     #[serde(default)]
-    pub products: ::core::option::Option<::std::vec::Vec<Product>>,
+    pub authority: ::core::option::Option<String>,
+    /// Optional. A unique code to identify the certification.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Optional. A URL link to the certification.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Optional. A URL link to the certification logo.
+    #[serde(default)]
+    pub logo: ::core::option::Option<String>,
+    /// Required. Name of the certification.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The expiration date (UTC).
+    #[serde(default, rename = "validUntil")]
+    pub valid_until: ::core::option::Option<String>,
+    /// Optional. A custom value of the certification.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Count {
+    /// The unit in which these products are counted.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// The numeric value of the number of products in a package.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A feature description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#featuredesc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeatureDescription {
+    /// A short description of the feature.
+    #[serde(default)]
+    pub headline: ::core::option::Option<String>,
+    /// An optional image describing the feature.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+    /// A detailed description of the feature.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Grocery resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Grocery {
+    /// Active ingredients.
+    #[serde(default, rename = "activeIngredients")]
+    pub active_ingredients: ::core::option::Option<String>,
+    /// Alcohol by volume.
+    #[serde(default, rename = "alcoholByVolume")]
+    pub alcohol_by_volume: ::core::option::Option<f64>,
+    /// Allergens.
+    #[serde(default)]
+    pub allergens: ::core::option::Option<String>,
+    /// Derived nutrition claim.
+    #[serde(default, rename = "derivedNutritionClaim")]
+    pub derived_nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Directions.
+    #[serde(default)]
+    pub directions: ::core::option::Option<String>,
+    /// Indications.
+    #[serde(default)]
+    pub indications: ::core::option::Option<String>,
+    /// Ingredients.
+    #[serde(default)]
+    pub ingredients: ::core::option::Option<String>,
+    /// Nutrition claim.
+    #[serde(default, rename = "nutritionClaim")]
+    pub nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Storage instructions.
+    #[serde(default, rename = "storageInstructions")]
+    pub storage_instructions: ::core::option::Option<String>,
 }
 
 /// Nutrition resource type.
@@ -495,84 +537,6 @@ pub struct Nutrition {
     pub voluntary_nutrition_fact: ::core::option::Option<::std::vec::Vec<VoluntaryNutritionFact>>,
 }
 
-/// A price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Price {
-    /// The numeric value of the price.
-    #[serde(default)]
-    pub amount: ::core::option::Option<String>,
-    /// The currency in which the price is denoted.
-    #[serde(default)]
-    pub currency: ::core::option::Option<String>,
-}
-
-/// Product data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Product {
-    /// Attributes of the product uploaded to the Manufacturer Center. Manually edited attributes are taken into account.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<Attributes>,
-    /// The content language of the product as a two-letter ISO 639-1 language code (for example, en).
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// The status of the destinations.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses: ::core::option::Option<::std::vec::Vec<DestinationStatus>>,
-    /// Optional. The feed label for the product.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// A server-generated list of issues associated with the product.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
-    /// Name in the format {target_country}:{content_language}:{product_id}. target_country - The target country of the product as a CLDR territory code (for example, US). content_language - The content language of the product as a two-letter ISO 639-1 language code (for example, en). product_id - The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Parent ID in the format accounts/{account_id}. account_id - The ID of the Manufacturer Center account.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// The target country of the product as a CLDR territory code (for example, US).
-    #[serde(default, rename = "targetCountry")]
-    pub target_country: ::core::option::Option<String>,
-}
-
-/// Product certification data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductCertification {
-    /// Required. This is the product''s brand name. The brand is used to help identify your product.
-    #[serde(default)]
-    pub brand: ::core::option::Option<String>,
-    /// Required. A list of certifications to link to the described product.
-    #[serde(default)]
-    pub certification: ::core::option::Option<::std::vec::Vec<Certification>>,
-    /// Optional. A 2-letter country code (ISO 3166-1 Alpha 2).
-    #[serde(default, rename = "countryCode")]
-    pub country_code: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The statuses of the destinations.
-    #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses: ::core::option::Option<::std::vec::Vec<DestinationStatus>>,
-    /// Output only. A server-generated list of issues associated with the product.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<Issue>>,
-    /// Optional. These are the Manufacturer Part Numbers (MPN). MPNs are used to uniquely identify a specific product among all products from the same manufacturer
-    #[serde(default)]
-    pub mpn: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The unique name identifier of a product certification Format: accounts/{account}/languages/{language_code}/productCertifications/{id} Where id is a some unique identifier and language_code is a 2-letter ISO 639-1 code of a Shopping supported language according to https://support.google.com/merchants/answer/160637.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Another name for GTIN.
-    #[serde(default, rename = "productCode")]
-    pub product_code: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. These are your own product categorization system in your product data.
-    #[serde(default, rename = "productType")]
-    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. This is to clearly identify the product you are certifying.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// A product detail of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productdetail.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductDetail {
@@ -587,6 +551,31 @@ pub struct ProductDetail {
     pub section_name: ::core::option::Option<String>,
 }
 
+/// A price.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Price {
+    /// The numeric value of the price.
+    #[serde(default)]
+    pub amount: ::core::option::Option<String>,
+    /// The currency in which the price is denoted.
+    #[serde(default)]
+    pub currency: ::core::option::Option<String>,
+}
+
+/// An image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// The URL of the image. For crawled images, this is the provided URL. For uploaded images, this is a serving URL from Google if the image has been processed successfully.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// The status of the image. @OutputOnly // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING_PROCESSING", "PENDING_CRAWL", "OK", "ROBOTED", "XROBOTED", "CRAWL_ERROR", "PROCESSING_ERROR", "DECODING_ERROR", "TOO_BIG", "CRAWL_SKIPPED", "HOSTLOADED", "HTTP_404"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The type of the image, i.e., crawled or uploaded. @OutputOnly // TODO: enum values: ["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// Voluntary Nutrition Facts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoluntaryNutritionFact {
@@ -599,4 +588,15 @@ pub struct VoluntaryNutritionFact {
     /// Value.
     #[serde(default)]
     pub value: ::core::option::Option<FloatUnit>,
+}
+
+/// Combination of float amount and unit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FloatUnit {
+    /// amount.
+    #[serde(default)]
+    pub amount: ::core::option::Option<f64>,
+    /// unit.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
 }

@@ -10,12 +10,103 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Additional information that is surfaced in AdWords.
+/// A container for all the attributes for a given location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdWordsLocationExtensions {
-    /// Required. An alternate phone number to display on AdWords location extensions instead of the location''s primary phone number.
-    #[serde(default, rename = "adPhone")]
-    pub ad_phone: ::core::option::Option<String>,
+pub struct Attributes {
+    /// A collection of attributes that need to be updated.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<Attribute>>,
+    /// Required. Google identifier for this location in the form of locations/{location_id}/attributes.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Response message for BusinessCategories.BatchGetBusinessCategories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchGetCategoriesResponse {
+    /// Categories that match the GConcept ids provided in the request. They will not come in the same order as category ids in the request.
+    #[serde(default)]
+    pub categories: ::core::option::Option<::std::vec::Vec<Category>>,
+}
+
+/// Represents a location that was modified by Google.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleUpdatedLocation {
+    /// The fields that Google updated.
+    #[serde(default, rename = "diffMask")]
+    pub diff_mask: ::core::option::Option<String>,
+    /// The Google-updated version of this location.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The fields that have pending edits that haven''t yet been pushed to Maps and Search.
+    #[serde(default, rename = "pendingMask")]
+    pub pending_mask: ::core::option::Option<String>,
+}
+
+/// Response for AttributesService.ListAttributeMetadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAttributeMetadataResponse {
+    /// A collection of attribute metadata for the available attributes.
+    #[serde(default, rename = "attributeMetadata")]
+    pub attribute_metadata: ::core::option::Option<::std::vec::Vec<AttributeMetadata>>,
+    /// If the number of attributes exceeded the requested page size, this field will be populated with a token to fetch the next page of attributes on a subsequent call to attributes.list. If there are no more attributes, this field will not be present in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for BusinessCategories.ListCategories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListCategoriesResponse {
+    /// The matching categories based on the requested parameters.
+    #[serde(default)]
+    pub categories: ::core::option::Option<::std::vec::Vec<Category>>,
+    /// If the number of categories exceeded the requested page size, this field will be populated with a token to fetch the next page of categories on a subsequent call to ListCategories.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// The locations.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// If the number of locations exceeded the requested page size, this field is populated with a token to fetch the next page of locations on a subsequent call to ListLocations. If there are no more locations, this field is not present in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The approximate number of Locations in the list irrespective of pagination. This field will only be returned if filter is used as a query parameter.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Response message for Locations.SearchChains.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchChainsResponse {
+    /// Chains that match the queried chain_display_name in SearchChainsRequest. If there are no matches, this field will be empty. Results are listed in order of relevance.
+    #[serde(default)]
+    pub chains: ::core::option::Option<::std::vec::Vec<Chain>>,
+}
+
+/// Request message for GoogleLocations.SearchGoogleLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchGoogleLocationsRequest {
+    /// Location to search for. If provided, will find locations which match the provided location details, which must include a value for the title.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The number of matches to return. The default value is 3, with a maximum of 10. Note that latency may increase if more are requested. There is no pagination.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Text query to search for. The search results from a query string will be less accurate than if providing an exact location, but can provide more inexact matches.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+}
+
+/// Response message for GoogleLocations.SearchGoogleLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchGoogleLocationsResponse {
+    /// A collection of GoogleLocations that are potential matches to the specified request, listed in order from most to least accuracy.
+    #[serde(default, rename = "googleLocations")]
+    pub google_locations: ::core::option::Option<::std::vec::Vec<GoogleLocation>>,
 }
 
 /// A location attribute. Attributes provide additional information about a location. The attributes that can be set on a location may vary based on the properties of that location (for example, category). Available attributes are determined by Google and may be added and removed without API changes.
@@ -64,72 +155,6 @@ pub struct AttributeMetadata {
     pub value_type: ::core::option::Option<String>,
 }
 
-/// Metadata for supported attribute values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttributeValueMetadata {
-    /// The display name for this value, localized where available; otherwise, in English. The value display name is intended to be used in context with the attribute display name. For example, for a "WiFi" enum attribute, this could contain "Paid" to represent paid Wi-Fi.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The attribute value.
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
-}
-
-/// A container for all the attributes for a given location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attributes {
-    /// A collection of attributes that need to be updated.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<Attribute>>,
-    /// Required. Google identifier for this location in the form of locations/{location_id}/attributes.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Response message for BusinessCategories.BatchGetBusinessCategories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BatchGetCategoriesResponse {
-    /// Categories that match the GConcept ids provided in the request. They will not come in the same order as category ids in the request.
-    #[serde(default)]
-    pub categories: ::core::option::Option<::std::vec::Vec<Category>>,
-}
-
-/// Represents the time periods that this location is open for business. Holds a collection of TimePeriod instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BusinessHours {
-    /// Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.
-    #[serde(default)]
-    pub periods: ::core::option::Option<::std::vec::Vec<TimePeriod>>,
-}
-
-/// A collection of categories that describes the business. During updates, both fields must be set. Clients are prohibited from individually updating the primary or additional categories using the update mask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Categories {
-    /// Optional. Additional categories to describe your business. Categories help your customers find accurate, specific results for services they''re interested in. To keep your business information accurate and live, make sure that you use as few categories as possible to describe your overall core business. Choose categories that are as specific as possible, but representative of your main business.
-    #[serde(default, rename = "additionalCategories")]
-    pub additional_categories: ::core::option::Option<::std::vec::Vec<Category>>,
-    /// Required. Category that best describes the core business this location engages in.
-    #[serde(default, rename = "primaryCategory")]
-    pub primary_category: ::core::option::Option<Category>,
-}
-
-/// A category describing what this business is (not what it does). For a list of valid category IDs, and the mappings to their human-readable names, see categories.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Category {
-    /// Output only. The human-readable name of the category. This is set when reading the location. When modifying the location, category_id must be set.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. More hours types that are available for this business category.
-    #[serde(default, rename = "moreHoursTypes")]
-    pub more_hours_types: ::core::option::Option<::std::vec::Vec<MoreHoursType>>,
-    /// Required. A stable ID (provided by Google) for this category. The value must be specified when modifying the category (when creating or updating a location).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. A list of all the service types that are available for this business category.
-    #[serde(default, rename = "serviceTypes")]
-    pub service_types: ::core::option::Option<::std::vec::Vec<ServiceType>>,
-}
-
 /// A chain is a brand that your business''s locations can be affiliated with.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chain {
@@ -145,6 +170,50 @@ pub struct Chain {
     /// Websites of the chain.
     #[serde(default)]
     pub websites: ::core::option::Option<::std::vec::Vec<ChainUri>>,
+}
+
+/// Represents a Location that is present on Google. This can be a location that has been claimed by the user, someone else, or could be unclaimed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLocation {
+    /// The sparsely populated Location information. This field can be re-used in CreateLocation if it is not currently claimed by a user.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// Resource name of this GoogleLocation, in the format googleLocations/{googleLocationId}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A URL that will redirect the user to the request admin rights UI. This field is only present if the location has already been claimed by any user, including the current user.
+    #[serde(default, rename = "requestAdminRightsUri")]
+    pub request_admin_rights_uri: ::core::option::Option<String>,
+}
+
+/// Values for an attribute with a value_type of REPEATED_ENUM. This consists of two lists of value IDs: those that are set (true) and those that are unset (false). Values absent are considered unknown. At least one value must be specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepeatedEnumAttributeValue {
+    /// Enum values that are set.
+    #[serde(default, rename = "setValues")]
+    pub set_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Enum values that are unset.
+    #[serde(default, rename = "unsetValues")]
+    pub unset_values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Values for an attribute with a value_type of URL.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UriAttributeValue {
+    /// Required. The proposed URI value for this attribute.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Metadata for supported attribute values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributeValueMetadata {
+    /// The display name for this value, localized where available; otherwise, in English. The value display name is intended to be used in context with the attribute display name. For example, for a "WiFi" enum attribute, this could contain "Paid" to represent paid Wi-Fi.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The attribute value.
+    #[serde(default)]
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Name to be used when displaying the chain.
@@ -164,120 +233,6 @@ pub struct ChainUri {
     /// The uri for this chain.
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents a free-form service offered by the merchant. These are services that are not exposed as part of our structure service data. The merchant manually enters the names for of such services via a geomerchant surface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FreeFormServiceItem {
-    /// Required. This field represents the category name (i.e. the category''s stable ID). The category and service_type_id should match the possible combinations provided in the Category message.
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Required. Language-tagged labels for the item. We recommend that item names be 140 characters or less, and descriptions 250 characters or less. This field should only be set if the input is a custom service item. Standardized service types should be updated via service_type_id.
-    #[serde(default)]
-    pub label: ::core::option::Option<Label>,
-}
-
-/// Represents a Location that is present on Google. This can be a location that has been claimed by the user, someone else, or could be unclaimed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLocation {
-    /// The sparsely populated Location information. This field can be re-used in CreateLocation if it is not currently claimed by a user.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// Resource name of this GoogleLocation, in the format googleLocations/{googleLocationId}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A URL that will redirect the user to the request admin rights UI. This field is only present if the location has already been claimed by any user, including the current user.
-    #[serde(default, rename = "requestAdminRightsUri")]
-    pub request_admin_rights_uri: ::core::option::Option<String>,
-}
-
-/// Represents a location that was modified by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleUpdatedLocation {
-    /// The fields that Google updated.
-    #[serde(default, rename = "diffMask")]
-    pub diff_mask: ::core::option::Option<String>,
-    /// The Google-updated version of this location.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The fields that have pending edits that haven''t yet been pushed to Maps and Search.
-    #[serde(default, rename = "pendingMask")]
-    pub pending_mask: ::core::option::Option<String>,
-}
-
-/// Label to be used when displaying the price list, section, or item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Label {
-    /// Optional. Description of the price list, section, or item.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Display name for the price list, section, or item.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The BCP-47 language code that these strings apply for. Only one set of labels may be set per language.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-}
-
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// Response for AttributesService.ListAttributeMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAttributeMetadataResponse {
-    /// A collection of attribute metadata for the available attributes.
-    #[serde(default, rename = "attributeMetadata")]
-    pub attribute_metadata: ::core::option::Option<::std::vec::Vec<AttributeMetadata>>,
-    /// If the number of attributes exceeded the requested page size, this field will be populated with a token to fetch the next page of attributes on a subsequent call to attributes.list. If there are no more attributes, this field will not be present in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for BusinessCategories.ListCategories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListCategoriesResponse {
-    /// The matching categories based on the requested parameters.
-    #[serde(default)]
-    pub categories: ::core::option::Option<::std::vec::Vec<Category>>,
-    /// If the number of categories exceeded the requested page size, this field will be populated with a token to fetch the next page of categories on a subsequent call to ListCategories.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// The locations.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// If the number of locations exceeded the requested page size, this field is populated with a token to fetch the next page of locations on a subsequent call to ListLocations. If there are no more locations, this field is not present in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The approximate number of Locations in the list irrespective of pagination. This field will only be returned if filter is used as a query parameter.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
 }
 
 /// A location. See the [help center article] (https://support.google.com/business/answer/3038177) for a detailed description of these fields, or the [category endpoint](/my-business/reference/rest/v4/categories) for a list of valid business categories.
@@ -345,6 +300,36 @@ pub struct Location {
     pub website_uri: ::core::option::Option<String>,
 }
 
+/// Additional information that is surfaced in AdWords.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdWordsLocationExtensions {
+    /// Required. An alternate phone number to display on AdWords location extensions instead of the location''s primary phone number.
+    #[serde(default, rename = "adPhone")]
+    pub ad_phone: ::core::option::Option<String>,
+}
+
+/// A collection of categories that describes the business. During updates, both fields must be set. Clients are prohibited from individually updating the primary or additional categories using the update mask.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Categories {
+    /// Optional. Additional categories to describe your business. Categories help your customers find accurate, specific results for services they''re interested in. To keep your business information accurate and live, make sure that you use as few categories as possible to describe your overall core business. Choose categories that are as specific as possible, but representative of your main business.
+    #[serde(default, rename = "additionalCategories")]
+    pub additional_categories: ::core::option::Option<::std::vec::Vec<Category>>,
+    /// Required. Category that best describes the core business this location engages in.
+    #[serde(default, rename = "primaryCategory")]
+    pub primary_category: ::core::option::Option<Category>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
 /// Additional non-user-editable information about the location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Metadata {
@@ -395,20 +380,6 @@ pub struct Metadata {
     pub place_id: ::core::option::Option<String>,
 }
 
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Money {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
 /// The time periods during which a location is open for certain types of business.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoreHours {
@@ -418,20 +389,6 @@ pub struct MoreHours {
     /// Required. A collection of times that this location is open. Each period represents a range of hours when the location is open during the week.
     #[serde(default)]
     pub periods: ::core::option::Option<::std::vec::Vec<TimePeriod>>,
-}
-
-/// More hours types that a business can offers, in addition to its regular hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MoreHoursType {
-    /// Output only. The human-readable English display name for the hours type.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. A stable ID provided by Google for this hours type.
-    #[serde(default, rename = "hoursTypeId")]
-    pub hours_type_id: ::core::option::Option<String>,
-    /// Output only. The human-readable localized display name for the hours type.
-    #[serde(default, rename = "localizedDisplayName")]
-    pub localized_display_name: ::core::option::Option<String>,
 }
 
 /// Information related to the opening state of the business.
@@ -459,23 +416,70 @@ pub struct PhoneNumbers {
     pub primary_phone: ::core::option::Option<String>,
 }
 
-/// Defines an area that''s represented by a place ID.
+/// All information pertaining to the location''s profile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlaceInfo {
-    /// Required. The ID of the place. Must correspond to a region. (https://developers.google.com/places/web-service/supported_types#table3)
-    #[serde(default, rename = "placeId")]
-    pub place_id: ::core::option::Option<String>,
-    /// Required. The localized name of the place. For example, Scottsdale, AZ.
-    #[serde(default, rename = "placeName")]
-    pub place_name: ::core::option::Option<String>,
+pub struct Profile {
+    /// Required. Description of the location in your own voice, not editable by anyone else.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
 }
 
-/// Defines the union of areas represented by a set of places.
+/// Represents the time periods that this location is open for business. Holds a collection of TimePeriod instances.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Places {
-    /// The areas represented by place IDs. Limited to a maximum of 20 places.
-    #[serde(default, rename = "placeInfos")]
-    pub place_infos: ::core::option::Option<::std::vec::Vec<PlaceInfo>>,
+pub struct BusinessHours {
+    /// Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.
+    #[serde(default)]
+    pub periods: ::core::option::Option<::std::vec::Vec<TimePeriod>>,
+}
+
+/// Information of all parent and children locations related to this one.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RelationshipData {
+    /// The list of children locations that this location has relations with.
+    #[serde(default, rename = "childrenLocations")]
+    pub children_locations: ::core::option::Option<::std::vec::Vec<RelevantLocation>>,
+    /// The resource name of the Chain that this location is member of. How to find Chain ID
+    #[serde(default, rename = "parentChain")]
+    pub parent_chain: ::core::option::Option<String>,
+    /// The parent location that this location has relations with.
+    #[serde(default, rename = "parentLocation")]
+    pub parent_location: ::core::option::Option<RelevantLocation>,
+}
+
+/// Service area businesses provide their service at the customer''s location (for example, a locksmith or plumber).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceAreaBusiness {
+    /// Required. Indicates the type of the service area business. // TODO: enum values: ["BUSINESS_TYPE_UNSPECIFIED", "CUSTOMER_LOCATION_ONLY", "CUSTOMER_AND_BUSINESS_LOCATION"]
+    #[serde(default, rename = "businessType")]
+    pub business_type: ::core::option::Option<String>,
+    /// The area that this business serves defined through a set of places.
+    #[serde(default)]
+    pub places: ::core::option::Option<Places>,
+    /// Immutable. CLDR region code of the country/region that this service area business is based in. See http://cldr.unicode.org/ and http://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland. This field is required for CUSTOMER_LOCATION_ONLY businesses, and is ignored otherwise. The region specified here can be different from regions for the areas that this business serves (e.g. service area businesses that provide services in regions other than the one that they are based in). If this location requires verification after creation, the address provided for verification purposes *must* be located within this region, and the business owner or their authorized representative *must* be able to receive postal mail at the provided verification address.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// A message that describes a single service item. It is used to describe the type of service that the merchant provides. For example, haircut can be a service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceItem {
+    /// Optional. This field will be set case of free-form services data.
+    #[serde(default, rename = "freeFormServiceItem")]
+    pub free_form_service_item: ::core::option::Option<FreeFormServiceItem>,
+    /// Optional. Represents the monetary price of the service item. We recommend that currency_code and units should be set when including a price. This will be treated as a fixed price for the service item.
+    #[serde(default)]
+    pub price: ::core::option::Option<Money>,
+    /// Optional. This field will be set case of structured services data.
+    #[serde(default, rename = "structuredServiceItem")]
+    pub structured_service_item: ::core::option::Option<StructuredServiceItem>,
+}
+
+/// Represents a set of time periods when a location''s operational hours differ from its normal business hours.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpecialHours {
+    /// Required. A list of exceptions to the business''s regular hours.
+    #[serde(default, rename = "specialHourPeriods")]
+    pub special_hour_periods: ::core::option::Option<::std::vec::Vec<SpecialHourPeriod>>,
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
@@ -516,26 +520,38 @@ pub struct PostalAddress {
     pub sublocality: ::core::option::Option<String>,
 }
 
-/// All information pertaining to the location''s profile.
+/// A category describing what this business is (not what it does). For a list of valid category IDs, and the mappings to their human-readable names, see categories.list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Profile {
-    /// Required. Description of the location in your own voice, not editable by anyone else.
+pub struct Category {
+    /// Output only. The human-readable name of the category. This is set when reading the location. When modifying the location, category_id must be set.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. More hours types that are available for this business category.
+    #[serde(default, rename = "moreHoursTypes")]
+    pub more_hours_types: ::core::option::Option<::std::vec::Vec<MoreHoursType>>,
+    /// Required. A stable ID (provided by Google) for this category. The value must be specified when modifying the category (when creating or updating a location).
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// Output only. A list of all the service types that are available for this business category.
+    #[serde(default, rename = "serviceTypes")]
+    pub service_types: ::core::option::Option<::std::vec::Vec<ServiceType>>,
 }
 
-/// Information of all parent and children locations related to this one.
+/// Represents a span of time that the business is open, starting on the specified open day/time and closing on the specified close day/time. The closing time must occur after the opening time, for example later in the same day, or on a subsequent day.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RelationshipData {
-    /// The list of children locations that this location has relations with.
-    #[serde(default, rename = "childrenLocations")]
-    pub children_locations: ::core::option::Option<::std::vec::Vec<RelevantLocation>>,
-    /// The resource name of the Chain that this location is member of. How to find Chain ID
-    #[serde(default, rename = "parentChain")]
-    pub parent_chain: ::core::option::Option<String>,
-    /// The parent location that this location has relations with.
-    #[serde(default, rename = "parentLocation")]
-    pub parent_location: ::core::option::Option<RelevantLocation>,
+pub struct TimePeriod {
+    /// Required. Indicates the day of the week this period ends on. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "closeDay")]
+    pub close_day: ::core::option::Option<String>,
+    /// Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.
+    #[serde(default, rename = "closeTime")]
+    pub close_time: ::core::option::Option<TimeOfDay>,
+    /// Required. Indicates the day of the week this period starts on. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "openDay")]
+    pub open_day: ::core::option::Option<String>,
+    /// Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.
+    #[serde(default, rename = "openTime")]
+    pub open_time: ::core::option::Option<TimeOfDay>,
 }
 
 /// Information about another location that is related to current one. The relation can be any one of DEPARTMENT_OF or INDEPENDENT_ESTABLISHMENT_OF, and the location specified here can be on either side (parent/child) of the location.
@@ -549,82 +565,46 @@ pub struct RelevantLocation {
     pub relation_type: ::core::option::Option<String>,
 }
 
-/// Values for an attribute with a value_type of REPEATED_ENUM. This consists of two lists of value IDs: those that are set (true) and those that are unset (false). Values absent are considered unknown. At least one value must be specified.
+/// Defines the union of areas represented by a set of places.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RepeatedEnumAttributeValue {
-    /// Enum values that are set.
-    #[serde(default, rename = "setValues")]
-    pub set_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Enum values that are unset.
-    #[serde(default, rename = "unsetValues")]
-    pub unset_values: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct Places {
+    /// The areas represented by place IDs. Limited to a maximum of 20 places.
+    #[serde(default, rename = "placeInfos")]
+    pub place_infos: ::core::option::Option<::std::vec::Vec<PlaceInfo>>,
 }
 
-/// Response message for Locations.SearchChains.
+/// Represents a free-form service offered by the merchant. These are services that are not exposed as part of our structure service data. The merchant manually enters the names for of such services via a geomerchant surface.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchChainsResponse {
-    /// Chains that match the queried chain_display_name in SearchChainsRequest. If there are no matches, this field will be empty. Results are listed in order of relevance.
+pub struct FreeFormServiceItem {
+    /// Required. This field represents the category name (i.e. the category''s stable ID). The category and service_type_id should match the possible combinations provided in the Category message.
     #[serde(default)]
-    pub chains: ::core::option::Option<::std::vec::Vec<Chain>>,
-}
-
-/// Request message for GoogleLocations.SearchGoogleLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchGoogleLocationsRequest {
-    /// Location to search for. If provided, will find locations which match the provided location details, which must include a value for the title.
+    pub category: ::core::option::Option<String>,
+    /// Required. Language-tagged labels for the item. We recommend that item names be 140 characters or less, and descriptions 250 characters or less. This field should only be set if the input is a custom service item. Standardized service types should be updated via service_type_id.
     #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The number of matches to return. The default value is 3, with a maximum of 10. Note that latency may increase if more are requested. There is no pagination.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Text query to search for. The search results from a query string will be less accurate than if providing an exact location, but can provide more inexact matches.
+    pub label: ::core::option::Option<Label>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Money {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
     #[serde(default)]
-    pub query: ::core::option::Option<String>,
-}
-
-/// Response message for GoogleLocations.SearchGoogleLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchGoogleLocationsResponse {
-    /// A collection of GoogleLocations that are potential matches to the specified request, listed in order from most to least accuracy.
-    #[serde(default, rename = "googleLocations")]
-    pub google_locations: ::core::option::Option<::std::vec::Vec<GoogleLocation>>,
-}
-
-/// Service area businesses provide their service at the customer''s location (for example, a locksmith or plumber).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceAreaBusiness {
-    /// Required. Indicates the type of the service area business. // TODO: enum values: ["BUSINESS_TYPE_UNSPECIFIED", "CUSTOMER_LOCATION_ONLY", "CUSTOMER_AND_BUSINESS_LOCATION"]
-    #[serde(default, rename = "businessType")]
-    pub business_type: ::core::option::Option<String>,
-    /// The area that this business serves defined through a set of places.
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
-    pub places: ::core::option::Option<Places>,
-    /// Immutable. CLDR region code of the country/region that this service area business is based in. See http://cldr.unicode.org/ and http://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland. This field is required for CUSTOMER_LOCATION_ONLY businesses, and is ignored otherwise. The region specified here can be different from regions for the areas that this business serves (e.g. service area businesses that provide services in regions other than the one that they are based in). If this location requires verification after creation, the address provided for verification purposes *must* be located within this region, and the business owner or their authorized representative *must* be able to receive postal mail at the provided verification address.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
+    pub units: ::core::option::Option<String>,
 }
 
-/// A message that describes a single service item. It is used to describe the type of service that the merchant provides. For example, haircut can be a service.
+/// Represents a structured service offered by the merchant. For eg: toilet_installation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceItem {
-    /// Optional. This field will be set case of free-form services data.
-    #[serde(default, rename = "freeFormServiceItem")]
-    pub free_form_service_item: ::core::option::Option<FreeFormServiceItem>,
-    /// Optional. Represents the monetary price of the service item. We recommend that currency_code and units should be set when including a price. This will be treated as a fixed price for the service item.
+pub struct StructuredServiceItem {
+    /// Optional. Description of structured service item. The character limit is 300.
     #[serde(default)]
-    pub price: ::core::option::Option<Money>,
-    /// Optional. This field will be set case of structured services data.
-    #[serde(default, rename = "structuredServiceItem")]
-    pub structured_service_item: ::core::option::Option<StructuredServiceItem>,
-}
-
-/// A message describing a service type that the business offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceType {
-    /// Output only. The human-readable display name for the service type.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. A stable ID (provided by Google) for this service type.
+    pub description: ::core::option::Option<String>,
+    /// Required. The service_type_id field is a Google provided unique ID that can be found in ServiceType. This information is provided by BatchGetCategories rpc service.
     #[serde(default, rename = "serviceTypeId")]
     pub service_type_id: ::core::option::Option<String>,
 }
@@ -649,23 +629,54 @@ pub struct SpecialHourPeriod {
     pub start_date: ::core::option::Option<Date>,
 }
 
-/// Represents a set of time periods when a location''s operational hours differ from its normal business hours.
+/// More hours types that a business can offers, in addition to its regular hours.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpecialHours {
-    /// Required. A list of exceptions to the business''s regular hours.
-    #[serde(default, rename = "specialHourPeriods")]
-    pub special_hour_periods: ::core::option::Option<::std::vec::Vec<SpecialHourPeriod>>,
+pub struct MoreHoursType {
+    /// Output only. The human-readable English display name for the hours type.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. A stable ID provided by Google for this hours type.
+    #[serde(default, rename = "hoursTypeId")]
+    pub hours_type_id: ::core::option::Option<String>,
+    /// Output only. The human-readable localized display name for the hours type.
+    #[serde(default, rename = "localizedDisplayName")]
+    pub localized_display_name: ::core::option::Option<String>,
 }
 
-/// Represents a structured service offered by the merchant. For eg: toilet_installation.
+/// A message describing a service type that the business offers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StructuredServiceItem {
-    /// Optional. Description of structured service item. The character limit is 300.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The service_type_id field is a Google provided unique ID that can be found in ServiceType. This information is provided by BatchGetCategories rpc service.
+pub struct ServiceType {
+    /// Output only. The human-readable display name for the service type.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. A stable ID (provided by Google) for this service type.
     #[serde(default, rename = "serviceTypeId")]
     pub service_type_id: ::core::option::Option<String>,
+}
+
+/// Defines an area that''s represented by a place ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaceInfo {
+    /// Required. The ID of the place. Must correspond to a region. (https://developers.google.com/places/web-service/supported_types#table3)
+    #[serde(default, rename = "placeId")]
+    pub place_id: ::core::option::Option<String>,
+    /// Required. The localized name of the place. For example, Scottsdale, AZ.
+    #[serde(default, rename = "placeName")]
+    pub place_name: ::core::option::Option<String>,
+}
+
+/// Label to be used when displaying the price list, section, or item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Label {
+    /// Optional. Description of the price list, section, or item.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Display name for the price list, section, or item.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The BCP-47 language code that these strings apply for. Only one set of labels may be set per language.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -685,27 +696,16 @@ pub struct TimeOfDay {
     pub seconds: ::core::option::Option<i32>,
 }
 
-/// Represents a span of time that the business is open, starting on the specified open day/time and closing on the specified close day/time. The closing time must occur after the opening time, for example later in the same day, or on a subsequent day.
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimePeriod {
-    /// Required. Indicates the day of the week this period ends on. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "closeDay")]
-    pub close_day: ::core::option::Option<String>,
-    /// Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.
-    #[serde(default, rename = "closeTime")]
-    pub close_time: ::core::option::Option<TimeOfDay>,
-    /// Required. Indicates the day of the week this period starts on. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "openDay")]
-    pub open_day: ::core::option::Option<String>,
-    /// Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.
-    #[serde(default, rename = "openTime")]
-    pub open_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Values for an attribute with a value_type of URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UriAttributeValue {
-    /// Required. The proposed URI value for this attribute.
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub uri: ::core::option::Option<String>,
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

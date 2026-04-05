@@ -48,26 +48,6 @@ pub struct BuildingInsights {
     pub statistical_area: ::core::option::Option<String>,
 }
 
-/// Cost and benefit of an outright purchase of a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CashPurchaseSavings {
-    /// Initial cost before tax incentives: the amount that must be paid out-of-pocket. Contrast with upfront_cost, which is after tax incentives.
-    #[serde(default, rename = "outOfPocketCost")]
-    pub out_of_pocket_cost: ::core::option::Option<Money>,
-    /// Number of years until payback occurs. A negative value means payback never occurs within the lifetime period.
-    #[serde(default, rename = "paybackYears")]
-    pub payback_years: ::core::option::Option<f32>,
-    /// The value of all tax rebates.
-    #[serde(default, rename = "rebateValue")]
-    pub rebate_value: ::core::option::Option<Money>,
-    /// How much is saved (or not) over the lifetime period.
-    #[serde(default)]
-    pub savings: ::core::option::Option<SavingsOverTime>,
-    /// Initial cost after tax incentives: it''s the amount that must be paid during first year. Contrast with out_of_pocket_cost, which is before tax incentives.
-    #[serde(default, rename = "upfrontCost")]
-    pub upfront_cost: ::core::option::Option<Money>,
-}
-
 /// Information about the solar potential of a region. The actual data are contained in a number of GeoTIFF files covering the requested region, for which this message contains URLs: Each string in the DataLayers message contains a URL from which the corresponding GeoTIFF can be fetched. These URLs are valid for a few hours after they''ve been generated. Most of the GeoTIFF files are at a resolution of 0.1m/pixel, but the monthly flux file is at 0.5m/pixel, and the hourly shade files are at 1m/pixel. If a pixel_size_meters value was specified in the GetDataLayersRequest, then the minimum resolution in the GeoTIFF files will be that value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataLayers {
@@ -100,101 +80,6 @@ pub struct DataLayers {
     pub rgb_url: ::core::option::Option<String>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Cost and benefit of using a loan to buy a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FinancedPurchaseSavings {
-    /// Annual loan payments.
-    #[serde(default, rename = "annualLoanPayment")]
-    pub annual_loan_payment: ::core::option::Option<Money>,
-    /// The interest rate on loans assumed in this set of calculations.
-    #[serde(default, rename = "loanInterestRate")]
-    pub loan_interest_rate: ::core::option::Option<f32>,
-    /// The value of all tax rebates (including Federal Investment Tax Credit (ITC)).
-    #[serde(default, rename = "rebateValue")]
-    pub rebate_value: ::core::option::Option<Money>,
-    /// How much is saved (or not) over the lifetime period.
-    #[serde(default)]
-    pub savings: ::core::option::Option<SavingsOverTime>,
-}
-
-/// Analysis of the cost and benefits of the optimum solar layout for a particular electric bill size.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FinancialAnalysis {
-    /// How much electricity the house uses in an average month, based on the bill size and the local electricity rates.
-    #[serde(default, rename = "averageKwhPerMonth")]
-    pub average_kwh_per_month: ::core::option::Option<f32>,
-    /// Cost and benefit of buying the solar panels with cash.
-    #[serde(default, rename = "cashPurchaseSavings")]
-    pub cash_purchase_savings: ::core::option::Option<CashPurchaseSavings>,
-    /// Whether this is the bill size selected to be the default bill for the area this building is in. Exactly one FinancialAnalysis in BuildingSolarPotential should have default_bill set.
-    #[serde(default, rename = "defaultBill")]
-    pub default_bill: ::core::option::Option<bool>,
-    /// Cost and benefit of buying the solar panels by financing the purchase.
-    #[serde(default, rename = "financedPurchaseSavings")]
-    pub financed_purchase_savings: ::core::option::Option<FinancedPurchaseSavings>,
-    /// Financial information that applies regardless of the financing method used.
-    #[serde(default, rename = "financialDetails")]
-    pub financial_details: ::core::option::Option<FinancialDetails>,
-    /// Cost and benefit of leasing the solar panels.
-    #[serde(default, rename = "leasingSavings")]
-    pub leasing_savings: ::core::option::Option<LeasingSavings>,
-    /// The monthly electric bill this analysis assumes.
-    #[serde(default, rename = "monthlyBill")]
-    pub monthly_bill: ::core::option::Option<Money>,
-    /// Index in solar_panel_configs of the optimum solar layout for this bill size. This can be -1 indicating that there is no layout. In this case, the remaining submessages will be omitted.
-    #[serde(default, rename = "panelConfigIndex")]
-    pub panel_config_index: ::core::option::Option<i32>,
-}
-
-/// Details of a financial analysis. Some of these details are already stored at higher levels (e.g., out of pocket cost). Total money amounts are over a lifetime period defined by the panel_lifetime_years field in SolarPotential. Note: The out of pocket cost of purchasing the panels is given in the out_of_pocket_cost field in CashPurchaseSavings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FinancialDetails {
-    /// Total cost of electricity the user would have paid over the lifetime period if they didn''t install solar.
-    #[serde(default, rename = "costOfElectricityWithoutSolar")]
-    pub cost_of_electricity_without_solar: ::core::option::Option<Money>,
-    /// Amount of money available from federal incentives; this applies if the user buys (with or without a loan) the panels.
-    #[serde(default, rename = "federalIncentive")]
-    pub federal_incentive: ::core::option::Option<Money>,
-    /// How many AC kWh we think the solar panels will generate in their first year.
-    #[serde(default, rename = "initialAcKwhPerYear")]
-    pub initial_ac_kwh_per_year: ::core::option::Option<f32>,
-    /// Amount of money the user will receive from Solar Renewable Energy Credits over the panel lifetime; this applies if the user buys (with or without a loan) the panels.
-    #[serde(default, rename = "lifetimeSrecTotal")]
-    pub lifetime_srec_total: ::core::option::Option<Money>,
-    /// Whether net metering is allowed.
-    #[serde(default, rename = "netMeteringAllowed")]
-    pub net_metering_allowed: ::core::option::Option<bool>,
-    /// The percentage (0-100) of solar electricity production we assumed was exported to the grid, based on the first quarter of production. This affects the calculations if net metering is not allowed.
-    #[serde(default, rename = "percentageExportedToGrid")]
-    pub percentage_exported_to_grid: ::core::option::Option<f32>,
-    /// Utility bill for electricity not produced by solar, for the lifetime of the panels.
-    #[serde(default, rename = "remainingLifetimeUtilityBill")]
-    pub remaining_lifetime_utility_bill: ::core::option::Option<Money>,
-    /// Percentage (0-100) of the user''s power supplied by solar. Valid for the first year but approximately correct for future years.
-    #[serde(default, rename = "solarPercentage")]
-    pub solar_percentage: ::core::option::Option<f32>,
-    /// Amount of money available from state incentives; this applies if the user buys (with or without a loan) the panels.
-    #[serde(default, rename = "stateIncentive")]
-    pub state_incentive: ::core::option::Option<Money>,
-    /// Amount of money available from utility incentives; this applies if the user buys (with or without a loan) the panels.
-    #[serde(default, rename = "utilityIncentive")]
-    pub utility_incentive: ::core::option::Option<Money>,
-}
-
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpBody {
@@ -207,170 +92,6 @@ pub struct HttpBody {
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
     pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// A bounding box in lat/lng coordinates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLngBox {
-    /// The northeast corner of the box.
-    #[serde(default)]
-    pub ne: ::core::option::Option<LatLng>,
-    /// The southwest corner of the box.
-    #[serde(default)]
-    pub sw: ::core::option::Option<LatLng>,
-}
-
-/// Cost and benefit of leasing a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeasingSavings {
-    /// Estimated annual leasing cost.
-    #[serde(default, rename = "annualLeasingCost")]
-    pub annual_leasing_cost: ::core::option::Option<Money>,
-    /// Whether leases are allowed in this juristiction (leases are not allowed in some states). If this field is false, then the values in this message should probably be ignored.
-    #[serde(default, rename = "leasesAllowed")]
-    pub leases_allowed: ::core::option::Option<bool>,
-    /// Whether leases are supported in this juristiction by the financial calculation engine. If this field is false, then the values in this message should probably be ignored. This is independent of leases_allowed: in some areas leases are allowed, but under conditions that aren''t handled by the financial models.
-    #[serde(default, rename = "leasesSupported")]
-    pub leases_supported: ::core::option::Option<bool>,
-    /// How much is saved (or not) over the lifetime period.
-    #[serde(default)]
-    pub savings: ::core::option::Option<SavingsOverTime>,
-}
-
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Money {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
-/// Information about the size and sunniness quantiles of a roof segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoofSegmentSizeAndSunshineStats {
-    /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
-    #[serde(default, rename = "azimuthDegrees")]
-    pub azimuth_degrees: ::core::option::Option<f32>,
-    /// The bounding box of the roof segment.
-    #[serde(default, rename = "boundingBox")]
-    pub bounding_box: ::core::option::Option<LatLngBox>,
-    /// A point near the center of the roof segment.
-    #[serde(default)]
-    pub center: ::core::option::Option<LatLng>,
-    /// Angle of the roof segment relative to the theoretical ground plane. 0 = parallel to the ground, 90 = perpendicular to the ground.
-    #[serde(default, rename = "pitchDegrees")]
-    pub pitch_degrees: ::core::option::Option<f32>,
-    /// The height of the roof segment plane, in meters above sea level, at the point designated by center. Together with the pitch, azimuth, and center location, this fully defines the roof segment plane.
-    #[serde(default, rename = "planeHeightAtCenterMeters")]
-    pub plane_height_at_center_meters: ::core::option::Option<f32>,
-    /// Total size and sunlight quantiles for the roof segment.
-    #[serde(default)]
-    pub stats: ::core::option::Option<SizeAndSunshineStats>,
-}
-
-/// Information about a roof segment on the building, with some number of panels placed on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoofSegmentSummary {
-    /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
-    #[serde(default, rename = "azimuthDegrees")]
-    pub azimuth_degrees: ::core::option::Option<f32>,
-    /// The total number of panels on this segment.
-    #[serde(default, rename = "panelsCount")]
-    pub panels_count: ::core::option::Option<i32>,
-    /// Angle of the roof segment relative to the theoretical ground plane. 0 = parallel to the ground, 90 = perpendicular to the ground.
-    #[serde(default, rename = "pitchDegrees")]
-    pub pitch_degrees: ::core::option::Option<f32>,
-    /// Index in roof_segment_stats of the corresponding RoofSegmentSizeAndSunshineStats.
-    #[serde(default, rename = "segmentIndex")]
-    pub segment_index: ::core::option::Option<i32>,
-    /// How much sunlight energy this part of the layout captures over the course of a year, in DC kWh, assuming the panels described above.
-    #[serde(default, rename = "yearlyEnergyDcKwh")]
-    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
-}
-
-/// Financial information that''s shared between different financing methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SavingsOverTime {
-    /// Indicates whether this scenario is financially viable. Will be false for scenarios with poor financial viability (e.g., money-losing).
-    #[serde(default, rename = "financiallyViable")]
-    pub financially_viable: ::core::option::Option<bool>,
-    /// Using the assumed discount rate, what is the present value of the cumulative lifetime savings?
-    #[serde(default, rename = "presentValueOfSavingsLifetime")]
-    pub present_value_of_savings_lifetime: ::core::option::Option<Money>,
-    /// Using the assumed discount rate, what is the present value of the cumulative 20-year savings?
-    #[serde(default, rename = "presentValueOfSavingsYear20")]
-    pub present_value_of_savings_year20: ::core::option::Option<Money>,
-    /// Savings in the entire panel lifetime.
-    #[serde(default, rename = "savingsLifetime")]
-    pub savings_lifetime: ::core::option::Option<Money>,
-    /// Savings in the first year after panel installation.
-    #[serde(default, rename = "savingsYear1")]
-    pub savings_year1: ::core::option::Option<Money>,
-    /// Savings in the first twenty years after panel installation.
-    #[serde(default, rename = "savingsYear20")]
-    pub savings_year20: ::core::option::Option<Money>,
-}
-
-/// Size and sunniness quantiles of a roof, or part of a roof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SizeAndSunshineStats {
-    /// The area of the roof or roof segment, in m^2. This is the roof area (accounting for tilt), not the ground footprint area.
-    #[serde(default, rename = "areaMeters2")]
-    pub area_meters2: ::core::option::Option<f32>,
-    /// The ground footprint area covered by the roof or roof segment, in m^2.
-    #[serde(default, rename = "groundAreaMeters2")]
-    pub ground_area_meters2: ::core::option::Option<f32>,
-    /// Quantiles of the pointwise sunniness across the area. If there are N values here, this represents the (N-1)-iles. For example, if there are 5 values, then they would be the quartiles (min, 25%, 50%, 75%, max). Values are in annual kWh/kW like max_sunshine_hours_per_year.
-    #[serde(default, rename = "sunshineQuantiles")]
-    pub sunshine_quantiles: ::core::option::Option<::std::vec::Vec<f32>>,
-}
-
-/// SolarPanel describes the position, orientation, and production of a single solar panel. See the panel_height_meters, panel_width_meters, and panel_capacity_watts fields in SolarPotential for information on the parameters of the panel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SolarPanel {
-    /// The centre of the panel.
-    #[serde(default)]
-    pub center: ::core::option::Option<LatLng>,
-    /// The orientation of the panel. // TODO: enum values: ["SOLAR_PANEL_ORIENTATION_UNSPECIFIED", "LANDSCAPE", "PORTRAIT"]
-    #[serde(default)]
-    pub orientation: ::core::option::Option<String>,
-    /// Index in roof_segment_stats of the RoofSegmentSizeAndSunshineStats which corresponds to the roof segment that this panel is placed on.
-    #[serde(default, rename = "segmentIndex")]
-    pub segment_index: ::core::option::Option<i32>,
-    /// How much sunlight energy this layout captures over the course of a year, in DC kWh.
-    #[serde(default, rename = "yearlyEnergyDcKwh")]
-    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
-}
-
-/// SolarPanelConfig describes a particular placement of solar panels on the roof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SolarPanelConfig {
-    /// Total number of panels. Note that this is redundant to (the sum of) the corresponding fields in roof_segment_summaries.
-    #[serde(default, rename = "panelsCount")]
-    pub panels_count: ::core::option::Option<i32>,
-    /// Information about the production of each roof segment that is carrying at least one panel in this layout. roof_segment_summaries[i] describes the i-th roof segment, including its size, expected production and orientation.
-    #[serde(default, rename = "roofSegmentSummaries")]
-    pub roof_segment_summaries: ::core::option::Option<::std::vec::Vec<RoofSegmentSummary>>,
-    /// How much sunlight energy this layout captures over the course of a year, in DC kWh, assuming the panels described above.
-    #[serde(default, rename = "yearlyEnergyDcKwh")]
-    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
 }
 
 /// Information about the solar potential of a building. A number of fields in this are defined in terms of "panels". The fields panel_capacity_watts, panel_height_meters, and panel_width_meters describe the parameters of the model of panel used in these calculations.
@@ -419,4 +140,283 @@ pub struct SolarPotential {
     /// Total size and sunlight quantiles for the part of the roof that was assigned to some roof segment. Despite the name, this may not include the entire building. See building_stats.
     #[serde(default, rename = "wholeRoofStats")]
     pub whole_roof_stats: ::core::option::Option<SizeAndSunshineStats>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Analysis of the cost and benefits of the optimum solar layout for a particular electric bill size.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FinancialAnalysis {
+    /// How much electricity the house uses in an average month, based on the bill size and the local electricity rates.
+    #[serde(default, rename = "averageKwhPerMonth")]
+    pub average_kwh_per_month: ::core::option::Option<f32>,
+    /// Cost and benefit of buying the solar panels with cash.
+    #[serde(default, rename = "cashPurchaseSavings")]
+    pub cash_purchase_savings: ::core::option::Option<CashPurchaseSavings>,
+    /// Whether this is the bill size selected to be the default bill for the area this building is in. Exactly one FinancialAnalysis in BuildingSolarPotential should have default_bill set.
+    #[serde(default, rename = "defaultBill")]
+    pub default_bill: ::core::option::Option<bool>,
+    /// Cost and benefit of buying the solar panels by financing the purchase.
+    #[serde(default, rename = "financedPurchaseSavings")]
+    pub financed_purchase_savings: ::core::option::Option<FinancedPurchaseSavings>,
+    /// Financial information that applies regardless of the financing method used.
+    #[serde(default, rename = "financialDetails")]
+    pub financial_details: ::core::option::Option<FinancialDetails>,
+    /// Cost and benefit of leasing the solar panels.
+    #[serde(default, rename = "leasingSavings")]
+    pub leasing_savings: ::core::option::Option<LeasingSavings>,
+    /// The monthly electric bill this analysis assumes.
+    #[serde(default, rename = "monthlyBill")]
+    pub monthly_bill: ::core::option::Option<Money>,
+    /// Index in solar_panel_configs of the optimum solar layout for this bill size. This can be -1 indicating that there is no layout. In this case, the remaining submessages will be omitted.
+    #[serde(default, rename = "panelConfigIndex")]
+    pub panel_config_index: ::core::option::Option<i32>,
+}
+
+/// Information about the size and sunniness quantiles of a roof segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoofSegmentSizeAndSunshineStats {
+    /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
+    #[serde(default, rename = "azimuthDegrees")]
+    pub azimuth_degrees: ::core::option::Option<f32>,
+    /// The bounding box of the roof segment.
+    #[serde(default, rename = "boundingBox")]
+    pub bounding_box: ::core::option::Option<LatLngBox>,
+    /// A point near the center of the roof segment.
+    #[serde(default)]
+    pub center: ::core::option::Option<LatLng>,
+    /// Angle of the roof segment relative to the theoretical ground plane. 0 = parallel to the ground, 90 = perpendicular to the ground.
+    #[serde(default, rename = "pitchDegrees")]
+    pub pitch_degrees: ::core::option::Option<f32>,
+    /// The height of the roof segment plane, in meters above sea level, at the point designated by center. Together with the pitch, azimuth, and center location, this fully defines the roof segment plane.
+    #[serde(default, rename = "planeHeightAtCenterMeters")]
+    pub plane_height_at_center_meters: ::core::option::Option<f32>,
+    /// Total size and sunlight quantiles for the roof segment.
+    #[serde(default)]
+    pub stats: ::core::option::Option<SizeAndSunshineStats>,
+}
+
+/// SolarPanelConfig describes a particular placement of solar panels on the roof.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SolarPanelConfig {
+    /// Total number of panels. Note that this is redundant to (the sum of) the corresponding fields in roof_segment_summaries.
+    #[serde(default, rename = "panelsCount")]
+    pub panels_count: ::core::option::Option<i32>,
+    /// Information about the production of each roof segment that is carrying at least one panel in this layout. roof_segment_summaries[i] describes the i-th roof segment, including its size, expected production and orientation.
+    #[serde(default, rename = "roofSegmentSummaries")]
+    pub roof_segment_summaries: ::core::option::Option<::std::vec::Vec<RoofSegmentSummary>>,
+    /// How much sunlight energy this layout captures over the course of a year, in DC kWh, assuming the panels described above.
+    #[serde(default, rename = "yearlyEnergyDcKwh")]
+    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
+}
+
+/// SolarPanel describes the position, orientation, and production of a single solar panel. See the panel_height_meters, panel_width_meters, and panel_capacity_watts fields in SolarPotential for information on the parameters of the panel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SolarPanel {
+    /// The centre of the panel.
+    #[serde(default)]
+    pub center: ::core::option::Option<LatLng>,
+    /// The orientation of the panel. // TODO: enum values: ["SOLAR_PANEL_ORIENTATION_UNSPECIFIED", "LANDSCAPE", "PORTRAIT"]
+    #[serde(default)]
+    pub orientation: ::core::option::Option<String>,
+    /// Index in roof_segment_stats of the RoofSegmentSizeAndSunshineStats which corresponds to the roof segment that this panel is placed on.
+    #[serde(default, rename = "segmentIndex")]
+    pub segment_index: ::core::option::Option<i32>,
+    /// How much sunlight energy this layout captures over the course of a year, in DC kWh.
+    #[serde(default, rename = "yearlyEnergyDcKwh")]
+    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
+}
+
+/// Cost and benefit of an outright purchase of a particular configuration of solar panels with a particular electricity usage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CashPurchaseSavings {
+    /// Initial cost before tax incentives: the amount that must be paid out-of-pocket. Contrast with upfront_cost, which is after tax incentives.
+    #[serde(default, rename = "outOfPocketCost")]
+    pub out_of_pocket_cost: ::core::option::Option<Money>,
+    /// Number of years until payback occurs. A negative value means payback never occurs within the lifetime period.
+    #[serde(default, rename = "paybackYears")]
+    pub payback_years: ::core::option::Option<f32>,
+    /// The value of all tax rebates.
+    #[serde(default, rename = "rebateValue")]
+    pub rebate_value: ::core::option::Option<Money>,
+    /// How much is saved (or not) over the lifetime period.
+    #[serde(default)]
+    pub savings: ::core::option::Option<SavingsOverTime>,
+    /// Initial cost after tax incentives: it''s the amount that must be paid during first year. Contrast with out_of_pocket_cost, which is before tax incentives.
+    #[serde(default, rename = "upfrontCost")]
+    pub upfront_cost: ::core::option::Option<Money>,
+}
+
+/// Cost and benefit of using a loan to buy a particular configuration of solar panels with a particular electricity usage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FinancedPurchaseSavings {
+    /// Annual loan payments.
+    #[serde(default, rename = "annualLoanPayment")]
+    pub annual_loan_payment: ::core::option::Option<Money>,
+    /// The interest rate on loans assumed in this set of calculations.
+    #[serde(default, rename = "loanInterestRate")]
+    pub loan_interest_rate: ::core::option::Option<f32>,
+    /// The value of all tax rebates (including Federal Investment Tax Credit (ITC)).
+    #[serde(default, rename = "rebateValue")]
+    pub rebate_value: ::core::option::Option<Money>,
+    /// How much is saved (or not) over the lifetime period.
+    #[serde(default)]
+    pub savings: ::core::option::Option<SavingsOverTime>,
+}
+
+/// Details of a financial analysis. Some of these details are already stored at higher levels (e.g., out of pocket cost). Total money amounts are over a lifetime period defined by the panel_lifetime_years field in SolarPotential. Note: The out of pocket cost of purchasing the panels is given in the out_of_pocket_cost field in CashPurchaseSavings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FinancialDetails {
+    /// Total cost of electricity the user would have paid over the lifetime period if they didn''t install solar.
+    #[serde(default, rename = "costOfElectricityWithoutSolar")]
+    pub cost_of_electricity_without_solar: ::core::option::Option<Money>,
+    /// Amount of money available from federal incentives; this applies if the user buys (with or without a loan) the panels.
+    #[serde(default, rename = "federalIncentive")]
+    pub federal_incentive: ::core::option::Option<Money>,
+    /// How many AC kWh we think the solar panels will generate in their first year.
+    #[serde(default, rename = "initialAcKwhPerYear")]
+    pub initial_ac_kwh_per_year: ::core::option::Option<f32>,
+    /// Amount of money the user will receive from Solar Renewable Energy Credits over the panel lifetime; this applies if the user buys (with or without a loan) the panels.
+    #[serde(default, rename = "lifetimeSrecTotal")]
+    pub lifetime_srec_total: ::core::option::Option<Money>,
+    /// Whether net metering is allowed.
+    #[serde(default, rename = "netMeteringAllowed")]
+    pub net_metering_allowed: ::core::option::Option<bool>,
+    /// The percentage (0-100) of solar electricity production we assumed was exported to the grid, based on the first quarter of production. This affects the calculations if net metering is not allowed.
+    #[serde(default, rename = "percentageExportedToGrid")]
+    pub percentage_exported_to_grid: ::core::option::Option<f32>,
+    /// Utility bill for electricity not produced by solar, for the lifetime of the panels.
+    #[serde(default, rename = "remainingLifetimeUtilityBill")]
+    pub remaining_lifetime_utility_bill: ::core::option::Option<Money>,
+    /// Percentage (0-100) of the user''s power supplied by solar. Valid for the first year but approximately correct for future years.
+    #[serde(default, rename = "solarPercentage")]
+    pub solar_percentage: ::core::option::Option<f32>,
+    /// Amount of money available from state incentives; this applies if the user buys (with or without a loan) the panels.
+    #[serde(default, rename = "stateIncentive")]
+    pub state_incentive: ::core::option::Option<Money>,
+    /// Amount of money available from utility incentives; this applies if the user buys (with or without a loan) the panels.
+    #[serde(default, rename = "utilityIncentive")]
+    pub utility_incentive: ::core::option::Option<Money>,
+}
+
+/// Cost and benefit of leasing a particular configuration of solar panels with a particular electricity usage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeasingSavings {
+    /// Estimated annual leasing cost.
+    #[serde(default, rename = "annualLeasingCost")]
+    pub annual_leasing_cost: ::core::option::Option<Money>,
+    /// Whether leases are allowed in this juristiction (leases are not allowed in some states). If this field is false, then the values in this message should probably be ignored.
+    #[serde(default, rename = "leasesAllowed")]
+    pub leases_allowed: ::core::option::Option<bool>,
+    /// Whether leases are supported in this juristiction by the financial calculation engine. If this field is false, then the values in this message should probably be ignored. This is independent of leases_allowed: in some areas leases are allowed, but under conditions that aren''t handled by the financial models.
+    #[serde(default, rename = "leasesSupported")]
+    pub leases_supported: ::core::option::Option<bool>,
+    /// How much is saved (or not) over the lifetime period.
+    #[serde(default)]
+    pub savings: ::core::option::Option<SavingsOverTime>,
+}
+
+/// A bounding box in lat/lng coordinates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLngBox {
+    /// The northeast corner of the box.
+    #[serde(default)]
+    pub ne: ::core::option::Option<LatLng>,
+    /// The southwest corner of the box.
+    #[serde(default)]
+    pub sw: ::core::option::Option<LatLng>,
+}
+
+/// Size and sunniness quantiles of a roof, or part of a roof.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SizeAndSunshineStats {
+    /// The area of the roof or roof segment, in m^2. This is the roof area (accounting for tilt), not the ground footprint area.
+    #[serde(default, rename = "areaMeters2")]
+    pub area_meters2: ::core::option::Option<f32>,
+    /// The ground footprint area covered by the roof or roof segment, in m^2.
+    #[serde(default, rename = "groundAreaMeters2")]
+    pub ground_area_meters2: ::core::option::Option<f32>,
+    /// Quantiles of the pointwise sunniness across the area. If there are N values here, this represents the (N-1)-iles. For example, if there are 5 values, then they would be the quartiles (min, 25%, 50%, 75%, max). Values are in annual kWh/kW like max_sunshine_hours_per_year.
+    #[serde(default, rename = "sunshineQuantiles")]
+    pub sunshine_quantiles: ::core::option::Option<::std::vec::Vec<f32>>,
+}
+
+/// Information about a roof segment on the building, with some number of panels placed on it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoofSegmentSummary {
+    /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
+    #[serde(default, rename = "azimuthDegrees")]
+    pub azimuth_degrees: ::core::option::Option<f32>,
+    /// The total number of panels on this segment.
+    #[serde(default, rename = "panelsCount")]
+    pub panels_count: ::core::option::Option<i32>,
+    /// Angle of the roof segment relative to the theoretical ground plane. 0 = parallel to the ground, 90 = perpendicular to the ground.
+    #[serde(default, rename = "pitchDegrees")]
+    pub pitch_degrees: ::core::option::Option<f32>,
+    /// Index in roof_segment_stats of the corresponding RoofSegmentSizeAndSunshineStats.
+    #[serde(default, rename = "segmentIndex")]
+    pub segment_index: ::core::option::Option<i32>,
+    /// How much sunlight energy this part of the layout captures over the course of a year, in DC kWh, assuming the panels described above.
+    #[serde(default, rename = "yearlyEnergyDcKwh")]
+    pub yearly_energy_dc_kwh: ::core::option::Option<f32>,
+}
+
+/// Financial information that''s shared between different financing methods.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SavingsOverTime {
+    /// Indicates whether this scenario is financially viable. Will be false for scenarios with poor financial viability (e.g., money-losing).
+    #[serde(default, rename = "financiallyViable")]
+    pub financially_viable: ::core::option::Option<bool>,
+    /// Using the assumed discount rate, what is the present value of the cumulative lifetime savings?
+    #[serde(default, rename = "presentValueOfSavingsLifetime")]
+    pub present_value_of_savings_lifetime: ::core::option::Option<Money>,
+    /// Using the assumed discount rate, what is the present value of the cumulative 20-year savings?
+    #[serde(default, rename = "presentValueOfSavingsYear20")]
+    pub present_value_of_savings_year20: ::core::option::Option<Money>,
+    /// Savings in the entire panel lifetime.
+    #[serde(default, rename = "savingsLifetime")]
+    pub savings_lifetime: ::core::option::Option<Money>,
+    /// Savings in the first year after panel installation.
+    #[serde(default, rename = "savingsYear1")]
+    pub savings_year1: ::core::option::Option<Money>,
+    /// Savings in the first twenty years after panel installation.
+    #[serde(default, rename = "savingsYear20")]
+    pub savings_year20: ::core::option::Option<Money>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Money {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
 }

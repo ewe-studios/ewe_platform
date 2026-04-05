@@ -35,42 +35,6 @@ pub struct AlterTablePropertiesRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Represents the autoscaling configuration of a metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutoscalingConfig {
-    /// Optional. Whether or not autoscaling is enabled for this service.
-    #[serde(default, rename = "autoscalingEnabled")]
-    pub autoscaling_enabled: ::core::option::Option<bool>,
-    /// Output only. The scaling factor of a service with autoscaling enabled.
-    #[serde(default, rename = "autoscalingFactor")]
-    pub autoscaling_factor: ::core::option::Option<f32>,
-    /// Optional. The LimitConfig of the service.
-    #[serde(default, rename = "limitConfig")]
-    pub limit_config: ::core::option::Option<LimitConfig>,
-}
-
 /// Configuration information for the auxiliary service versions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuxiliaryVersionConfig {
@@ -96,173 +60,6 @@ pub struct BackendMetastore {
     pub name: ::core::option::Option<String>,
 }
 
-/// The details of a backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Backup {
-    /// Output only. The time when the backup was started.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The description of the backup.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The time when the backup finished creating.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Immutable. Identifier. The relative resource name of the backup, in the following form:projects/{project_number}/locations/{location_id}/services/{service_id}/backups/{backup_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Services that are restoring from the backup.
-    #[serde(default, rename = "restoringServices")]
-    pub restoring_services: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The revision of the service at the time of backup.
-    #[serde(default, rename = "serviceRevision")]
-    pub service_revision: ::core::option::Option<Service>,
-    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "ACTIVE", "FAILED", "RESTORING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a Kubernetes service account (https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. group:{emailid}: An email address that represents a Google group. For example, admins@example.com. domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.For an overview of the IAM roles and permissions, see the IAM documentation (https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see here (https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CdcConfig {
-    /// Optional. The bucket to write the intermediate stream event data in. The bucket name must be without any prefix like "gs://". See the bucket naming requirements (https://cloud.google.com/storage/docs/buckets#naming). This field is optional. If not set, the Artifacts Cloud Storage bucket will be used.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Required. Input only. The password for the user that Datastream service should use for the MySQL connection. This field is not returned on request.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Required. The URL of the subnetwork resource to create the VM instance hosting the reverse proxy in. More context in https://cloud.google.com/datastream/docs/private-connectivity#reverse-csql-proxy The subnetwork should reside in the network provided in the request that Datastream will peer to and should be in the same region as Datastream, in the following format. projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
-    #[serde(default, rename = "reverseProxySubnet")]
-    pub reverse_proxy_subnet: ::core::option::Option<String>,
-    /// Optional. The root path inside the Cloud Storage bucket. The stream event data will be written to this path. The default value is /migration.
-    #[serde(default, rename = "rootPath")]
-    pub root_path: ::core::option::Option<String>,
-    /// Required. A /29 CIDR IP range for peering with datastream.
-    #[serde(default, rename = "subnetIpRange")]
-    pub subnet_ip_range: ::core::option::Option<String>,
-    /// Required. The username that the Datastream service should use for the MySQL connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-    /// Required. Fully qualified name of the Cloud SQL instance''s VPC network or the shared VPC network that Datastream will peer to, in the following format: projects/{project_id}/locations/global/networks/{network_id}. More context in https://cloud.google.com/datastream/docs/network-connectivity-options#privateconnectivity
-    #[serde(default, rename = "vpcNetwork")]
-    pub vpc_network: ::core::option::Option<String>,
-}
-
-/// Configuration information to establish customer database connection before the cutover phase of migration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSQLConnectionConfig {
-    /// Required. The hive database name.
-    #[serde(default, rename = "hiveDatabaseName")]
-    pub hive_database_name: ::core::option::Option<String>,
-    /// Required. Cloud SQL database connection name (project_id:region:instance_name)
-    #[serde(default, rename = "instanceConnectionName")]
-    pub instance_connection_name: ::core::option::Option<String>,
-    /// Required. The private IP address of the Cloud SQL instance.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Required. The relative resource name of the subnetwork to be used for Private Service Connect. Note that this cannot be a regular subnet and is used only for NAT. (https://cloud.google.com/vpc/docs/about-vpc-hosted-services#psc-subnets) This subnet is used to publish the SOCKS5 proxy service. The subnet size must be at least /29 and it should reside in a network through which the Cloud SQL instance is accessible. The resource name should be in the format, projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
-    #[serde(default, rename = "natSubnet")]
-    pub nat_subnet: ::core::option::Option<String>,
-    /// Required. Input only. The password for the user that Dataproc Metastore service will be using to connect to the database. This field is not returned on request.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Required. The network port of the database.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Required. The relative resource name of the subnetwork to deploy the SOCKS5 proxy service in. The subnetwork should reside in a network through which the Cloud SQL instance is accessible. The resource name should be in the format, projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
-    #[serde(default, rename = "proxySubnet")]
-    pub proxy_subnet: ::core::option::Option<String>,
-    /// Required. The username that Dataproc Metastore service will use to connect to the database.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information for migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSQLMigrationConfig {
-    /// Required. Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore. Dataproc Metastore switches to using its backend database after the cutover phase of migration.
-    #[serde(default, rename = "cdcConfig")]
-    pub cdc_config: ::core::option::Option<CdcConfig>,
-    /// Required. Configuration information to establish customer database connection before the cutover phase of migration
-    #[serde(default, rename = "cloudSqlConnectionConfig")]
-    pub cloud_sql_connection_config: ::core::option::Option<CloudSQLConnectionConfig>,
-}
-
-/// Contains information of the customer''s network configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Consumer {
-    /// Output only. The location of the endpoint URI. Format: projects/{project}/locations/{location}.
-    #[serde(default, rename = "endpointLocation")]
-    pub endpoint_location: ::core::option::Option<String>,
-    /// Output only. The URI of the endpoint used to access the metastore service.
-    #[serde(default, rename = "endpointUri")]
-    pub endpoint_uri: ::core::option::Option<String>,
-    /// Immutable. The subnetwork of the customer project from which an IP address is reserved and used as the Dataproc Metastore service''s endpoint. It is accessible to hosts in the subnet and to all hosts in a subnet in the same region and same network. There must be at least one IP address available in the subnet''s primary range. The subnet is specified in the following form:projects/{project_number}/regions/{region_id}/subnetworks/{subnetwork_id}
-    #[serde(default)]
-    pub subnetwork: ::core::option::Option<String>,
-}
-
-/// Deprecated: Use a single region service instead. Metadata about a custom region. This is only populated if the region is a custom region. For single/multi regions, it will be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomRegionMetadata {
-    /// The read-only regions for this custom region.
-    #[serde(default, rename = "optionalReadOnlyRegions")]
-    pub optional_read_only_regions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The read-write regions for this custom region.
-    #[serde(default, rename = "requiredReadWriteRegions")]
-    pub required_read_write_regions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The Spanner witness region for this custom region.
-    #[serde(default, rename = "witnessRegion")]
-    pub witness_region: ::core::option::Option<String>,
-}
-
-/// Specifies how metastore metadata should be integrated with the Data Catalog service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataCatalogConfig {
-    /// Optional. Defines whether the metastore metadata should be synced to Data Catalog. The default value is to disable syncing metastore metadata to Data Catalog.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// A specification of the location of and metadata about a database dump from a relational database management system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseDump {
-    /// The type of the database. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "MYSQL"]
-    #[serde(default, rename = "databaseType")]
-    pub database_type: ::core::option::Option<String>,
-    /// Optional. A Cloud Storage object or folder URI that specifies the source from which to import metadata. It must begin with gs://.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// Optional. The name of the source database.
-    #[serde(default, rename = "sourceDatabase")]
-    pub source_database: ::core::option::Option<String>,
-    /// Optional. The type of the database dump. If unspecified, defaults to MYSQL. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Encryption settings for the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// Optional. The fully qualified customer provided Cloud KMS key name to use for customer data encryption, in the following format:projects/{project_number}/locations/{location_id}/keyRings/{key_ring_id}/cryptoKeys/{crypto_key_id}.
-    #[serde(default, rename = "kmsKey")]
-    pub kms_key: ::core::option::Option<String>,
-}
-
 /// Request message for DataprocMetastore.ExportMetadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportMetadataRequest {
@@ -275,134 +72,6 @@ pub struct ExportMetadataRequest {
     /// Optional. A request ID. Specify a unique request ID to allow the server to ignore the request if it has completed. The server will ignore subsequent requests that provide a duplicate request ID for at least 60 minutes after the first request.For example, if an initial request times out, followed by another request with the same request ID, the server ignores the second request to prevent the creation of duplicate commitments.The request ID must be a valid UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier#Format). A zero UUID (00000000-0000-0000-0000-000000000000) is not supported.
     #[serde(default, rename = "requestId")]
     pub request_id: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Represents a federation of multiple backend metastores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Federation {
-    /// A map from BackendMetastore rank to BackendMetastores from which the federation service serves metadata at query time. The map key represents the order in which BackendMetastores should be evaluated to resolve database names at query time and should be greater than or equal to zero. A BackendMetastore with a lower number will be evaluated before a BackendMetastore with a higher number.
-    #[serde(default, rename = "backendMetastores")]
-    pub backend_metastores: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the metastore federation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The federation endpoint.
-    #[serde(default, rename = "endpointUri")]
-    pub endpoint_uri: ::core::option::Option<String>,
-    /// User-defined labels for the metastore federation.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Immutable. The relative resource name of the federation, of the form: projects/{project_number}/locations/{location_id}/federations/{federation_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The current state of the federation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "UPDATING", "DELETING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Additional information about the current state of the metastore federation, if available.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
-    #[serde(default)]
-    pub tags: ::core::option::Option<serde_json::Value>,
-    /// Output only. The globally unique resource identifier of the metastore federation.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the metastore federation was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Immutable. The Apache Hive metastore version of the federation. All backend metastore versions must be compatible with the federation version.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Specifies configuration information specific to running Hive metastore software as the metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HiveMetastoreConfig {
-    /// Optional. A mapping of Hive metastore version to the auxiliary version configuration. When specified, a secondary Hive metastore service is created along with the primary service. All auxiliary versions must be less than the service''s primary version. The key is the auxiliary service name and it must match the regular expression a-z?. This means that the first character must be a lowercase letter, and all the following characters must be hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
-    #[serde(default, rename = "auxiliaryVersions")]
-    pub auxiliary_versions: ::core::option::Option<serde_json::Value>,
-    /// Optional. A mapping of Hive metastore configuration key-value pairs to apply to the Hive metastore (configured in hive-site.xml). The mappings override system defaults (some keys cannot be overridden). These overrides are also applied to auxiliary versions and can be further customized in the auxiliary version''s AuxiliaryVersionConfig.
-    #[serde(default, rename = "configOverrides")]
-    pub config_overrides: ::core::option::Option<serde_json::Value>,
-    /// Optional. The protocol to use for the metastore service endpoint. If unspecified, defaults to THRIFT. // TODO: enum values: ["ENDPOINT_PROTOCOL_UNSPECIFIED", "THRIFT", "GRPC"]
-    #[serde(default, rename = "endpointProtocol")]
-    pub endpoint_protocol: ::core::option::Option<String>,
-    /// Optional. Information used to configure the Hive metastore service as a service principal in a Kerberos realm. To disable Kerberos, use the UpdateService method and specify this field''s path (hive_metastore_config.kerberos_config) in the request''s update_mask while omitting this field from the request''s service.
-    #[serde(default, rename = "kerberosConfig")]
-    pub kerberos_config: ::core::option::Option<KerberosConfig>,
-    /// Immutable. The Hive metastore schema version.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// A specification of a supported version of the Hive Metastore software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HiveMetastoreVersion {
-    /// Whether version will be chosen by the server if a metastore service is created with a HiveMetastoreConfig that omits the version.
-    #[serde(default, rename = "isDefault")]
-    pub is_default: ::core::option::Option<bool>,
-    /// The semantic version of the Hive Metastore software.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Configuration information for a Kerberos principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KerberosConfig {
-    /// Optional. A Kerberos keytab file that can be used to authenticate a service principal with a Kerberos Key Distribution Center (KDC).
-    #[serde(default)]
-    pub keytab: ::core::option::Option<Secret>,
-    /// Optional. A Cloud Storage URI that specifies the path to a krb5.conf file. It is of the form gs://{bucket_name}/path/to/krb5.conf, although the file does not need to be named krb5.conf explicitly.
-    #[serde(default, rename = "krb5ConfigGcsUri")]
-    pub krb5_config_gcs_uri: ::core::option::Option<String>,
-    /// Optional. A Kerberos principal that exists in the both the keytab the KDC to authenticate as. A typical principal is of the form primary/instance@REALM, but there is no exact format.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-}
-
-/// The details of the latest scheduled backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatestBackup {
-    /// Output only. The ID of an in-progress scheduled backup. Empty if no backup is in progress.
-    #[serde(default, rename = "backupId")]
-    pub backup_id: ::core::option::Option<String>,
-    /// Output only. The duration of the backup completion.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Output only. The time when the backup was started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_PROGRESS", "SUCCEEDED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Represents the autoscaling limit configuration of a metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LimitConfig {
-    /// Optional. The highest scaling factor that the service should be autoscaled to.
-    #[serde(default, rename = "maxScalingFactor")]
-    pub max_scaling_factor: ::core::option::Option<f32>,
-    /// Optional. The lowest scaling factor that the service should be autoscaled to.
-    #[serde(default, rename = "minScalingFactor")]
-    pub min_scaling_factor: ::core::option::Option<f32>,
 }
 
 /// Response message for DataprocMetastore.ListBackups.
@@ -500,26 +169,6 @@ pub struct ListServicesResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Metadata about the service in a location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocationMetadata {
@@ -535,108 +184,6 @@ pub struct LocationMetadata {
         ::core::option::Option<::std::vec::Vec<HiveMetastoreVersion>>,
 }
 
-/// Maintenance window. This specifies when Dataproc Metastore may perform system maintenance operation to the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceWindow {
-    /// Optional. The day of week, when the window starts. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: ::core::option::Option<String>,
-    /// Optional. The hour of day (0-23) when the window starts.
-    #[serde(default, rename = "hourOfDay")]
-    pub hour_of_day: ::core::option::Option<i32>,
-}
-
-/// The details of a metadata export operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetadataExport {
-    /// Output only. The type of the database dump. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
-    #[serde(default, rename = "databaseDumpType")]
-    pub database_dump_type: ::core::option::Option<String>,
-    /// Output only. A Cloud Storage URI of a folder that metadata are exported to, in the form of gs:////, where is automatically generated.
-    #[serde(default, rename = "destinationGcsUri")]
-    pub destination_gcs_uri: ::core::option::Option<String>,
-    /// Output only. The time when the export ended.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The time when the export started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The current state of the export. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A metastore resource that imports metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetadataImport {
-    /// Output only. The time when the metadata import was started.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Immutable. A database dump from a pre-existing metastore''s database.
-    #[serde(default, rename = "databaseDump")]
-    pub database_dump: ::core::option::Option<DatabaseDump>,
-    /// Optional. The description of the metadata import.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The time when the metadata import finished.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Immutable. Identifier. The relative resource name of the metadata import, of the form:projects/{project_number}/locations/{location_id}/services/{service_id}/metadataImports/{metadata_import_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The current state of the metadata import. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "UPDATING", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time when the metadata import was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Specifies how metastore metadata should be integrated with external services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetadataIntegration {
-    /// Optional. The integration config for the Data Catalog service.
-    #[serde(default, rename = "dataCatalogConfig")]
-    pub data_catalog_config: ::core::option::Option<DataCatalogConfig>,
-}
-
-/// The metadata management activities of the metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetadataManagementActivity {
-    /// Output only. The latest metadata exports of the metastore service.
-    #[serde(default, rename = "metadataExports")]
-    pub metadata_exports: ::core::option::Option<::std::vec::Vec<MetadataExport>>,
-    /// Output only. The latest restores of the metastore service.
-    #[serde(default)]
-    pub restores: ::core::option::Option<::std::vec::Vec<Restore>>,
-}
-
-/// The details of a migration execution resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrationExecution {
-    /// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information specific to migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
-    #[serde(default, rename = "cloudSqlMigrationConfig")]
-    pub cloud_sql_migration_config: ::core::option::Option<CloudSQLMigrationConfig>,
-    /// Output only. The time when the migration execution was started.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the migration execution finished.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The relative resource name of the migration execution, in the following form: projects/{project_number}/locations/{location_id}/services/{service_id}/migrationExecutions/{migration_execution_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Deprecated: Phase was designed for incoming migrations to Dataproc Metastore, not applicable when migrating away from it. The current phase of the migration execution. // TODO: enum values: ["PHASE_UNSPECIFIED", "REPLICATION", "CUTOVER"]
-    #[serde(default)]
-    pub phase: ::core::option::Option<String>,
-    /// Output only. The current state of the migration execution. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTING", "RUNNING", "CANCELLING", "AWAITING_USER_ACTION", "SUCCEEDED", "FAILED", "CANCELLED", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Additional information about the current state of the migration execution.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-}
-
 /// Request message for DataprocMetastore.MoveTableToDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveTableToDatabaseRequest {
@@ -649,48 +196,6 @@ pub struct MoveTableToDatabaseRequest {
     /// Required. The name of the table to be moved.
     #[serde(default, rename = "tableName")]
     pub table_name: ::core::option::Option<String>,
-}
-
-/// Deprecated: Use a single region service instead. The metadata for the multi-region that includes the constituent regions. The metadata is only populated if the region is multi-region. For single region or custom dual region, it will be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiRegionMetadata {
-    /// The regions constituting the multi-region.
-    #[serde(default, rename = "constituentRegions")]
-    pub constituent_regions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The continent for this multi-region.
-    #[serde(default)]
-    pub continent: ::core::option::Option<String>,
-    /// The Spanner witness region for this multi-region.
-    #[serde(default, rename = "witnessRegion")]
-    pub witness_region: ::core::option::Option<String>,
-}
-
-/// Network configuration for the Dataproc Metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfig {
-    /// Immutable. The consumer-side network configuration for the Dataproc Metastore instance.
-    #[serde(default)]
-    pub consumers: ::core::option::Option<::std::vec::Vec<Consumer>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of a long-running operation.
@@ -719,23 +224,6 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy.Important: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy.Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected.Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: Getting a policy that includes a conditional role binding Adding a conditional role binding to a policy Changing a conditional role binding in a policy Removing any role binding, with or without a condition, from a policy that includes conditionsImportant: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
 /// Request message for DataprocMetastore.QueryMetadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryMetadataRequest {
@@ -750,32 +238,6 @@ pub struct QueryMetadataResponse {
     /// The manifest URI is link to a JSON instance in Cloud Storage. This instance manifests immediately along with QueryMetadataResponse. The content of the URI is not retriable until the long-running operation query against the metadata finishes.
     #[serde(default, rename = "resultManifestUri")]
     pub result_manifest_uri: ::core::option::Option<String>,
-}
-
-/// The details of a metadata restore operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Restore {
-    /// Output only. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}.
-    #[serde(default)]
-    pub backup: ::core::option::Option<String>,
-    /// Optional. A Cloud Storage URI specifying where the backup artifacts are stored, in the format gs:///.
-    #[serde(default, rename = "backupLocation")]
-    pub backup_location: ::core::option::Option<String>,
-    /// Output only. The restore details containing the revision of the service to be restored to, in format of JSON.
-    #[serde(default)]
-    pub details: ::core::option::Option<String>,
-    /// Output only. The time when the restore ended.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. The time when the restore started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The current state of the restore. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The type of restore. // TODO: enum values: ["RESTORE_TYPE_UNSPECIFIED", "FULL", "METADATA_ONLY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Request message for DataprocMetastore.RestoreService.
@@ -795,49 +257,274 @@ pub struct RestoreServiceRequest {
     pub restore_type: ::core::option::Option<String>,
 }
 
-/// Represents the scaling configuration of a metastore service.
+/// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScalingConfig {
-    /// Optional. The autoscaling configuration.
-    #[serde(default, rename = "autoscalingConfig")]
-    pub autoscaling_config: ::core::option::Option<AutoscalingConfig>,
-    /// An enum of readable instance sizes, with each instance size mapping to a float value (e.g. InstanceSize.EXTRA_SMALL = scaling_factor(0.1)) // TODO: enum values: ["INSTANCE_SIZE_UNSPECIFIED", "EXTRA_SMALL", "SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE"]
-    #[serde(default, rename = "instanceSize")]
-    pub instance_size: ::core::option::Option<String>,
-    /// Scaling factor, increments of 0.1 for values less than 1.0, and increments of 1.0 for values greater than 1.0.
-    #[serde(default, rename = "scalingFactor")]
-    pub scaling_factor: ::core::option::Option<f32>,
-}
-
-/// This specifies the configuration of scheduled backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScheduledBackup {
-    /// Optional. A Cloud Storage URI of a folder, in the format gs:///. A sub-folder containing backup files will be stored below it.
-    #[serde(default, rename = "backupLocation")]
-    pub backup_location: ::core::option::Option<String>,
-    /// Optional. The scheduled interval in Cron format, see https://en.wikipedia.org/wiki/Cron The default is empty: scheduled backup is not enabled. Must be specified to enable scheduled backups.
-    #[serde(default, rename = "cronSchedule")]
-    pub cron_schedule: ::core::option::Option<String>,
-    /// Optional. Defines whether the scheduled backup is enabled. The default value is false.
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. The details of the latest scheduled backup.
-    #[serde(default, rename = "latestBackup")]
-    pub latest_backup: ::core::option::Option<LatestBackup>,
-    /// Output only. The time when the next backups execution is scheduled to start.
-    #[serde(default, rename = "nextScheduledTime")]
-    pub next_scheduled_time: ::core::option::Option<String>,
-    /// Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. America/Los_Angeles or Africa/Abidjan. If left unspecified, the default is UTC.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used:paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
-/// A securely stored value.
+/// Request message for DataprocMetastore.StartMigration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Secret {
-    /// Optional. The relative resource name of a Secret Manager secret version, in the following form:projects/{project_number}/secrets/{secret_id}/versions/{version_id}.
-    #[serde(default, rename = "cloudSecret")]
-    pub cloud_secret: ::core::option::Option<String>,
+pub struct StartMigrationRequest {
+    /// Required. The configuration details for the migration.
+    #[serde(default, rename = "migrationExecution")]
+    pub migration_execution: ::core::option::Option<MigrationExecution>,
+    /// Optional. A request ID. Specify a unique request ID to allow the server to ignore the request if it has completed. The server will ignore subsequent requests that provide a duplicate request ID for at least 60 minutes after the first request.For example, if an initial request times out, followed by another request with the same request ID, the server ignores the second request to prevent the creation of duplicate commitments.The request ID must be a valid UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) A zero UUID (00000000-0000-0000-0000-000000000000) is not supported.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Wire-format for a Status object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StatusProto {
+    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
+    #[serde(default, rename = "canonicalCode")]
+    pub canonical_code: ::core::option::Option<i32>,
+    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
+    #[serde(default, rename = "messageSet")]
+    pub message_set: ::core::option::Option<serde_json::Value>,
+    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The details of a backup resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Backup {
+    /// Output only. The time when the backup was started.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The description of the backup.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The time when the backup finished creating.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Immutable. Identifier. The relative resource name of the backup, in the following form:projects/{project_number}/locations/{location_id}/services/{service_id}/backups/{backup_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Services that are restoring from the backup.
+    #[serde(default, rename = "restoringServices")]
+    pub restoring_services: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The revision of the service at the time of backup.
+    #[serde(default, rename = "serviceRevision")]
+    pub service_revision: ::core::option::Option<Service>,
+    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "ACTIVE", "FAILED", "RESTORING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Represents a federation of multiple backend metastores.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Federation {
+    /// A map from BackendMetastore rank to BackendMetastores from which the federation service serves metadata at query time. The map key represents the order in which BackendMetastores should be evaluated to resolve database names at query time and should be greater than or equal to zero. A BackendMetastore with a lower number will be evaluated before a BackendMetastore with a higher number.
+    #[serde(default, rename = "backendMetastores")]
+    pub backend_metastores: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the metastore federation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The federation endpoint.
+    #[serde(default, rename = "endpointUri")]
+    pub endpoint_uri: ::core::option::Option<String>,
+    /// User-defined labels for the metastore federation.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Immutable. The relative resource name of the federation, of the form: projects/{project_number}/locations/{location_id}/federations/{federation_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current state of the federation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "UPDATING", "DELETING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Additional information about the current state of the metastore federation, if available.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+    /// Output only. The globally unique resource identifier of the metastore federation.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the metastore federation was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Immutable. The Apache Hive metastore version of the federation. All backend metastore versions must be compatible with the federation version.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A metastore resource that imports metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetadataImport {
+    /// Output only. The time when the metadata import was started.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Immutable. A database dump from a pre-existing metastore''s database.
+    #[serde(default, rename = "databaseDump")]
+    pub database_dump: ::core::option::Option<DatabaseDump>,
+    /// Optional. The description of the metadata import.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The time when the metadata import finished.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Immutable. Identifier. The relative resource name of the metadata import, of the form:projects/{project_number}/locations/{location_id}/services/{service_id}/metadataImports/{metadata_import_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current state of the metadata import. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "UPDATING", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time when the metadata import was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Deprecated: Use a single region service instead. Metadata about a custom region. This is only populated if the region is a custom region. For single/multi regions, it will be empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomRegionMetadata {
+    /// The read-only regions for this custom region.
+    #[serde(default, rename = "optionalReadOnlyRegions")]
+    pub optional_read_only_regions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The read-write regions for this custom region.
+    #[serde(default, rename = "requiredReadWriteRegions")]
+    pub required_read_write_regions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The Spanner witness region for this custom region.
+    #[serde(default, rename = "witnessRegion")]
+    pub witness_region: ::core::option::Option<String>,
+}
+
+/// Deprecated: Use a single region service instead. The metadata for the multi-region that includes the constituent regions. The metadata is only populated if the region is multi-region. For single region or custom dual region, it will be empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiRegionMetadata {
+    /// The regions constituting the multi-region.
+    #[serde(default, rename = "constituentRegions")]
+    pub constituent_regions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The continent for this multi-region.
+    #[serde(default)]
+    pub continent: ::core::option::Option<String>,
+    /// The Spanner witness region for this multi-region.
+    #[serde(default, rename = "witnessRegion")]
+    pub witness_region: ::core::option::Option<String>,
+}
+
+/// A specification of a supported version of the Hive Metastore software.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HiveMetastoreVersion {
+    /// Whether version will be chosen by the server if a metastore service is created with a HiveMetastoreConfig that omits the version.
+    #[serde(default, rename = "isDefault")]
+    pub is_default: ::core::option::Option<bool>,
+    /// The semantic version of the Hive Metastore software.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy.Important: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy.Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected.Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: Getting a policy that includes a conditional role binding Adding a conditional role binding to a policy Changing a conditional role binding in a policy Removing any role binding, with or without a condition, from a policy that includes conditionsImportant: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// The details of a migration execution resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationExecution {
+    /// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information specific to migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
+    #[serde(default, rename = "cloudSqlMigrationConfig")]
+    pub cloud_sql_migration_config: ::core::option::Option<CloudSQLMigrationConfig>,
+    /// Output only. The time when the migration execution was started.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the migration execution finished.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The relative resource name of the migration execution, in the following form: projects/{project_number}/locations/{location_id}/services/{service_id}/migrationExecutions/{migration_execution_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Deprecated: Phase was designed for incoming migrations to Dataproc Metastore, not applicable when migrating away from it. The current phase of the migration execution. // TODO: enum values: ["PHASE_UNSPECIFIED", "REPLICATION", "CUTOVER"]
+    #[serde(default)]
+    pub phase: ::core::option::Option<String>,
+    /// Output only. The current state of the migration execution. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTING", "RUNNING", "CANCELLING", "AWAITING_USER_ACTION", "SUCCEEDED", "FAILED", "CANCELLED", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Additional information about the current state of the migration execution.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
 }
 
 /// A managed metastore service that serves metadata queries.
@@ -920,26 +607,21 @@ pub struct Service {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Request message for SetIamPolicy method.
+/// A specification of the location of and metadata about a database dump from a relational database management system.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used:paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message for DataprocMetastore.StartMigration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartMigrationRequest {
-    /// Required. The configuration details for the migration.
-    #[serde(default, rename = "migrationExecution")]
-    pub migration_execution: ::core::option::Option<MigrationExecution>,
-    /// Optional. A request ID. Specify a unique request ID to allow the server to ignore the request if it has completed. The server will ignore subsequent requests that provide a duplicate request ID for at least 60 minutes after the first request.For example, if an initial request times out, followed by another request with the same request ID, the server ignores the second request to prevent the creation of duplicate commitments.The request ID must be a valid UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) A zero UUID (00000000-0000-0000-0000-000000000000) is not supported.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
+pub struct DatabaseDump {
+    /// The type of the database. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "MYSQL"]
+    #[serde(default, rename = "databaseType")]
+    pub database_type: ::core::option::Option<String>,
+    /// Optional. A Cloud Storage object or folder URI that specifies the source from which to import metadata. It must begin with gs://.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// Optional. The name of the source database.
+    #[serde(default, rename = "sourceDatabase")]
+    pub source_database: ::core::option::Option<String>,
+    /// Optional. The type of the database dump. If unspecified, defaults to MYSQL. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
@@ -956,24 +638,143 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Wire-format for a Status object
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StatusProto {
-    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
-    #[serde(default, rename = "canonicalCode")]
-    pub canonical_code: ::core::option::Option<i32>,
-    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
-    #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
-    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a Kubernetes service account (https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. group:{emailid}: An email address that represents a Google group. For example, admins@example.com. domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub space: ::core::option::Option<String>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.For an overview of the IAM roles and permissions, see the IAM documentation (https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see here (https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information for migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSQLMigrationConfig {
+    /// Required. Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore. Dataproc Metastore switches to using its backend database after the cutover phase of migration.
+    #[serde(default, rename = "cdcConfig")]
+    pub cdc_config: ::core::option::Option<CdcConfig>,
+    /// Required. Configuration information to establish customer database connection before the cutover phase of migration
+    #[serde(default, rename = "cloudSqlConnectionConfig")]
+    pub cloud_sql_connection_config: ::core::option::Option<CloudSQLConnectionConfig>,
+}
+
+/// Encryption settings for the service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// Optional. The fully qualified customer provided Cloud KMS key name to use for customer data encryption, in the following format:projects/{project_number}/locations/{location_id}/keyRings/{key_ring_id}/cryptoKeys/{crypto_key_id}.
+    #[serde(default, rename = "kmsKey")]
+    pub kms_key: ::core::option::Option<String>,
+}
+
+/// Specifies configuration information specific to running Hive metastore software as the metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HiveMetastoreConfig {
+    /// Optional. A mapping of Hive metastore version to the auxiliary version configuration. When specified, a secondary Hive metastore service is created along with the primary service. All auxiliary versions must be less than the service''s primary version. The key is the auxiliary service name and it must match the regular expression a-z?. This means that the first character must be a lowercase letter, and all the following characters must be hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
+    #[serde(default, rename = "auxiliaryVersions")]
+    pub auxiliary_versions: ::core::option::Option<serde_json::Value>,
+    /// Optional. A mapping of Hive metastore configuration key-value pairs to apply to the Hive metastore (configured in hive-site.xml). The mappings override system defaults (some keys cannot be overridden). These overrides are also applied to auxiliary versions and can be further customized in the auxiliary version''s AuxiliaryVersionConfig.
+    #[serde(default, rename = "configOverrides")]
+    pub config_overrides: ::core::option::Option<serde_json::Value>,
+    /// Optional. The protocol to use for the metastore service endpoint. If unspecified, defaults to THRIFT. // TODO: enum values: ["ENDPOINT_PROTOCOL_UNSPECIFIED", "THRIFT", "GRPC"]
+    #[serde(default, rename = "endpointProtocol")]
+    pub endpoint_protocol: ::core::option::Option<String>,
+    /// Optional. Information used to configure the Hive metastore service as a service principal in a Kerberos realm. To disable Kerberos, use the UpdateService method and specify this field''s path (hive_metastore_config.kerberos_config) in the request''s update_mask while omitting this field from the request''s service.
+    #[serde(default, rename = "kerberosConfig")]
+    pub kerberos_config: ::core::option::Option<KerberosConfig>,
+    /// Immutable. The Hive metastore schema version.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Maintenance window. This specifies when Dataproc Metastore may perform system maintenance operation to the service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindow {
+    /// Optional. The day of week, when the window starts. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "dayOfWeek")]
+    pub day_of_week: ::core::option::Option<String>,
+    /// Optional. The hour of day (0-23) when the window starts.
+    #[serde(default, rename = "hourOfDay")]
+    pub hour_of_day: ::core::option::Option<i32>,
+}
+
+/// Specifies how metastore metadata should be integrated with external services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetadataIntegration {
+    /// Optional. The integration config for the Data Catalog service.
+    #[serde(default, rename = "dataCatalogConfig")]
+    pub data_catalog_config: ::core::option::Option<DataCatalogConfig>,
+}
+
+/// The metadata management activities of the metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetadataManagementActivity {
+    /// Output only. The latest metadata exports of the metastore service.
+    #[serde(default, rename = "metadataExports")]
+    pub metadata_exports: ::core::option::Option<::std::vec::Vec<MetadataExport>>,
+    /// Output only. The latest restores of the metastore service.
+    #[serde(default)]
+    pub restores: ::core::option::Option<::std::vec::Vec<Restore>>,
+}
+
+/// Network configuration for the Dataproc Metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    /// Immutable. The consumer-side network configuration for the Dataproc Metastore instance.
+    #[serde(default)]
+    pub consumers: ::core::option::Option<::std::vec::Vec<Consumer>>,
+}
+
+/// Represents the scaling configuration of a metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScalingConfig {
+    /// Optional. The autoscaling configuration.
+    #[serde(default, rename = "autoscalingConfig")]
+    pub autoscaling_config: ::core::option::Option<AutoscalingConfig>,
+    /// An enum of readable instance sizes, with each instance size mapping to a float value (e.g. InstanceSize.EXTRA_SMALL = scaling_factor(0.1)) // TODO: enum values: ["INSTANCE_SIZE_UNSPECIFIED", "EXTRA_SMALL", "SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE"]
+    #[serde(default, rename = "instanceSize")]
+    pub instance_size: ::core::option::Option<String>,
+    /// Scaling factor, increments of 0.1 for values less than 1.0, and increments of 1.0 for values greater than 1.0.
+    #[serde(default, rename = "scalingFactor")]
+    pub scaling_factor: ::core::option::Option<f32>,
+}
+
+/// This specifies the configuration of scheduled backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScheduledBackup {
+    /// Optional. A Cloud Storage URI of a folder, in the format gs:///. A sub-folder containing backup files will be stored below it.
+    #[serde(default, rename = "backupLocation")]
+    pub backup_location: ::core::option::Option<String>,
+    /// Optional. The scheduled interval in Cron format, see https://en.wikipedia.org/wiki/Cron The default is empty: scheduled backup is not enabled. Must be specified to enable scheduled backups.
+    #[serde(default, rename = "cronSchedule")]
+    pub cron_schedule: ::core::option::Option<String>,
+    /// Optional. Defines whether the scheduled backup is enabled. The default value is false.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. The details of the latest scheduled backup.
+    #[serde(default, rename = "latestBackup")]
+    pub latest_backup: ::core::option::Option<LatestBackup>,
+    /// Output only. The time when the next backups execution is scheduled to start.
+    #[serde(default, rename = "nextScheduledTime")]
+    pub next_scheduled_time: ::core::option::Option<String>,
+    /// Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. America/Los_Angeles or Africa/Abidjan. If left unspecified, the default is UTC.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// Telemetry Configuration for the Dataproc Metastore service.
@@ -984,18 +785,217 @@ pub struct TelemetryConfig {
     pub log_format: ::core::option::Option<String>,
 }
 
-/// Request message for TestIamPermissions method.
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
 }
 
-/// Response message for TestIamPermissions method.
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CdcConfig {
+    /// Optional. The bucket to write the intermediate stream event data in. The bucket name must be without any prefix like "gs://". See the bucket naming requirements (https://cloud.google.com/storage/docs/buckets#naming). This field is optional. If not set, the Artifacts Cloud Storage bucket will be used.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Required. Input only. The password for the user that Datastream service should use for the MySQL connection. This field is not returned on request.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Required. The URL of the subnetwork resource to create the VM instance hosting the reverse proxy in. More context in https://cloud.google.com/datastream/docs/private-connectivity#reverse-csql-proxy The subnetwork should reside in the network provided in the request that Datastream will peer to and should be in the same region as Datastream, in the following format. projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
+    #[serde(default, rename = "reverseProxySubnet")]
+    pub reverse_proxy_subnet: ::core::option::Option<String>,
+    /// Optional. The root path inside the Cloud Storage bucket. The stream event data will be written to this path. The default value is /migration.
+    #[serde(default, rename = "rootPath")]
+    pub root_path: ::core::option::Option<String>,
+    /// Required. A /29 CIDR IP range for peering with datastream.
+    #[serde(default, rename = "subnetIpRange")]
+    pub subnet_ip_range: ::core::option::Option<String>,
+    /// Required. The username that the Datastream service should use for the MySQL connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+    /// Required. Fully qualified name of the Cloud SQL instance''s VPC network or the shared VPC network that Datastream will peer to, in the following format: projects/{project_id}/locations/global/networks/{network_id}. More context in https://cloud.google.com/datastream/docs/network-connectivity-options#privateconnectivity
+    #[serde(default, rename = "vpcNetwork")]
+    pub vpc_network: ::core::option::Option<String>,
+}
+
+/// Configuration information to establish customer database connection before the cutover phase of migration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSQLConnectionConfig {
+    /// Required. The hive database name.
+    #[serde(default, rename = "hiveDatabaseName")]
+    pub hive_database_name: ::core::option::Option<String>,
+    /// Required. Cloud SQL database connection name (project_id:region:instance_name)
+    #[serde(default, rename = "instanceConnectionName")]
+    pub instance_connection_name: ::core::option::Option<String>,
+    /// Required. The private IP address of the Cloud SQL instance.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Required. The relative resource name of the subnetwork to be used for Private Service Connect. Note that this cannot be a regular subnet and is used only for NAT. (https://cloud.google.com/vpc/docs/about-vpc-hosted-services#psc-subnets) This subnet is used to publish the SOCKS5 proxy service. The subnet size must be at least /29 and it should reside in a network through which the Cloud SQL instance is accessible. The resource name should be in the format, projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
+    #[serde(default, rename = "natSubnet")]
+    pub nat_subnet: ::core::option::Option<String>,
+    /// Required. Input only. The password for the user that Dataproc Metastore service will be using to connect to the database. This field is not returned on request.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Required. The network port of the database.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Required. The relative resource name of the subnetwork to deploy the SOCKS5 proxy service in. The subnetwork should reside in a network through which the Cloud SQL instance is accessible. The resource name should be in the format, projects/{project_id}/regions/{region_id}/subnetworks/{subnetwork_id}
+    #[serde(default, rename = "proxySubnet")]
+    pub proxy_subnet: ::core::option::Option<String>,
+    /// Required. The username that Dataproc Metastore service will use to connect to the database.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Configuration information for a Kerberos principal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KerberosConfig {
+    /// Optional. A Kerberos keytab file that can be used to authenticate a service principal with a Kerberos Key Distribution Center (KDC).
+    #[serde(default)]
+    pub keytab: ::core::option::Option<Secret>,
+    /// Optional. A Cloud Storage URI that specifies the path to a krb5.conf file. It is of the form gs://{bucket_name}/path/to/krb5.conf, although the file does not need to be named krb5.conf explicitly.
+    #[serde(default, rename = "krb5ConfigGcsUri")]
+    pub krb5_config_gcs_uri: ::core::option::Option<String>,
+    /// Optional. A Kerberos principal that exists in the both the keytab the KDC to authenticate as. A typical principal is of the form primary/instance@REALM, but there is no exact format.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+}
+
+/// Specifies how metastore metadata should be integrated with the Data Catalog service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataCatalogConfig {
+    /// Optional. Defines whether the metastore metadata should be synced to Data Catalog. The default value is to disable syncing metastore metadata to Data Catalog.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// The details of a metadata export operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetadataExport {
+    /// Output only. The type of the database dump. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
+    #[serde(default, rename = "databaseDumpType")]
+    pub database_dump_type: ::core::option::Option<String>,
+    /// Output only. A Cloud Storage URI of a folder that metadata are exported to, in the form of gs:////, where is automatically generated.
+    #[serde(default, rename = "destinationGcsUri")]
+    pub destination_gcs_uri: ::core::option::Option<String>,
+    /// Output only. The time when the export ended.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The time when the export started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The current state of the export. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The details of a metadata restore operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Restore {
+    /// Output only. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}.
+    #[serde(default)]
+    pub backup: ::core::option::Option<String>,
+    /// Optional. A Cloud Storage URI specifying where the backup artifacts are stored, in the format gs:///.
+    #[serde(default, rename = "backupLocation")]
+    pub backup_location: ::core::option::Option<String>,
+    /// Output only. The restore details containing the revision of the service to be restored to, in format of JSON.
+    #[serde(default)]
+    pub details: ::core::option::Option<String>,
+    /// Output only. The time when the restore ended.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. The time when the restore started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The current state of the restore. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The type of restore. // TODO: enum values: ["RESTORE_TYPE_UNSPECIFIED", "FULL", "METADATA_ONLY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Contains information of the customer''s network configurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Consumer {
+    /// Output only. The location of the endpoint URI. Format: projects/{project}/locations/{location}.
+    #[serde(default, rename = "endpointLocation")]
+    pub endpoint_location: ::core::option::Option<String>,
+    /// Output only. The URI of the endpoint used to access the metastore service.
+    #[serde(default, rename = "endpointUri")]
+    pub endpoint_uri: ::core::option::Option<String>,
+    /// Immutable. The subnetwork of the customer project from which an IP address is reserved and used as the Dataproc Metastore service''s endpoint. It is accessible to hosts in the subnet and to all hosts in a subnet in the same region and same network. There must be at least one IP address available in the subnet''s primary range. The subnet is specified in the following form:projects/{project_number}/regions/{region_id}/subnetworks/{subnetwork_id}
+    #[serde(default)]
+    pub subnetwork: ::core::option::Option<String>,
+}
+
+/// Represents the autoscaling configuration of a metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingConfig {
+    /// Optional. Whether or not autoscaling is enabled for this service.
+    #[serde(default, rename = "autoscalingEnabled")]
+    pub autoscaling_enabled: ::core::option::Option<bool>,
+    /// Output only. The scaling factor of a service with autoscaling enabled.
+    #[serde(default, rename = "autoscalingFactor")]
+    pub autoscaling_factor: ::core::option::Option<f32>,
+    /// Optional. The LimitConfig of the service.
+    #[serde(default, rename = "limitConfig")]
+    pub limit_config: ::core::option::Option<LimitConfig>,
+}
+
+/// The details of the latest scheduled backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatestBackup {
+    /// Output only. The ID of an in-progress scheduled backup. Empty if no backup is in progress.
+    #[serde(default, rename = "backupId")]
+    pub backup_id: ::core::option::Option<String>,
+    /// Output only. The duration of the backup completion.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Output only. The time when the backup was started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_PROGRESS", "SUCCEEDED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A securely stored value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Secret {
+    /// Optional. The relative resource name of a Secret Manager secret version, in the following form:projects/{project_number}/secrets/{secret_id}/versions/{version_id}.
+    #[serde(default, rename = "cloudSecret")]
+    pub cloud_secret: ::core::option::Option<String>,
+}
+
+/// Represents the autoscaling limit configuration of a metastore service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LimitConfig {
+    /// Optional. The highest scaling factor that the service should be autoscaled to.
+    #[serde(default, rename = "maxScalingFactor")]
+    pub max_scaling_factor: ::core::option::Option<f32>,
+    /// Optional. The lowest scaling factor that the service should be autoscaled to.
+    #[serde(default, rename = "minScalingFactor")]
+    pub min_scaling_factor: ::core::option::Option<f32>,
 }

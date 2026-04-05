@@ -10,50 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An achievement definition object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AchievementDefinition {
-    /// The type of the achievement. // TODO: enum values: ["STANDARD", "INCREMENTAL"]
-    #[serde(default, rename = "achievementType")]
-    pub achievement_type: ::core::option::Option<String>,
-    /// The description of the achievement.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Experience points which will be earned when unlocking this achievement.
-    #[serde(default, rename = "experiencePoints")]
-    pub experience_points: ::core::option::Option<String>,
-    /// The total steps for an incremental achievement as a string.
-    #[serde(default, rename = "formattedTotalSteps")]
-    pub formatted_total_steps: ::core::option::Option<String>,
-    /// The ID of the achievement.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The initial state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
-    #[serde(default, rename = "initialState")]
-    pub initial_state: ::core::option::Option<String>,
-    /// Indicates whether the revealed icon image being returned is a default image, or is provided by the game.
-    #[serde(default, rename = "isRevealedIconUrlDefault")]
-    pub is_revealed_icon_url_default: ::core::option::Option<bool>,
-    /// Indicates whether the unlocked icon image being returned is a default image, or is game-provided.
-    #[serde(default, rename = "isUnlockedIconUrlDefault")]
-    pub is_unlocked_icon_url_default: ::core::option::Option<bool>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementDefinition.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of the achievement.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The image URL for the revealed achievement icon.
-    #[serde(default, rename = "revealedIconUrl")]
-    pub revealed_icon_url: ::core::option::Option<String>,
-    /// The total steps for an incremental achievement.
-    #[serde(default, rename = "totalSteps")]
-    pub total_steps: ::core::option::Option<i32>,
-    /// The image URL for the unlocked achievement icon.
-    #[serde(default, rename = "unlockedIconUrl")]
-    pub unlocked_icon_url: ::core::option::Option<String>,
-}
-
 /// A list of achievement definition objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementDefinitionsListResponse {
@@ -140,49 +96,6 @@ pub struct AchievementUpdateMultipleResponse {
     pub updated_achievements: ::core::option::Option<::std::vec::Vec<AchievementUpdateResponse>>,
 }
 
-/// A request to update an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AchievementUpdateRequest {
-    /// The achievement this update is being applied to.
-    #[serde(default, rename = "achievementId")]
-    pub achievement_id: ::core::option::Option<String>,
-    /// The payload if an update of type INCREMENT was requested for the achievement.
-    #[serde(default, rename = "incrementPayload")]
-    pub increment_payload: ::core::option::Option<GamesAchievementIncrement>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateRequest.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The payload if an update of type SET_STEPS_AT_LEAST was requested for the achievement.
-    #[serde(default, rename = "setStepsAtLeastPayload")]
-    pub set_steps_at_least_payload: ::core::option::Option<GamesAchievementSetStepsAtLeast>,
-    /// The type of update being applied. // TODO: enum values: ["REVEAL", "UNLOCK", "INCREMENT", "SET_STEPS_AT_LEAST"]
-    #[serde(default, rename = "updateType")]
-    pub update_type: ::core::option::Option<String>,
-}
-
-/// An updated achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AchievementUpdateResponse {
-    /// The achievement this update is was applied to.
-    #[serde(default, rename = "achievementId")]
-    pub achievement_id: ::core::option::Option<String>,
-    /// The current state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
-    #[serde(default, rename = "currentState")]
-    pub current_state: ::core::option::Option<String>,
-    /// The current steps recorded for this achievement if it is incremental.
-    #[serde(default, rename = "currentSteps")]
-    pub current_steps: ::core::option::Option<i32>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateResponse.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Whether this achievement was newly unlocked (that is, whether the unlock request for the achievement was the first for the player).
-    #[serde(default, rename = "newlyUnlocked")]
-    pub newly_unlocked: ::core::option::Option<bool>,
-    /// Whether the requested updates actually affected the achievement.
-    #[serde(default, rename = "updateOccurred")]
-    pub update_occurred: ::core::option::Option<bool>,
-}
-
 /// The Application resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
@@ -227,31 +140,6 @@ pub struct Application {
     pub theme_color: ::core::option::Option<String>,
 }
 
-/// An application category object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationCategory {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#applicationCategory.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The primary category.
-    #[serde(default)]
-    pub primary: ::core::option::Option<String>,
-    /// The secondary category.
-    #[serde(default)]
-    pub secondary: ::core::option::Option<String>,
-}
-
-/// Primary scoped player identifier for an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplicationPlayerId {
-    /// The application that this player identifier is for.
-    #[serde(default, rename = "applicationId")]
-    pub application_id: ::core::option::Option<String>,
-    /// The player identifier for the application.
-    #[serde(default, rename = "playerId")]
-    pub player_id: ::core::option::Option<String>,
-}
-
 /// A third party application verification response resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationVerifyResponse {
@@ -264,20 +152,6 @@ pub struct ApplicationVerifyResponse {
     /// The ID of the player that was issued the auth token used in this request.
     #[serde(default)]
     pub player_id: ::core::option::Option<String>,
-}
-
-/// Data related to individual game categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Category {
-    /// The category name.
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Experience points earned in this category.
-    #[serde(default, rename = "experiencePoints")]
-    pub experience_points: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#category.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
 }
 
 /// A third party list metagame categories response.
@@ -302,60 +176,6 @@ pub struct EndPoint {
     pub url: ::core::option::Option<String>,
 }
 
-/// A batch update failure resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventBatchRecordFailure {
-    /// The cause for the update failure. // TODO: enum values: ["TOO_LARGE", "TIME_PERIOD_EXPIRED", "TIME_PERIOD_SHORT", "TIME_PERIOD_LONG", "ALREADY_UPDATED", "RECORD_RATE_HIGH"]
-    #[serde(default, rename = "failureCause")]
-    pub failure_cause: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventBatchRecordFailure.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The time range which was rejected; empty for a request-wide failure.
-    #[serde(default)]
-    pub range: ::core::option::Option<EventPeriodRange>,
-}
-
-/// An event child relationship resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventChild {
-    /// The ID of the child event.
-    #[serde(default, rename = "childId")]
-    pub child_id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventChild.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// An event definition resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventDefinition {
-    /// A list of events that are a child of this event.
-    #[serde(default, rename = "childEvents")]
-    pub child_events: ::core::option::Option<::std::vec::Vec<EventChild>>,
-    /// Description of what this event represents.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The name to display for the event.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of the event.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The base URL for the image that represents the event.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// Indicates whether the icon image being returned is a default image, or is game-provided.
-    #[serde(default, rename = "isDefaultImageUrl")]
-    pub is_default_image_url: ::core::option::Option<bool>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventDefinition.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The visibility of event being tracked in this definition. // TODO: enum values: ["REVEALED", "HIDDEN"]
-    #[serde(default)]
-    pub visibility: ::core::option::Option<String>,
-}
-
 /// A ListDefinitions response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventDefinitionListResponse {
@@ -368,48 +188,6 @@ pub struct EventDefinitionListResponse {
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// An event period time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventPeriodRange {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodRange.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The time when this update period ends, in millis, since 1970 UTC (Unix Epoch).
-    #[serde(default, rename = "periodEndMillis")]
-    pub period_end_millis: ::core::option::Option<String>,
-    /// The time when this update period begins, in millis, since 1970 UTC (Unix Epoch).
-    #[serde(default, rename = "periodStartMillis")]
-    pub period_start_millis: ::core::option::Option<String>,
-}
-
-/// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventPeriodUpdate {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodUpdate.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The time period being covered by this update.
-    #[serde(default, rename = "timePeriod")]
-    pub time_period: ::core::option::Option<EventPeriodRange>,
-    /// The updates being made for this time period.
-    #[serde(default)]
-    pub updates: ::core::option::Option<::std::vec::Vec<EventUpdateRequest>>,
-}
-
-/// An event update failure resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventRecordFailure {
-    /// The ID of the event that was not updated.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// The cause for the update failure. // TODO: enum values: ["NOT_FOUND", "INVALID_UPDATE_VALUE"]
-    #[serde(default, rename = "failureCause")]
-    pub failure_cause: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventRecordFailure.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
 }
 
 /// An event period update resource.
@@ -431,20 +209,6 @@ pub struct EventRecordRequest {
 
 /// An event period update resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventUpdateRequest {
-    /// The ID of the event being modified in this update.
-    #[serde(default, rename = "definitionId")]
-    pub definition_id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventUpdateRequest.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The number of times this event occurred in this time period.
-    #[serde(default, rename = "updateCount")]
-    pub update_count: ::core::option::Option<String>,
-}
-
-/// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventUpdateResponse {
     /// Any batch-wide failures which occurred applying updates.
     #[serde(default, rename = "batchFailures")]
@@ -458,42 +222,6 @@ pub struct EventUpdateResponse {
     /// The current status of any updated events
     #[serde(default, rename = "playerEvents")]
     pub player_events: ::core::option::Option<::std::vec::Vec<PlayerEvent>>,
-}
-
-/// Recall tokens for a game.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamePlayerToken {
-    /// The application that this player identifier is for.
-    #[serde(default, rename = "applicationId")]
-    pub application_id: ::core::option::Option<String>,
-    /// Recall token data.
-    #[serde(default, rename = "recallToken")]
-    pub recall_token: ::core::option::Option<RecallToken>,
-}
-
-/// The payload to request to increment an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesAchievementIncrement {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementIncrement.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The requestId associated with an increment to an achievement.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// The number of steps to be incremented.
-    #[serde(default)]
-    pub steps: ::core::option::Option<i32>,
-}
-
-/// The payload to request to increment an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesAchievementSetStepsAtLeast {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementSetStepsAtLeast.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The minimum number of steps for the achievement to be set to.
-    #[serde(default)]
-    pub steps: ::core::option::Option<i32>,
 }
 
 /// Response for the GeneratePlayGroupingApiToken RPC.
@@ -520,170 +248,6 @@ pub struct GetMultipleApplicationPlayerIdsResponse {
     pub player_ids: ::core::option::Option<::std::vec::Vec<ApplicationPlayerId>>,
 }
 
-/// An image asset object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageAsset {
-    /// The height of the asset.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#imageAsset.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of the asset.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The URL of the asset.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// The width of the asset.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// The Instance resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Instance {
-    /// URI which shows where a user can acquire this instance.
-    #[serde(default, rename = "acquisitionUri")]
-    pub acquisition_uri: ::core::option::Option<String>,
-    /// Platform dependent details for Android.
-    #[serde(default, rename = "androidInstance")]
-    pub android_instance: ::core::option::Option<InstanceAndroidDetails>,
-    /// Platform dependent details for iOS.
-    #[serde(default, rename = "iosInstance")]
-    pub ios_instance: ::core::option::Option<InstanceIosDetails>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instance.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localized display name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The platform type. // TODO: enum values: ["ANDROID", "IOS", "WEB_APP"]
-    #[serde(default, rename = "platformType")]
-    pub platform_type: ::core::option::Option<String>,
-    /// Flag to show if this game instance supports realtime play.
-    #[serde(default, rename = "realtimePlay")]
-    pub realtime_play: ::core::option::Option<bool>,
-    /// Flag to show if this game instance supports turn based play.
-    #[serde(default, rename = "turnBasedPlay")]
-    pub turn_based_play: ::core::option::Option<bool>,
-    /// Platform dependent details for Web.
-    #[serde(default, rename = "webInstance")]
-    pub web_instance: ::core::option::Option<InstanceWebDetails>,
-}
-
-/// The Android instance details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceAndroidDetails {
-    /// Flag indicating whether the anti-piracy check is enabled.
-    #[serde(default, rename = "enablePiracyCheck")]
-    pub enable_piracy_check: ::core::option::Option<bool>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceAndroidDetails.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Android package name which maps to Google Play URL.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Indicates that this instance is the default for new installations.
-    #[serde(default)]
-    pub preferred: ::core::option::Option<bool>,
-}
-
-/// The iOS details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceIosDetails {
-    /// Bundle identifier.
-    #[serde(default, rename = "bundleIdentifier")]
-    pub bundle_identifier: ::core::option::Option<String>,
-    /// iTunes App ID.
-    #[serde(default, rename = "itunesAppId")]
-    pub itunes_app_id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceIosDetails.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Indicates that this instance is the default for new installations on iPad devices.
-    #[serde(default, rename = "preferredForIpad")]
-    pub preferred_for_ipad: ::core::option::Option<bool>,
-    /// Indicates that this instance is the default for new installations on iPhone devices.
-    #[serde(default, rename = "preferredForIphone")]
-    pub preferred_for_iphone: ::core::option::Option<bool>,
-    /// Flag to indicate if this instance supports iPad.
-    #[serde(default, rename = "supportIpad")]
-    pub support_ipad: ::core::option::Option<bool>,
-    /// Flag to indicate if this instance supports iPhone.
-    #[serde(default, rename = "supportIphone")]
-    pub support_iphone: ::core::option::Option<bool>,
-}
-
-/// The Web details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceWebDetails {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceWebDetails.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Launch URL for the game.
-    #[serde(default, rename = "launchUrl")]
-    pub launch_url: ::core::option::Option<String>,
-    /// Indicates that this instance is the default for new installations.
-    #[serde(default)]
-    pub preferred: ::core::option::Option<bool>,
-}
-
-/// The Leaderboard resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Leaderboard {
-    /// The icon for the leaderboard.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// The leaderboard ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Indicates whether the icon image being returned is a default image, or is game-provided.
-    #[serde(default, rename = "isIconUrlDefault")]
-    pub is_icon_url_default: ::core::option::Option<bool>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboard.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of the leaderboard.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// How scores are ordered. // TODO: enum values: ["LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
-    #[serde(default)]
-    pub order: ::core::option::Option<String>,
-}
-
-/// The Leaderboard Entry resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeaderboardEntry {
-    /// The localized string for the numerical value of this score.
-    #[serde(default, rename = "formattedScore")]
-    pub formatted_score: ::core::option::Option<String>,
-    /// The localized string for the rank of this score for this leaderboard.
-    #[serde(default, rename = "formattedScoreRank")]
-    pub formatted_score_rank: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardEntry.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The player who holds this score.
-    #[serde(default)]
-    pub player: ::core::option::Option<Player>,
-    /// The rank of this score for this leaderboard.
-    #[serde(default, rename = "scoreRank")]
-    pub score_rank: ::core::option::Option<String>,
-    /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default, rename = "scoreTag")]
-    pub score_tag: ::core::option::Option<String>,
-    /// The numerical value of this score.
-    #[serde(default, rename = "scoreValue")]
-    pub score_value: ::core::option::Option<String>,
-    /// The time span of this high score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
-    #[serde(default, rename = "timeSpan")]
-    pub time_span: ::core::option::Option<String>,
-    /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
-    #[serde(default, rename = "writeTimestampMillis")]
-    pub write_timestamp_millis: ::core::option::Option<String>,
-}
-
 /// A list of leaderboard objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LeaderboardListResponse {
@@ -696,26 +260,6 @@ pub struct LeaderboardListResponse {
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A score rank in a leaderboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeaderboardScoreRank {
-    /// The number of scores in the leaderboard as a string.
-    #[serde(default, rename = "formattedNumScores")]
-    pub formatted_num_scores: ::core::option::Option<String>,
-    /// The rank in the leaderboard as a string.
-    #[serde(default, rename = "formattedRank")]
-    pub formatted_rank: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardScoreRank.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The number of scores in the leaderboard.
-    #[serde(default, rename = "numScores")]
-    pub num_scores: ::core::option::Option<String>,
-    /// The rank in the leaderboard.
-    #[serde(default)]
-    pub rank: ::core::option::Option<String>,
 }
 
 /// A ListScores response.
@@ -789,84 +333,6 @@ pub struct MetagameConfig {
     pub player_levels: ::core::option::Option<::std::vec::Vec<PlayerLevel>>,
 }
 
-/// Token data returned from GeneratePlayGroupingApiToken RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayGroupingApiToken {
-    /// Value of the token.
-    #[serde(default, rename = "tokenValue")]
-    pub token_value: ::core::option::Option<String>,
-}
-
-/// A Player resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Player {
-    /// The base URL for the image that represents the player.
-    #[serde(default, rename = "avatarImageUrl")]
-    pub avatar_image_url: ::core::option::Option<String>,
-    /// The url to the landscape mode player banner image.
-    #[serde(default, rename = "bannerUrlLandscape")]
-    pub banner_url_landscape: ::core::option::Option<String>,
-    /// The url to the portrait mode player banner image.
-    #[serde(default, rename = "bannerUrlPortrait")]
-    pub banner_url_portrait: ::core::option::Option<String>,
-    /// The name to display for the player.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// An object to represent Play Game experience information for the player.
-    #[serde(default, rename = "experienceInfo")]
-    pub experience_info: ::core::option::Option<PlayerExperienceInfo>,
-    /// The friend status of the given player, relative to the requester. This is unset if the player is not sharing their friends list with the game. // TODO: enum values: ["NO_RELATIONSHIP", "FRIEND"]
-    #[serde(default, rename = "friendStatus")]
-    pub friend_status: ::core::option::Option<String>,
-    /// Per-application unique player identifier.
-    #[serde(default, rename = "gamePlayerId")]
-    pub game_player_id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#player
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// A representation of the individual components of the name.
-    #[serde(default)]
-    pub name: ::core::option::Option<serde_json::Value>,
-    /// The player ID that was used for this player the first time they signed into the game in question. This is only populated for calls to player.get for the requesting player, only if the player ID has subsequently changed, and only to clients that support remapping player IDs.
-    #[serde(default, rename = "originalPlayerId")]
-    pub original_player_id: ::core::option::Option<String>,
-    /// The ID of the player.
-    #[serde(default, rename = "playerId")]
-    pub player_id: ::core::option::Option<String>,
-    /// The player''s profile settings. Controls whether or not the player''s profile is visible to other players.
-    #[serde(default, rename = "profileSettings")]
-    pub profile_settings: ::core::option::Option<ProfileSettings>,
-    /// The player''s title rewarded for their game activities.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// An achievement object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerAchievement {
-    /// The state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
-    #[serde(default, rename = "achievementState")]
-    pub achievement_state: ::core::option::Option<String>,
-    /// The current steps for an incremental achievement.
-    #[serde(default, rename = "currentSteps")]
-    pub current_steps: ::core::option::Option<i32>,
-    /// Experience points earned for the achievement. This field is absent for achievements that have not yet been unlocked and 0 for achievements that have been unlocked by testers but that are unpublished.
-    #[serde(default, rename = "experiencePoints")]
-    pub experience_points: ::core::option::Option<String>,
-    /// The current steps for an incremental achievement as a string.
-    #[serde(default, rename = "formattedCurrentStepsString")]
-    pub formatted_current_steps_string: ::core::option::Option<String>,
-    /// The ID of the achievement.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerAchievement.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The timestamp of the last modification to this achievement''s state.
-    #[serde(default, rename = "lastUpdatedTimestamp")]
-    pub last_updated_timestamp: ::core::option::Option<String>,
-}
-
 /// A list of achievement objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerAchievementListResponse {
@@ -881,26 +347,6 @@ pub struct PlayerAchievementListResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// An event status resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerEvent {
-    /// The ID of the event definition.
-    #[serde(default, rename = "definitionId")]
-    pub definition_id: ::core::option::Option<String>,
-    /// The current number of times this event has occurred, as a string. The formatting of this string depends on the configuration of your event in the Play Games Developer Console.
-    #[serde(default, rename = "formattedNumEvents")]
-    pub formatted_num_events: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerEvent.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The current number of times this event has occurred.
-    #[serde(default, rename = "numEvents")]
-    pub num_events: ::core::option::Option<String>,
-    /// The ID of the player.
-    #[serde(default, rename = "playerId")]
-    pub player_id: ::core::option::Option<String>,
-}
-
 /// A ListByPlayer response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerEventListResponse {
@@ -913,61 +359,6 @@ pub struct PlayerEventListResponse {
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// 1P/3P metadata about the player''s experience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerExperienceInfo {
-    /// The current number of experience points for the player.
-    #[serde(default, rename = "currentExperiencePoints")]
-    pub current_experience_points: ::core::option::Option<String>,
-    /// The current level of the player.
-    #[serde(default, rename = "currentLevel")]
-    pub current_level: ::core::option::Option<PlayerLevel>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerExperienceInfo.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
-    #[serde(default, rename = "lastLevelUpTimestampMillis")]
-    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
-    /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
-    #[serde(default, rename = "nextLevel")]
-    pub next_level: ::core::option::Option<PlayerLevel>,
-}
-
-/// A player leaderboard score object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerLeaderboardScore {
-    /// The rank of the score in the friends collection for this leaderboard.
-    #[serde(default, rename = "friendsRank")]
-    pub friends_rank: ::core::option::Option<LeaderboardScoreRank>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLeaderboardScore.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The ID of the leaderboard this score is in.
-    #[serde(default)]
-    pub leaderboard_id: ::core::option::Option<String>,
-    /// The public rank of the score in this leaderboard. This object will not be present if the user is not sharing their scores publicly.
-    #[serde(default, rename = "publicRank")]
-    pub public_rank: ::core::option::Option<LeaderboardScoreRank>,
-    /// The formatted value of this score.
-    #[serde(default, rename = "scoreString")]
-    pub score_string: ::core::option::Option<String>,
-    /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default, rename = "scoreTag")]
-    pub score_tag: ::core::option::Option<String>,
-    /// The numerical value of this score.
-    #[serde(default, rename = "scoreValue")]
-    pub score_value: ::core::option::Option<String>,
-    /// The social rank of the score in this leaderboard.
-    #[serde(default, rename = "socialRank")]
-    pub social_rank: ::core::option::Option<LeaderboardScoreRank>,
-    /// The time span of this score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
-    #[serde(default, rename = "timeSpan")]
-    pub time_span: ::core::option::Option<String>,
-    /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
-    #[serde(default, rename = "writeTimestamp")]
-    pub write_timestamp: ::core::option::Option<String>,
 }
 
 /// A list of player leaderboard scores.
@@ -987,23 +378,6 @@ pub struct PlayerLeaderboardScoreListResponse {
     pub player: ::core::option::Option<Player>,
 }
 
-/// 1P/3P metadata about a user''s level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerLevel {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLevel.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The level for the user.
-    #[serde(default)]
-    pub level: ::core::option::Option<i32>,
-    /// The maximum experience points for this level.
-    #[serde(default, rename = "maxExperiencePoints")]
-    pub max_experience_points: ::core::option::Option<String>,
-    /// The minimum experience points for this level.
-    #[serde(default, rename = "minExperiencePoints")]
-    pub min_experience_points: ::core::option::Option<String>,
-}
-
 /// A third party player list response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerListResponse {
@@ -1018,26 +392,6 @@ pub struct PlayerListResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A player score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerScore {
-    /// The formatted score for this player score.
-    #[serde(default, rename = "formattedScore")]
-    pub formatted_score: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScore.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The numerical value for this player score.
-    #[serde(default)]
-    pub score: ::core::option::Option<String>,
-    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default, rename = "scoreTag")]
-    pub score_tag: ::core::option::Option<String>,
-    /// The time span for this player score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
-    #[serde(default, rename = "timeSpan")]
-    pub time_span: ::core::option::Option<String>,
-}
-
 /// A list of score submission statuses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerScoreListResponse {
@@ -1049,29 +403,6 @@ pub struct PlayerScoreListResponse {
     pub submitted_scores: ::core::option::Option<::std::vec::Vec<PlayerScoreResponse>>,
 }
 
-/// A list of leaderboard entry resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerScoreResponse {
-    /// The time spans where the submitted score is better than the existing score for that time span.
-    #[serde(default, rename = "beatenScoreTimeSpans")]
-    pub beaten_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The formatted value of the submitted score.
-    #[serde(default, rename = "formattedScore")]
-    pub formatted_score: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreResponse.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The leaderboard ID that this score was submitted to.
-    #[serde(default, rename = "leaderboardId")]
-    pub leaderboard_id: ::core::option::Option<String>,
-    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default, rename = "scoreTag")]
-    pub score_tag: ::core::option::Option<String>,
-    /// The scores in time spans that have not been beaten. As an example, the submitted score may be better than the player''s DAILY score, but not better than the player''s scores for the WEEKLY or ALL_TIME time spans.
-    #[serde(default, rename = "unbeatenScores")]
-    pub unbeaten_scores: ::core::option::Option<::std::vec::Vec<PlayerScore>>,
-}
-
 /// A list of score submission requests.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerScoreSubmissionList {
@@ -1081,34 +412,6 @@ pub struct PlayerScoreSubmissionList {
     /// The score submissions.
     #[serde(default)]
     pub scores: ::core::option::Option<::std::vec::Vec<ScoreSubmission>>,
-}
-
-/// Profile settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileSettings {
-    /// TODO: enum values: ["VISIBLE", "REQUEST_REQUIRED", "UNAVAILABLE"]
-    #[serde(default, rename = "friendsListVisibility")]
-    pub friends_list_visibility: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#profileSettings.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Whether the player''s profile is visible to the currently signed in player.
-    #[serde(default, rename = "profileVisible")]
-    pub profile_visible: ::core::option::Option<bool>,
-}
-
-/// Recall token data returned from RetrievePlayerTokens RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecallToken {
-    /// Optional. Optional expiration time of the token
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Required. Whether the persona identified by the token is linked to multiple PGS Players
-    #[serde(default, rename = "multiPlayerPersona")]
-    pub multi_player_persona: ::core::option::Option<bool>,
-    /// Required. Value of the Recall token as it is provided by the client via LinkPersona RPC
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
 }
 
 /// Request to remove all Recall tokens associated with a persona for an app.
@@ -1174,84 +477,6 @@ pub struct ScopedPlayerIds {
     /// Game-scoped player identifier. This is the same id that is returned in GetPlayer game_player_id field.
     #[serde(default, rename = "gamePlayerId")]
     pub game_player_id: ::core::option::Option<String>,
-}
-
-/// A request to submit a score to leaderboards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScoreSubmission {
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#scoreSubmission.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The leaderboard this score is being submitted to.
-    #[serde(default, rename = "leaderboardId")]
-    pub leaderboard_id: ::core::option::Option<String>,
-    /// The new score being submitted.
-    #[serde(default)]
-    pub score: ::core::option::Option<String>,
-    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default, rename = "scoreTag")]
-    pub score_tag: ::core::option::Option<String>,
-    /// Signature Values will contain URI-safe characters as defined by section 2.3 of RFC 3986.
-    #[serde(default)]
-    pub signature: ::core::option::Option<String>,
-}
-
-/// An snapshot object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Snapshot {
-    /// The cover image of this snapshot. May be absent if there is no image.
-    #[serde(default, rename = "coverImage")]
-    pub cover_image: ::core::option::Option<SnapshotImage>,
-    /// The description of this snapshot.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The ID of the file underlying this snapshot in the Drive API. Only present if the snapshot is a view on a Drive file and the file is owned by the caller.
-    #[serde(default, rename = "driveId")]
-    pub drive_id: ::core::option::Option<String>,
-    /// The duration associated with this snapshot, in millis.
-    #[serde(default, rename = "durationMillis")]
-    pub duration_millis: ::core::option::Option<String>,
-    /// The ID of the snapshot.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshot.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The timestamp (in millis since Unix epoch) of the last modification to this snapshot.
-    #[serde(default, rename = "lastModifiedMillis")]
-    pub last_modified_millis: ::core::option::Option<String>,
-    /// The progress value (64-bit integer set by developer) associated with this snapshot.
-    #[serde(default, rename = "progressValue")]
-    pub progress_value: ::core::option::Option<String>,
-    /// The title of this snapshot.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// The type of this snapshot. // TODO: enum values: ["SAVE_GAME"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The unique name provided when the snapshot was created.
-    #[serde(default, rename = "uniqueName")]
-    pub unique_name: ::core::option::Option<String>,
-}
-
-/// An image of a snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SnapshotImage {
-    /// The height of the image.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshotImage.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The MIME type of the image.
-    #[serde(default)]
-    pub mime_type: ::core::option::Option<String>,
-    /// The URL of the image. This URL may be invalidated at any time and should not be cached.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// The width of the image.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
 }
 
 /// A third party list snapshots response.
@@ -1326,4 +551,779 @@ pub struct UnlinkPersonaResponse {
     /// Required. Whether a Recall token specified by the request was deleted. Can be ''false'' when there were no Recall tokens satisfied the criteria from the request.
     #[serde(default)]
     pub unlinked: ::core::option::Option<bool>,
+}
+
+/// An achievement definition object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AchievementDefinition {
+    /// The type of the achievement. // TODO: enum values: ["STANDARD", "INCREMENTAL"]
+    #[serde(default, rename = "achievementType")]
+    pub achievement_type: ::core::option::Option<String>,
+    /// The description of the achievement.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Experience points which will be earned when unlocking this achievement.
+    #[serde(default, rename = "experiencePoints")]
+    pub experience_points: ::core::option::Option<String>,
+    /// The total steps for an incremental achievement as a string.
+    #[serde(default, rename = "formattedTotalSteps")]
+    pub formatted_total_steps: ::core::option::Option<String>,
+    /// The ID of the achievement.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The initial state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
+    #[serde(default, rename = "initialState")]
+    pub initial_state: ::core::option::Option<String>,
+    /// Indicates whether the revealed icon image being returned is a default image, or is provided by the game.
+    #[serde(default, rename = "isRevealedIconUrlDefault")]
+    pub is_revealed_icon_url_default: ::core::option::Option<bool>,
+    /// Indicates whether the unlocked icon image being returned is a default image, or is game-provided.
+    #[serde(default, rename = "isUnlockedIconUrlDefault")]
+    pub is_unlocked_icon_url_default: ::core::option::Option<bool>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementDefinition.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of the achievement.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The image URL for the revealed achievement icon.
+    #[serde(default, rename = "revealedIconUrl")]
+    pub revealed_icon_url: ::core::option::Option<String>,
+    /// The total steps for an incremental achievement.
+    #[serde(default, rename = "totalSteps")]
+    pub total_steps: ::core::option::Option<i32>,
+    /// The image URL for the unlocked achievement icon.
+    #[serde(default, rename = "unlockedIconUrl")]
+    pub unlocked_icon_url: ::core::option::Option<String>,
+}
+
+/// A request to update an achievement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AchievementUpdateRequest {
+    /// The achievement this update is being applied to.
+    #[serde(default, rename = "achievementId")]
+    pub achievement_id: ::core::option::Option<String>,
+    /// The payload if an update of type INCREMENT was requested for the achievement.
+    #[serde(default, rename = "incrementPayload")]
+    pub increment_payload: ::core::option::Option<GamesAchievementIncrement>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateRequest.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The payload if an update of type SET_STEPS_AT_LEAST was requested for the achievement.
+    #[serde(default, rename = "setStepsAtLeastPayload")]
+    pub set_steps_at_least_payload: ::core::option::Option<GamesAchievementSetStepsAtLeast>,
+    /// The type of update being applied. // TODO: enum values: ["REVEAL", "UNLOCK", "INCREMENT", "SET_STEPS_AT_LEAST"]
+    #[serde(default, rename = "updateType")]
+    pub update_type: ::core::option::Option<String>,
+}
+
+/// An updated achievement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AchievementUpdateResponse {
+    /// The achievement this update is was applied to.
+    #[serde(default, rename = "achievementId")]
+    pub achievement_id: ::core::option::Option<String>,
+    /// The current state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
+    #[serde(default, rename = "currentState")]
+    pub current_state: ::core::option::Option<String>,
+    /// The current steps recorded for this achievement if it is incremental.
+    #[serde(default, rename = "currentSteps")]
+    pub current_steps: ::core::option::Option<i32>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateResponse.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Whether this achievement was newly unlocked (that is, whether the unlock request for the achievement was the first for the player).
+    #[serde(default, rename = "newlyUnlocked")]
+    pub newly_unlocked: ::core::option::Option<bool>,
+    /// Whether the requested updates actually affected the achievement.
+    #[serde(default, rename = "updateOccurred")]
+    pub update_occurred: ::core::option::Option<bool>,
+}
+
+/// An image asset object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageAsset {
+    /// The height of the asset.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#imageAsset.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of the asset.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The URL of the asset.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// The width of the asset.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// An application category object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationCategory {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#applicationCategory.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The primary category.
+    #[serde(default)]
+    pub primary: ::core::option::Option<String>,
+    /// The secondary category.
+    #[serde(default)]
+    pub secondary: ::core::option::Option<String>,
+}
+
+/// The Instance resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Instance {
+    /// URI which shows where a user can acquire this instance.
+    #[serde(default, rename = "acquisitionUri")]
+    pub acquisition_uri: ::core::option::Option<String>,
+    /// Platform dependent details for Android.
+    #[serde(default, rename = "androidInstance")]
+    pub android_instance: ::core::option::Option<InstanceAndroidDetails>,
+    /// Platform dependent details for iOS.
+    #[serde(default, rename = "iosInstance")]
+    pub ios_instance: ::core::option::Option<InstanceIosDetails>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instance.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localized display name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The platform type. // TODO: enum values: ["ANDROID", "IOS", "WEB_APP"]
+    #[serde(default, rename = "platformType")]
+    pub platform_type: ::core::option::Option<String>,
+    /// Flag to show if this game instance supports realtime play.
+    #[serde(default, rename = "realtimePlay")]
+    pub realtime_play: ::core::option::Option<bool>,
+    /// Flag to show if this game instance supports turn based play.
+    #[serde(default, rename = "turnBasedPlay")]
+    pub turn_based_play: ::core::option::Option<bool>,
+    /// Platform dependent details for Web.
+    #[serde(default, rename = "webInstance")]
+    pub web_instance: ::core::option::Option<InstanceWebDetails>,
+}
+
+/// Data related to individual game categories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Category {
+    /// The category name.
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Experience points earned in this category.
+    #[serde(default, rename = "experiencePoints")]
+    pub experience_points: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#category.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// An event definition resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventDefinition {
+    /// A list of events that are a child of this event.
+    #[serde(default, rename = "childEvents")]
+    pub child_events: ::core::option::Option<::std::vec::Vec<EventChild>>,
+    /// Description of what this event represents.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The name to display for the event.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of the event.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The base URL for the image that represents the event.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// Indicates whether the icon image being returned is a default image, or is game-provided.
+    #[serde(default, rename = "isDefaultImageUrl")]
+    pub is_default_image_url: ::core::option::Option<bool>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventDefinition.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The visibility of event being tracked in this definition. // TODO: enum values: ["REVEALED", "HIDDEN"]
+    #[serde(default)]
+    pub visibility: ::core::option::Option<String>,
+}
+
+/// An event period update resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventPeriodUpdate {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodUpdate.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The time period being covered by this update.
+    #[serde(default, rename = "timePeriod")]
+    pub time_period: ::core::option::Option<EventPeriodRange>,
+    /// The updates being made for this time period.
+    #[serde(default)]
+    pub updates: ::core::option::Option<::std::vec::Vec<EventUpdateRequest>>,
+}
+
+/// A batch update failure resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventBatchRecordFailure {
+    /// The cause for the update failure. // TODO: enum values: ["TOO_LARGE", "TIME_PERIOD_EXPIRED", "TIME_PERIOD_SHORT", "TIME_PERIOD_LONG", "ALREADY_UPDATED", "RECORD_RATE_HIGH"]
+    #[serde(default, rename = "failureCause")]
+    pub failure_cause: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventBatchRecordFailure.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The time range which was rejected; empty for a request-wide failure.
+    #[serde(default)]
+    pub range: ::core::option::Option<EventPeriodRange>,
+}
+
+/// An event update failure resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventRecordFailure {
+    /// The ID of the event that was not updated.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// The cause for the update failure. // TODO: enum values: ["NOT_FOUND", "INVALID_UPDATE_VALUE"]
+    #[serde(default, rename = "failureCause")]
+    pub failure_cause: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventRecordFailure.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// Token data returned from GeneratePlayGroupingApiToken RPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayGroupingApiToken {
+    /// Value of the token.
+    #[serde(default, rename = "tokenValue")]
+    pub token_value: ::core::option::Option<String>,
+}
+
+/// Primary scoped player identifier for an application.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationPlayerId {
+    /// The application that this player identifier is for.
+    #[serde(default, rename = "applicationId")]
+    pub application_id: ::core::option::Option<String>,
+    /// The player identifier for the application.
+    #[serde(default, rename = "playerId")]
+    pub player_id: ::core::option::Option<String>,
+}
+
+/// The Leaderboard resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Leaderboard {
+    /// The icon for the leaderboard.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// The leaderboard ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Indicates whether the icon image being returned is a default image, or is game-provided.
+    #[serde(default, rename = "isIconUrlDefault")]
+    pub is_icon_url_default: ::core::option::Option<bool>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboard.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of the leaderboard.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// How scores are ordered. // TODO: enum values: ["LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
+    #[serde(default)]
+    pub order: ::core::option::Option<String>,
+}
+
+/// The Leaderboard Entry resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaderboardEntry {
+    /// The localized string for the numerical value of this score.
+    #[serde(default, rename = "formattedScore")]
+    pub formatted_score: ::core::option::Option<String>,
+    /// The localized string for the rank of this score for this leaderboard.
+    #[serde(default, rename = "formattedScoreRank")]
+    pub formatted_score_rank: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardEntry.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The player who holds this score.
+    #[serde(default)]
+    pub player: ::core::option::Option<Player>,
+    /// The rank of this score for this leaderboard.
+    #[serde(default, rename = "scoreRank")]
+    pub score_rank: ::core::option::Option<String>,
+    /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default, rename = "scoreTag")]
+    pub score_tag: ::core::option::Option<String>,
+    /// The numerical value of this score.
+    #[serde(default, rename = "scoreValue")]
+    pub score_value: ::core::option::Option<String>,
+    /// The time span of this high score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
+    #[serde(default, rename = "timeSpan")]
+    pub time_span: ::core::option::Option<String>,
+    /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
+    #[serde(default, rename = "writeTimestampMillis")]
+    pub write_timestamp_millis: ::core::option::Option<String>,
+}
+
+/// An achievement object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerAchievement {
+    /// The state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
+    #[serde(default, rename = "achievementState")]
+    pub achievement_state: ::core::option::Option<String>,
+    /// The current steps for an incremental achievement.
+    #[serde(default, rename = "currentSteps")]
+    pub current_steps: ::core::option::Option<i32>,
+    /// Experience points earned for the achievement. This field is absent for achievements that have not yet been unlocked and 0 for achievements that have been unlocked by testers but that are unpublished.
+    #[serde(default, rename = "experiencePoints")]
+    pub experience_points: ::core::option::Option<String>,
+    /// The current steps for an incremental achievement as a string.
+    #[serde(default, rename = "formattedCurrentStepsString")]
+    pub formatted_current_steps_string: ::core::option::Option<String>,
+    /// The ID of the achievement.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerAchievement.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The timestamp of the last modification to this achievement''s state.
+    #[serde(default, rename = "lastUpdatedTimestamp")]
+    pub last_updated_timestamp: ::core::option::Option<String>,
+}
+
+/// An event status resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerEvent {
+    /// The ID of the event definition.
+    #[serde(default, rename = "definitionId")]
+    pub definition_id: ::core::option::Option<String>,
+    /// The current number of times this event has occurred, as a string. The formatting of this string depends on the configuration of your event in the Play Games Developer Console.
+    #[serde(default, rename = "formattedNumEvents")]
+    pub formatted_num_events: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerEvent.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The current number of times this event has occurred.
+    #[serde(default, rename = "numEvents")]
+    pub num_events: ::core::option::Option<String>,
+    /// The ID of the player.
+    #[serde(default, rename = "playerId")]
+    pub player_id: ::core::option::Option<String>,
+}
+
+/// A player leaderboard score object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerLeaderboardScore {
+    /// The rank of the score in the friends collection for this leaderboard.
+    #[serde(default, rename = "friendsRank")]
+    pub friends_rank: ::core::option::Option<LeaderboardScoreRank>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLeaderboardScore.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The ID of the leaderboard this score is in.
+    #[serde(default)]
+    pub leaderboard_id: ::core::option::Option<String>,
+    /// The public rank of the score in this leaderboard. This object will not be present if the user is not sharing their scores publicly.
+    #[serde(default, rename = "publicRank")]
+    pub public_rank: ::core::option::Option<LeaderboardScoreRank>,
+    /// The formatted value of this score.
+    #[serde(default, rename = "scoreString")]
+    pub score_string: ::core::option::Option<String>,
+    /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default, rename = "scoreTag")]
+    pub score_tag: ::core::option::Option<String>,
+    /// The numerical value of this score.
+    #[serde(default, rename = "scoreValue")]
+    pub score_value: ::core::option::Option<String>,
+    /// The social rank of the score in this leaderboard.
+    #[serde(default, rename = "socialRank")]
+    pub social_rank: ::core::option::Option<LeaderboardScoreRank>,
+    /// The time span of this score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
+    #[serde(default, rename = "timeSpan")]
+    pub time_span: ::core::option::Option<String>,
+    /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
+    #[serde(default, rename = "writeTimestamp")]
+    pub write_timestamp: ::core::option::Option<String>,
+}
+
+/// A list of leaderboard entry resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerScoreResponse {
+    /// The time spans where the submitted score is better than the existing score for that time span.
+    #[serde(default, rename = "beatenScoreTimeSpans")]
+    pub beaten_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The formatted value of the submitted score.
+    #[serde(default, rename = "formattedScore")]
+    pub formatted_score: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreResponse.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The leaderboard ID that this score was submitted to.
+    #[serde(default, rename = "leaderboardId")]
+    pub leaderboard_id: ::core::option::Option<String>,
+    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default, rename = "scoreTag")]
+    pub score_tag: ::core::option::Option<String>,
+    /// The scores in time spans that have not been beaten. As an example, the submitted score may be better than the player''s DAILY score, but not better than the player''s scores for the WEEKLY or ALL_TIME time spans.
+    #[serde(default, rename = "unbeatenScores")]
+    pub unbeaten_scores: ::core::option::Option<::std::vec::Vec<PlayerScore>>,
+}
+
+/// A request to submit a score to leaderboards.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScoreSubmission {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#scoreSubmission.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The leaderboard this score is being submitted to.
+    #[serde(default, rename = "leaderboardId")]
+    pub leaderboard_id: ::core::option::Option<String>,
+    /// The new score being submitted.
+    #[serde(default)]
+    pub score: ::core::option::Option<String>,
+    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default, rename = "scoreTag")]
+    pub score_tag: ::core::option::Option<String>,
+    /// Signature Values will contain URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default)]
+    pub signature: ::core::option::Option<String>,
+}
+
+/// Recall tokens for a game.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamePlayerToken {
+    /// The application that this player identifier is for.
+    #[serde(default, rename = "applicationId")]
+    pub application_id: ::core::option::Option<String>,
+    /// Recall token data.
+    #[serde(default, rename = "recallToken")]
+    pub recall_token: ::core::option::Option<RecallToken>,
+}
+
+/// An snapshot object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Snapshot {
+    /// The cover image of this snapshot. May be absent if there is no image.
+    #[serde(default, rename = "coverImage")]
+    pub cover_image: ::core::option::Option<SnapshotImage>,
+    /// The description of this snapshot.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The ID of the file underlying this snapshot in the Drive API. Only present if the snapshot is a view on a Drive file and the file is owned by the caller.
+    #[serde(default, rename = "driveId")]
+    pub drive_id: ::core::option::Option<String>,
+    /// The duration associated with this snapshot, in millis.
+    #[serde(default, rename = "durationMillis")]
+    pub duration_millis: ::core::option::Option<String>,
+    /// The ID of the snapshot.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshot.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The timestamp (in millis since Unix epoch) of the last modification to this snapshot.
+    #[serde(default, rename = "lastModifiedMillis")]
+    pub last_modified_millis: ::core::option::Option<String>,
+    /// The progress value (64-bit integer set by developer) associated with this snapshot.
+    #[serde(default, rename = "progressValue")]
+    pub progress_value: ::core::option::Option<String>,
+    /// The title of this snapshot.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// The type of this snapshot. // TODO: enum values: ["SAVE_GAME"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The unique name provided when the snapshot was created.
+    #[serde(default, rename = "uniqueName")]
+    pub unique_name: ::core::option::Option<String>,
+}
+
+/// The payload to request to increment an achievement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamesAchievementIncrement {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementIncrement.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The requestId associated with an increment to an achievement.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// The number of steps to be incremented.
+    #[serde(default)]
+    pub steps: ::core::option::Option<i32>,
+}
+
+/// The payload to request to increment an achievement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamesAchievementSetStepsAtLeast {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementSetStepsAtLeast.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The minimum number of steps for the achievement to be set to.
+    #[serde(default)]
+    pub steps: ::core::option::Option<i32>,
+}
+
+/// The Android instance details resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceAndroidDetails {
+    /// Flag indicating whether the anti-piracy check is enabled.
+    #[serde(default, rename = "enablePiracyCheck")]
+    pub enable_piracy_check: ::core::option::Option<bool>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceAndroidDetails.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Android package name which maps to Google Play URL.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Indicates that this instance is the default for new installations.
+    #[serde(default)]
+    pub preferred: ::core::option::Option<bool>,
+}
+
+/// The iOS details resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceIosDetails {
+    /// Bundle identifier.
+    #[serde(default, rename = "bundleIdentifier")]
+    pub bundle_identifier: ::core::option::Option<String>,
+    /// iTunes App ID.
+    #[serde(default, rename = "itunesAppId")]
+    pub itunes_app_id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceIosDetails.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Indicates that this instance is the default for new installations on iPad devices.
+    #[serde(default, rename = "preferredForIpad")]
+    pub preferred_for_ipad: ::core::option::Option<bool>,
+    /// Indicates that this instance is the default for new installations on iPhone devices.
+    #[serde(default, rename = "preferredForIphone")]
+    pub preferred_for_iphone: ::core::option::Option<bool>,
+    /// Flag to indicate if this instance supports iPad.
+    #[serde(default, rename = "supportIpad")]
+    pub support_ipad: ::core::option::Option<bool>,
+    /// Flag to indicate if this instance supports iPhone.
+    #[serde(default, rename = "supportIphone")]
+    pub support_iphone: ::core::option::Option<bool>,
+}
+
+/// The Web details resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceWebDetails {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceWebDetails.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Launch URL for the game.
+    #[serde(default, rename = "launchUrl")]
+    pub launch_url: ::core::option::Option<String>,
+    /// Indicates that this instance is the default for new installations.
+    #[serde(default)]
+    pub preferred: ::core::option::Option<bool>,
+}
+
+/// An event child relationship resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventChild {
+    /// The ID of the child event.
+    #[serde(default, rename = "childId")]
+    pub child_id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventChild.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// An event period update resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventUpdateRequest {
+    /// The ID of the event being modified in this update.
+    #[serde(default, rename = "definitionId")]
+    pub definition_id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventUpdateRequest.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The number of times this event occurred in this time period.
+    #[serde(default, rename = "updateCount")]
+    pub update_count: ::core::option::Option<String>,
+}
+
+/// An event period time range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventPeriodRange {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodRange.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The time when this update period ends, in millis, since 1970 UTC (Unix Epoch).
+    #[serde(default, rename = "periodEndMillis")]
+    pub period_end_millis: ::core::option::Option<String>,
+    /// The time when this update period begins, in millis, since 1970 UTC (Unix Epoch).
+    #[serde(default, rename = "periodStartMillis")]
+    pub period_start_millis: ::core::option::Option<String>,
+}
+
+/// A Player resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Player {
+    /// The base URL for the image that represents the player.
+    #[serde(default, rename = "avatarImageUrl")]
+    pub avatar_image_url: ::core::option::Option<String>,
+    /// The url to the landscape mode player banner image.
+    #[serde(default, rename = "bannerUrlLandscape")]
+    pub banner_url_landscape: ::core::option::Option<String>,
+    /// The url to the portrait mode player banner image.
+    #[serde(default, rename = "bannerUrlPortrait")]
+    pub banner_url_portrait: ::core::option::Option<String>,
+    /// The name to display for the player.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// An object to represent Play Game experience information for the player.
+    #[serde(default, rename = "experienceInfo")]
+    pub experience_info: ::core::option::Option<PlayerExperienceInfo>,
+    /// The friend status of the given player, relative to the requester. This is unset if the player is not sharing their friends list with the game. // TODO: enum values: ["NO_RELATIONSHIP", "FRIEND"]
+    #[serde(default, rename = "friendStatus")]
+    pub friend_status: ::core::option::Option<String>,
+    /// Per-application unique player identifier.
+    #[serde(default, rename = "gamePlayerId")]
+    pub game_player_id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#player
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// A representation of the individual components of the name.
+    #[serde(default)]
+    pub name: ::core::option::Option<serde_json::Value>,
+    /// The player ID that was used for this player the first time they signed into the game in question. This is only populated for calls to player.get for the requesting player, only if the player ID has subsequently changed, and only to clients that support remapping player IDs.
+    #[serde(default, rename = "originalPlayerId")]
+    pub original_player_id: ::core::option::Option<String>,
+    /// The ID of the player.
+    #[serde(default, rename = "playerId")]
+    pub player_id: ::core::option::Option<String>,
+    /// The player''s profile settings. Controls whether or not the player''s profile is visible to other players.
+    #[serde(default, rename = "profileSettings")]
+    pub profile_settings: ::core::option::Option<ProfileSettings>,
+    /// The player''s title rewarded for their game activities.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A score rank in a leaderboard.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaderboardScoreRank {
+    /// The number of scores in the leaderboard as a string.
+    #[serde(default, rename = "formattedNumScores")]
+    pub formatted_num_scores: ::core::option::Option<String>,
+    /// The rank in the leaderboard as a string.
+    #[serde(default, rename = "formattedRank")]
+    pub formatted_rank: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardScoreRank.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The number of scores in the leaderboard.
+    #[serde(default, rename = "numScores")]
+    pub num_scores: ::core::option::Option<String>,
+    /// The rank in the leaderboard.
+    #[serde(default)]
+    pub rank: ::core::option::Option<String>,
+}
+
+/// A player score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerScore {
+    /// The formatted score for this player score.
+    #[serde(default, rename = "formattedScore")]
+    pub formatted_score: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScore.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The numerical value for this player score.
+    #[serde(default)]
+    pub score: ::core::option::Option<String>,
+    /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
+    #[serde(default, rename = "scoreTag")]
+    pub score_tag: ::core::option::Option<String>,
+    /// The time span for this player score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
+    #[serde(default, rename = "timeSpan")]
+    pub time_span: ::core::option::Option<String>,
+}
+
+/// Recall token data returned from RetrievePlayerTokens RPC
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecallToken {
+    /// Optional. Optional expiration time of the token
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Required. Whether the persona identified by the token is linked to multiple PGS Players
+    #[serde(default, rename = "multiPlayerPersona")]
+    pub multi_player_persona: ::core::option::Option<bool>,
+    /// Required. Value of the Recall token as it is provided by the client via LinkPersona RPC
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+}
+
+/// An image of a snapshot.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotImage {
+    /// The height of the image.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshotImage.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The MIME type of the image.
+    #[serde(default)]
+    pub mime_type: ::core::option::Option<String>,
+    /// The URL of the image. This URL may be invalidated at any time and should not be cached.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// The width of the image.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// 1P/3P metadata about the player''s experience.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerExperienceInfo {
+    /// The current number of experience points for the player.
+    #[serde(default, rename = "currentExperiencePoints")]
+    pub current_experience_points: ::core::option::Option<String>,
+    /// The current level of the player.
+    #[serde(default, rename = "currentLevel")]
+    pub current_level: ::core::option::Option<PlayerLevel>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerExperienceInfo.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
+    #[serde(default, rename = "lastLevelUpTimestampMillis")]
+    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
+    /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
+    #[serde(default, rename = "nextLevel")]
+    pub next_level: ::core::option::Option<PlayerLevel>,
+}
+
+/// Profile settings
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileSettings {
+    /// TODO: enum values: ["VISIBLE", "REQUEST_REQUIRED", "UNAVAILABLE"]
+    #[serde(default, rename = "friendsListVisibility")]
+    pub friends_list_visibility: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#profileSettings.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Whether the player''s profile is visible to the currently signed in player.
+    #[serde(default, rename = "profileVisible")]
+    pub profile_visible: ::core::option::Option<bool>,
+}
+
+/// 1P/3P metadata about a user''s level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerLevel {
+    /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLevel.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The level for the user.
+    #[serde(default)]
+    pub level: ::core::option::Option<i32>,
+    /// The maximum experience points for this level.
+    #[serde(default, rename = "maxExperiencePoints")]
+    pub max_experience_points: ::core::option::Option<String>,
+    /// The minimum experience points for this level.
+    #[serde(default, rename = "minExperiencePoints")]
+    pub min_experience_points: ::core::option::Option<String>,
 }

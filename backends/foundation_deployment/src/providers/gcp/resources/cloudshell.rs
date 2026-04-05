@@ -40,38 +40,6 @@ pub struct AuthorizeEnvironmentRequest {
     pub id_token: ::core::option::Option<String>,
 }
 
-/// A Cloud Shell environment, which is defined as the combination of a Docker image specifying what is installed on the environment and a home directory containing the user''s data that will remain across sessions. Each user has at least an environment with the ID "default".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Environment {
-    /// Required. Immutable. Full path to the Docker image used to run this environment, e.g. "gcr.io/dev-con/cloud-devshell:latest".
-    #[serde(default, rename = "dockerImage")]
-    pub docker_image: ::core::option::Option<String>,
-    /// Output only. The environment''s identifier, unique among the user''s environments.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Immutable. Full name of this resource, in the format users/{owner_email}/environments/{environment_id}. {owner_email} is the email address of the user to whom this environment belongs, and {environment_id} is the identifier of this environment. For example, users/someone@example.com/environments/default.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Public keys associated with the environment. Clients can connect to this environment via SSH only if they possess a private key corresponding to at least one of these public keys. Keys can be added to or removed from the environment using the AddPublicKey and RemovePublicKey methods.
-    #[serde(default, rename = "publicKeys")]
-    pub public_keys: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Host to which clients can connect to initiate SSH sessions with the environment.
-    #[serde(default, rename = "sshHost")]
-    pub ssh_host: ::core::option::Option<String>,
-    /// Output only. Port to which clients can connect to initiate SSH sessions with the environment.
-    #[serde(default, rename = "sshPort")]
-    pub ssh_port: ::core::option::Option<i32>,
-    /// Output only. Username that clients should use when initiating SSH sessions with the environment.
-    #[serde(default, rename = "sshUsername")]
-    pub ssh_username: ::core::option::Option<String>,
-    /// Output only. Current execution state of this environment. // TODO: enum values: ["STATE_UNSPECIFIED", "SUSPENDED", "PENDING", "RUNNING", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Host to which clients can connect to initiate HTTPS or WSS connections with the environment.
-    #[serde(default, rename = "webHost")]
-    pub web_host: ::core::option::Option<String>,
-}
-
 /// Response message for GenerateAccessToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateAccessTokenResponse {
@@ -92,26 +60,6 @@ pub struct ListOperationsResponse {
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request message for RemovePublicKey.
@@ -147,6 +95,58 @@ pub struct StartEnvironmentResponse {
     /// Environment that was started.
     #[serde(default)]
     pub environment: ::core::option::Option<Environment>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// A Cloud Shell environment, which is defined as the combination of a Docker image specifying what is installed on the environment and a home directory containing the user''s data that will remain across sessions. Each user has at least an environment with the ID "default".
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Environment {
+    /// Required. Immutable. Full path to the Docker image used to run this environment, e.g. "gcr.io/dev-con/cloud-devshell:latest".
+    #[serde(default, rename = "dockerImage")]
+    pub docker_image: ::core::option::Option<String>,
+    /// Output only. The environment''s identifier, unique among the user''s environments.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Immutable. Full name of this resource, in the format users/{owner_email}/environments/{environment_id}. {owner_email} is the email address of the user to whom this environment belongs, and {environment_id} is the identifier of this environment. For example, users/someone@example.com/environments/default.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Public keys associated with the environment. Clients can connect to this environment via SSH only if they possess a private key corresponding to at least one of these public keys. Keys can be added to or removed from the environment using the AddPublicKey and RemovePublicKey methods.
+    #[serde(default, rename = "publicKeys")]
+    pub public_keys: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Host to which clients can connect to initiate SSH sessions with the environment.
+    #[serde(default, rename = "sshHost")]
+    pub ssh_host: ::core::option::Option<String>,
+    /// Output only. Port to which clients can connect to initiate SSH sessions with the environment.
+    #[serde(default, rename = "sshPort")]
+    pub ssh_port: ::core::option::Option<i32>,
+    /// Output only. Username that clients should use when initiating SSH sessions with the environment.
+    #[serde(default, rename = "sshUsername")]
+    pub ssh_username: ::core::option::Option<String>,
+    /// Output only. Current execution state of this environment. // TODO: enum values: ["STATE_UNSPECIFIED", "SUSPENDED", "PENDING", "RUNNING", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Host to which clients can connect to initiate HTTPS or WSS connections with the environment.
+    #[serde(default, rename = "webHost")]
+    pub web_host: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).

@@ -21,66 +21,6 @@ pub struct AcceleratePrivateCloudDeletionRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
-/// Announcement for the resources of Vmware Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Announcement {
-    /// Optional. Activity type of the announcement There can be only one active announcement for a given activity type and target resource.
-    #[serde(default, rename = "activityType")]
-    pub activity_type: ::core::option::Option<String>,
-    /// A Cluster resource name.
-    #[serde(default)]
-    pub cluster: ::core::option::Option<String>,
-    /// Required. Code of the announcement. Indicates the presence of a VMware Engine related announcement and corresponds to a related message in the description field.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Output only. Creation time of this resource. It also serves as start time of notification.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Description of the announcement.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Additional structured details about this announcement.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Output only. The resource name of the announcement. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-west1-a/announcements/my-announcement-id
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A Private Cloud resource name.
-    #[serde(default, rename = "privateCloud")]
-    pub private_cloud: ::core::option::Option<String>,
-    /// Output only. State of the resource. New values may be added to this enum when appropriate. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DELETING", "CREATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Target Resource Type defines the type of the target for the announcement
-    #[serde(default, rename = "targetResourceType")]
-    pub target_resource_type: ::core::option::Option<String>,
-    /// Output only. Last update time of this resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
 /// Autoscaling policy describes the behavior of the autoscaling with respect to the resource utilization. The scale-out operation is initiated if the utilization exceeds ANY of the respective thresholds. The scale-in operation is initiated if the utilization is below ALL of the respective thresholds.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AutoscalingPolicy {
@@ -104,89 +44,6 @@ pub struct AutoscalingPolicy {
     pub storage_thresholds: ::core::option::Option<Thresholds>,
 }
 
-/// Autoscaling settings define the rules used by VMware Engine to automatically scale-out and scale-in the clusters in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutoscalingSettings {
-    /// Required. The map with autoscaling policies applied to the cluster. The key is the identifier of the policy. It must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5) Currently there map must contain only one element that describes the autoscaling policy for compute nodes.
-    #[serde(default, rename = "autoscalingPolicies")]
-    pub autoscaling_policies: ::core::option::Option<serde_json::Value>,
-    /// Optional. The minimum duration between consecutive autoscale operations. It starts once addition or removal of nodes is fully completed. Defaults to 30 minutes if not specified. Cool down period must be in whole minutes (for example, 30, 31, 50, 180 minutes).
-    #[serde(default, rename = "coolDownPeriod")]
-    pub cool_down_period: ::core::option::Option<String>,
-    /// Optional. Maximum number of nodes of any type in a cluster. If not specified the default limits apply.
-    #[serde(default, rename = "maxClusterNodeCount")]
-    pub max_cluster_node_count: ::core::option::Option<i32>,
-    /// Optional. Minimum number of nodes of any type in a cluster. If not specified the default limits apply.
-    #[serde(default, rename = "minClusterNodeCount")]
-    pub min_cluster_node_count: ::core::option::Option<i32>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// A cluster in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cluster {
-    /// Optional. Configuration of the autoscaling applied to this cluster.
-    #[serde(default, rename = "autoscalingSettings")]
-    pub autoscaling_settings: ::core::option::Option<AutoscalingSettings>,
-    /// Output only. Creation time of this resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Configuration of a mounted datastore.
-    #[serde(default, rename = "datastoreMountConfig")]
-    pub datastore_mount_config: ::core::option::Option<::std::vec::Vec<DatastoreMountConfig>>,
-    /// Output only. True if the cluster is a management cluster; false otherwise. There can only be one management cluster in a private cloud and it has to be the first one.
-    #[serde(default)]
-    pub management: ::core::option::Option<bool>,
-    /// Output only. Identifier. The resource name of this cluster. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/clusters/my-cluster
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The map of cluster node types in this cluster, where the key is canonical identifier of the node type (corresponds to the NodeType).
-    #[serde(default, rename = "nodeTypeConfigs")]
-    pub node_type_configs: ::core::option::Option<serde_json::Value>,
-    /// Output only. State of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING", "REPAIRING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Configuration of a stretched cluster. Required for clusters that belong to a STRETCHED private cloud.
-    #[serde(default, rename = "stretchedClusterConfig")]
-    pub stretched_cluster_config: ::core::option::Option<StretchedClusterConfig>,
-    /// Output only. System-generated unique identifier for the resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Last update time of this resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Constraints to be applied while editing a schedule. These constraints ensure that Upgrade specific requirements are met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Constraints {
-    /// Output only. Output Only. A list of intervals in which maintenance windows are not allowed. Any time window that overlaps with any of these intervals will be considered invalid.
-    #[serde(default, rename = "disallowedIntervals")]
-    pub disallowed_intervals: ::core::option::Option<::std::vec::Vec<WeeklyTimeInterval>>,
-    /// Output only. Minimum number of hours must be allotted for the upgrade activities for each selected day. This is a minimum; the upgrade schedule can allot more hours for the given day.
-    #[serde(default, rename = "minHoursDay")]
-    pub min_hours_day: ::core::option::Option<i32>,
-    /// Output only. The minimum number of weekly hours must be allotted for the upgrade activities. This is just a minimum; the schedule can assign more weekly hours.
-    #[serde(default, rename = "minHoursWeek")]
-    pub min_hours_week: ::core::option::Option<i32>,
-    /// Output only. Output Only. The user can only reschedule an upgrade that starts within this range.
-    #[serde(default, rename = "rescheduleDateRange")]
-    pub reschedule_date_range: ::core::option::Option<Interval>,
-}
-
 /// Credentials for a private cloud.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Credentials {
@@ -196,78 +53,6 @@ pub struct Credentials {
     /// Initial username.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
-}
-
-/// Represents a datastore resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Datastore {
-    /// Output only. Clusters to which the datastore is attached.
-    #[serde(default)]
-    pub clusters: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Creation time of this resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. User-provided description for this datastore
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Checksum that may be sent on update and delete requests to ensure that the user-provided value is up to date before the server processes a request. The server computes checksums based on the value of other fields in the request.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. Identifier. The resource name of this datastore. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/datastore
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Settings for the NFS datastore.
-    #[serde(default, rename = "nfsDatastore")]
-    pub nfs_datastore: ::core::option::Option<NfsDatastore>,
-    /// Output only. The state of the Datastore. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "UPDATING", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-generated unique identifier for the resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Last update time of this resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The Datastore Mount configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatastoreMountConfig {
-    /// Optional. The access mode of the NFS volume. Optional. Default value used will be READ_WRITE // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "READ_ONLY", "READ_WRITE"]
-    #[serde(default, rename = "accessMode")]
-    pub access_mode: ::core::option::Option<String>,
-    /// Required. The resource name of the datastore to mount. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/my-datastore
-    #[serde(default)]
-    pub datastore: ::core::option::Option<String>,
-    /// Required. The network configuration for the datastore.
-    #[serde(default, rename = "datastoreNetwork")]
-    pub datastore_network: ::core::option::Option<DatastoreNetwork>,
-    /// Output only. File share name.
-    #[serde(default, rename = "fileShare")]
-    pub file_share: ::core::option::Option<String>,
-    /// Optional. The NFS protocol supported by the NFS volume. Default value used will be NFS_V3 // TODO: enum values: ["NFS_VERSION_UNSPECIFIED", "NFS_V3"]
-    #[serde(default, rename = "nfsVersion")]
-    pub nfs_version: ::core::option::Option<String>,
-    /// Output only. Server IP addresses of the NFS volume. For NFS 3, you can only provide a single server IP address or DNS names.
-    #[serde(default)]
-    pub servers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The network configuration for the datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatastoreNetwork {
-    /// Optional. connection_count is used to set multiple connections from NFS client on ESXi host to NFS server. A higher number of connections results in better performance on datastores. In MountDatastore API by default max 4 connections are configured. User can set value of connection_count between 1 to 4. Connection_count is supported from vsphere 8.0u1 for earlier version 1 connection count is set on the ESXi hosts.
-    #[serde(default, rename = "connectionCount")]
-    pub connection_count: ::core::option::Option<i32>,
-    /// Optional. MTU value is set on the VMKernel adapter for the NFS traffic. By default standard 1500 MTU size is set in MountDatastore API which is good for typical setups. However google VPC networks supports jumbo MTU 8896. We recommend to tune this value based on the NFS traffic performance. Performance can be determined using benchmarking I/O tools like fio (Flexible I/O Tester) utility.
-    #[serde(default)]
-    pub mtu: ::core::option::Option<i32>,
-    /// Output only. The resource name of the network peering, used to access the file share by clients on private cloud. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. e.g. projects/my-project/locations/us-central1/networkPeerings/my-network-peering
-    #[serde(default, rename = "networkPeering")]
-    pub network_peering: ::core::option::Option<String>,
-    /// Required. The resource name of the subnet Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. e.g. projects/my-project/locations/us-central1/subnets/my-subnet
-    #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
 }
 
 /// DnsBindPermission resource that contains the accounts having the consumer DNS bind permission on the corresponding intranet VPC of the consumer project.
@@ -298,96 +83,6 @@ pub struct DnsForwarding {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// External access firewall rules for filtering incoming traffic destined to ExternalAddress resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalAccessRule {
-    /// The action that the external access rule performs. // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Output only. Creation time of this resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// User-provided description for this external access rule.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// If destination ranges are specified, the external access rule applies only to the traffic that has a destination IP address in these ranges. The specified IP addresses must have reserved external IP addresses in the scope of the parent network policy. To match all external IP addresses in the scope of the parent network policy, specify 0.0.0.0/0. To match a specific external IP address, specify it using the IpRange.external_address property.
-    #[serde(default, rename = "destinationIpRanges")]
-    pub destination_ip_ranges: ::core::option::Option<::std::vec::Vec<IpRange>>,
-    /// A list of destination ports to which the external access rule applies. This field is only applicable for the UDP or TCP protocol. Each entry must be either an integer or a range. For example: ["22"], ["80","443"], or ["12345-12349"]. To match all destination ports, specify ["0-65535"].
-    #[serde(default, rename = "destinationPorts")]
-    pub destination_ports: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The IP protocol to which the external access rule applies. This value can be one of the following three protocol strings (not case-sensitive): tcp, udp, or icmp.
-    #[serde(default, rename = "ipProtocol")]
-    pub ip_protocol: ::core::option::Option<String>,
-    /// Output only. The resource name of this external access rule. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/networkPolicies/my-policy/externalAccessRules/my-rule
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// External access rule priority, which determines the external access rule to use when multiple rules apply. If multiple rules have the same priority, their ordering is non-deterministic. If specific ordering is required, assign unique priorities to enforce such ordering. The external access rule priority is an integer from 100 to 4096, both inclusive. Lower integers indicate higher precedence. For example, a rule with priority 100 has higher precedence than a rule with priority 101.
-    #[serde(default)]
-    pub priority: ::core::option::Option<i32>,
-    /// If source ranges are specified, the external access rule applies only to traffic that has a source IP address in these ranges. These ranges can either be expressed in the CIDR format or as an IP address. As only inbound rules are supported, ExternalAddress resources cannot be the source IP addresses of an external access rule. To match all source addresses, specify 0.0.0.0/0.
-    #[serde(default, rename = "sourceIpRanges")]
-    pub source_ip_ranges: ::core::option::Option<::std::vec::Vec<IpRange>>,
-    /// A list of source ports to which the external access rule applies. This field is only applicable for the UDP or TCP protocol. Each entry must be either an integer or a range. For example: ["22"], ["80","443"], or ["12345-12349"]. To match all source ports, specify ["0-65535"].
-    #[serde(default, rename = "sourcePorts")]
-    pub source_ports: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The state of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-generated unique identifier for the resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Last update time of this resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents an allocated external IP address and its corresponding internal IP address in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalAddress {
-    /// Output only. Creation time of this resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// User-provided description for this resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The external IP address of a workload VM.
-    #[serde(default, rename = "externalIp")]
-    pub external_ip: ::core::option::Option<String>,
-    /// The internal IP address of a workload VM.
-    #[serde(default, rename = "internalIp")]
-    pub internal_ip: ::core::option::Option<String>,
-    /// Output only. Identifier. The resource name of this external IP address. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/externalAddresses/my-address
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The state of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-generated unique identifier for the resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Last update time of this resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Response message for VmwareEngine.FetchNetworkPolicyExternalAddresses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchNetworkPolicyExternalAddressesResponse {
@@ -399,28 +94,6 @@ pub struct FetchNetworkPolicyExternalAddressesResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A forwarding rule is a mapping of a domain to name_servers. This mapping allows VMware Engine to resolve domains for attached private clouds by forwarding DNS requests for a given domain to the specified nameservers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ForwardingRule {
-    /// Required. Domain used to resolve a name_servers list.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Required. List of DNS servers to use for domain resolution
-    #[serde(default, rename = "nameServers")]
-    pub name_servers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Google service file service configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFileService {
-    /// Google filestore instance resource name e.g. projects/my-project/locations/me-west1-b/instances/my-instance
-    #[serde(default, rename = "filestoreInstance")]
-    pub filestore_instance: ::core::option::Option<String>,
-    /// Google netapp volume resource name e.g. projects/my-project/locations/me-west1-b/volumes/my-volume
-    #[serde(default, rename = "netappVolume")]
-    pub netapp_volume: ::core::option::Option<String>,
-}
-
 /// Request message for VmwareEngine.GrantDnsBindPermission
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrantDnsBindPermissionRequest {
@@ -430,68 +103,6 @@ pub struct GrantDnsBindPermissionRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
     pub request_id: ::core::option::Option<String>,
-}
-
-/// Details about a HCX Cloud Manager appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Hcx {
-    /// Fully qualified domain name of the appliance.
-    #[serde(default)]
-    pub fqdn: ::core::option::Option<String>,
-    /// Internal IP address of the appliance.
-    #[serde(default, rename = "internalIp")]
-    pub internal_ip: ::core::option::Option<String>,
-    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "ACTIVATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Version of the appliance.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// HCX activation key. A default key is created during private cloud provisioning, but this behavior is subject to change and you should always verify active keys. Use VmwareEngine.ListHcxActivationKeys to retrieve existing keys and VmwareEngine.CreateHcxActivationKey to create new ones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HcxActivationKey {
-    /// Output only. HCX activation key.
-    #[serde(default, rename = "activationKey")]
-    pub activation_key: ::core::option::Option<String>,
-    /// Output only. Creation time of HCX activation key.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The resource name of this HcxActivationKey. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/privateClouds/my-cloud/hcxActivationKeys/my-key
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. State of HCX activation key. // TODO: enum values: ["STATE_UNSPECIFIED", "AVAILABLE", "CONSUMED", "CREATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-generated unique identifier for the resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Interval {
-    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// An IP range provided in any one of the supported formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IpRange {
-    /// The name of an ExternalAddress resource. The external address must have been reserved in the scope of this external access rule''s parent network policy. Provide the external address name in the form of projects/{project}/locations/{location}/privateClouds/{private_cloud}/externalAddresses/{external_address}. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/externalAddresses/my-address.
-    #[serde(default, rename = "externalAddress")]
-    pub external_address: ::core::option::Option<String>,
-    /// A single IP address. For example: 10.0.0.5.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// An IP address range in the CIDR format. For example: 10.0.0.0/24.
-    #[serde(default, rename = "ipAddressRange")]
-    pub ip_address_range: ::core::option::Option<String>,
 }
 
 /// Response message for VmwareEngine.ListAnnouncements
@@ -777,6 +388,375 @@ pub struct ListVmwareEngineNetworksResponse {
     pub vmware_engine_networks: ::core::option::Option<::std::vec::Vec<VmwareEngineNetwork>>,
 }
 
+/// VmwareEngine specific metadata for the given google.cloud.location.Location. It is returned as a content of the google.cloud.location.Location.metadata field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationMetadata {
+    /// Output only. Capabilities of this location.
+    #[serde(default)]
+    pub capabilities: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Mount Datastore Request message
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MountDatastoreRequest {
+    /// Required. The datastore mount configuration.
+    #[serde(default, rename = "datastoreMountConfig")]
+    pub datastore_mount_config: ::core::option::Option<DatastoreMountConfig>,
+    /// Optional. If set to true, the colocation requirement will be ignored. If set to false, the colocation requirement will be enforced. If not set, the colocation requirement will be enforced. Colocation requirement is the requirement that the cluster must be in the same region/zone of datastore(regional/zonal datastore).
+    #[serde(default, rename = "ignoreColocation")]
+    pub ignore_colocation: ::core::option::Option<bool>,
+    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set to true, only validates the request but doesn’t execute the request. If set to false, validates and executes the request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Information about the type and number of nodes associated with the cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeTypeConfig {
+    /// Optional. Customized number of cores available to each node of the type. This number must always be one of nodeType.availableCustomCoreCounts. If zero is provided max value from nodeType.availableCustomCoreCounts will be used.
+    #[serde(default, rename = "customCoreCount")]
+    pub custom_core_count: ::core::option::Option<i32>,
+    /// Required. The number of nodes of this type in the cluster
+    #[serde(default, rename = "nodeCount")]
+    pub node_count: ::core::option::Option<i32>,
+}
+
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. True if the user has requested cancellation of the operation; false otherwise. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request message for VmwareEngine.RepairManagementDnsZoneBindings
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepairManagementDnsZoneBindingRequest {
+    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Request message for VmwareEngine.ResetNsxCredentials
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetNsxCredentialsRequest {
+    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Request message for VmwareEngine.ResetVcenterCredentials
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetVcenterCredentialsRequest {
+    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. The username of the user to be to reset the credentials. The default value of this field is CloudOwner@gve.local. The provided value should be one of the following: solution-user-01@gve.local, solution-user-02@gve.local, solution-user-03@gve.local, solution-user-04@gve.local, solution-user-05@gve.local, zertoadmin@gve.local.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Request message for VmwareEngine.RevokeDnsBindPermission
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevokeDnsBindPermissionRequest {
+    /// Required. The consumer provided user/service account which needs to be granted permission to bind with the intranet VPC corresponding to the consumer project.
+    #[serde(default)]
+    pub principal: ::core::option::Option<Principal>,
+    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Request message for VmwareEngine.UndeletePrivateCloud
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeletePrivateCloudRequest {
+    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Unmount Datastore Request messag
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnmountDatastoreRequest {
+    /// Required. The resource name of the datastore to unmount. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/my-datastore
+    #[serde(default)]
+    pub datastore: ::core::option::Option<String>,
+    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. If set to true, only validates the request but doesn’t execute the request. If set to false, validates and executes the request.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Thresholds define the utilization of resources triggering scale-out and scale-in operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Thresholds {
+    /// Required. The utilization triggering the scale-in operation in percent.
+    #[serde(default, rename = "scaleIn")]
+    pub scale_in: ::core::option::Option<i32>,
+    /// Required. The utilization triggering the scale-out operation in percent.
+    #[serde(default, rename = "scaleOut")]
+    pub scale_out: ::core::option::Option<i32>,
+}
+
+/// A forwarding rule is a mapping of a domain to name_servers. This mapping allows VMware Engine to resolve domains for attached private clouds by forwarding DNS requests for a given domain to the specified nameservers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForwardingRule {
+    /// Required. Domain used to resolve a name_servers list.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Required. List of DNS servers to use for domain resolution
+    #[serde(default, rename = "nameServers")]
+    pub name_servers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Announcement for the resources of Vmware Engine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Announcement {
+    /// Optional. Activity type of the announcement There can be only one active announcement for a given activity type and target resource.
+    #[serde(default, rename = "activityType")]
+    pub activity_type: ::core::option::Option<String>,
+    /// A Cluster resource name.
+    #[serde(default)]
+    pub cluster: ::core::option::Option<String>,
+    /// Required. Code of the announcement. Indicates the presence of a VMware Engine related announcement and corresponds to a related message in the description field.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Output only. Creation time of this resource. It also serves as start time of notification.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Description of the announcement.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Additional structured details about this announcement.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Output only. The resource name of the announcement. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-west1-a/announcements/my-announcement-id
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A Private Cloud resource name.
+    #[serde(default, rename = "privateCloud")]
+    pub private_cloud: ::core::option::Option<String>,
+    /// Output only. State of the resource. New values may be added to this enum when appropriate. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DELETING", "CREATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Target Resource Type defines the type of the target for the announcement
+    #[serde(default, rename = "targetResourceType")]
+    pub target_resource_type: ::core::option::Option<String>,
+    /// Output only. Last update time of this resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A cluster in a private cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cluster {
+    /// Optional. Configuration of the autoscaling applied to this cluster.
+    #[serde(default, rename = "autoscalingSettings")]
+    pub autoscaling_settings: ::core::option::Option<AutoscalingSettings>,
+    /// Output only. Creation time of this resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Configuration of a mounted datastore.
+    #[serde(default, rename = "datastoreMountConfig")]
+    pub datastore_mount_config: ::core::option::Option<::std::vec::Vec<DatastoreMountConfig>>,
+    /// Output only. True if the cluster is a management cluster; false otherwise. There can only be one management cluster in a private cloud and it has to be the first one.
+    #[serde(default)]
+    pub management: ::core::option::Option<bool>,
+    /// Output only. Identifier. The resource name of this cluster. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/clusters/my-cluster
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The map of cluster node types in this cluster, where the key is canonical identifier of the node type (corresponds to the NodeType).
+    #[serde(default, rename = "nodeTypeConfigs")]
+    pub node_type_configs: ::core::option::Option<serde_json::Value>,
+    /// Output only. State of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING", "REPAIRING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Configuration of a stretched cluster. Required for clusters that belong to a STRETCHED private cloud.
+    #[serde(default, rename = "stretchedClusterConfig")]
+    pub stretched_cluster_config: ::core::option::Option<StretchedClusterConfig>,
+    /// Output only. System-generated unique identifier for the resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Last update time of this resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a datastore resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Datastore {
+    /// Output only. Clusters to which the datastore is attached.
+    #[serde(default)]
+    pub clusters: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Creation time of this resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. User-provided description for this datastore
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Checksum that may be sent on update and delete requests to ensure that the user-provided value is up to date before the server processes a request. The server computes checksums based on the value of other fields in the request.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. Identifier. The resource name of this datastore. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/datastore
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Settings for the NFS datastore.
+    #[serde(default, rename = "nfsDatastore")]
+    pub nfs_datastore: ::core::option::Option<NfsDatastore>,
+    /// Output only. The state of the Datastore. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "UPDATING", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-generated unique identifier for the resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Last update time of this resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// External access firewall rules for filtering incoming traffic destined to ExternalAddress resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalAccessRule {
+    /// The action that the external access rule performs. // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Output only. Creation time of this resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// User-provided description for this external access rule.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// If destination ranges are specified, the external access rule applies only to the traffic that has a destination IP address in these ranges. The specified IP addresses must have reserved external IP addresses in the scope of the parent network policy. To match all external IP addresses in the scope of the parent network policy, specify 0.0.0.0/0. To match a specific external IP address, specify it using the IpRange.external_address property.
+    #[serde(default, rename = "destinationIpRanges")]
+    pub destination_ip_ranges: ::core::option::Option<::std::vec::Vec<IpRange>>,
+    /// A list of destination ports to which the external access rule applies. This field is only applicable for the UDP or TCP protocol. Each entry must be either an integer or a range. For example: ["22"], ["80","443"], or ["12345-12349"]. To match all destination ports, specify ["0-65535"].
+    #[serde(default, rename = "destinationPorts")]
+    pub destination_ports: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The IP protocol to which the external access rule applies. This value can be one of the following three protocol strings (not case-sensitive): tcp, udp, or icmp.
+    #[serde(default, rename = "ipProtocol")]
+    pub ip_protocol: ::core::option::Option<String>,
+    /// Output only. The resource name of this external access rule. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/networkPolicies/my-policy/externalAccessRules/my-rule
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// External access rule priority, which determines the external access rule to use when multiple rules apply. If multiple rules have the same priority, their ordering is non-deterministic. If specific ordering is required, assign unique priorities to enforce such ordering. The external access rule priority is an integer from 100 to 4096, both inclusive. Lower integers indicate higher precedence. For example, a rule with priority 100 has higher precedence than a rule with priority 101.
+    #[serde(default)]
+    pub priority: ::core::option::Option<i32>,
+    /// If source ranges are specified, the external access rule applies only to traffic that has a source IP address in these ranges. These ranges can either be expressed in the CIDR format or as an IP address. As only inbound rules are supported, ExternalAddress resources cannot be the source IP addresses of an external access rule. To match all source addresses, specify 0.0.0.0/0.
+    #[serde(default, rename = "sourceIpRanges")]
+    pub source_ip_ranges: ::core::option::Option<::std::vec::Vec<IpRange>>,
+    /// A list of source ports to which the external access rule applies. This field is only applicable for the UDP or TCP protocol. Each entry must be either an integer or a range. For example: ["22"], ["80","443"], or ["12345-12349"]. To match all source ports, specify ["0-65535"].
+    #[serde(default, rename = "sourcePorts")]
+    pub source_ports: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The state of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-generated unique identifier for the resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Last update time of this resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents an allocated external IP address and its corresponding internal IP address in a private cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalAddress {
+    /// Output only. Creation time of this resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// User-provided description for this resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The external IP address of a workload VM.
+    #[serde(default, rename = "externalIp")]
+    pub external_ip: ::core::option::Option<String>,
+    /// The internal IP address of a workload VM.
+    #[serde(default, rename = "internalIp")]
+    pub internal_ip: ::core::option::Option<String>,
+    /// Output only. Identifier. The resource name of this external IP address. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/externalAddresses/my-address
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The state of the resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-generated unique identifier for the resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Last update time of this resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// HCX activation key. A default key is created during private cloud provisioning, but this behavior is subject to change and you should always verify active keys. Use VmwareEngine.ListHcxActivationKeys to retrieve existing keys and VmwareEngine.CreateHcxActivationKey to create new ones.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HcxActivationKey {
+    /// Output only. HCX activation key.
+    #[serde(default, rename = "activationKey")]
+    pub activation_key: ::core::option::Option<String>,
+    /// Output only. Creation time of HCX activation key.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The resource name of this HcxActivationKey. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/privateClouds/my-cloud/hcxActivationKeys/my-key
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. State of HCX activation key. // TODO: enum values: ["STATE_UNSPECIFIED", "AVAILABLE", "CONSUMED", "CREATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-generated unique identifier for the resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -795,14 +775,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// VmwareEngine specific metadata for the given google.cloud.location.Location. It is returned as a content of the google.cloud.location.Location.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocationMetadata {
-    /// Output only. Capabilities of this location.
-    #[serde(default)]
-    pub capabilities: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Logging server to receive vCenter or ESXi logs.
@@ -834,20 +806,6 @@ pub struct LoggingServer {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Management cluster configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagementCluster {
-    /// Required. The user-provided identifier of the new Cluster. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)
-    #[serde(default, rename = "clusterId")]
-    pub cluster_id: ::core::option::Option<String>,
-    /// Required. The map of cluster node types in this cluster, where the key is canonical identifier of the node type (corresponds to the NodeType).
-    #[serde(default, rename = "nodeTypeConfigs")]
-    pub node_type_configs: ::core::option::Option<serde_json::Value>,
-    /// Optional. Configuration of a stretched cluster. Required for STRETCHED private clouds.
-    #[serde(default, rename = "stretchedClusterConfig")]
-    pub stretched_cluster_config: ::core::option::Option<StretchedClusterConfig>,
-}
-
 /// Represents a binding between a network and the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagementDnsZoneBinding {
@@ -875,43 +833,6 @@ pub struct ManagementDnsZoneBinding {
     /// Network to bind is a standard consumer VPC. Specify the name in the following form for consumer VPC network: projects/{project}/global/networks/{network_id}. {project} can either be a project number or a project ID.
     #[serde(default, rename = "vpcNetwork")]
     pub vpc_network: ::core::option::Option<String>,
-}
-
-/// Mount Datastore Request message
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MountDatastoreRequest {
-    /// Required. The datastore mount configuration.
-    #[serde(default, rename = "datastoreMountConfig")]
-    pub datastore_mount_config: ::core::option::Option<DatastoreMountConfig>,
-    /// Optional. If set to true, the colocation requirement will be ignored. If set to false, the colocation requirement will be enforced. If not set, the colocation requirement will be enforced. Colocation requirement is the requirement that the cluster must be in the same region/zone of datastore(regional/zonal datastore).
-    #[serde(default, rename = "ignoreColocation")]
-    pub ignore_colocation: ::core::option::Option<bool>,
-    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set to true, only validates the request but doesn’t execute the request. If set to false, validates and executes the request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Network configuration in the consumer project with which the peering has to be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfig {
-    /// Output only. DNS Server IP of the Private Cloud. All DNS queries can be forwarded to this address for name resolution of Private Cloud''s management entities like vCenter, NSX-T Manager and ESXi hosts.
-    #[serde(default, rename = "dnsServerIp")]
-    pub dns_server_ip: ::core::option::Option<String>,
-    /// Required. Management CIDR used by VMware management appliances.
-    #[serde(default, rename = "managementCidr")]
-    pub management_cidr: ::core::option::Option<String>,
-    /// Output only. The IP address layout version of the management IP address range. Possible versions include: * managementIpAddressLayoutVersion=1: Indicates the legacy IP address layout used by some existing private clouds. This is no longer supported for new private clouds as it does not support all features. * managementIpAddressLayoutVersion=2: Indicates the latest IP address layout used by all newly created private clouds. This version supports all current features.
-    #[serde(default, rename = "managementIpAddressLayoutVersion")]
-    pub management_ip_address_layout_version: ::core::option::Option<i32>,
-    /// Optional. The relative resource name of the VMware Engine network attached to the private cloud. Specify the name in the following form: projects/{project}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id} where {project} can either be a project number or a project ID.
-    #[serde(default, rename = "vmwareEngineNetwork")]
-    pub vmware_engine_network: ::core::option::Option<String>,
-    /// Output only. The canonical name of the VMware Engine network in the form: projects/{project_number}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}
-    #[serde(default, rename = "vmwareEngineNetworkCanonical")]
-    pub vmware_engine_network_canonical: ::core::option::Option<String>,
 }
 
 /// Details of a network peering.
@@ -1002,57 +923,6 @@ pub struct NetworkPolicy {
     pub vmware_engine_network_canonical: ::core::option::Option<String>,
 }
 
-/// Represents a network service that is managed by a NetworkPolicy resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkService {
-    /// True if the service is enabled; false otherwise.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. State of the service. New values may be added to this enum when appropriate. // TODO: enum values: ["STATE_UNSPECIFIED", "UNPROVISIONED", "RECONCILING", "ACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The NFS datastore configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NfsDatastore {
-    /// Google file service configuration
-    #[serde(default, rename = "googleFileService")]
-    pub google_file_service: ::core::option::Option<GoogleFileService>,
-    /// GCVE file service configuration
-    #[serde(default, rename = "googleVmwareFileService")]
-    pub google_vmware_file_service: ::core::option::Option<serde_json::Value>,
-    /// Third party file service configuration
-    #[serde(default, rename = "thirdPartyFileService")]
-    pub third_party_file_service: ::core::option::Option<ThirdPartyFileService>,
-}
-
-/// Node in a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Node {
-    /// Output only. Customized number of cores
-    #[serde(default, rename = "customCoreCount")]
-    pub custom_core_count: ::core::option::Option<String>,
-    /// Output only. Fully qualified domain name of the node.
-    #[serde(default)]
-    pub fqdn: ::core::option::Option<String>,
-    /// Output only. Internal IP address of the node.
-    #[serde(default, rename = "internalIp")]
-    pub internal_ip: ::core::option::Option<String>,
-    /// Output only. The resource name of this node. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/clusters/my-cluster/nodes/my-node
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The canonical identifier of the node type (corresponds to the NodeType). For example: standard-72.
-    #[serde(default, rename = "nodeTypeId")]
-    pub node_type_id: ::core::option::Option<String>,
-    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "FAILED", "UPGRADING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The version number of the VMware ESXi management component in this cluster.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
 /// Describes node type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeType {
@@ -1091,30 +961,28 @@ pub struct NodeType {
     pub virtual_cpu_count: ::core::option::Option<i32>,
 }
 
-/// Information about the type and number of nodes associated with the cluster.
+/// Node in a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeTypeConfig {
-    /// Optional. Customized number of cores available to each node of the type. This number must always be one of nodeType.availableCustomCoreCounts. If zero is provided max value from nodeType.availableCustomCoreCounts will be used.
+pub struct Node {
+    /// Output only. Customized number of cores
     #[serde(default, rename = "customCoreCount")]
-    pub custom_core_count: ::core::option::Option<i32>,
-    /// Required. The number of nodes of this type in the cluster
-    #[serde(default, rename = "nodeCount")]
-    pub node_count: ::core::option::Option<i32>,
-}
-
-/// Details about a NSX Manager appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Nsx {
-    /// Fully qualified domain name of the appliance.
+    pub custom_core_count: ::core::option::Option<String>,
+    /// Output only. Fully qualified domain name of the node.
     #[serde(default)]
     pub fqdn: ::core::option::Option<String>,
-    /// Internal IP address of the appliance.
+    /// Output only. Internal IP address of the node.
     #[serde(default, rename = "internalIp")]
     pub internal_ip: ::core::option::Option<String>,
-    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]
+    /// Output only. The resource name of this node. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/clusters/my-cluster/nodes/my-node
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The canonical identifier of the node type (corresponds to the NodeType). For example: standard-72.
+    #[serde(default, rename = "nodeTypeId")]
+    pub node_type_id: ::core::option::Option<String>,
+    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "FAILED", "UPGRADING"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-    /// Version of the appliance.
+    /// Output only. The version number of the VMware ESXi management component in this cluster.
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
@@ -1137,83 +1005,6 @@ pub struct Operation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. True if the user has requested cancellation of the operation; false otherwise. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Exchanged network peering route.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PeeringRoute {
-    /// Output only. Destination range of the peering route in CIDR notation.
-    #[serde(default, rename = "destRange")]
-    pub dest_range: ::core::option::Option<String>,
-    /// Output only. Direction of the routes exchanged with the peer network, from the VMware Engine network perspective: * Routes of direction INCOMING are imported from the peer network. * Routes of direction OUTGOING are exported from the intranet VPC network of the VMware Engine network. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "INCOMING", "OUTGOING"]
-    #[serde(default)]
-    pub direction: ::core::option::Option<String>,
-    /// Output only. True if the peering route has been imported from a peered VPC network; false otherwise. The import happens if the field NetworkPeering.importCustomRoutes is true for this network, NetworkPeering.exportCustomRoutes is true for the peer VPC network, and the import does not result in a route conflict.
-    #[serde(default)]
-    pub imported: ::core::option::Option<bool>,
-    /// Output only. Region containing the next hop of the peering route. This field only applies to dynamic routes in the peer VPC network.
-    #[serde(default, rename = "nextHopRegion")]
-    pub next_hop_region: ::core::option::Option<String>,
-    /// Output only. The priority of the peering route.
-    #[serde(default)]
-    pub priority: ::core::option::Option<String>,
-    /// Output only. Type of the route in the peer VPC network. // TODO: enum values: ["TYPE_UNSPECIFIED", "DYNAMIC_PEERING_ROUTE", "STATIC_PEERING_ROUTE", "SUBNET_PEERING_ROUTE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Users/Service accounts which have access for DNS binding on the intranet VPC corresponding to the consumer project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Principal {
-    /// The service account which needs to be granted the permission.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// The user who needs to be granted permission.
-    #[serde(default)]
-    pub user: ::core::option::Option<String>,
 }
 
 /// Represents a private cloud resource. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional.
@@ -1263,6 +1054,29 @@ pub struct PrivateCloud {
     pub vcenter: ::core::option::Option<Vcenter>,
 }
 
+/// Exchanged network peering route.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PeeringRoute {
+    /// Output only. Destination range of the peering route in CIDR notation.
+    #[serde(default, rename = "destRange")]
+    pub dest_range: ::core::option::Option<String>,
+    /// Output only. Direction of the routes exchanged with the peer network, from the VMware Engine network perspective: * Routes of direction INCOMING are imported from the peer network. * Routes of direction OUTGOING are exported from the intranet VPC network of the VMware Engine network. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "INCOMING", "OUTGOING"]
+    #[serde(default)]
+    pub direction: ::core::option::Option<String>,
+    /// Output only. True if the peering route has been imported from a peered VPC network; false otherwise. The import happens if the field NetworkPeering.importCustomRoutes is true for this network, NetworkPeering.exportCustomRoutes is true for the peer VPC network, and the import does not result in a route conflict.
+    #[serde(default)]
+    pub imported: ::core::option::Option<bool>,
+    /// Output only. Region containing the next hop of the peering route. This field only applies to dynamic routes in the peer VPC network.
+    #[serde(default, rename = "nextHopRegion")]
+    pub next_hop_region: ::core::option::Option<String>,
+    /// Output only. The priority of the peering route.
+    #[serde(default)]
+    pub priority: ::core::option::Option<String>,
+    /// Output only. Type of the route in the peer VPC network. // TODO: enum values: ["TYPE_UNSPECIFIED", "DYNAMIC_PEERING_ROUTE", "STATIC_PEERING_ROUTE", "SUBNET_PEERING_ROUTE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// Private connection resource that provides connectivity for VMware Engine private clouds.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PrivateConnection {
@@ -1307,100 +1121,6 @@ pub struct PrivateConnection {
     pub vmware_engine_network_canonical: ::core::option::Option<String>,
 }
 
-/// Request message for VmwareEngine.RepairManagementDnsZoneBindings
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RepairManagementDnsZoneBindingRequest {
-    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Request message for VmwareEngine.ResetNsxCredentials
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResetNsxCredentialsRequest {
-    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Request message for VmwareEngine.ResetVcenterCredentials
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResetVcenterCredentialsRequest {
-    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. The username of the user to be to reset the credentials. The default value of this field is CloudOwner@gve.local. The provided value should be one of the following: solution-user-01@gve.local, solution-user-02@gve.local, solution-user-03@gve.local, solution-user-04@gve.local, solution-user-05@gve.local, zertoadmin@gve.local.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Request message for VmwareEngine.RevokeDnsBindPermission
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevokeDnsBindPermissionRequest {
-    /// Required. The consumer provided user/service account which needs to be granted permission to bind with the intranet VPC corresponding to the consumer project.
-    #[serde(default)]
-    pub principal: ::core::option::Option<Principal>,
-    /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Schedule for the upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schedule {
-    /// Output only. Output Only. Constraints applied to the schedule. These constraints should be applicable at the time of any rescheduling.
-    #[serde(default)]
-    pub constraints: ::core::option::Option<Constraints>,
-    /// Output only. Output Only. The schedule is open for edits during this time interval or window.
-    #[serde(default, rename = "editWindow")]
-    pub edit_window: ::core::option::Option<Interval>,
-    /// Output only. Output Only. Indicates who most recently edited the upgrade schedule. The value is updated whenever the upgrade is rescheduled. // TODO: enum values: ["EDITOR_UNSPECIFIED", "SYSTEM", "USER"]
-    #[serde(default, rename = "lastEditor")]
-    pub last_editor: ::core::option::Option<String>,
-    /// Required. The scheduled start time for the upgrade.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. Weekly time windows for upgrade activities. The server performs upgrade activities during these time windows to minimize disruptions.
-    #[serde(default, rename = "weeklyWindows")]
-    pub weekly_windows: ::core::option::Option<::std::vec::Vec<TimeWindow>>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Configuration of a stretched cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StretchedClusterConfig {
-    /// Required. Zone that will remain operational when connection between the two zones is lost. Specify the resource name of a zone that belongs to the region of the private cloud. For example: projects/{project}/locations/europe-west3-a where {project} can either be a project number or a project ID.
-    #[serde(default, rename = "preferredLocation")]
-    pub preferred_location: ::core::option::Option<String>,
-    /// Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: projects/{project}/locations/europe-west3-b where {project} can either be a project number or a project ID.
-    #[serde(default, rename = "secondaryLocation")]
-    pub secondary_location: ::core::option::Option<String>,
-}
-
 /// Subnet in a private cloud. Either management subnets (such as vMotion) that are read-only, or userDefined, which can also be updated.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subnet {
@@ -1422,100 +1142,6 @@ pub struct Subnet {
     /// Output only. VLAN ID of the VLAN on which the subnet is configured
     #[serde(default, rename = "vlanId")]
     pub vlan_id: ::core::option::Option<i32>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Third party file service configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThirdPartyFileService {
-    /// Required. Required Mount Folder name
-    #[serde(default, rename = "fileShare")]
-    pub file_share: ::core::option::Option<String>,
-    /// Required. Required to identify vpc peering used for NFS access network name of NFS''s vpc e.g. projects/project-id/global/networks/my-network_id
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Required. Server IP addresses of the NFS file service. NFS v3, provide a single IP address or DNS name. Multiple servers can be supported in future when NFS 4.1 protocol support is enabled.
-    #[serde(default)]
-    pub servers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Thresholds define the utilization of resources triggering scale-out and scale-in operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thresholds {
-    /// Required. The utilization triggering the scale-in operation in percent.
-    #[serde(default, rename = "scaleIn")]
-    pub scale_in: ::core::option::Option<i32>,
-    /// Required. The utilization triggering the scale-out operation in percent.
-    #[serde(default, rename = "scaleOut")]
-    pub scale_out: ::core::option::Option<i32>,
-}
-
-/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeOfDay {
-    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-}
-
-/// Represents the time window to perform upgrade activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeWindow {
-    /// Required. Day of the week for this window. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: ::core::option::Option<String>,
-    /// Required. The duration of the window. The max allowed duration for any window is 24 hours.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Required. Time in UTC when the window starts.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Request message for VmwareEngine.UndeletePrivateCloud
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UndeletePrivateCloudRequest {
-    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Unmount Datastore Request messag
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnmountDatastoreRequest {
-    /// Required. The resource name of the datastore to unmount. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/my-datastore
-    #[serde(default)]
-    pub datastore: ::core::option::Option<String>,
-    /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. If set to true, only validates the request but doesn’t execute the request. If set to false, validates and executes the request.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Describes Private cloud Upgrade.
@@ -1568,23 +1194,6 @@ pub struct Upgrade {
     pub version: ::core::option::Option<String>,
 }
 
-/// Details about a vCenter Server management appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Vcenter {
-    /// Fully qualified domain name of the appliance.
-    #[serde(default)]
-    pub fqdn: ::core::option::Option<String>,
-    /// Internal IP address of the appliance.
-    #[serde(default, rename = "internalIp")]
-    pub internal_ip: ::core::option::Option<String>,
-    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Version of the appliance.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
 /// VMware Engine network resource that provides connectivity for VMware Engine private clouds.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VmwareEngineNetwork {
@@ -1617,6 +1226,212 @@ pub struct VmwareEngineNetwork {
     pub vpc_networks: ::core::option::Option<::std::vec::Vec<VpcNetwork>>,
 }
 
+/// Users/Service accounts which have access for DNS binding on the intranet VPC corresponding to the consumer project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Principal {
+    /// The service account which needs to be granted the permission.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// The user who needs to be granted permission.
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Autoscaling settings define the rules used by VMware Engine to automatically scale-out and scale-in the clusters in a private cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingSettings {
+    /// Required. The map with autoscaling policies applied to the cluster. The key is the identifier of the policy. It must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5) Currently there map must contain only one element that describes the autoscaling policy for compute nodes.
+    #[serde(default, rename = "autoscalingPolicies")]
+    pub autoscaling_policies: ::core::option::Option<serde_json::Value>,
+    /// Optional. The minimum duration between consecutive autoscale operations. It starts once addition or removal of nodes is fully completed. Defaults to 30 minutes if not specified. Cool down period must be in whole minutes (for example, 30, 31, 50, 180 minutes).
+    #[serde(default, rename = "coolDownPeriod")]
+    pub cool_down_period: ::core::option::Option<String>,
+    /// Optional. Maximum number of nodes of any type in a cluster. If not specified the default limits apply.
+    #[serde(default, rename = "maxClusterNodeCount")]
+    pub max_cluster_node_count: ::core::option::Option<i32>,
+    /// Optional. Minimum number of nodes of any type in a cluster. If not specified the default limits apply.
+    #[serde(default, rename = "minClusterNodeCount")]
+    pub min_cluster_node_count: ::core::option::Option<i32>,
+}
+
+/// The Datastore Mount configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatastoreMountConfig {
+    /// Optional. The access mode of the NFS volume. Optional. Default value used will be READ_WRITE // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "READ_ONLY", "READ_WRITE"]
+    #[serde(default, rename = "accessMode")]
+    pub access_mode: ::core::option::Option<String>,
+    /// Required. The resource name of the datastore to mount. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/my-datastore
+    #[serde(default)]
+    pub datastore: ::core::option::Option<String>,
+    /// Required. The network configuration for the datastore.
+    #[serde(default, rename = "datastoreNetwork")]
+    pub datastore_network: ::core::option::Option<DatastoreNetwork>,
+    /// Output only. File share name.
+    #[serde(default, rename = "fileShare")]
+    pub file_share: ::core::option::Option<String>,
+    /// Optional. The NFS protocol supported by the NFS volume. Default value used will be NFS_V3 // TODO: enum values: ["NFS_VERSION_UNSPECIFIED", "NFS_V3"]
+    #[serde(default, rename = "nfsVersion")]
+    pub nfs_version: ::core::option::Option<String>,
+    /// Output only. Server IP addresses of the NFS volume. For NFS 3, you can only provide a single server IP address or DNS names.
+    #[serde(default)]
+    pub servers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The NFS datastore configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NfsDatastore {
+    /// Google file service configuration
+    #[serde(default, rename = "googleFileService")]
+    pub google_file_service: ::core::option::Option<GoogleFileService>,
+    /// GCVE file service configuration
+    #[serde(default, rename = "googleVmwareFileService")]
+    pub google_vmware_file_service: ::core::option::Option<serde_json::Value>,
+    /// Third party file service configuration
+    #[serde(default, rename = "thirdPartyFileService")]
+    pub third_party_file_service: ::core::option::Option<ThirdPartyFileService>,
+}
+
+/// An IP range provided in any one of the supported formats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IpRange {
+    /// The name of an ExternalAddress resource. The external address must have been reserved in the scope of this external access rule''s parent network policy. Provide the external address name in the form of projects/{project}/locations/{location}/privateClouds/{private_cloud}/externalAddresses/{external_address}. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/externalAddresses/my-address.
+    #[serde(default, rename = "externalAddress")]
+    pub external_address: ::core::option::Option<String>,
+    /// A single IP address. For example: 10.0.0.5.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// An IP address range in the CIDR format. For example: 10.0.0.0/24.
+    #[serde(default, rename = "ipAddressRange")]
+    pub ip_address_range: ::core::option::Option<String>,
+}
+
+/// Represents a network service that is managed by a NetworkPolicy resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkService {
+    /// True if the service is enabled; false otherwise.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. State of the service. New values may be added to this enum when appropriate. // TODO: enum values: ["STATE_UNSPECIFIED", "UNPROVISIONED", "RECONCILING", "ACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Details about a HCX Cloud Manager appliance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Hcx {
+    /// Fully qualified domain name of the appliance.
+    #[serde(default)]
+    pub fqdn: ::core::option::Option<String>,
+    /// Internal IP address of the appliance.
+    #[serde(default, rename = "internalIp")]
+    pub internal_ip: ::core::option::Option<String>,
+    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "ACTIVATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Version of the appliance.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Management cluster configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagementCluster {
+    /// Required. The user-provided identifier of the new Cluster. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)
+    #[serde(default, rename = "clusterId")]
+    pub cluster_id: ::core::option::Option<String>,
+    /// Required. The map of cluster node types in this cluster, where the key is canonical identifier of the node type (corresponds to the NodeType).
+    #[serde(default, rename = "nodeTypeConfigs")]
+    pub node_type_configs: ::core::option::Option<serde_json::Value>,
+    /// Optional. Configuration of a stretched cluster. Required for STRETCHED private clouds.
+    #[serde(default, rename = "stretchedClusterConfig")]
+    pub stretched_cluster_config: ::core::option::Option<StretchedClusterConfig>,
+}
+
+/// Network configuration in the consumer project with which the peering has to be done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    /// Output only. DNS Server IP of the Private Cloud. All DNS queries can be forwarded to this address for name resolution of Private Cloud''s management entities like vCenter, NSX-T Manager and ESXi hosts.
+    #[serde(default, rename = "dnsServerIp")]
+    pub dns_server_ip: ::core::option::Option<String>,
+    /// Required. Management CIDR used by VMware management appliances.
+    #[serde(default, rename = "managementCidr")]
+    pub management_cidr: ::core::option::Option<String>,
+    /// Output only. The IP address layout version of the management IP address range. Possible versions include: * managementIpAddressLayoutVersion=1: Indicates the legacy IP address layout used by some existing private clouds. This is no longer supported for new private clouds as it does not support all features. * managementIpAddressLayoutVersion=2: Indicates the latest IP address layout used by all newly created private clouds. This version supports all current features.
+    #[serde(default, rename = "managementIpAddressLayoutVersion")]
+    pub management_ip_address_layout_version: ::core::option::Option<i32>,
+    /// Optional. The relative resource name of the VMware Engine network attached to the private cloud. Specify the name in the following form: projects/{project}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id} where {project} can either be a project number or a project ID.
+    #[serde(default, rename = "vmwareEngineNetwork")]
+    pub vmware_engine_network: ::core::option::Option<String>,
+    /// Output only. The canonical name of the VMware Engine network in the form: projects/{project_number}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}
+    #[serde(default, rename = "vmwareEngineNetworkCanonical")]
+    pub vmware_engine_network_canonical: ::core::option::Option<String>,
+}
+
+/// Details about a NSX Manager appliance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Nsx {
+    /// Fully qualified domain name of the appliance.
+    #[serde(default)]
+    pub fqdn: ::core::option::Option<String>,
+    /// Internal IP address of the appliance.
+    #[serde(default, rename = "internalIp")]
+    pub internal_ip: ::core::option::Option<String>,
+    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Version of the appliance.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Details about a vCenter Server management appliance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Vcenter {
+    /// Fully qualified domain name of the appliance.
+    #[serde(default)]
+    pub fqdn: ::core::option::Option<String>,
+    /// Internal IP address of the appliance.
+    #[serde(default, rename = "internalIp")]
+    pub internal_ip: ::core::option::Option<String>,
+    /// Output only. The state of the appliance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Version of the appliance.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
 /// Per component upgrade resource
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VmwareUpgradeComponent {
@@ -1628,6 +1443,26 @@ pub struct VmwareUpgradeComponent {
     pub state: ::core::option::Option<String>,
 }
 
+/// Schedule for the upgrade.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Schedule {
+    /// Output only. Output Only. Constraints applied to the schedule. These constraints should be applicable at the time of any rescheduling.
+    #[serde(default)]
+    pub constraints: ::core::option::Option<Constraints>,
+    /// Output only. Output Only. The schedule is open for edits during this time interval or window.
+    #[serde(default, rename = "editWindow")]
+    pub edit_window: ::core::option::Option<Interval>,
+    /// Output only. Output Only. Indicates who most recently edited the upgrade schedule. The value is updated whenever the upgrade is rescheduled. // TODO: enum values: ["EDITOR_UNSPECIFIED", "SYSTEM", "USER"]
+    #[serde(default, rename = "lastEditor")]
+    pub last_editor: ::core::option::Option<String>,
+    /// Required. The scheduled start time for the upgrade.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. Weekly time windows for upgrade activities. The server performs upgrade activities during these time windows to minimize disruptions.
+    #[serde(default, rename = "weeklyWindows")]
+    pub weekly_windows: ::core::option::Option<::std::vec::Vec<TimeWindow>>,
+}
+
 /// Represents a VMware Engine VPC network that is managed by a VMware Engine network resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VpcNetwork {
@@ -1637,6 +1472,143 @@ pub struct VpcNetwork {
     /// Output only. Type of VPC network (INTRANET, INTERNET, or GOOGLE_CLOUD) // TODO: enum values: ["TYPE_UNSPECIFIED", "INTRANET", "INTERNET", "GOOGLE_CLOUD"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// The network configuration for the datastore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatastoreNetwork {
+    /// Optional. connection_count is used to set multiple connections from NFS client on ESXi host to NFS server. A higher number of connections results in better performance on datastores. In MountDatastore API by default max 4 connections are configured. User can set value of connection_count between 1 to 4. Connection_count is supported from vsphere 8.0u1 for earlier version 1 connection count is set on the ESXi hosts.
+    #[serde(default, rename = "connectionCount")]
+    pub connection_count: ::core::option::Option<i32>,
+    /// Optional. MTU value is set on the VMKernel adapter for the NFS traffic. By default standard 1500 MTU size is set in MountDatastore API which is good for typical setups. However google VPC networks supports jumbo MTU 8896. We recommend to tune this value based on the NFS traffic performance. Performance can be determined using benchmarking I/O tools like fio (Flexible I/O Tester) utility.
+    #[serde(default)]
+    pub mtu: ::core::option::Option<i32>,
+    /// Output only. The resource name of the network peering, used to access the file share by clients on private cloud. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. e.g. projects/my-project/locations/us-central1/networkPeerings/my-network-peering
+    #[serde(default, rename = "networkPeering")]
+    pub network_peering: ::core::option::Option<String>,
+    /// Required. The resource name of the subnet Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. e.g. projects/my-project/locations/us-central1/subnets/my-subnet
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+}
+
+/// Google service file service configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFileService {
+    /// Google filestore instance resource name e.g. projects/my-project/locations/me-west1-b/instances/my-instance
+    #[serde(default, rename = "filestoreInstance")]
+    pub filestore_instance: ::core::option::Option<String>,
+    /// Google netapp volume resource name e.g. projects/my-project/locations/me-west1-b/volumes/my-volume
+    #[serde(default, rename = "netappVolume")]
+    pub netapp_volume: ::core::option::Option<String>,
+}
+
+/// Third party file service configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyFileService {
+    /// Required. Required Mount Folder name
+    #[serde(default, rename = "fileShare")]
+    pub file_share: ::core::option::Option<String>,
+    /// Required. Required to identify vpc peering used for NFS access network name of NFS''s vpc e.g. projects/project-id/global/networks/my-network_id
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Required. Server IP addresses of the NFS file service. NFS v3, provide a single IP address or DNS name. Multiple servers can be supported in future when NFS 4.1 protocol support is enabled.
+    #[serde(default)]
+    pub servers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Configuration of a stretched cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StretchedClusterConfig {
+    /// Required. Zone that will remain operational when connection between the two zones is lost. Specify the resource name of a zone that belongs to the region of the private cloud. For example: projects/{project}/locations/europe-west3-a where {project} can either be a project number or a project ID.
+    #[serde(default, rename = "preferredLocation")]
+    pub preferred_location: ::core::option::Option<String>,
+    /// Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: projects/{project}/locations/europe-west3-b where {project} can either be a project number or a project ID.
+    #[serde(default, rename = "secondaryLocation")]
+    pub secondary_location: ::core::option::Option<String>,
+}
+
+/// Constraints to be applied while editing a schedule. These constraints ensure that Upgrade specific requirements are met.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Constraints {
+    /// Output only. Output Only. A list of intervals in which maintenance windows are not allowed. Any time window that overlaps with any of these intervals will be considered invalid.
+    #[serde(default, rename = "disallowedIntervals")]
+    pub disallowed_intervals: ::core::option::Option<::std::vec::Vec<WeeklyTimeInterval>>,
+    /// Output only. Minimum number of hours must be allotted for the upgrade activities for each selected day. This is a minimum; the upgrade schedule can allot more hours for the given day.
+    #[serde(default, rename = "minHoursDay")]
+    pub min_hours_day: ::core::option::Option<i32>,
+    /// Output only. The minimum number of weekly hours must be allotted for the upgrade activities. This is just a minimum; the schedule can assign more weekly hours.
+    #[serde(default, rename = "minHoursWeek")]
+    pub min_hours_week: ::core::option::Option<i32>,
+    /// Output only. Output Only. The user can only reschedule an upgrade that starts within this range.
+    #[serde(default, rename = "rescheduleDateRange")]
+    pub reschedule_date_range: ::core::option::Option<Interval>,
+}
+
+/// Represents the time window to perform upgrade activities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeWindow {
+    /// Required. Day of the week for this window. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "dayOfWeek")]
+    pub day_of_week: ::core::option::Option<String>,
+    /// Required. The duration of the window. The max allowed duration for any window is 24 hours.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Required. Time in UTC when the window starts.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// Represents a time interval, spanning across days of the week. Until local timezones are supported, this interval is in UTC.
@@ -1654,4 +1626,32 @@ pub struct WeeklyTimeInterval {
     /// Output only. The time on the start day at which the interval starts.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Interval {
+    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeOfDay {
+    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
 }
