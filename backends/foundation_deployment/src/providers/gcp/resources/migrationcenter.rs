@@ -403,6 +403,14 @@ pub struct AggregationResult {
     pub sum: ::core::option::Option<AggregationResultSum>,
 }
 
+/// Specifies cascading rules for traversing relations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CascadingRule {
+    /// Cascading rule for related logical DBs.
+    #[serde(default, rename = "cascadeLogicalDbs")]
+    pub cascade_logical_dbs: ::core::option::Option<serde_json::Value>,
+}
+
 /// A request to update an asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateAssetRequest {
@@ -798,6 +806,13 @@ pub struct AggregationHistogram {
 pub struct AggregationResultCount {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// The result of a frequency distribution aggregation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationResultFrequency {
+    #[serde(default)]
+    pub values: ::core::option::Option<serde_json::Value>,
 }
 
 /// The result of a bucketed histogram aggregation.

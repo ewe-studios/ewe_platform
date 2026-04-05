@@ -26,6 +26,22 @@ pub struct BatchEditTagsApiObservationsResponse {
     pub api_observations: ::core::option::Option<::std::vec::Vec<ApiObservation>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Message for disabling an ObservationJob
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableObservationJobRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Message for enabling an ObservationJob
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableObservationJobRequest {}
+
 /// Entitlement stores data related to API Observation entitlement for a given project
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entitlement {
@@ -398,6 +414,14 @@ pub struct HttpOperationPathParam {
     /// Segment location in the path, 1-indexed
     #[serde(default)]
     pub position: ::core::option::Option<i32>,
+}
+
+/// An aggregation of HTTP requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpOperationHttpRequest {
+    /// Unordered map from header name to header metadata
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
 }
 
 /// An aggregation of HTTP responses.

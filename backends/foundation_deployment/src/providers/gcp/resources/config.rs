@@ -297,6 +297,14 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// The request message for the ProvisionDeploymentGroup method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisionDeploymentGroupRequest {
+    /// Optional. The deployment specs of the deployment units to be created within the same project and location of the deployment group. The key is the unit ID, and the value is the DeploymentSpec. Provisioning will fail if a deployment_spec has a deployment_id that matches an existing deployment in the same project and location. If an existing deployment was part of the last successful revision but is no longer in the current DeploymentGroup''s deployment_units, it will be recreated if included in deployment_specs.
+    #[serde(default, rename = "deploymentSpecs")]
+    pub deployment_specs: ::core::option::Option<serde_json::Value>,
+}
+
 /// CAI info of a Resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceCAIInfo {
@@ -333,6 +341,14 @@ pub struct TerraformOutput {
     /// Value of output.
     #[serde(default)]
     pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// A Terraform input variable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerraformVariable {
+    /// Optional. Input variable value.
+    #[serde(default, rename = "inputValue")]
+    pub input_value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request message for TestIamPermissions method.

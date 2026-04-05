@@ -139,6 +139,14 @@ pub struct GoogleCloudRecommenderV1RecommenderConfig {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// A configuration to customize the generation of insights. Eg, customizing the lookback period considered when generating a insight.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1InsightTypeGenerationConfig {
+    /// Parameters for this InsightTypeGenerationConfig. These configs can be used by or are applied to all subtypes.
+    #[serde(default)]
+    pub params: ::core::option::Option<serde_json::Value>,
+}
+
 /// An insight along with the information used to derive the insight. The insight may have associated recommendations as well.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommenderV1Insight {
@@ -226,6 +234,14 @@ pub struct GoogleCloudRecommenderV1Recommendation {
     /// Corresponds to a mutually exclusive group ID within a recommender. A non-empty ID indicates that the recommendation belongs to a mutually exclusive group. This means that only one recommendation within the group is suggested to be applied.
     #[serde(default, rename = "xorGroupId")]
     pub xor_group_id: ::core::option::Option<String>,
+}
+
+/// A Configuration to customize the generation of recommendations. Eg, customizing the lookback period considered when generating a recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1RecommenderGenerationConfig {
+    /// Parameters for this RecommenderGenerationConfig. These configs can be used by or are applied to all subtypes.
+    #[serde(default)]
+    pub params: ::core::option::Option<serde_json::Value>,
 }
 
 /// Reference to an associated recommendation.
@@ -326,6 +342,14 @@ pub struct GoogleCloudRecommenderV1ReliabilityProjection {
     /// Reliability risks mitigated by this recommendation.
     #[serde(default)]
     pub risks: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Contains various ways of describing the impact on Security.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommenderV1SecurityProjection {
+    /// Additional security impact details that is provided by the recommender.
+    #[serde(default)]
+    pub details: ::core::option::Option<serde_json::Value>,
 }
 
 /// Contains metadata about how much sustainability a recommendation can save or incur.

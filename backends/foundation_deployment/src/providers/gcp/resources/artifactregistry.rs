@@ -29,6 +29,10 @@ pub struct BatchDeleteVersionsRequest {
     pub validate_only: ::core::option::Option<bool>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Artifact policy configuration for repository cleanup policies.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CleanupPolicy {
@@ -45,6 +49,14 @@ pub struct CleanupPolicy {
     #[serde(default, rename = "mostRecentVersions")]
     pub most_recent_versions: ::core::option::Option<CleanupPolicyMostRecentVersions>,
 }
+
+/// The response to download a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DownloadFileResponse {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// The LRO metadata for exporting an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +122,10 @@ pub struct GoModule {
     pub version: ::core::option::Option<String>,
 }
 
+/// The operation metadata for importing artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportAptArtifactsMetadata {}
+
 /// The request to import new apt artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportAptArtifactsRequest {
@@ -129,6 +145,10 @@ pub struct ImportAptArtifactsResponse {
     pub errors: ::core::option::Option<::std::vec::Vec<ImportAptArtifactsErrorInfo>>,
 }
 
+/// The operation metadata for importing artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportGoogetArtifactsMetadata {}
+
 /// The request to import new googet artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportGoogetArtifactsRequest {
@@ -147,6 +167,10 @@ pub struct ImportGoogetArtifactsResponse {
     #[serde(default, rename = "googetArtifacts")]
     pub googet_artifacts: ::core::option::Option<::std::vec::Vec<GoogetArtifact>>,
 }
+
+/// The operation metadata for importing artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportYumArtifactsMetadata {}
 
 /// The request to import new yum artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -310,6 +334,10 @@ pub struct ListVersionsResponse {
     pub versions: ::core::option::Option<::std::vec::Vec<Version>>,
 }
 
+/// Metadata type for longrunning-operations, currently empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {}
+
 /// The Artifact Registry logging configurations that apply to a Project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectConfig {
@@ -367,6 +395,14 @@ pub struct UploadAptArtifactMediaResponse {
     pub operation: ::core::option::Option<Operation>,
 }
 
+/// The operation metadata for uploading artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadAptArtifactMetadata {}
+
+/// The request to upload an artifact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadAptArtifactRequest {}
+
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadAptArtifactResponse {
@@ -399,6 +435,10 @@ pub struct UploadGenericArtifactMediaResponse {
     pub operation: ::core::option::Option<Operation>,
 }
 
+/// The operation metadata for uploading generic artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadGenericArtifactMetadata {}
+
 /// The request to upload a generic artifact. The created GenericArtifact will have the resource name {parent}/genericArtifacts/package_id:version_id. The created file will have the resource name {parent}/files/package_id:version_id:filename.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadGenericArtifactRequest {
@@ -421,6 +461,14 @@ pub struct UploadGoModuleMediaResponse {
     pub operation: ::core::option::Option<Operation>,
 }
 
+/// The operation metadata for uploading go modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadGoModuleMetadata {}
+
+/// The request to upload a Go module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadGoModuleRequest {}
+
 /// The response to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadGoogetArtifactMediaResponse {
@@ -428,6 +476,14 @@ pub struct UploadGoogetArtifactMediaResponse {
     #[serde(default)]
     pub operation: ::core::option::Option<Operation>,
 }
+
+/// The operation metadata for uploading artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadGoogetArtifactMetadata {}
+
+/// The request to upload an artifact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadGoogetArtifactRequest {}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -444,6 +500,10 @@ pub struct UploadKfpArtifactMediaResponse {
     #[serde(default)]
     pub operation: ::core::option::Option<Operation>,
 }
+
+/// The operation metadata for uploading KFP artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadKfpArtifactMetadata {}
 
 /// The request to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -463,6 +523,14 @@ pub struct UploadYumArtifactMediaResponse {
     #[serde(default)]
     pub operation: ::core::option::Option<Operation>,
 }
+
+/// The operation metadata for uploading artifacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadYumArtifactMetadata {}
+
+/// The request to upload an artifact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadYumArtifactRequest {}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize)]

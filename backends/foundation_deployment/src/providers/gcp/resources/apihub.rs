@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The CollectApiData method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApihubV1CollectApiDataRequest {
@@ -67,6 +71,10 @@ pub struct GoogleCloudApihubV1DisablePluginInstanceActionRequest {
     pub action_id: ::core::option::Option<String>,
 }
 
+/// The DisablePlugin method''s request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1DisablePluginRequest {}
+
 /// The EnablePluginInstanceAction method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApihubV1EnablePluginInstanceActionRequest {
@@ -74,6 +82,10 @@ pub struct GoogleCloudApihubV1EnablePluginInstanceActionRequest {
     #[serde(default, rename = "actionId")]
     pub action_id: ::core::option::Option<String>,
 }
+
+/// The EnablePlugin method''s request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1EnablePluginRequest {}
 
 /// The ExecutePluginInstanceAction method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,6 +116,10 @@ pub struct GoogleCloudApihubV1Header {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// The LintSpec method''s request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1LintSpecRequest {}
 
 /// The ListAddons method''s response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -328,6 +344,10 @@ pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest {
     pub relative_path: ::core::option::Option<String>,
 }
 
+/// The ManagePluginInstanceSourceData method''s response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {}
+
 /// The config variable value of data type multi string.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApihubV1MultiStringValues {
@@ -490,6 +510,10 @@ pub struct GoogleCloudLocationListLocationsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1333,6 +1357,14 @@ pub struct GoogleCloudApihubV1PathParam {
     pub position: ::core::option::Option<i32>,
 }
 
+/// An aggregation of HTTP requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1HttpRequest {
+    /// Optional. Unordered map from header name to header metadata
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+}
+
 /// An aggregation of HTTP responses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApihubV1HttpResponse {
@@ -2000,6 +2032,14 @@ pub struct GoogleCloudApihubV1ToolAnnotations {
     /// Optional. A human-readable title for the tool (if different from Tool.title).
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+/// The operation schema needed for an operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApihubV1OperationSchema {
+    /// The JSON schema. Only valid JSON is accepted but semantic validation of schema is not supported right now.
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<serde_json::Value>,
 }
 
 /// The additional spec content for the spec. This contains the metadata and the last update time for the additional spec content.

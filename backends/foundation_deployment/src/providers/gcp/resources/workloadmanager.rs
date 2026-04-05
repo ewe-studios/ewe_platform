@@ -175,6 +175,14 @@ pub struct RunEvaluationRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
+/// In order to align with Infra Manager dependency, we create the same TerraformVariable message to represent a Terraform input variable, by following Infra Manager''s API documentation: https://cloud.google.com/infrastructure-manager/docs/reference/rest A Terraform input variable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerraformVariable {
+    /// Optional. Input variable value.
+    #[serde(default, rename = "inputValue")]
+    pub input_value: ::core::option::Option<serde_json::Value>,
+}
+
 /// WorkloadProfileHealth contains the detailed health check of workload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkloadProfileHealth {
@@ -1500,6 +1508,14 @@ pub struct SapDiscoveryWorkloadPropertiesSoftwareComponentProperties {
     /// Optional. The component''s major version.
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// Message containing collected data names and values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlserverValidationDetails {
+    /// Required. Collected data is in format.
+    #[serde(default)]
+    pub fields: ::core::option::Option<serde_json::Value>,
 }
 
 /// Backup properties.

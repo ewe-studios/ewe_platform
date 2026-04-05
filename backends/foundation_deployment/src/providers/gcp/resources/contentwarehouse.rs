@@ -2293,6 +2293,22 @@ pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
     pub folders: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Represents the action responsible for properties update operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DataUpdateAction {
+    /// Map of (K, V) -&gt; (valid name of the field, new value of the field) E.g., ("age", "60") entry triggers update of field age with a value of 60. If the field is not present then new entry is added. During update action execution, value strings will be casted to appropriate types.
+    #[serde(default)]
+    pub entries: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents the action responsible for data validation operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DataValidationAction {
+    /// Map of (K, V) -&gt; (field, string condition to be evaluated on the field) E.g., ("age", "age &gt; 18 && age &lt; 60") entry triggers validation of field age with the given condition. Map entries will be ANDed during validation.
+    #[serde(default)]
+    pub conditions: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents the action responsible for deleting the document.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
@@ -2581,6 +2597,14 @@ pub struct GoogleCloudContentwarehouseV1IntegerArray {
     /// List of integer values.
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<i32>>,
+}
+
+/// Map property value. Represents a structured entries of key value pairs, consisting of field names which map to dynamically typed values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1MapProperty {
+    /// Unordered map of dynamically typed values.
+    #[serde(default)]
+    pub fields: ::core::option::Option<serde_json::Value>,
 }
 
 /// Property of a document.

@@ -30,6 +30,30 @@ pub struct Boundary {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Request for DetachServiceProjectAttachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetachServiceProjectAttachmentRequest {}
+
+/// Response for DetachServiceProjectAttachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetachServiceProjectAttachmentResponse {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Additional metadata for a Service or Workload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtendedMetadata {
+    /// Output only. The metadata contents.
+    #[serde(default, rename = "metadataStruct")]
+    pub metadata_struct: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response for ListApplications.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListApplicationsResponse {

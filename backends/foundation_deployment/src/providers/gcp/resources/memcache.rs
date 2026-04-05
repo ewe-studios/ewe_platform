@@ -43,6 +43,14 @@ pub struct GetTagsResponse {
     pub tags: ::core::option::Option<serde_json::Value>,
 }
 
+/// Metadata for the given google.cloud.location.Location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMemcacheV1LocationMetadata {
+    /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by GCE. These keys can be specified in the zones field when creating a Memcached instance.
+    #[serde(default, rename = "availableZones")]
+    pub available_zones: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents the metadata of a long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudMemcacheV1OperationMetadata {
@@ -216,6 +224,14 @@ pub struct ListOperationsResponse {
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Metadata for the given google.cloud.location.Location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationMetadata {
+    /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by GCE. These keys can be specified in the zones field when creating a Memcached instance.
+    #[serde(default, rename = "availableZones")]
+    pub available_zones: ::core::option::Option<serde_json::Value>,
 }
 
 /// Defines policies to service maintenance events.
@@ -630,6 +646,14 @@ pub struct MaintenanceWindow {
     /// Weekly cycle.
     #[serde(default, rename = "weeklyCycle")]
     pub weekly_cycle: ::core::option::Option<WeeklyCycle>,
+}
+
+/// PerSliSloEligibility is a mapping from an SLI name to eligibility.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
+    /// An entry in the eligibilities map specifies an eligibility for a particular SLI for the given instance. The SLI key in the name must be a valid SLI name specified in the Eligibility Exporter binary flags otherwise an error will be emitted by Eligibility Exporter and the oncaller will be alerted. If an SLI has been defined in the binary flags but the eligibilities map does not contain it, the corresponding SLI time series will not be emitted by the Eligibility Exporter. This ensures a smooth rollout and compatibility between the data produced by different versions of the Eligibility Exporters. If eligibilities map contains a key for an SLI which has not been declared in the binary flags, there will be an error message emitted in the Eligibility Exporter log and the metric for the SLI in question will not be emitted.
+    #[serde(default)]
+    pub eligibilities: ::core::option::Option<serde_json::Value>,
 }
 
 /// Time window specified for weekly operations.

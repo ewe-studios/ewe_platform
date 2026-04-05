@@ -64,6 +64,18 @@ pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectionConfig {
     pub user_port: ::core::option::Option<i32>,
 }
 
+/// ConnectorDetails reflects the details of a connector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectorDetails {}
+
+/// LogAgentDetails reflects the details of a log agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSecurityZerotrustApplinkLogagentProtoLogAgentDetails {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionOperationMetadata {
@@ -207,6 +219,10 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// RemoteAgentDetails reflects the details of a remote agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1RemoteAgentDetails {}
+
 /// Request report the connector status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest {
@@ -272,6 +288,10 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaContainerHealthDetails {
     #[serde(default, rename = "extendedStatus")]
     pub extended_status: ::core::option::Option<serde_json::Value>,
 }
+
+/// RemoteAgentDetails reflects the details of a remote agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaRemoteAgentDetails {}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -368,6 +388,10 @@ pub struct GoogleCloudBeyondcorpConnectorsV1alphaContainerHealthDetails {
     pub extended_status: ::core::option::Option<serde_json::Value>,
 }
 
+/// RemoteAgentDetails reflects the details of a remote agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBeyondcorpConnectorsV1alphaRemoteAgentDetails {}
+
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBeyondcorpPartnerservicesV1alphaPartnerServiceOperationMetadata {
@@ -460,6 +484,10 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Configuration for Cloud Logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig {}
+
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGatewayOperationMetadata {
@@ -549,6 +577,10 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]

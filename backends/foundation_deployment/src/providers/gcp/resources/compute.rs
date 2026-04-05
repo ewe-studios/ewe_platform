@@ -428,6 +428,15 @@ pub struct CacheInvalidationRule {
     pub path: ::core::option::Option<String>,
 }
 
+/// A request to recommend the best way to consume the specified resources in the
+/// future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarModeAdviceRequest {
+    /// Specification of resources to create in the future.
+    #[serde(default, rename = "futureResourcesSpecs")]
+    pub future_resources_specs: ::core::option::Option<serde_json::Value>,
+}
+
 /// A response containing the recommended way of creating the specified resources
 /// in the future. It contains (will contain) multiple recommendations that can
 /// be analyzed by the customer and the best one can be picked.
@@ -6010,6 +6019,16 @@ pub struct VpnTunnelsScopedList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// A logical endpoint for the wire group. An endpoint represents a metro that
+/// contains redundant Interconnect connections. A wire group is created
+/// between two endpoints.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WireGroupEndpoint {
+    /// A map that contains the redundant Interconnect connections. Specify
+    #[serde(default)]
+    pub interconnects: ::core::option::Option<serde_json::Value>,
+}
+
 /// The redundant Interconnect connections for this endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WireGroupEndpointInterconnect {
@@ -6480,6 +6499,14 @@ pub struct BackendService {
     pub used_by: ::core::option::Option<::std::vec::Vec<BackendServiceUsedBy>>,
 }
 
+/// A flexible specification of machine types for instances to create.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceFlexibilityPolicy {
+    /// Specification of alternative, flexible instance subsets.
+    #[serde(default, rename = "instanceSelections")]
+    pub instance_selections: ::core::option::Option<serde_json::Value>,
+}
+
 /// Configuration for location policy among multiple possible locations
 /// (e.g. preferences for zone selection among zones in a single region).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -6504,6 +6531,16 @@ pub struct BulkSetLabelsRequest {
     /// The labels to set for this resource.
     #[serde(default)]
     pub labels: ::core::option::Option<serde_json::Value>,
+}
+
+/// A single recommendation to create requested resources. Contains detailed
+/// recommendations for every future resources specification specified in
+/// CalendarModeAdviceRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarModeRecommendation {
+    /// Recommendations for every future resource specification passed in
+    #[serde(default, rename = "recommendationsPerSpec")]
+    pub recommendations_per_spec: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a regional resource-based commitment resource.
@@ -7165,6 +7202,14 @@ pub struct FutureReservation {
     /// Output only. [Output Only] URL of the Zone where this future reservation resides.
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
+}
+
+/// Specification of locations to create resources in.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FutureResourcesSpecLocationPolicy {
+    /// Preferences for specified locations.
+    #[serde(default)]
+    pub locations: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specification of reserved resources.
@@ -12269,6 +12314,14 @@ pub struct BackendBucketCdnPolicy {
     pub signed_url_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Additional Backend Bucket parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendBucketParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// BackendBucketUsedBy resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackendBucketUsedBy {
@@ -12583,6 +12636,14 @@ pub struct OutlierDetection {
     pub success_rate_stdev_factor: ::core::option::Option<i32>,
 }
 
+/// Additional Backend Service parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendServiceParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// The authentication and authorization settings for a BackendService.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecuritySettings {
@@ -12795,6 +12856,14 @@ pub struct DiskAsyncReplication {
     pub disk_id: ::core::option::Option<String>,
 }
 
+/// Additional disk params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskParams {
+    /// Input only. Resource manager tags to be bound to the disk. Tag keys and values
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// DiskResourceStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiskResourceStatus {
@@ -12817,6 +12886,14 @@ pub struct ExternalVpnGatewayInterface {
     /// IPv6 address of the interface in the external VPN gateway. This IPv6
     #[serde(default, rename = "ipv6Address")]
     pub ipv6_address: ::core::option::Option<String>,
+}
+
+/// ExternalVpnGatewayParams resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalVpnGatewayParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// FirewallPolicyAssociation resource type.
@@ -13106,6 +13183,14 @@ pub struct TCPHealthCheck {
     pub response: ::core::option::Option<String>,
 }
 
+/// Additional image params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageParams {
+    /// Input only. Resource manager tags to be bound to the image. Tag keys and values have
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// InstanceGroupManagerResizeRequestStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstanceGroupManagerResizeRequestStatus {
@@ -13179,6 +13264,14 @@ pub struct ShieldedInstanceIntegrityPolicy {
     pub update_auto_learn_policy: ::core::option::Option<bool>,
 }
 
+/// Additional instant snapshot params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstantSnapshotParams {
+    /// Input only. Resource manager tags to be bound to the instant snapshot. Tag keys and
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// InstantSnapshotResourceStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstantSnapshotResourceStatus {
@@ -13250,6 +13343,14 @@ pub struct InterconnectAttachmentL2Forwarding {
     /// Required. A single IPv4 or IPv6 address. This address will be used as the
     #[serde(default, rename = "tunnelEndpointIpAddress")]
     pub tunnel_endpoint_ip_address: ::core::option::Option<String>,
+}
+
+/// Additional interconnect attachment parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterconnectAttachmentParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// Informational metadata about Partner attachments from Partners to display
@@ -13435,6 +13536,14 @@ pub struct InterconnectMacsec {
     pub pre_shared_keys: ::core::option::Option<::std::vec::Vec<InterconnectMacsecPreSharedKey>>,
 }
 
+/// Additional interconnect parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterconnectParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// Information about Cross-Site Interconnect wires which may be created
 /// between the containing location and another remote location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13517,6 +13626,14 @@ pub struct InterconnectMacsecConfigPreSharedKey {
     pub start_time: ::core::option::Option<String>,
 }
 
+/// Additional license params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LicenseParams {
+    /// Input only. Resource manager tags to be bound to the license. Tag keys and values
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// LicenseResourceRequirements resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseResourceRequirements {
@@ -13596,6 +13713,14 @@ pub struct InstanceProperties {
     pub tags: ::core::option::Option<Tags>,
     #[serde(default, rename = "workloadIdentityConfig")]
     pub workload_identity_config: ::core::option::Option<WorkloadIdentityConfig>,
+}
+
+/// Machine Image parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MachineImageParams {
+    /// Input only. Resource manager tags to be bound to the machine image. Tag keys and values
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// An instance-attached disk resource.
@@ -13851,6 +13976,14 @@ pub struct NetworkEndpointGroupPscData {
     /// Output only. [Output Only] The connection status of the PSC Forwarding Rule. // TODO: enum values: ["ACCEPTED", "CLOSED", "NEEDS_ATTENTION", "PENDING", "REJECTED", "STATUS_UNSPECIFIED"]
     #[serde(default, rename = "pscConnectionStatus")]
     pub psc_connection_status: ::core::option::Option<String>,
+}
+
+/// Additional network parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// A network peering attached to a network resource. The message includes the
@@ -14172,6 +14305,14 @@ pub struct GetVersionOperationMetadata {
     pub inline_sbom_info: ::core::option::Option<GetVersionOperationMetadataSbomInfo>,
 }
 
+/// InstancesBulkInsertOperationMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstancesBulkInsertOperationMetadata {
+    /// Status information per location (location name is key).
+    #[serde(default, rename = "perLocationStatus")]
+    pub per_location_status: ::core::option::Option<serde_json::Value>,
+}
+
 /// SetCommonInstanceMetadataOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
@@ -14432,6 +14573,14 @@ pub struct DistributionPolicy {
     pub zones: ::core::option::Option<::std::vec::Vec<DistributionPolicyZoneConfiguration>>,
 }
 
+/// InstanceGroupManagerInstanceFlexibilityPolicy resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceGroupManagerInstanceFlexibilityPolicy {
+    /// Named instance selections configuring properties that the group will use
+    #[serde(default, rename = "instanceSelections")]
+    pub instance_selections: ::core::option::Option<serde_json::Value>,
+}
+
 /// InstanceGroupManagerInstanceLifecyclePolicy resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstanceGroupManagerInstanceLifecyclePolicy {
@@ -14584,6 +14733,14 @@ pub struct ManagedInstanceInstanceHealth {
     pub health_check: ::core::option::Option<String>,
 }
 
+/// ManagedInstanceLastAttempt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedInstanceLastAttempt {
+    /// Output only. [Output Only] Encountered errors during the last attempt to create or
+    #[serde(default)]
+    pub errors: ::core::option::Option<serde_json::Value>,
+}
+
 /// Preserved state for a given instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PreservedState {
@@ -14680,6 +14837,14 @@ pub struct FirewallLogConfig {
     /// This field can only be specified for a particular firewall rule if
     #[serde(default)]
     pub metadata: ::core::option::Option<String>,
+}
+
+/// Additional firewall parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirewallParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// Health information for the reservation block.
@@ -15210,6 +15375,14 @@ pub struct RouterNat {
     pub udp_idle_timeout_sec: ::core::option::Option<i32>,
 }
 
+/// Additional router parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RouterParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// PreconfiguredWafSet resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PreconfiguredWafSet {
@@ -15392,6 +15565,14 @@ pub struct ServiceAttachmentConsumerProjectLimit {
     pub project_id_or_num: ::core::option::Option<String>,
 }
 
+/// Additional snapshot params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotParams {
+    /// Input only. Resource manager tags to be bound to the snapshot. Tag keys and values have
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// Configuration and status of a managed SSL certificate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SslCertificateManagedSslCertificate {
@@ -15429,6 +15610,14 @@ pub struct StoragePoolExapoolProvisionedCapacityGb {
     /// Size, in GiB, of provisioned write-optimized capacity for this Exapool
     #[serde(default, rename = "writeOptimized")]
     pub write_optimized: ::core::option::Option<String>,
+}
+
+/// Additional storage pool params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoragePoolParams {
+    /// Input only. Resource manager tags to be bound to the storage pool. Tag keys and values
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// [Output Only] Contains output only fields.
@@ -15501,6 +15690,14 @@ pub struct SubnetworkLogConfig {
     pub metadata_fields: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Additional subnetwork parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubnetworkParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents a secondary IP range of a subnetwork.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubnetworkSecondaryRange {
@@ -15535,6 +15732,14 @@ pub struct SubnetworkUtilizationDetails {
     #[serde(default, rename = "ipv4Utilizations")]
     pub ipv4_utilizations:
         ::core::option::Option<::std::vec::Vec<SubnetworkUtilizationDetailsIPV4Utilization>>,
+}
+
+/// TargetVpnGatewayParams resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetVpnGatewayParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// UrlMaps
@@ -15702,6 +15907,14 @@ pub struct VpnGatewayStatusVpnConnection {
     pub tunnels: ::core::option::Option<::std::vec::Vec<VpnGatewayStatusTunnel>>,
 }
 
+/// VpnGatewayParams resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnGatewayParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// A VPN gateway interface.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VpnGatewayVpnGatewayInterface {
@@ -15726,6 +15939,14 @@ pub struct VpnTunnelCipherSuite {
     pub phase1: ::core::option::Option<VpnTunnelPhase1Algorithms>,
     #[serde(default)]
     pub phase2: ::core::option::Option<VpnTunnelPhase2Algorithms>,
+}
+
+/// VpnTunnelParams resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnTunnelParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// Topology details for the wire group.
@@ -16101,6 +16322,14 @@ pub struct AllocationAggregateReservation {
     pub workload_type: ::core::option::Option<String>,
 }
 
+/// Additional reservation params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReservationParams {
+    /// Input only. Resource manager tags to be bound to the reservation. Tag keys and
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// AllocationReservationSharingPolicy resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllocationReservationSharingPolicy {
@@ -16199,6 +16428,14 @@ pub struct FutureResourcesSpecLocalSsdPartition {
     /// The size of the disk in GB.
     #[serde(default, rename = "diskSizeGb")]
     pub disk_size_gb: ::core::option::Option<String>,
+}
+
+/// InstanceGroupManagerResizeRequestStatusLastAttempt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceGroupManagerResizeRequestStatusLastAttempt {
+    /// Output only. Errors that prevented the ResizeRequest to be fulfilled.
+    #[serde(default)]
+    pub error: ::core::option::Option<serde_json::Value>,
 }
 
 /// A specification of the desired way to instantiate a disk in the instance
@@ -18378,6 +18615,14 @@ pub struct RouteAsPath {
     /// [Output Only] The type of the AS Path, which can be one of the following
     #[serde(default, rename = "pathSegmentType")]
     pub path_segment_type: ::core::option::Option<String>,
+}
+
+/// Additional route parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RouteParams {
+    /// Tag keys/values directly bound to this resource.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// BfdStatusPacketCounts resource type.

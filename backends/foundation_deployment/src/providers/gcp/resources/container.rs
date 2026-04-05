@@ -1509,6 +1509,22 @@ pub struct ClusterUpdate {
     pub user_managed_keys_config: ::core::option::Option<UserManagedKeysConfig>,
 }
 
+/// Collection of node-level [Kubernetes labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeLabels {
+    /// Map of node label keys and node label values.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+}
+
+/// Collection of [Resource Manager labels](https://cloud.google.com/resource-manager/docs/creating-managing-labels).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceLabels {
+    /// Map of node label keys and node label values.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+}
+
 /// Collection of Kubernetes [node taints](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeTaints {
@@ -3531,6 +3547,14 @@ pub struct ReservationAffinity {
     /// Corresponds to the label value(s) of reservation resource(s).
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A map of resource manager tag keys and values to be attached to the nodes for managing Compute Engine firewalls using Network Firewall Policies. Tags must be according to specifications in https://cloud.google.com/vpc/docs/tags-firewalls-overview#specifications. A maximum of 5 tag key-value pairs can be specified. Existing tags will be replaced with new values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceManagerTags {
+    /// TagKeyValue must be in one of the following formats ([KEY]=[VALUE]) 1. tagKeys/{tag_key_id}=tagValues/{tag_value_id} 2. {org_id}/{tag_key_name}={tag_value_name} 3. {project_id}/{tag_key_name}={tag_value_name}
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// SandboxConfig contains configurations of the sandbox to use for the node.

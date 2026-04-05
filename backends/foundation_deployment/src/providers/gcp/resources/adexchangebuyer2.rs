@@ -34,6 +34,18 @@ pub struct AddNoteRequest {
     pub note: ::core::option::Option<Note>,
 }
 
+/// Request to cancel an ongoing negotiation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelNegotiationRequest {}
+
+/// Request message for indicating that the proposal''s setup step is complete.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompleteSetupRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response message for listing the metrics that are measured in number of bids.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListBidMetricsResponse {
@@ -282,6 +294,14 @@ pub struct ResumeProposalDealsRequest {
     #[serde(default, rename = "externalDealIds")]
     pub external_deal_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Request message to resume (unpause) serving for an already-finalized proposal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeProposalRequest {}
+
+/// A request for stopping notifications for changes to creative Status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopWatchingCreativeRequest {}
 
 /// A request for watching changes to creative Status.
 #[derive(Debug, Clone, Serialize, Deserialize)]

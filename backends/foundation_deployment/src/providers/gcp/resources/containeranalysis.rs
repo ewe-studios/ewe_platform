@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request to create notes in batch.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchCreateNotesRequest {
+    /// Required. The notes to create. Max allowed length is 1000.
+    #[serde(default)]
+    pub notes: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response for creating notes in batch.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreateNotesResponse {
@@ -204,6 +212,14 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Build {
     pub warnings: ::core::option::Option<
         ::std::vec::Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildWarning>,
     >,
+}
+
+/// The request to generate and export SBOM. Target must be specified for the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportSBOMRequest {
+    /// Optional. Empty placeholder to denote that this is a Google Cloud Storage export request.
+    #[serde(default, rename = "cloudStorageLocation")]
+    pub cloud_storage_location: ::core::option::Option<serde_json::Value>,
 }
 
 /// The response from a call to ExportSBOM.

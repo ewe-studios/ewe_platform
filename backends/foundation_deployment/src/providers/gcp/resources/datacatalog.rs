@@ -180,6 +180,14 @@ pub struct GoogleCloudDatacatalogV1ModifyEntryOverviewRequest {
     pub entry_overview: ::core::option::Option<GoogleCloudDatacatalogV1EntryOverview>,
 }
 
+/// The configuration related to the migration from Data Catalog to Dataplex Universal Catalog that has been applied to an organization and any projects under it. It is the response message for RetrieveConfig.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1OrganizationConfig {
+    /// Map of organizations and project resource names and their configuration. The format for the map keys is organizations/{organizationId} or projects/{projectId}.
+    #[serde(default)]
+    pub config: ::core::option::Option<serde_json::Value>,
+}
+
 /// Long-running operation metadata message returned by the ReconcileTags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {

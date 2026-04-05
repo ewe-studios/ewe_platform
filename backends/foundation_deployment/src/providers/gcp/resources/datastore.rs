@@ -785,6 +785,14 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
+/// The result of a single bucket from a Datastore aggregation query. The keys of aggregate_properties are the same for all results in an aggregation query, unlike entity queries which can have different fields present for each result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationResult {
+    /// The result of the aggregation functions, ex: COUNT(*) AS total_entities. The key is the alias assigned to the aggregation function on input and the size of this map equals the number of aggregation functions in the query.
+    #[serde(default, rename = "aggregateProperties")]
+    pub aggregate_properties: ::core::option::Option<serde_json::Value>,
+}
+
 /// Defines an aggregation that produces a single result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Aggregation {

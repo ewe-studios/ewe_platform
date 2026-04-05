@@ -424,6 +424,22 @@ pub struct NextStateOfTags {
     pub tags_partial_state: ::core::option::Option<TagsPartialState>,
 }
 
+/// TagsFullState resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagsFullState {
+    /// If TagsFullState is initialized, the values in this field fully represent all the tags in the next state (the current tag values are not used). If tags.size() == 0, the next state of tags would be no tags for evaluation purposes. Only one type of tags reference (numeric or namespace) is required to be passed.
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
+/// TagsFullStateForChildResource resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagsFullStateForChildResource {
+    /// If TagsFullStateForChildResource is initialized, the values in this field represent all the tags in the next state for the child resource. Only one type of tags reference (numeric or namespace) is required to be passed. IMPORTANT: This field should only be used when the target resource IAM policy name is UNKNOWN and the resource''s parent IAM policy name is being passed in the request.
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// TagsPartialState resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagsPartialState {

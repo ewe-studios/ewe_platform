@@ -159,6 +159,10 @@ pub struct Colors {
     pub updated: ::core::option::Option<String>,
 }
 
+/// EventLabel resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventLabel {}
+
 /// Events resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Events {
@@ -261,6 +265,10 @@ pub struct FreeBusyResponse {
     #[serde(default, rename = "timeMin")]
     pub time_min: ::core::option::Option<String>,
 }
+
+/// LabelProperties resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LabelProperties {}
 
 /// Settings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -806,4 +814,11 @@ pub struct ConferenceRequestStatus {
     /// The current status of the conference create request. Read-only.
     #[serde(default, rename = "statusCode")]
     pub status_code: ::core::option::Option<String>,
+}
+
+/// ConferenceParametersAddOnParameters resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConferenceParametersAddOnParameters {
+    #[serde(default)]
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }

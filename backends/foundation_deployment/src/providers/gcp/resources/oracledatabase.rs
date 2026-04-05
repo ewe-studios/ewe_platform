@@ -79,6 +79,14 @@ pub struct DatabaseConnectionStringProfile {
     pub value: ::core::option::Option<String>,
 }
 
+/// Wrapper message for the value of a defined tag.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefinedTagValue {
+    /// The tags within the namespace.
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// The request for OracleDatabase.FailoverAutonomousDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FailoverAutonomousDatabaseRequest {

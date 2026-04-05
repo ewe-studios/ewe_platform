@@ -32,6 +32,13 @@ pub struct ClientStatusResponse {
     pub config: ::core::option::Option<::std::vec::Vec<ClientConfig>>,
 }
 
+/// Additional parameters that can be used to select resource variants. These include any global context parameters, per-resource type client feature capabilities and per-resource type functional attributes. All per-resource type attributes will be xds.resource. prefixed and some of these are documented below: xds.resource.listening_address: The value is "IP:port" (e.g. "10.1.1.3:8080") which is the listening address of a Listener. Used in a Listener resource query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextParams {
+    #[serde(default)]
+    pub params: ::core::option::Option<serde_json::Value>,
+}
+
 /// Specifies the way to match a string. [#next-free-field: 9]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StringMatcher {

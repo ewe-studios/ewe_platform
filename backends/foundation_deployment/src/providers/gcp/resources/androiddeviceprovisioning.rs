@@ -156,6 +156,10 @@ pub struct DevicesLongRunningOperationResponse {
     pub success_count: ::core::option::Option<i32>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request to find devices.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindDevicesByDeviceIdentifierRequest {
@@ -636,4 +640,12 @@ pub struct DeviceIdentifier {
     /// The manufacturer''s serial number for the device. This value might not be unique across different device models.
     #[serde(default, rename = "serialNumber")]
     pub serial_number: ::core::option::Option<String>,
+}
+
+/// Metadata entries that can be attached to a Device. To learn more, read [Device metadata](https://developers.google.com/zero-touch/guides/metadata).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceMetadata {
+    /// Metadata entries recorded as key-value pairs.
+    #[serde(default)]
+    pub entries: ::core::option::Option<serde_json::Value>,
 }

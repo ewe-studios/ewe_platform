@@ -104,6 +104,14 @@ pub struct QueryRequestInput {
     pub payload: ::core::option::Option<QueryRequestPayload>,
 }
 
+/// Payload containing device states information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryResponsePayload {
+    /// States of the devices. Map of third-party device ID to struct of device states.
+    #[serde(default)]
+    pub devices: ::core::option::Option<serde_json::Value>,
+}
+
 /// Payload containing the state and notification information for devices.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateAndNotificationPayload {

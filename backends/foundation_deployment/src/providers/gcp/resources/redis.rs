@@ -106,6 +106,14 @@ pub struct FailoverInstanceRequest {
     pub data_protection_mode: ::core::option::Option<String>,
 }
 
+/// This location metadata represents additional configuration options for a given location where a Redis instance may be created. All fields are output only. It is returned as content of the google.cloud.location.Location.metadata field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRedisV1LocationMetadata {
+    /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by GCE. These keys can be specified in location_id or alternative_location_id fields when creating a Redis instance.
+    #[serde(default, rename = "availableZones")]
+    pub available_zones: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents the v1 metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRedisV1OperationMetadata {
@@ -1236,6 +1244,21 @@ pub struct ResourceFlags {
     /// Optional. Value of the resource flag.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// Message type for storing tags. Tags provide a way to create annotations for resources, and in some cases conditionally allow or deny policies based on whether a resource has a specific tag.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tags {
+    /// The Tag key/value mappings.
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
+/// Message type for storing user labels. User labels are used to tag App Engine resources, allowing users to search for resources matching a set of labels and to aggregate usage data by labels.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserLabels {
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Cloud Storage location for the output content

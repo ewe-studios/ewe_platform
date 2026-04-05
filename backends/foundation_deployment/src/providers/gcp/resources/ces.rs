@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentLlmAgent {}
+
 /// Request message for AgentService.BatchDeleteConversations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchDeleteConversationsRequest {
@@ -17,6 +21,14 @@ pub struct BatchDeleteConversationsRequest {
     #[serde(default)]
     pub conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request message for ToolService.ExecuteTool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -361,6 +373,10 @@ pub struct OperationMetadata {
     pub status_message: ::core::option::Option<String>,
 }
 
+/// Request message for AgentService.RestoreAppVersion
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreAppVersionRequest {}
+
 /// Request message for ToolService.RetrieveToolSchema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RetrieveToolSchemaRequest {
@@ -443,6 +459,10 @@ pub struct SecuritySettings {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceAgentIdTokenAuthConfig {}
 
 /// Configuration for how the agent response should be synthesized.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -916,6 +936,14 @@ pub struct SessionOutputDiagnosticInfo {
     /// A trace of the entire request processing, represented as a root span. This span can contain nested child spans for specific operations.
     #[serde(default, rename = "rootSpan")]
     pub root_span: ::core::option::Option<Span>,
+}
+
+/// Indicates the session has terminated, due to either successful completion (e.g. user says "Good bye!" ) or an agent escalation. The agent will not process any further inputs after session is terminated and the client should half-close and disconnect after receiving all remaining responses from the agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndSession {
+    /// Optional. Provides additional information about the end session signal, such as the reason for ending the session.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// Search suggestions from Google Search Tool.

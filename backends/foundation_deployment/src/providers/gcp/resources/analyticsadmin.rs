@@ -32,6 +32,18 @@ pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest {
     pub acknowledgement: ::core::option::Option<String>,
 }
 
+/// Response message for AcknowledgeUserDataCollection RPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse {}
+
+/// Request message for ArchiveCustomDimension RPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaArchiveCustomDimensionRequest {}
+
+/// Request message for ArchiveCustomMetric RPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAnalyticsAdminV1betaArchiveCustomMetricRequest {}
+
 /// A resource message representing data sharing settings of a Google Analytics account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAnalyticsAdminV1betaDataSharingSettings {
@@ -308,6 +320,10 @@ pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// A virtual resource representing an overview of an account and all its child Google Analytics properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]

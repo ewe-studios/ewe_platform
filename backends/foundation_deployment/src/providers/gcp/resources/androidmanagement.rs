@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// An ADB interactive shell was opened via “adb shell”. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdbShellInteractiveEvent {}
+
 /// Information about an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
@@ -160,6 +164,14 @@ pub struct Command {
     pub wipe_params: ::core::option::Option<WipeParams>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Represents that the device has completed enrollment. User should be in the launcher at this point, device at this point will be compliant and all setup steps have been completed. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrollmentCompleteEvent {}
+
 /// An event sent for an enterprise upgrade. An enterprise upgrade is a process that upgrades a managed Google Play Accounts enterprise to a managed Google domain.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseUpgradeEvent {
@@ -189,6 +201,18 @@ pub struct GenerateEnterpriseUpgradeUrlResponse {
     #[serde(default)]
     pub url: ::core::option::Option<String>,
 }
+
+/// Response on issuing a command. This is currently empty as a placeholder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IssueCommandResponse {}
+
+/// The keyguard was dismissed. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyguardDismissedEvent {}
+
+/// The device was locked either by user or timeout. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyguardSecuredEvent {}
 
 /// Response to a request to list devices for a given enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -270,6 +294,22 @@ pub struct ListWebAppsResponse {
     pub web_apps: ::core::option::Option<::std::vec::Vec<WebApp>>,
 }
 
+/// The usageLog buffer on the device has reached 90% of its capacity, therefore older events may be dropped. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogBufferSizeCriticalEvent {}
+
+/// usageLog policy has been enabled. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingStartedEvent {}
+
+/// usageLog policy has been disabled. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingStoppedEvent {}
+
+/// An event indicating an outgoing phone call has been made when a device is in lost mode. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LostModeOutgoingPhoneCallEvent {}
+
 /// Request to update or create ApplicationPolicy objects in the given Policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModifyPolicyApplicationsRequest {
@@ -285,6 +325,10 @@ pub struct ModifyPolicyApplicationsResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
 }
+
+/// Device was shutdown. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OsShutdownEvent {}
 
 /// The result of an attempt to clear the data of a single app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -359,6 +403,10 @@ pub struct SignupUrl {
     pub url: ::core::option::Option<String>,
 }
 
+/// Parameters associated with the STOP_LOST_MODE command to take the device out of lost mode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopLostModeParams {}
+
 /// A web token used to access the managed Google Play iframe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebToken {
@@ -378,6 +426,10 @@ pub struct WebToken {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+/// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WipeFailureEvent {}
 
 /// Id to name association of a app track.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -575,6 +627,14 @@ pub struct ClearAppsDataParams {
     /// The package names of the apps whose data will be cleared when the command is executed.
     #[serde(default, rename = "packageNames")]
     pub package_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Status of the CLEAR_APP_DATA command to clear the data of specified apps from the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClearAppsDataStatus {
+    /// The per-app results, a mapping from package names to the respective clearing result.
+    #[serde(default)]
+    pub results: ::core::option::Option<serde_json::Value>,
 }
 
 /// Status and error details (if present) of an ADD_ESIM or REMOVE_ESIM command.

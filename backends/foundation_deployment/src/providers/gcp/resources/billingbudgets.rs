@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period''s spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudBillingBudgetsV1LastPeriodAmount {}
+
 /// Response for ListBudgets
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
@@ -20,6 +24,10 @@ pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// A budget is a plan that describes what you expect to spend on Cloud projects, plus the rules to execute as spend is tracked against that plan, (for example, send an alert when 90% of the target spend is met). The budget time period is configurable, with options such as month (default), quarter, year, or custom time period.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -3032,11 +3032,25 @@ pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettings {
         ::core::option::Option<GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings>,
 }
 
+/// GoogleCloudDialogflowCxV3AgentPersonalizationSettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3AgentPersonalizationSettings {
+    #[serde(default, rename = "defaultEndUserMetadata")]
+    pub default_end_user_metadata: ::core::option::Option<serde_json::Value>,
+}
+
 /// GoogleCloudDialogflowCxV3SpeechToTextSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SpeechToTextSettings {
     #[serde(default, rename = "enableSpeechAdaptation")]
     pub enable_speech_adaptation: ::core::option::Option<bool>,
+}
+
+/// GoogleCloudDialogflowCxV3TextToSpeechSettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3TextToSpeechSettings {
+    #[serde(default, rename = "synthesizeSpeechConfigs")]
+    pub synthesize_speech_configs: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3DeploymentResult resource type.
@@ -4293,6 +4307,13 @@ pub struct GoogleCloudDialogflowV2beta1AnnotatedMessagePart {
     pub formatted_value: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub text: ::core::option::Option<String>,
+}
+
+/// GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio resource type.
@@ -7810,6 +7831,20 @@ pub struct GoogleCloudDialogflowCxV3ResponseMessage {
     pub tool_call: ::core::option::Option<GoogleCloudDialogflowCxV3ToolCall>,
 }
 
+/// GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+}
+
 /// GoogleCloudDialogflowCxV3ResponseMessageMixedAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudio {
@@ -7958,6 +7993,20 @@ pub struct GoogleCloudDialogflowCxV3beta1ResponseMessage {
     pub text: ::core::option::Option<GoogleCloudDialogflowCxV3beta1ResponseMessageText>,
     #[serde(default, rename = "toolCall")]
     pub tool_call: ::core::option::Option<GoogleCloudDialogflowCxV3beta1ToolCall>,
+}
+
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff {
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudio resource type.

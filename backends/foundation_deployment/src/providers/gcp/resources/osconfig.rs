@@ -492,6 +492,14 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
+/// Message representing label set. * A label is a key value pair set for a VM. * A LabelSet is a set of labels. * Labels within a LabelSet are ANDed. In other words, a LabelSet is applicable for a VM only if it matches all the labels in the LabelSet. * Example: A LabelSet with 2 labels: env=prod and type=webserver will only be applicable for those VMs with both labels present.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyAssignmentLabelSet {
+    /// Labels are identified by key/value pairs in this map. A VM should contain all the key/value pairs specified in this map to be selected.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+}
+
 /// VM inventory details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OSPolicyAssignmentInstanceFilterInventory {

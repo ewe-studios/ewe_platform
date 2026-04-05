@@ -844,6 +844,14 @@ pub struct Binding {
     pub role: ::core::option::Option<String>,
 }
 
+/// PerSliSloEligibility is a mapping from an SLI name to eligibility.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
+    /// An entry in the eligibilities map specifies an eligibility for a particular SLI for the given instance. The SLI key in the name must be a valid SLI name specified in the Eligibility Exporter binary flags otherwise an error will be emitted by Eligibility Exporter and the oncaller will be alerted. If an SLI has been defined in the binary flags but the eligibilities map does not contain it, the corresponding SLI time series will not be emitted by the Eligibility Exporter. This ensures a smooth rollout and compatibility between the data produced by different versions of the Eligibility Exporters. If eligibilities map contains a key for an SLI which has not been declared in the binary flags, there will be an error message emitted in the Eligibility Exporter log and the metric for the SLI in question will not be emitted.
+    #[serde(default)]
+    pub eligibilities: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Date {

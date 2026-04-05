@@ -1091,6 +1091,14 @@ pub struct LocalizedMessage {
     pub message: ::core::option::Option<String>,
 }
 
+/// DatabaseInstance acts as a parent entity to other database entities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseInstanceEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+}
+
 /// Function''s parent is a schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionEntity {
@@ -1203,6 +1211,14 @@ pub struct MaterializedViewEntity {
     /// The SQL code which creates the view.
     #[serde(default, rename = "sqlCode")]
     pub sql_code: ::core::option::Option<String>,
+}
+
+/// Schema typically has no parent entity, but can have a parent entity DatabaseInstance (for database engines which support it). For some database engines, the terms schema and user can be used interchangeably when they refer to a namespace or a collection of other database entities. Can store additional information which is schema specific.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
 }
 
 /// Sequence''s parent is a schema.
@@ -2572,6 +2588,14 @@ pub struct SslConfig {
     /// Optional. The ssl config type according to ''client_key'', ''client_certificate'' and ''ca_certificate''. // TODO: enum values: ["SSL_TYPE_UNSPECIFIED", "SERVER_ONLY", "SERVER_CLIENT", "REQUIRED", "NONE"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// Apply a hash function on the value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplyHash {
+    /// Optional. Generate UUID from the data''s byte array
+    #[serde(default, rename = "uuidFromBytes")]
+    pub uuid_from_bytes: ::core::option::Option<serde_json::Value>,
 }
 
 /// Set to a specific value (value is converted to fit the target data type)

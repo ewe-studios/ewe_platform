@@ -33,6 +33,10 @@ pub struct GoogleApiHttpBody {
     pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
+/// Request for ActivateNatAddressRequest. Activate the nat address request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ActivateNatAddressRequest {}
+
 /// Request for AdjustAppGroupBalance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1AdjustAppGroupBalanceRequest {
@@ -302,6 +306,10 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
     pub scope: ::core::option::Option<String>,
 }
 
+/// Message for include_all_resources option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll {}
+
 /// Response for BatchComputeSecurityAssessmentResults.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse {
@@ -564,6 +572,14 @@ pub struct GoogleCloudApigeeV1DeveloperMonetizationConfig {
     pub billing_type: ::core::option::Option<String>,
 }
 
+/// Message to disable an enabled SecurityAction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DisableSecurityActionRequest {}
+
+/// Message to enable a disabled SecurityAction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnableSecurityActionRequest {}
+
 /// GoogleCloudApigeeV1Environment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1Environment {
@@ -692,6 +708,14 @@ pub struct GoogleCloudApigeeV1EnvironmentConfig {
     pub uid: ::core::option::Option<String>,
 }
 
+/// Request for ExpireAppGroupSubscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest {}
+
+/// Request for ExpireDeveloperSubscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest {}
+
 /// Request body for [CreateExportRequest]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ExportRequest {
@@ -732,6 +756,10 @@ pub struct GoogleCloudApigeeV1FlowHook {
     pub shared_flow: ::core::option::Option<String>,
 }
 
+/// Request for GenerateDownloadUrl method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GenerateDownloadUrlRequest {}
+
 /// Response for GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
@@ -739,6 +767,10 @@ pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
     #[serde(default, rename = "downloadUri")]
     pub download_uri: ::core::option::Option<String>,
 }
+
+/// Request for GenerateUploadUrl method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GenerateUploadUrlRequest {}
 
 /// Response for GenerateUploadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -757,6 +789,10 @@ pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse {
         ::std::vec::Vec<GoogleCloudApigeeV1GetAsyncQueryResultUrlResponseURLInfo>,
     >,
 }
+
+/// Request for GetSyncAuthorization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GetSyncAuthorizationRequest {}
 
 /// GoogleCloudApigeeV1IngressConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1437,6 +1473,30 @@ pub struct GoogleCloudApigeeV1Organization {
     pub type_: ::core::option::Option<String>,
 }
 
+/// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigAbuse {}
+
+/// By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigAuthorization {}
+
+/// Checks to see if you have CORS policy in place.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigCORS {}
+
+/// Checks to see if you have configured mTLS for the target server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigMTLS {}
+
+/// By default, following policies will be included: - OASValidation - SOAPMessageValidation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigMediation {}
+
+/// By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigThreat {}
+
 /// Request for ProvisionOrganization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ProvisionOrganizationRequest {
@@ -1605,6 +1665,10 @@ pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
     pub resources: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ResourceStatus>>,
 }
 
+/// Placeholder for future enhancements to status reporting protocol
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {}
+
 /// Runtime configuration for the organization. Response for GetRuntimeConfig.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1RuntimeConfig {
@@ -1635,6 +1699,10 @@ pub struct GoogleCloudApigeeV1Schema {
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
 }
+
+/// Message that should be set in case of an Allow Action. This does not have any fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionAllow {}
 
 /// SecurityActionsConfig reflects the current state of the SecurityActions feature. This is a singleton resource: https://google.aip.dev/156
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1972,6 +2040,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// A message type used to describe a single bundle validation error.
 #[derive(Debug, Clone, Serialize, Deserialize)]

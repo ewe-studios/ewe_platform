@@ -2619,6 +2619,14 @@ pub struct GoogleCloudDiscoveryengineV1alphaGetSessionRequest {
     pub name: ::core::option::Option<String>,
 }
 
+/// Response message for SiteSearchEngineService.GetUriPatternDocumentData method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaGetUriPatternDocumentDataResponse {
+    /// Document data keyed by URI pattern. For example: document_data_map = { "www.url1.com/*": { "Categories": ["category1", "category2"] }, "www.url2.com/*": { "Categories": ["category3"] } }
+    #[serde(default, rename = "documentDataMap")]
+    pub document_data_map: ::core::option::Option<serde_json::Value>,
+}
+
 /// IdentityMappingEntry LongRunningOperation metadata for IdentityMappingStoreService.ImportIdentityMappings and IdentityMappingStoreService.PurgeIdentityMappings
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaIdentityMappingEntryOperationMetadata {
@@ -7583,6 +7591,13 @@ pub struct A2aV1AgentExtension {
     /// The URI of the extension. Example: "https://developers.google.com/identity/protocols/oauth2"
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
+}
+
+/// A2aV1Security resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2aV1Security {
+    #[serde(default)]
+    pub schemes: ::core::option::Option<serde_json::Value>,
 }
 
 /// A2aV1oAuthFlows resource type.
@@ -12886,6 +12901,13 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebook
     /// Optional. The Sensitive Data Protection policy resource name.
     #[serde(default)]
     pub policy: ::core::option::Option<String>,
+}
+
+/// DataPart represents a structured blob. This is most commonly a JSON payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2aV1DataPart {
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
 }
 
 /// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.

@@ -21,6 +21,42 @@ pub struct DetachLunRequest {
     pub skip_reboot: ::core::option::Option<bool>,
 }
 
+/// Message requesting to perform disable hyperthreading operation on a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableHyperthreadingRequest {}
+
+/// Message for disabling the interactive serial console on an instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableInteractiveSerialConsoleRequest {}
+
+/// Message for response of DisableInteractiveSerialConsole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableInteractiveSerialConsoleResponse {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Message requesting to perform enable hyperthreading operation on a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableHyperthreadingRequest {}
+
+/// Message for enabling the interactive serial console on an instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableInteractiveSerialConsoleRequest {}
+
+/// Message for response of EnableInteractiveSerialConsole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableInteractiveSerialConsoleResponse {}
+
+/// Request for skip lun cooloff and delete it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvictLunRequest {}
+
+/// Request for skip volume cooloff and delete it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvictVolumeRequest {}
+
 /// Response message for the list of servers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListInstancesResponse {
@@ -234,6 +270,14 @@ pub struct RenameVolumeRequest {
     pub new_volume_id: ::core::option::Option<String>,
 }
 
+/// Message requesting to reset a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetInstanceRequest {}
+
+/// Response message from resetting a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetInstanceResponse {}
+
 /// Request for emergency resize Volume.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResizeVolumeRequest {
@@ -241,6 +285,10 @@ pub struct ResizeVolumeRequest {
     #[serde(default, rename = "sizeGib")]
     pub size_gib: ::core::option::Option<String>,
 }
+
+/// Message for restoring a volume snapshot.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreVolumeSnapshotRequest {}
 
 /// Network template.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -257,6 +305,22 @@ pub struct ServerNetworkTemplate {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// Message requesting to start a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartInstanceRequest {}
+
+/// Response message from starting a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartInstanceResponse {}
+
+/// Message requesting to stop a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopInstanceRequest {}
+
+/// Response message from stopping a server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopInstanceResponse {}
 
 /// Request for SubmitProvisioningConfig.
 #[derive(Debug, Clone, Serialize, Deserialize)]

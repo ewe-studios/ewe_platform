@@ -925,6 +925,14 @@ pub struct GoogleCloudDataplexV1DiscoveryEventActionDetails {
     pub type_: ::core::option::Option<String>,
 }
 
+/// Details about configuration events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DiscoveryEventConfigDetails {
+    /// A list of discovery configuration parameters in effect. The keys are the field paths within DiscoverySpec. Eg. includePatterns, excludePatterns, csvOptions.disableTypeInference, etc.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<serde_json::Value>,
+}
+
 /// Details about the entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1DiscoveryEventEntityDetails {

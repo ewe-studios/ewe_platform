@@ -79,6 +79,18 @@ pub struct ApproveApprovalRequestMessage {
     pub expire_time: ::core::option::Option<String>,
 }
 
+/// Request to dismiss an approval request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DismissApprovalRequestMessage {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Request to invalidate an existing approval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvalidateApprovalRequestMessage {}
+
 /// Response to listing of ApprovalRequest objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListApprovalRequestsResponse {

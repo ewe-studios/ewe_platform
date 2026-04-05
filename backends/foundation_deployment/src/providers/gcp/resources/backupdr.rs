@@ -18,6 +18,14 @@ pub struct AbandonBackupRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for ending a trial.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EndTrialRequest {
@@ -436,6 +444,14 @@ pub struct SetInternalStatusRequest {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+/// Response message from SetStatusInternal method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetInternalStatusResponse {}
+
+/// Request message for subscribing to a trial.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscribeTrialRequest {}
 
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1675,6 +1691,14 @@ pub struct NetworkPerformanceConfig {
     /// Optional. The tier of the total egress bandwidth. // TODO: enum values: ["TIER_UNSPECIFIED", "DEFAULT", "TIER_1"]
     #[serde(default, rename = "totalEgressBandwidthTier")]
     pub total_egress_bandwidth_tier: ::core::option::Option<String>,
+}
+
+/// Additional instance params.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceParams {
+    /// Optional. Resource manager tags to be bound to the instance.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specifies the reservations that this instance can consume from.

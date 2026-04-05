@@ -862,6 +862,14 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
     pub integration_type: ::core::option::Option<String>,
 }
 
+/// Score distribution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1ScoreDistribution {
+    /// Map key is score value multiplied by 100. The scores are discrete values between [0, 1]. The maximum number of buckets is on order of a few dozen, but typically much lower (ie. 10).
+    #[serde(default, rename = "scoreBuckets")]
+    pub score_buckets: ::core::option::Option<serde_json::Value>,
+}
+
 /// Risk explainability reasons for account defender.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason {
